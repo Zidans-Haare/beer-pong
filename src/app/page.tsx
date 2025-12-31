@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="container">
-      <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
+      <header style={{ marginBottom: '1rem', textAlign: 'center' }}>
       </header>
 
       <div style={{

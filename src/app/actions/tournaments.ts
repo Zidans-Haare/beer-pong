@@ -252,6 +252,19 @@ export async function startPlayoffs(tournamentId: string) {
                         player2Id: g1Second
                     }
                 });
+
+                // Final: Winner Semi 1 vs Winner Semi 2
+                // Created empty so winners can be advanced automatically
+                await tx.match.create({
+                    data: {
+                        tournamentId,
+                        round: 99,
+                        position: 0,
+                        stage: 'BRACKET',
+                        player1Id: null,
+                        player2Id: null
+                    }
+                });
             });
         }
 

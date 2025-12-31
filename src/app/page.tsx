@@ -3,7 +3,9 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="container">
-      <header style={{ marginBottom: '1rem', textAlign: 'center' }}>
+      <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
+        <h1 className="title-gradient" style={{ fontSize: '3rem', marginBottom: 'var(--spacing-2)' }}>Bier Pong Pro</h1>
+        <p style={{ color: 'var(--color-text-dim)', fontSize: '1.2rem' }}>Der ultimative Turnier-Manager</p>
       </header>
 
       <div style={{

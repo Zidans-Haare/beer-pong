@@ -1,6 +1,6 @@
 {
-    "name": "Beer Pong Manager",
-    "short_name": "PongMgr",
+    "name": "Bier Pong Pro",
+    "short_name": "Bier Pong",
     "description": "Professional Beer Pong Tournament Manager",
     "start_url": "/",
     "display": "standalone",

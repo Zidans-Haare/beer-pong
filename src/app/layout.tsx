@@ -3,13 +3,13 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Beer Pong Manager',
+  title: 'Bier Pong Pro',
   description: 'Manage your beer pong tournaments professionally.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'PongMgr',
+    title: 'Bier Pong Pro',
   },
 };
 

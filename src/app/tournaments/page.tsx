@@ -22,7 +22,7 @@ export default async function TournamentsPage() {
             </div>
 
             {/* Active / Planned */}
-            <h2 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--spacing-4)', color: 'white' }}>Aktuell</h2>
+            <h2 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Aktuell</h2>
             <div style={{ display: 'grid', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-12)' }}>
                 {activeTournaments.length === 0 ? (
                     <p style={{ color: 'var(--color-text-dim)', fontStyle: 'italic' }}>Keine aktuellen Turniere.</p>
@@ -53,7 +53,7 @@ function TournamentCard({ t }: { t: any }) {
         <Link href={`/tournaments/${t.id}`} className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', color: 'inherit', transition: 'transform 0.2s', cursor: 'pointer' }}>
             <div>
                 <h3 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--spacing-1)', color: 'var(--color-primary)' }}>{t.name}</h3>
-                <div style={{ display: 'flex', gap: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: 'var(--font-size-sm)' }}>
+                <div style={{ display: 'flex', gap: 'var(--spacing-4)', color: 'var(--color-text)', fontSize: 'var(--font-size-sm)' }}>
                     <span>📅 {format(new Date(t.date), 'PPP p', { locale: de })}</span>
                     <span>📍 {t.location}</span>
                     <span>🎮 {t.type}</span>
@@ -63,8 +63,8 @@ function TournamentCard({ t }: { t: any }) {
                 <span style={{
                     padding: '4px 12px',
                     borderRadius: '99px',
-                    background: t.status === 'ACTIVE' ? 'var(--color-success)' : (t.status === 'COMPLETED' ? 'var(--color-text-dim)' : 'rgba(255,255,255,0.1)'),
-                    color: t.status === 'ACTIVE' ? 'black' : 'white',
+                    background: t.status === 'ACTIVE' ? 'var(--color-success)' : (t.status === 'COMPLETED' ? 'var(--color-text-dim)' : 'var(--color-border)'),
+                    color: t.status === 'ACTIVE' ? 'black' : (t.status === 'COMPLETED' ? 'white' : 'var(--color-text)'),
                     fontSize: '0.8rem',
                     fontWeight: 'bold'
                 }}>

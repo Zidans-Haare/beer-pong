@@ -7,9 +7,9 @@
 interface Standing {
     playerId: string;
     playerName: string;
-    played: number;
-    won: number;
-    lost: number;
+    matchesPlayed: number;
+    wins: number;
+    losses: number;
     points: number;
     cupDiff: number;
 }
@@ -28,7 +28,7 @@ export default function TournamentTable({ standings }: { standings: Standing[] }
                         <th style={{ padding: 'var(--spacing-3)' }}>S</th>
                         <th style={{ padding: 'var(--spacing-3)' }}>N</th>
                         <th style={{ padding: 'var(--spacing-3)' }}>Diff.</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>Puntke</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>Pukte</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,9 +36,9 @@ export default function TournamentTable({ standings }: { standings: Standing[] }
                         <tr key={s.playerId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             <td style={{ padding: 'var(--spacing-3)' }}>{i + 1}.</td>
                             <td style={{ padding: 'var(--spacing-3)', fontWeight: 'bold' }}>{s.playerName}</td>
-                            <td style={{ padding: 'var(--spacing-3)' }}>{s.played}</td>
-                            <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-success)' }}>{s.won}</td>
-                            <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-error)' }}>{s.lost}</td>
+                            <td style={{ padding: 'var(--spacing-3)' }}>{s.matchesPlayed}</td>
+                            <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-success)' }}>{s.wins}</td>
+                            <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-error)' }}>{s.losses}</td>
                             <td style={{ padding: 'var(--spacing-3)' }}>{s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}</td>
                             <td style={{ padding: 'var(--spacing-3)', fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.points}</td>
                         </tr>

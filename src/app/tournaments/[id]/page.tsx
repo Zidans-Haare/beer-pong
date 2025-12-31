@@ -11,10 +11,12 @@ import StartTournamentButton from './start-button';
 import StartPlayoffsButton from './playoff-button';
 import Bracket from '@/components/Bracket';
 import TournamentTable from '@/components/TournamentTable';
+import PlayerMatchesList from '@/components/PlayerMatchesList';
 import { getTournamentStandings } from '@/lib/stats';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { deleteTournament } from '@/app/actions/tournaments';
 import FinishTournamentButton from './finish-button';
+import AutoRefresh from '@/components/AutoRefresh';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -36,7 +38,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     if (!tournament) notFound();
 
     const isHost = session?.user?.id === tournament.hostId;
-    const yesCount = tournament.rsvps.filter((r) => r.status === 'YES').length;
+    const yesCount = tournament.rsvps.filter((r: { status: string }) => r.status === 'YES').length;
     const isPlanner = tournament.status === 'PLANNED';
     const isActive = tournament.status === 'ACTIVE' || tournament.status === 'COMPLETED';
 
@@ -47,12 +49,16 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
     return (
         <div className="container">
+            <Link href="/tournaments" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)', display: 'inline-block' }}>
+                &larr; Zurück zur Übersicht
+            </Link>
+
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                     <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text-dim)' }}>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text)' }}>
                         <span>📅 {format(new Date(tournament.date), 'PPP p', { locale: de })}</span>
                         <span>📍 {tournament.location}</span>
                         <span>👥 {yesCount} Teilnehmer</span>
@@ -65,7 +71,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 </div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-8)' }}>
+            <div className="tournament-grid">
                 <div>
                     <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Teilnehmerliste</h2>
                     <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
@@ -73,7 +79,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                             <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Antworten.</p>
                         ) : (
                             <ul style={{ listStyle: 'none', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 'var(--spacing-2)' }}>
-                                {tournament.rsvps.map((rsvp) => (
+                                {tournament.rsvps.map((rsvp: any) => (
                                     <li key={rsvp.id} style={{
                                         padding: 'var(--spacing-2)',
                                         background: 'rgba(255,255,255,0.05)',
@@ -101,7 +107,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                             {session?.user?.id ? (
                                 (() => {
                                     // Find current user's player
-                                    const currentPlayer = players.find(p => p.userId === session?.user?.id);
+                                    const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
                                     if (!currentPlayer) {
                                         return (
                                             <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
@@ -111,7 +117,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                                             </div>
                                         );
                                     }
-                                    const userRsvp = tournament.rsvps.find(r => r.playerId === currentPlayer.id);
+                                    const userRsvp = tournament.rsvps.find((r: any) => r.playerId === currentPlayer.id);
                                     return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} />;
                                 })()
                             ) : (
@@ -155,23 +161,48 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
             {isActive && (
                 <div style={{ marginTop: 'var(--spacing-12)' }}>
+                    {/* User Specific View (For Non-Hosts/Players) */}
+                    {!isHost && session?.user && (
+                        <div style={{ marginBottom: 'var(--spacing-12)' }}>
+                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Deine Spiele</h2>
+
+                            {(() => {
+                                const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
+                                if (!currentPlayer) return <p style={{ color: 'var(--color-text-dim)' }}>Kein Spielerprofil gefunden.</p>;
+
+                                return <PlayerMatchesList matches={tournament.matches} currentPlayerId={currentPlayer.id} />;
+                            })()}
+                        </div>
+                    )}
+
                     {tournament.type === 'ROUND_ROBIN' && (
                         <>
-                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Tabelle</h2>
-                            <TournamentTable standings={await getTournamentStandings(tournament.id)} />
-
-                            {/* Check if playoffs already exist (round 99) */}
-                            {/* Moved to host section */}
-                            {/* {(!tournament.matches.some(m => m.round === 99)) && (
-                                <div style={{ marginBottom: 'var(--spacing-8)', textAlign: 'center' }}>
-                                    <StartPlayoffsButton tournamentId={tournament.id} />
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                                <div>
+                                    <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 1</h3>
+                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} />
                                 </div>
-                            )} */}
+                                <div>
+                                    <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 2</h3>
+                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} />
+                                </div>
+                            </div>
                         </>
                     )}
 
-                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Spiele / Turnierbaum</h2>
-                    <Bracket matches={tournament.matches || []} />
+                    {/* Only Host sees the full Bracket */}
+                    {isHost && (
+                        <>
+                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', marginTop: 'var(--spacing-12)' }}>Gesamter Turnierplan (Host)</h2>
+                            <Bracket matches={tournament.matches || []} />
+                        </>
+                    )}
+
+                    {/* Optional: Add a toggle for players to see full bracket if they really want to? 
+                        User said "everyone sees only their games", so default hidden is correct. 
+                    */}
+
+                    <AutoRefresh />
                 </div>
             )}
         </div>

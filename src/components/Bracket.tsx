@@ -26,7 +26,9 @@ export default function Bracket({ matches }: { matches: any[] }) {
             <div style={{ display: 'flex', overflowX: 'auto', gap: 'var(--spacing-8)', padding: 'var(--spacing-4)' }}>
                 {roundNumbers.map((round) => (
                     <div key={round} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 'var(--spacing-8)' }}>
-                        <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)' }}>Runde {round}</h3>
+                        <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>
+                            {getRoundName(round)}
+                        </h3>
                         {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => (
                             <div
                                 key={match.id}
@@ -57,4 +59,11 @@ function playerClass(match: any, playerId: string | null | undefined): string {
     if (match.winnerId === playerId) return '2px solid var(--color-success)';
     if (match.winnerId && match.winnerId !== playerId) return '1px solid var(--color-error)';
     return '1px solid var(--color-border)';
+}
+
+function getRoundName(round: number): string {
+    if (round === 99) return 'Finale';
+    if (round === 98) return 'Halbfinale';
+    if (round === 97) return 'Viertelfinale';
+    return `Runde ${round}`;
 }

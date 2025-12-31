@@ -28,8 +28,8 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
-            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '350px' }}>
-                <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)' }}>Ergebnis eintragen</h3>
+            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '350px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)' }}>
+                <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-text)' }}>Ergebnis eintragen</h3>
                 <form onSubmit={handleSubmit}>
                     <p style={{ marginBottom: 'var(--spacing-2)', textAlign: 'center', color: 'var(--color-text-dim)' }}>Wer hat gewonnen?</p>
 
@@ -40,10 +40,11 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                             style={{
                                 padding: 'var(--spacing-4)',
                                 border: winnerId === match.player1Id ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === match.player1Id ? 'rgba(0,255,0,0.1)' : 'transparent',
-                                color: 'white',
+                                background: winnerId === match.player1Id ? 'var(--color-surface)' : 'var(--color-bg)',
+                                color: 'var(--color-text)',
                                 borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                fontWeight: winnerId === match.player1Id ? 'bold' : 'normal'
                             }}
                         >
                             {match.player1?.name || 'Spieler 1'}
@@ -54,10 +55,11 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                             style={{
                                 padding: 'var(--spacing-4)',
                                 border: winnerId === match.player2Id ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === match.player2Id ? 'rgba(0,255,0,0.1)' : 'transparent',
-                                color: 'white',
+                                background: winnerId === match.player2Id ? 'var(--color-surface)' : 'var(--color-bg)',
+                                color: 'var(--color-text)',
                                 borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                fontWeight: winnerId === match.player2Id ? 'bold' : 'normal'
                             }}
                         >
                             {match.player2?.name || 'Spieler 2'}
@@ -66,7 +68,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
 
                     {winnerId && (
                         <div style={{ marginBottom: 'var(--spacing-6)', textAlign: 'center' }}>
-                            <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>
+                            <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', color: 'var(--color-text)' }}>
                                 Wie viele Becher hat der <strong>Verlierer</strong> getroffen?
                             </label>
                             <input
@@ -80,9 +82,9 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                     padding: 'var(--spacing-3)',
                                     fontSize: '1.5rem',
                                     textAlign: 'center',
-                                    background: 'rgba(255,255,255,0.1)',
+                                    background: 'var(--color-surface)',
                                     border: '1px solid var(--color-border)',
-                                    color: 'white',
+                                    color: 'var(--color-text)',
                                     borderRadius: 'var(--radius-sm)'
                                 }}
                             />

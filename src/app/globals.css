@@ -1,23 +1,25 @@
 :root {
-  /* Colors - Premium Dark Mode with Neon Accents */
-  --color-bg: #050510;
-  --color-surface: #12121e;
-  --color-surface-hover: #1c1c2e;
+  /* Colors - Professional Light Theme */
+  --color-bg: #f8f9fa;
+  /* Light Gray / Off-White */
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f3f5;
 
-  --color-primary: #00f3ff;
-  /* Neon Cyan */
-  --color-primary-glow: rgba(0, 243, 255, 0.4);
+  --color-primary: #2563eb;
+  /* Professional Blue */
+  --color-primary-dark: #1e40af;
+  --color-primary-glow: rgba(37, 99, 235, 0.2);
 
-  --color-secondary: #f706cf;
-  /* Neon Pink */
-  --color-secondary-glow: rgba(247, 6, 207, 0.4);
+  --color-secondary: #4f46e5;
+  /* Indigo */
+  --color-secondary-glow: rgba(79, 70, 229, 0.2);
 
-  --color-text: #ffffff;
-  --color-text-dim: #a0a0b0;
-  --color-border: #2a2a3e;
+  --color-text: #1a1a1a;
+  --color-text-dim: #6c757d;
+  --color-border: #e9ecef;
 
-  --color-success: #00ff9d;
-  --color-error: #ff0055;
+  --color-success: #10b981;
+  --color-error: #ef4444;
 
   /* Typography */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -38,20 +40,20 @@
   --spacing-12: 3rem;
 
   /* Effects */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-  --shadow-glow-primary: 0 0 15px var(--color-primary-glow);
-  --shadow-glow-secondary: 0 0 15px var(--color-secondary-glow);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow-primary: 0 0 0 3px var(--color-primary-glow);
 
-  --glass-bg: rgba(18, 18, 30, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --blur-md: 10px;
+  --glass-bg: #ffffff;
+  --glass-border: var(--color-border);
+  --blur-md: 0;
+  /* No blur needed for solid cards */
 }
 
 * {
@@ -90,11 +92,11 @@ button {
 }
 
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--blur-md));
-  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  /* Removed backdrop-filter for clean card look */
 }
 
 .title-gradient {
@@ -117,29 +119,40 @@ button {
 
 .btn-primary {
   background: var(--color-primary);
-  color: #000;
-  box-shadow: var(--shadow-glow-primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 0 20px var(--color-primary-glow);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-surface-hover);
+  border-color: #d1d5db;
 }
 
 .layout-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* Add padding for bottom nav on mobile */
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  .layout-shell {
+    padding-bottom: 0;
+  }
 }
 
 .main-content {
@@ -147,4 +160,69 @@ button {
   position: relative;
   z-index: 1;
   width: 100%;
+}
+
+/* Bottom Nav (Mobile Only) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  /* Increased height for better touch targets */
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-dim);
+  text-decoration: none;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+/* Hide Bottom Nav on Desktop */
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+/* Navbar Tweaks */
+@media (max-width: 768px) {
+  .desktop-nav-links {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0 var(--spacing-2);
+  }
+}
+
+.tournament-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-6);
+}
+
+@media (min-width: 900px) {
+  .tournament-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-8);
+  }
 }

@@ -92,7 +92,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
     }, [stats, range]);
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 'var(--spacing-8)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-4)' }}>
                     <h3 style={{ color: 'var(--color-primary)', margin: 0 }}>Siegquote Trend (Top 5)</h3>

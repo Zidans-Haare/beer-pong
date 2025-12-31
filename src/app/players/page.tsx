@@ -20,10 +20,10 @@ export default async function PlayersPage() {
                     <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Spieler registriert.</p>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--spacing-4)' }}>
-                        {players.map((player) => (
+                        {players.map((player: any) => (
                             <Link key={player.id} href={`/players/${player.id}`} className="player-card glass-panel" style={{ textDecoration: 'none', display: 'block', transition: 'transform 0.2s' }}>
                                 <div style={{ padding: 'var(--spacing-4)' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '4px', color: 'white' }}>{player.name}</div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '4px', color: 'var(--color-text)' }}>{player.name}</div>
                                     {player.nickname && (
                                         <div style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }}>"{player.nickname}"</div>
                                     )}

@@ -25,15 +25,15 @@ export default function RegisterForm() {
             <form action={handleSubmit}>
                 <div style={{ marginBottom: 'var(--spacing-4)' }}>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Name</label>
-                    <input name="name" type="text" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'white' }} />
+                    <input name="name" type="text" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
                 </div>
                 <div style={{ marginBottom: 'var(--spacing-4)' }}>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Email</label>
-                    <input name="email" type="email" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'white' }} />
+                    <input name="email" type="email" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
                 </div>
                 <div style={{ marginBottom: 'var(--spacing-6)' }}>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Passwort</label>
-                    <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'white' }} />
+                    <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
                 </div>
 
                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Account erstellen</button>

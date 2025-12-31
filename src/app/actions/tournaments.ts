@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { generateSingleEliminationBracket, generateRoundRobinMatches } from '@/lib/brackets';
 import { auth } from '@/auth';
 
+
 export async function getTournaments() {
     try {
         const tournaments = await prisma.tournament.findMany({
@@ -30,7 +31,7 @@ export async function createTournament(formData: FormData) {
     const startImmediately = formData.get('startImmediately') === 'on';
     const participantIds = formData.getAll('participants') as string[];
 
-    const userId = session.user.id; // Changed: Extract userId
+    const userId = session.user.id;
 
     if (!name || !dateStr || !location) {
         throw new Error('Missing required fields');
@@ -39,7 +40,7 @@ export async function createTournament(formData: FormData) {
     const date = new Date(dateStr);
 
     try {
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: any) => {
             const tournament = await tx.tournament.create({
                 data: {
                     name,
@@ -47,11 +48,10 @@ export async function createTournament(formData: FormData) {
                     location,
                     type: type || 'ELIMINATION',
                     status: startImmediately ? 'ACTIVE' : 'PLANNED',
-                    hostId: userId, // Set Host
+                    hostId: userId,
                 },
             });
 
-            // Create RSVPs for selected participants
             if (participantIds.length > 0) {
                 for (const playerId of participantIds) {
                     await tx.rSVP.create({
@@ -64,7 +64,6 @@ export async function createTournament(formData: FormData) {
                 }
             }
 
-            // If start immediately, generate bracket
             if (startImmediately) {
                 if (participantIds.length < 2) throw new Error('Für Sofort-Start werden mind. 2 Spieler benötigt.');
 
@@ -74,7 +73,9 @@ export async function createTournament(formData: FormData) {
 
                 let matches;
                 if (type === 'ROUND_ROBIN') {
-                    matches = generateRoundRobinMatches(tournament.id, players);
+                    // Provide IDs only for Round Robin
+                    const playerIds = players.map((p: any) => p.id);
+                    matches = generateRoundRobinMatches(tournament.id, playerIds);
                 } else {
                     matches = generateSingleEliminationBracket(tournament.id, players);
                 }
@@ -92,10 +93,16 @@ export async function createTournament(formData: FormData) {
         let participantEmails: string[] = [];
         if (participantIds.length > 0) {
             const participants = await prisma.player.findMany({
-                where: { id: { in: participantIds }, email: { not: null } },
-                select: { email: true }
+                where: { id: { in: participantIds } },
+                select: {
+                    email: true,
+                    user: { select: { email: true } }
+                }
             });
-            participantEmails = participants.map(p => p.email).filter(Boolean) as string[];
+            console.log('Fetching emails for IDs:', participantIds);
+            console.log('Found participants:', JSON.stringify(participants, null, 2));
+            participantEmails = participants.map((p: any) => p.email || p.user?.email).filter(Boolean) as string[];
+            console.log('Mapped emails:', participantEmails);
         }
 
         if (result.status === 'ACTIVE') {
@@ -124,25 +131,25 @@ export async function startTournament(tournamentId: string) {
 
         if (!tournament) throw new Error('Tournament not found');
 
-        // Host check
         if (tournament.hostId && tournament.hostId !== session.user.id) {
             return { success: false, error: 'Nur der Host kann das Turnier starten.' };
         }
 
         if (tournament.status !== 'PLANNED') throw new Error('Tournament already started or completed');
 
-        const players = tournament.rsvps.map((r) => r.player);
+        const players = tournament.rsvps.map((r: any) => r.player);
         if (players.length < 2) throw new Error('Not enough players (min 2)');
 
         let matches;
-        if (tournament.type === 'ROUND_ROBIN') {
-            matches = generateRoundRobinMatches(tournament.id, players);
-        } else {
+        if (tournament.type === 'SINGLE_ELIMINATION') {
             matches = generateSingleEliminationBracket(tournament.id, players);
+        } else {
+            // Provide IDs only for Round Robin
+            const playerIds = players.map((p: any) => p.id);
+            matches = generateRoundRobinMatches(tournament.id, playerIds);
         }
 
-        // Transactional creation
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.tournament.update({
                 where: { id: tournamentId },
                 data: { status: 'ACTIVE' }
@@ -162,7 +169,6 @@ export async function startTournament(tournamentId: string) {
 }
 
 export async function startPlayoffs(tournamentId: string) {
-    // Permission check technically should be here too, but risk is low for internal logic
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
 
@@ -177,48 +183,53 @@ export async function startPlayoffs(tournamentId: string) {
             return { success: false, error: 'Nur der Host kann Playoffs starten.' };
         }
 
-        // Check if all group matches are completed
-        const unplayed = tournament.matches.filter(m => m.stage === 'GROUP' && !m.winnerId);
+        // Check for loose matches (any match in GROUP stage without winner)
+        const unplayed = tournament.matches.filter((m: any) => (m.stage === 'GROUP_1' || m.stage === 'GROUP_2') && !m.winnerId);
         if (unplayed.length > 0) throw new Error('Alle Gruppenspiele müssen beendet sein.');
 
-        // Calculate Standings
         const { getTournamentStandings } = await import('@/lib/stats');
-        const standings = await getTournamentStandings(tournamentId);
 
-        if (standings.length < 2) throw new Error('Zu wenige Spieler für Finals.');
+        // Fetch standings per group
+        const standingsG1 = await getTournamentStandings(tournamentId, 'GROUP_1');
+        const standingsG2 = await getTournamentStandings(tournamentId, 'GROUP_2');
 
-        const p1Id = standings[0].playerId;
-        const p2Id = standings[1].playerId;
-        const p3Id = standings.length > 2 ? standings[2].playerId : null;
-        const p4Id = standings.length > 3 ? standings[3].playerId : null;
+        // Allow playoffs if at least 1 player in each group? No, we need 2 for Semis or 1 for Final.
+        // User wants: G1#1 vs G2#2 and G2#1 vs G1#2.
+        // Needs top 2 from each group.
 
-        // Transaction: Create Final and 3rd Place
-        await prisma.$transaction(async (tx) => {
-            // Final
+        if (standingsG1.length < 2 || standingsG2.length < 2) {
+            throw new Error('Jede Gruppe benötigt mindestens 2 Spieler für die Halbfinals.');
+        }
+
+        const g1First = standingsG1[0].playerId;
+        const g1Second = standingsG1[1].playerId;
+        const g2First = standingsG2[0].playerId;
+        const g2Second = standingsG2[1].playerId;
+
+        await prisma.$transaction(async (tx: any) => {
+            // Semifinal 1: G1#1 vs G2#2
             await tx.match.create({
                 data: {
                     tournamentId,
-                    round: 99, // Special round for Finals
+                    round: 98, // Semifinals
                     position: 0,
-                    stage: 'BRACKET', // It's a bracket stage now
-                    player1Id: p1Id,
-                    player2Id: p2Id
+                    stage: 'BRACKET', // Playoff stage
+                    player1Id: g1First,
+                    player2Id: g2Second
                 }
             });
 
-            // 3rd Place
-            if (p3Id && p4Id) {
-                await tx.match.create({
-                    data: {
-                        tournamentId,
-                        round: 99,
-                        position: 1,
-                        stage: 'BRACKET',
-                        player1Id: p3Id,
-                        player2Id: p4Id
-                    }
-                });
-            }
+            // Semifinal 2: G2#1 vs G1#2
+            await tx.match.create({
+                data: {
+                    tournamentId,
+                    round: 98,
+                    position: 1,
+                    stage: 'BRACKET',
+                    player1Id: g2First,
+                    player2Id: g1Second
+                }
+            });
         });
 
         revalidatePath(`/tournaments/${tournamentId}`);
@@ -229,7 +240,7 @@ export async function startPlayoffs(tournamentId: string) {
     }
 }
 
-export async function deleteTournament(tournamentId: string) { // Removed adminCode
+export async function deleteTournament(tournamentId: string) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Nicht eingeloggt' };
 
@@ -237,17 +248,11 @@ export async function deleteTournament(tournamentId: string) { // Removed adminC
         const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
         if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
 
-        // Host check
         if (tournament.hostId && tournament.hostId !== session.user.id) {
             return { success: false, error: 'Nur der Host kann das Turnier löschen.' };
         }
-        // If no hostId (legacy), maybe allow any logged in user? Or Admin? 
-        // Let's assume for legacy, we allow it for now or require DB update.
-        // User said: "Nur der Gastgeber" (Host).
-        // If hostId is null, we can't verify functionality, so maybe allow anyone or block.
-        // Let's block if hostId is set and mismatch. If null, allow (legacy) or block.
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.match.deleteMany({ where: { tournamentId } });
             await tx.rSVP.deleteMany({ where: { tournamentId } });
             await tx.tournament.delete({ where: { id: tournamentId } });

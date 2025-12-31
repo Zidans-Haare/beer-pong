@@ -1,4 +1,6 @@
-import { Player } from '@prisma/client';
+// import { Player } from '@prisma/client'; 
+// Using basic types for now or string/any to bypass non-exported member error
+// The main logic just uses string IDs.
 
 export interface MatchInput {
     tournamentId: string;
@@ -6,7 +8,7 @@ export interface MatchInput {
     position: number;
     player1Id?: string | null;
     player2Id?: string | null;
-    stage: 'BRACKET' | 'GROUP';
+    stage: 'BRACKET' | 'GROUP' | 'GROUP_1' | 'GROUP_2';
 }
 
 /**
@@ -21,7 +23,8 @@ function shuffleArray<T>(array: T[]): T[] {
     return newArr;
 }
 
-export function generateSingleEliminationBracket(tournamentId: string, players: Player[]): MatchInput[] {
+// function generateSingleEliminationBracket(tournamentId: string, players: { id: string }[]): MatchInput[] {
+export function generateSingleEliminationBracket(tournamentId: string, players: any[]): MatchInput[] {
     // 1. Shuffle players for random seeding
     const shuffled = shuffleArray(players);
 
@@ -81,47 +84,71 @@ export function generateSingleEliminationBracket(tournamentId: string, players: 
     return matches;
 }
 
-export function generateRoundRobinMatches(tournamentId: string, players: Player[]): MatchInput[] {
-    // 1. Shuffle players for random order in list (affects pairing sequence/home-away)
-    const p = shuffleArray(players);
-    const n = p.length;
+export function generateRoundRobinMatches(tournamentId: string, playerIds: string[]): MatchInput[] {
+    // 1. Shuffle players
+    const shuffledPlayers = shuffleArray(playerIds);
+
+    // 2. Split into 2 groups
+    const mid = Math.ceil(shuffledPlayers.length / 2);
+    const group1 = shuffledPlayers.slice(0, mid);
+    const group2 = shuffledPlayers.slice(mid);
+
     const matches: MatchInput[] = [];
 
-    // Berger Table algorithm for Round Robin
-    // If odd number of players, add a dummy bye player
-    const people = [...p];
-    if (n % 2 !== 0) {
-        people.push({ id: 'BYE' } as any); // Dummy
-    }
+    // Helper to generate matches for a single group
+    const generateGroupMatches = (groupPlayers: string[], groupName: 'GROUP_1' | 'GROUP_2', startPosition: number): MatchInput[] => {
+        const n = groupPlayers.length;
+        const isOdd = n % 2 !== 0;
+        // If odd, add a dummy player for bye rounds (internal logic only)
+        const players = isOdd ? [...groupPlayers, null] : groupPlayers;
+        const numMetPlayers = players.length;
+        const numRounds = numMetPlayers - 1;
+        const half = numMetPlayers / 2;
 
-    const numTeams = people.length;
-    const numRounds = numTeams - 1;
-    const halfSize = numTeams / 2;
+        const groupMatches: MatchInput[] = [];
 
-    const teams = [...people];
-    // Teams[0] is fixed, others rotate
+        // Berger tables algorithm
+        // Fixed position for the last player, rotate others
 
-    for (let round = 0; round < numRounds; round++) {
-        for (let i = 0; i < halfSize; i++) {
-            const team1 = teams[i];
-            const team2 = teams[numTeams - 1 - i];
+        const rotatingPlayers = players.slice(0, numMetPlayers - 1);
+        const lastPlayer = players[numMetPlayers - 1];
 
-            if (team1.id !== 'BYE' && team2.id !== 'BYE') {
-                matches.push({
-                    tournamentId,
-                    round: round + 1,
-                    position: matches.length, // Global counter for ordering
-                    stage: 'GROUP', // Use GROUP for Round Robin
-                    player1Id: team1.id,
-                    player2Id: team2.id,
-                });
+        for (let round = 0; round < numRounds; round++) {
+            const roundMatches: { p1: string | null; p2: string | null }[] = [];
+
+            // Pair with fixed player
+            const p1 = rotatingPlayers[0];
+            const p2 = lastPlayer;
+            if (p1 && p2) roundMatches.push({ p1: p1 as string, p2: p2 as string });
+
+            // Pair others
+            for (let i = 1; i < half; i++) {
+                const a = rotatingPlayers[i];
+                const b = rotatingPlayers[rotatingPlayers.length - i];
+                if (a && b) roundMatches.push({ p1: a as string, p2: b as string });
             }
-        }
-        // Rotate teams array, keeping index 0 fixed
-        // [0, 1, 2, 3] -> [0, 3, 1, 2]
-        const last = teams.pop();
-        if (last) teams.splice(1, 0, last);
-    }
 
-    return matches;
+            // Add to main list
+            roundMatches.forEach((m, idx) => {
+                groupMatches.push({
+                    tournamentId,
+                    player1Id: m.p1,
+                    player2Id: m.p2,
+                    round: round + 1,
+                    position: startPosition + (round * half) + idx, // Just a unique counter
+                    stage: groupName
+                });
+            });
+
+            // Rotate: check standard algo: move last element of rotating set to the front. 
+            const lastRot = rotatingPlayers.pop();
+            if (lastRot) rotatingPlayers.unshift(lastRot);
+        }
+        return groupMatches;
+    };
+
+    const matchesG1 = generateGroupMatches(group1, 'GROUP_1', 100); // Start IDs at 100
+    const matchesG2 = generateGroupMatches(group2, 'GROUP_2', 200); // Start IDs at 200
+
+    return [...matchesG1, ...matchesG2];
 }

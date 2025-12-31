@@ -27,7 +27,7 @@ export default async function StatsPage() {
                     </thead>
                     <tbody>
                         {stats.map((s, idx) => (
-                            <tr key={s.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <tr key={s.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                                 <td style={{ padding: 'var(--spacing-4)' }}>{idx + 1}.</td>
                                 <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.name}</td>
                                 <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-success)' }}>{s.matchesWon}</td>

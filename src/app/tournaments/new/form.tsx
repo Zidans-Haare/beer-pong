@@ -85,23 +85,23 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
         <div className="glass-panel" style={{ padding: 'var(--spacing-6)', maxWidth: '600px', margin: '0 auto' }}>
             <form ref={formRef} action={clientAction} style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Name des Turniers</label>
-                    <input type="text" name="name" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Sommerfest 2025" />
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Name des Turniers</label>
+                    <input type="text" name="name" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Sommerfest 2025" />
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Datum & Uhrzeit</label>
-                    <input type="datetime-local" name="date" required defaultValue={new Date().toISOString().slice(0, 16)} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Datum & Uhrzeit</label>
+                    <input type="datetime-local" name="date" required defaultValue={new Date().toISOString().slice(0, 16)} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Ort</label>
-                    <input type="text" name="location" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Nicks Keller" />
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Ort</label>
+                    <input type="text" name="location" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Nicks Keller" />
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Modus</label>
-                    <select name="type" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Modus</label>
+                    <select name="type" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}>
                         <option value="ELIMINATION">K.O. System</option>
                         <option value="ROUND_ROBIN">Jeder gegen Jeden + Finale</option>
                     </select>
@@ -115,12 +115,12 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Teilnehmer auswählen (Mehrfachauswahl möglich)</label>
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(255,255,255,0.02)', padding: 'var(--spacing-2)', borderRadius: 'var(--radius-sm)' }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Teilnehmer auswählen (Mehrfachauswahl möglich)</label>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'var(--color-bg)', padding: 'var(--spacing-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
                         {players.map(p => (
                             <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: '4px' }}>
                                 <input type="checkbox" name="participants" value={p.id} id={`p-${p.id}`} />
-                                <label htmlFor={`p-${p.id}`} style={{ cursor: 'pointer' }}>{p.name}</label>
+                                <label htmlFor={`p-${p.id}`} style={{ cursor: 'pointer', color: 'var(--color-text)' }}>{p.name}</label>
                             </div>
                         ))}
                     </div>

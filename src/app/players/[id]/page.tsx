@@ -95,8 +95,8 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
 function StatBox({ label, value }: { label: string, value: string | number }) {
     return (
-        <div style={{ background: 'rgba(255,255,255,0.05)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>{value}</div>
+        <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{value}</div>
             <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
         </div>
     );

@@ -4,12 +4,6 @@ export default function Home() {
   return (
     <div className="container">
       <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
-        <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: '1rem' }}>
-          Beer Pong Manager
-        </h1>
-        <p style={{ color: 'var(--color-text-dim)', fontSize: 'var(--font-size-lg)' }}>
-          Das ultimative Tool für deine Turniere.
-        </p>
       </header>
 
       <div style={{

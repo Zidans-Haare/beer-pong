@@ -16,11 +16,17 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
     const players = await prisma.player.findMany({
         include: {
             matchesAsPlayer1: {
-                where: { winnerId: { not: null } },
+                where: {
+                    winnerId: { not: null },
+                    tournament: { status: 'COMPLETED' }
+                },
                 include: { tournament: true }
             },
             matchesAsPlayer2: {
-                where: { winnerId: { not: null } },
+                where: {
+                    winnerId: { not: null },
+                    tournament: { status: 'COMPLETED' }
+                },
                 include: { tournament: true }
             },
             tournaments: true,

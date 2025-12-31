@@ -142,7 +142,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                         )}
 
                         {/* Playoffs Button */}
-                        {tournament.status === 'ACTIVE' && tournament.type === 'ROUND_ROBIN' && (
+                        {tournament.status === 'ACTIVE' && (tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
                             <StartPlayoffsButton tournamentId={tournament.id} />
                         )}
 
@@ -176,6 +176,13 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     )}
 
                     {tournament.type === 'ROUND_ROBIN' && (
+                        <>
+                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Tabelle</h2>
+                            <TournamentTable standings={await getTournamentStandings(tournament.id)} />
+                        </>
+                    )}
+
+                    {tournament.type === 'GROUPS' && (
                         <>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
                                 <div>

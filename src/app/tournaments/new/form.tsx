@@ -29,8 +29,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
         if (!createdTournament) return '#';
         const subject = encodeURIComponent(`Bierpong Turnier: ${createdTournament.name}`);
         const body = encodeURIComponent(`Hallo Leute,\n\nes steht ein neues Bierpong-Turnier an!\n\n📅 Wann: ${new Date(createdTournament.date).toLocaleString()}\n📍 Wo: ${createdTournament.location}\n🏆 Modus: ${createdTournament.type}\n\nBitte gebt Bescheid ob ihr dabei seid!\n\nViele Grüße,\nDer Host`);
-        const bcc = participantEmails.join(',');
-        return `mailto:?bcc=${bcc}&subject=${subject}&body=${body}`;
+        const recipients = participantEmails.join(',');
+        return `mailto:${recipients}?subject=${subject}&body=${body}`;
     })();
 
     // Generate ICS Download
@@ -101,9 +101,10 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Modus</label>
-                    <select name="type" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}>
-                        <option value="ELIMINATION">K.O. System</option>
-                        <option value="ROUND_ROBIN">Jeder gegen Jeden + Finale</option>
+                    <select name="type" id="type" className="input-field">
+                        <option value="SINGLE_ELIMINATION">K.O. System</option>
+                        <option value="ROUND_ROBIN">Jeder gegen Jeden (Liga)</option>
+                        <option value="GROUPS">Gruppenphase + K.O.</option>
                     </select>
                 </div>
 

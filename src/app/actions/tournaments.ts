@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { generateSingleEliminationBracket, generateRoundRobinMatches } from '@/lib/brackets';
+import { generateSingleEliminationBracket, generateRoundRobinMatches, generateGroupStageMatches } from '@/lib/brackets';
 import { auth } from '@/auth';
 
 
@@ -73,9 +73,12 @@ export async function createTournament(formData: FormData) {
 
                 let matches;
                 if (type === 'ROUND_ROBIN') {
-                    // Provide IDs only for Round Robin
                     const playerIds = players.map((p: any) => p.id);
                     matches = generateRoundRobinMatches(tournament.id, playerIds);
+                } else if (type === 'GROUPS') {
+                    if (players.length < 4) throw new Error('Für Gruppenphase werden mind. 4 Spieler benötigt.');
+                    const playerIds = players.map((p: any) => p.id);
+                    matches = generateGroupStageMatches(tournament.id, playerIds);
                 } else {
                     matches = generateSingleEliminationBracket(tournament.id, players);
                 }
@@ -90,20 +93,16 @@ export async function createTournament(formData: FormData) {
 
         revalidatePath('/tournaments');
 
-        let participantEmails: string[] = [];
-        if (participantIds.length > 0) {
-            const participants = await prisma.player.findMany({
-                where: { id: { in: participantIds } },
-                select: {
-                    email: true,
-                    user: { select: { email: true } }
-                }
-            });
-            console.log('Fetching emails for IDs:', participantIds);
-            console.log('Found participants:', JSON.stringify(participants, null, 2));
-            participantEmails = participants.map((p: any) => p.email || p.user?.email).filter(Boolean) as string[];
-            console.log('Mapped emails:', participantEmails);
-        }
+        // Fetch ALL player emails for the invitation link, regardless of who was selected as participant
+        const allPlayers = await prisma.player.findMany({
+            select: {
+                email: true,
+                user: { select: { email: true } }
+            }
+        });
+        const participantEmails = allPlayers.map((p: any) => p.email || p.user?.email).filter(Boolean) as string[];
+
+        console.log('Mapped all emails:', participantEmails);
 
         if (result.status === 'ACTIVE') {
             return { success: true, redirectUrl: `/tournaments/${result.id}` };
@@ -141,12 +140,15 @@ export async function startTournament(tournamentId: string) {
         if (players.length < 2) throw new Error('Not enough players (min 2)');
 
         let matches;
-        if (tournament.type === 'SINGLE_ELIMINATION') {
-            matches = generateSingleEliminationBracket(tournament.id, players);
-        } else {
-            // Provide IDs only for Round Robin
+        if (tournament.type === 'ROUND_ROBIN') {
             const playerIds = players.map((p: any) => p.id);
             matches = generateRoundRobinMatches(tournament.id, playerIds);
+        } else if (tournament.type === 'GROUPS') {
+            if (players.length < 4) throw new Error('Für Gruppenphase werden mind. 4 Spieler benötigt.');
+            const playerIds = players.map((p: any) => p.id);
+            matches = generateGroupStageMatches(tournament.id, playerIds);
+        } else {
+            matches = generateSingleEliminationBracket(tournament.id, players);
         }
 
         await prisma.$transaction(async (tx: any) => {
@@ -178,59 +180,80 @@ export async function startPlayoffs(tournamentId: string) {
             include: { matches: true, rsvps: { include: { player: true } } }
         });
 
-        if (!tournament || tournament.type !== 'ROUND_ROBIN') throw new Error('Invalid tournament');
+        if (!tournament || (tournament.type !== 'ROUND_ROBIN' && tournament.type !== 'GROUPS')) throw new Error('Invalid tournament type for these playoffs');
         if (tournament.hostId && tournament.hostId !== session.user.id) {
             return { success: false, error: 'Nur der Host kann Playoffs starten.' };
         }
 
-        // Check for loose matches (any match in GROUP stage without winner)
-        const unplayed = tournament.matches.filter((m: any) => (m.stage === 'GROUP_1' || m.stage === 'GROUP_2') && !m.winnerId);
-        if (unplayed.length > 0) throw new Error('Alle Gruppenspiele müssen beendet sein.');
-
         const { getTournamentStandings } = await import('@/lib/stats');
 
-        // Fetch standings per group
-        const standingsG1 = await getTournamentStandings(tournamentId, 'GROUP_1');
-        const standingsG2 = await getTournamentStandings(tournamentId, 'GROUP_2');
+        if (tournament.type === 'ROUND_ROBIN') {
+            // Classic Round Robin: Check if all matches done
+            const unplayed = tournament.matches.filter((m: any) => m.stage === 'GROUP' && !m.winnerId);
+            if (unplayed.length > 0) throw new Error('Alle Spiele müssen beendet sein.');
 
-        // Allow playoffs if at least 1 player in each group? No, we need 2 for Semis or 1 for Final.
-        // User wants: G1#1 vs G2#2 and G2#1 vs G1#2.
-        // Needs top 2 from each group.
+            // Create Final Match between #1 and #2?
+            const standings = await getTournamentStandings(tournamentId);
+            if (standings.length < 2) throw new Error('Nicht genügend Spieler für Finale.');
 
-        if (standingsG1.length < 2 || standingsG2.length < 2) {
-            throw new Error('Jede Gruppe benötigt mindestens 2 Spieler für die Halbfinals.');
-        }
+            const p1 = standings[0].playerId;
+            const p2 = standings[1].playerId;
 
-        const g1First = standingsG1[0].playerId;
-        const g1Second = standingsG1[1].playerId;
-        const g2First = standingsG2[0].playerId;
-        const g2Second = standingsG2[1].playerId;
-
-        await prisma.$transaction(async (tx: any) => {
-            // Semifinal 1: G1#1 vs G2#2
-            await tx.match.create({
+            await prisma.match.create({
                 data: {
                     tournamentId,
-                    round: 98, // Semifinals
+                    round: 99, // Final
                     position: 0,
-                    stage: 'BRACKET', // Playoff stage
-                    player1Id: g1First,
-                    player2Id: g2Second
+                    stage: 'BRACKET', // It's a bracket match now
+                    player1Id: p1,
+                    player2Id: p2
                 }
             });
 
-            // Semifinal 2: G2#1 vs G1#2
-            await tx.match.create({
-                data: {
-                    tournamentId,
-                    round: 98,
-                    position: 1,
-                    stage: 'BRACKET',
-                    player1Id: g2First,
-                    player2Id: g1Second
-                }
+        } else if (tournament.type === 'GROUPS') {
+            // Check for loose matches (any match in GROUP stage without winner)
+            const unplayed = tournament.matches.filter((m: any) => (m.stage === 'GROUP_1' || m.stage === 'GROUP_2') && !m.winnerId);
+            if (unplayed.length > 0) throw new Error('Alle Gruppenspiele müssen beendet sein.');
+
+            // Fetch standings per group
+            const standingsG1 = await getTournamentStandings(tournamentId, 'GROUP_1');
+            const standingsG2 = await getTournamentStandings(tournamentId, 'GROUP_2');
+
+            if (standingsG1.length < 2 || standingsG2.length < 2) {
+                throw new Error('Jede Gruppe benötigt mindestens 2 Spieler für die Halbfinals.');
+            }
+
+            const g1First = standingsG1[0].playerId;
+            const g1Second = standingsG1[1].playerId;
+            const g2First = standingsG2[0].playerId;
+            const g2Second = standingsG2[1].playerId;
+
+            await prisma.$transaction(async (tx: any) => {
+                // Semifinal 1: G1#1 vs G2#2
+                await tx.match.create({
+                    data: {
+                        tournamentId,
+                        round: 98, // Semifinals
+                        position: 0,
+                        stage: 'BRACKET', // Playoff stage
+                        player1Id: g1First,
+                        player2Id: g2Second
+                    }
+                });
+
+                // Semifinal 2: G2#1 vs G1#2
+                await tx.match.create({
+                    data: {
+                        tournamentId,
+                        round: 98,
+                        position: 1,
+                        stage: 'BRACKET',
+                        player1Id: g2First,
+                        player2Id: g1Second
+                    }
+                });
             });
-        });
+        }
 
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };

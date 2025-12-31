@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  // Optional, for notifications
+  nickname  String?
+  image     String? // URL to profile image
+  bio       String?
+  motto     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  matchesAsPlayer1 Match[] @relation("Player1Matches")
+  matchesAsPlayer2 Match[] @relation("Player2Matches")
+  tournaments      TournamentParticipant[]
+  rsvps            RSVP[]
+}
+
+model Tournament {
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  location  String
+  status    String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
+  type      String   @default("ELIMINATION") // ELIMINATION, ROUND_ROBIN, GROUPS
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  matches      Match[]
+  participants TournamentParticipant[]
+  rsvps        RSVP[]
+}
+
+model TournamentParticipant {
+  idString     String @id @default(uuid()) // Renamed to avoid confusion with composite keys if we used them, but UUID is safer
+  tournamentId String
+  playerId     String
+  
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, playerId])
+}
+
+model Match {
+  id           String   @id @default(uuid())
+  tournamentId String
+  player1Id    String?  // Can be null if TBD (e.g., initial bracket generation)
+  player2Id    String?
+  score1       Int      @default(0)
+  score2       Int      @default(0)
+  winnerId     String?
+  round        Int      // 1, 2, ... (Finals could be a specific number or inferred)
+  position     Int      // Position in the bracket (e.g. 0-15 for Round of 16)
+  stage        String   @default("BRACKET") // BRACKET, GROUP
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1    Player?    @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2    Player?    @relation("Player2Matches", fields: [player2Id], references: [id])
+}
+
+model RSVP {
+  id           String   @id @default(uuid())
+  tournamentId String
+  playerId     String
+  status       String   @default("NO_RESPONSE") // YES, NO, MAYBE, NO_RESPONSE
+  
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, playerId])
+}

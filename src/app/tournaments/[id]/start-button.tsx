@@ -12,8 +12,8 @@ export default function StartTournamentButton({ tournamentId }: { tournamentId: 
 
     return (
         <form action={action}>
-            <button type="submit" className="btn btn-primary" style={{ border: '2px solid var(--color-primary)' }}>
-                Turnier Starten & Baum Erstellen
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '1.2rem', padding: 'var(--spacing-4)' }}>
+                🚀 Turnier Starten
             </button>
         </form>
     );

@@ -3,27 +3,42 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
+import { auth } from '@/auth';
+
 export async function submitRSVP(formData: FormData) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Nicht eingeloggt' };
+    }
+
     const tournamentId = formData.get('tournamentId') as string;
-    const playerId = formData.get('playerId') as string;
     const status = formData.get('status') as string;
 
-    if (!tournamentId || !playerId || !status) {
-        throw new Error('Missing required fields');
+    if (!tournamentId || !status) {
+        return { success: false, error: 'Missing required fields' };
     }
 
     try {
+        // Find player for current user
+        const player = await prisma.player.findUnique({
+            where: { userId: session.user.id }
+        });
+
+        if (!player) {
+            return { success: false, error: 'Bitte erstelle erst ein Spielerprofil.' };
+        }
+
         await prisma.rSVP.upsert({
             where: {
                 tournamentId_playerId: {
                     tournamentId,
-                    playerId,
+                    playerId: player.id,
                 },
             },
             update: { status },
             create: {
                 tournamentId,
-                playerId,
+                playerId: player.id,
                 status,
             },
         });

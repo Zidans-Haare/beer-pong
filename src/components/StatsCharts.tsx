@@ -1,23 +1,129 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { PlayerStats } from '@/lib/stats';
+import { startOfMonth, startOfYear } from 'date-fns';
 
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
-    // Transform data for charts
-    // We want to compare top 5 players history?
-    // Or just show one aggregate chart?
-    // Let's show WinRate trends for Top 5 Players.
+    const [range, setRange] = useState<'ALL' | 'MONTH' | 'YEAR' | 'LAST_5'>('ALL');
 
-    const top5 = stats.slice(0, 5);
+    const processedData = useMemo(() => {
+        const now = new Date();
+        const monthStart = startOfMonth(now).getTime();
+        const yearStart = startOfYear(now).getTime();
 
-    // We need to normalize the history data to common timeline or just index-based?
-    // Index based is easier for "Games Played" axis.
+        // Calculate stats for each player based on the range
+        const playersWithRangeStats = stats.map(p => {
+            let relevantHistory = [...p.history];
+            let rangeWinRate = 0;
+            let rangeCupDiff = 0;
+
+            if (range === 'ALL') {
+                rangeWinRate = p.winRate * 100;
+                rangeCupDiff = p.cupDiff;
+            } else {
+                // Filter history
+                let startIndex = 0;
+
+                if (range === 'MONTH') {
+                    startIndex = relevantHistory.findIndex(h => h.timestamp >= monthStart);
+                } else if (range === 'YEAR') {
+                    startIndex = relevantHistory.findIndex(h => h.timestamp >= yearStart);
+                } else if (range === 'LAST_5') {
+                    startIndex = Math.max(0, relevantHistory.length - 5);
+                }
+
+                if (startIndex === -1 || relevantHistory.length === 0) {
+                    // No games in range
+                    relevantHistory = [];
+                    rangeWinRate = 0;
+                    rangeCupDiff = 0;
+                } else {
+                    const endState = relevantHistory[relevantHistory.length - 1];
+                    const startState = startIndex > 0 ? relevantHistory[startIndex - 1] : { cupDiff: 0, matchesWon: 0, matchesPlayed: 0 }; // Approx
+
+                    // We need strict "matches won in range" to calc winrate properly?
+                    // The history stores cumulative winRate. Recovering exact wins/losses from history snapshot is tricky without storing counts.
+                    // But we added cupDiff to history.
+                    // For WinRate: History stores cumulative.
+                    // Let's just use the filtered history points for the LineChart.
+                    relevantHistory = relevantHistory.slice(startIndex);
+
+                    // For the BAR chart (Cup Diff), we need the delta.
+                    // Delta = (End CupDiff) - (Start CupDiff)
+                    const prevCupDiff = startIndex > 0 ? p.history[startIndex - 1].cupDiff : 0;
+                    rangeCupDiff = endState.cupDiff - prevCupDiff;
+
+                    // Winrate for sorting?
+                    // If we want to sort by "Winrate in this period", we'd need to know wins/played in delta.
+                    // We don't have that easily without re-parsing matches.
+                    // Fallback: Use the final cumulative Winrate of the period? Or average?
+                    // Let's stick to using the LATEST Winrate point for sorting for now, or keep "ALL" sorting for Winrate.
+                    // User only asked for "Becherdifferenz" to adapt.
+                    rangeWinRate = endState.winRate;
+                }
+            }
+
+            return {
+                ...p,
+                filteredHistory: relevantHistory,
+                rangeCupDiff,
+                rangeWinRate
+            };
+        });
+
+        // Filter out inactive players in range
+        const activePlayers = playersWithRangeStats.filter(p =>
+            range === 'ALL' ? true : p.filteredHistory.length > 0
+        );
+
+        // Top 5 Winrate
+        const topWinRate = [...activePlayers]
+            .sort((a, b) => b.rangeWinRate - a.rangeWinRate)
+            .slice(0, 5);
+
+        // Top 10 CupDiff
+        const topCupDiff = [...activePlayers]
+            .sort((a, b) => b.rangeCupDiff - a.rangeCupDiff)
+            .slice(0, 10);
+
+        return { topWinRate, topCupDiff };
+    }, [stats, range]);
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 'var(--spacing-8)' }}>
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Winrate Trend (Top 5)</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-4)' }}>
+                    <h3 style={{ color: 'var(--color-primary)', margin: 0 }}>Siegquote Trend (Top 5)</h3>
+                    <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.1)', padding: '4px', borderRadius: 'var(--radius-sm)' }}>
+                        {[
+                            { id: 'LAST_5', label: 'Letzte 5' },
+                            { id: 'MONTH', label: 'Monat' },
+                            { id: 'YEAR', label: 'Jahr' },
+                            { id: 'ALL', label: 'Alles' }
+                        ].map((opt) => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setRange(opt.id as any)}
+                                style={{
+                                    border: 'none',
+                                    background: range === opt.id ? 'var(--color-primary)' : 'transparent',
+                                    color: range === opt.id ? 'black' : 'var(--color-text-dim)',
+                                    borderRadius: '4px',
+                                    padding: '4px 8px',
+                                    fontSize: '0.8rem',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -34,10 +140,10 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'white' }}
                                 labelFormatter={(label) => new Date(label).toLocaleDateString()}
                             />
-                            {top5.map((p, i) => (
+                            {processedData.topWinRate.map((p, i) => (
                                 <Line
                                     key={p.id}
-                                    data={p.history.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
+                                    data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
                                     dataKey="winRate"
                                     name={p.name}
                                     type="monotone"
@@ -55,7 +161,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>Becherdifferenz (Top 10)</h3>
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={stats.slice(0, 10)}>
+                        <BarChart data={processedData.topCupDiff}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                             <XAxis dataKey="name" stroke="var(--color-text-dim)" />
                             <YAxis stroke="var(--color-text-dim)" />
@@ -63,7 +169,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                 contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'white' }}
                             />
-                            <Bar dataKey="cupDiff" fill="var(--color-success)" name="Becherdiff." radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="rangeCupDiff" fill="var(--color-success)" name="Becherdiff." radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

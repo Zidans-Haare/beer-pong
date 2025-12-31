@@ -9,7 +9,7 @@ export interface PlayerStats {
     tournamentsPlayed: number;
     cupDiff: number; // Total cups hit - Total cups received
     winRate: number;
-    history: { date: string; timestamp: number; winRate: number; cupsHit: number }[];
+    history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number }[];
 }
 
 export async function getAllPlayerStats(): Promise<PlayerStats[]> {
@@ -37,7 +37,7 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
         let matchesWon = 0;
         let cupsHit = 0;
         let cupsReceived = 0;
-        const history: { date: string; timestamp: number; winRate: number; cupsHit: number }[] = [];
+        const history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number }[] = [];
 
         allMatches.forEach((m, index) => {
             const isWinner = m.winnerId === p.id;
@@ -53,7 +53,8 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
                 date: new Date(m.updatedAt).toLocaleDateString(),
                 timestamp: new Date(m.updatedAt).getTime(),
                 winRate: Math.round((matchesWon / (index + 1)) * 100),
-                cupsHit: cupsHit
+                cupsHit: cupsHit,
+                cupDiff: cupsHit - cupsReceived
             });
         });
 

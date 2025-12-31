@@ -1,28 +1,38 @@
 import Link from 'next/link';
-import '@/app/globals.css';
+import { auth, signOut } from '@/auth';
 
-export default function Navbar() {
+export default async function Navbar() {
+    const session = await auth();
+
     return (
-        <nav style={{
-            borderBottom: '1px solid var(--color-border)',
-            padding: 'var(--spacing-4) 0',
-            marginBottom: 'var(--spacing-8)',
-            background: 'rgba(5, 5, 16, 0.8)',
-            backdropFilter: 'blur(10px)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100
-        }}>
-            <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Link href="/" style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'bold', letterSpacing: '-0.02em' }}>
-                    <span style={{ color: 'var(--color-primary)' }}>Beer</span>
-                    <span style={{ color: 'var(--color-secondary)' }}>Pong</span>
-                </Link>
-                <div style={{ display: 'flex', gap: 'var(--spacing-6)' }}>
-                    <Link href="/tournaments" className="nav-link">Turniere</Link>
-                    <Link href="/players" className="nav-link">Spieler</Link>
-                    <Link href="/stats" className="nav-link">Statistik</Link>
-                </div>
+        <nav className="glass-panel" style={{ padding: 'var(--spacing-4) var(--spacing-6)', marginBottom: 'var(--spacing-8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link href="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none', color: 'white' }}>
+                🍻 Pong Manager
+            </Link>
+
+            <div style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
+                <Link href="/tournaments" className="nav-link">Turniere</Link>
+                <Link href="/players" className="nav-link">Spieler</Link>
+                <Link href="/stats" className="nav-link">Statistik</Link>
+
+                <div style={{ width: '1px', height: '20px', background: 'var(--color-border)', margin: '0 var(--spacing-2)' }}></div>
+
+                {session?.user ? (
+                    <>
+                        <span style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{session.user.name}</span>
+                        <form action={async () => {
+                            'use server';
+                            await signOut();
+                        }}>
+                            <button type="submit" style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}>Logout</button>
+                        </form>
+                    </>
+                ) : (
+                    <>
+                        <Link href="/login" style={{ color: 'white', textDecoration: 'none' }}>Login</Link>
+                        <Link href="/register" className="btn btn-primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: '0.9rem' }}>Sign Up</Link>
+                    </>
+                )}
             </div>
         </nav>
     );

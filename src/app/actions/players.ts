@@ -22,14 +22,9 @@ export async function createPlayer(formData: FormData) {
     const image = formData.get('image') as string;
     const bio = formData.get('bio') as string;
     const motto = formData.get('motto') as string;
-    const adminCode = formData.get('adminCode') as string;
 
     if (!name) {
         return { success: false, error: 'Name is required' };
-    }
-
-    if (adminCode !== process.env.ADMIN_PASSWORD) {
-        return { success: false, error: 'Falscher Admin-Code!' };
     }
 
     try {
@@ -51,9 +46,85 @@ export async function createPlayer(formData: FormData) {
     }
 }
 
-export async function deletePlayer(playerId: string, adminCode: string) {
-    if (adminCode !== process.env.ADMIN_PASSWORD) {
-        return { success: false, error: 'Falsches Admin-Passwort' };
+import { auth } from '@/auth';
+import { isAdmin } from '@/lib/admin';
+// ... existing createPlayer ...
+
+export async function updatePlayer(id: string, formData: FormData) {
+    const session = await auth();
+    const player = await prisma.player.findUnique({ where: { id } });
+
+    if (!player) return { success: false, error: 'Spieler nicht gefunden' };
+
+    // Authorization: Only owner can edit
+    if (session?.user?.id !== player.userId && !isAdmin(session?.user?.email)) {
+        return { success: false, error: 'Keine Berechtigung' };
+    }
+
+    const name = formData.get('name') as string;
+    const nickname = formData.get('nickname') as string;
+    const email = formData.get('email') as string;
+    const bio = formData.get('bio') as string;
+    const motto = formData.get('motto') as string;
+
+    const imageFile = formData.get('image');
+    let imagePath = player.image;
+
+    // Handle File Upload
+    if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+        // Basic validation
+        if (!imageFile.type.startsWith('image/')) {
+            return { success: false, error: 'Nur Bilder erlaubt' };
+        }
+        if (imageFile.size > 5 * 1024 * 1024) {
+            return { success: false, error: 'Bild zu groß (max 5MB)' };
+        }
+
+        try {
+            const buffer = Buffer.from(await imageFile.arrayBuffer());
+            const filename = `${player.id}-${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+            const fs = require('fs');
+            const path = require('path');
+
+            // Ensure public/uploads exists
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            fs.writeFileSync(path.join(uploadDir, filename), buffer);
+            imagePath = `/uploads/${filename}`;
+        } catch (e) {
+            console.error('File upload failed', e);
+            return { success: false, error: 'Bild konnte nicht hochgeladen werden' };
+        }
+    }
+
+    try {
+        await prisma.player.update({
+            where: { id },
+            data: {
+                name,
+                nickname: nickname || null,
+                email: email || null,
+                image: imagePath || null,
+                bio: bio || null,
+                motto: motto || null,
+            }
+        });
+        revalidatePath(`/players/${id}`);
+        revalidatePath('/players');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update player:', error);
+        return { success: false, error: 'Update fehlgeschlagen' };
+    }
+}
+
+export async function deletePlayer(playerId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Nicht eingeloggt' };
     }
 
     try {

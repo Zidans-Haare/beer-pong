@@ -5,12 +5,16 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
+import { isAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
+
+import { auth } from '@/auth';
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ id: string }> }) {
     // Awaiting params is required in newer Next.js versions for dynamic routes
     const { id } = await params;
+    const session = await auth();
 
     const player = await prisma.player.findUnique({
         where: { id },
@@ -42,10 +46,16 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                     <div>
                         <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>{player.name}</h1>
                         {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>"{player.motto}"</p>}
+
+                        {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
+                            <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
+                                ✏️ Profil bearbeiten
+                            </Link>
+                        )}
                     </div>
                 </div>
 
-                <AdminDeleteButton id={player.id} type="Player" deleteAction={deletePlayer} />
+                {session?.user && <AdminDeleteButton id={player.id} type="Player" deleteAction={deletePlayer} />}
             </div>
 
             {/* Stats Grid */}

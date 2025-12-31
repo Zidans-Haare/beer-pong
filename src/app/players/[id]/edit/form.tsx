@@ -26,34 +26,34 @@ export default function EditPlayerForm({ player }: { player: Player }) {
         <form action={clientAction} className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'grid', gap: 'var(--spacing-4)' }}>
             <div>
                 <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Name *</label>
-                <input type="text" name="name" defaultValue={player.name} required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                <input type="text" name="name" defaultValue={player.name} required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div>
                 <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Spitzname</label>
-                <input type="text" name="nickname" defaultValue={player.nickname || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                <input type="text" name="nickname" defaultValue={player.nickname || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div>
                 <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Email (für Benachrichtigungen)</label>
-                <input type="email" name="email" defaultValue={player.email || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                <input type="email" name="email" defaultValue={player.email || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)' }}>
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Profilbild</label>
                     {player.image && <div style={{ fontSize: '0.8rem', marginBottom: '4px', color: 'var(--color-primary)' }}>Aktuelles Bild vorhanden</div>}
-                    <input type="file" name="image" accept="image/*" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                    <input type="file" name="image" accept="image/*" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
                 </div>
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Motto</label>
-                    <input type="text" name="motto" defaultValue={player.motto || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                    <input type="text" name="motto" defaultValue={player.motto || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
                 </div>
             </div>
 
             <div>
                 <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Über mich</label>
-                <textarea name="bio" rows={4} defaultValue={player.bio || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }} />
+                <textarea name="bio" rows={4} defaultValue={player.bio || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-4)' }}>

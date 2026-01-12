@@ -37,7 +37,7 @@ export default async function RootLayout({
   const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
 
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

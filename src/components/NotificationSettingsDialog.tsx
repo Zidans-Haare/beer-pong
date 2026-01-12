@@ -9,10 +9,29 @@ const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) 
     <button
         type="button"
         onClick={() => onChange(!active)}
-        className={`w-12 h-6 flex items-center rounded-full p-1 transition-all duration-300 ${active ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.4)]' : 'bg-white/10'}`}
+        style={{
+            width: '48px',
+            height: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: '999px',
+            padding: '4px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            background: active ? 'var(--gradient-primary)' : 'rgba(255, 255, 255, 0.1)',
+            boxShadow: active ? 'var(--shadow-glow-primary)' : 'none',
+            position: 'relative',
+        }}
     >
-        <div
-            className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? 'translate-x-6' : ''}`}
+        <motion.div
+            animate={{ x: active ? 24 : 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            style={{
+                background: 'white',
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
         />
     </button>
 );
@@ -53,111 +72,214 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+        <div style={{
+            fixed: 'fixed',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            display: 'flex',
+            itemsCenter: 'center',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 'var(--spacing-4)',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+        }}>
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="glass-panel w-full max-w-md p-0 relative overflow-hidden"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="glass-panel"
                 style={{
-                    borderRadius: '24px',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    width: '100%',
+                    maxWidth: '450px',
+                    padding: 0,
+                    overflow: 'hidden',
+                    position: 'relative'
                 }}
             >
-                {/* Decorative Elements */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                {/* Decorative Accent Line */}
+                <div style={{
+                    height: '2px',
+                    width: '100%',
+                    background: 'var(--gradient-primary)'
+                }} />
 
-                <div className="p-8 relative">
+                <div style={{ padding: 'var(--spacing-8)' }}>
                     <button
                         onClick={onClose}
-                        className="absolute top-5 right-5 p-2 text-white/30 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all"
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            padding: '8px',
+                            color: 'var(--color-text-dim)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'var(--color-text-dim)';
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                        }}
                     >
                         <X size={18} />
                     </button>
 
-                    <div className="flex flex-col items-center text-center mb-8">
-                        <div className="p-3 bg-white/5 rounded-2xl mb-3 border border-white/5 shadow-inner">
-                            <Settings size={28} className="text-purple-400" />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'var(--spacing-8)' }}>
+                        <div style={{
+                            padding: 'var(--spacing-3)',
+                            background: 'rgba(217, 70, 239, 0.1)',
+                            borderRadius: 'var(--radius-md)',
+                            marginBottom: 'var(--spacing-3)',
+                            border: '1px solid rgba(217, 70, 239, 0.2)'
+                        }}>
+                            <Settings size={28} style={{ color: 'var(--color-primary)' }} />
                         </div>
-                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                        <h2 className="title-display" style={{ fontSize: '1.5rem', marginBottom: '4px' }}>
                             Einstellungen
                         </h2>
-                        <p className="text-sm text-gray-400 mt-1">Verwalte deine Benachrichtigungen</p>
+                        <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.8 }}>Verwalte deine Benachrichtigungen</p>
                     </div>
 
                     {loading ? (
-                        <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-3">
-                            <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-12)' }}>
+                            <div className="animate-spin" style={{ width: '32px', height: '32px', border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-3">
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                                 {/* Tournament Toggle */}
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2.5 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-lg text-yellow-500 border border-yellow-500/20">
-                                            <Trophy size={20} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-bold text-white text-sm mb-0.5">Neue Turniere</div>
-                                            <div className="text-xs text-gray-400">Infos zu neuen Events.</div>
-                                        </div>
-                                        <Toggle
-                                            active={prefs.notifyNewTournaments}
-                                            onChange={(v) => setPrefs({ ...prefs, notifyNewTournaments: v })}
-                                        />
+                                <div style={{
+                                    padding: 'var(--spacing-4)',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--spacing-4)'
+                                }}>
+                                    <div style={{
+                                        padding: '10px',
+                                        background: 'rgba(234, 179, 8, 0.1)',
+                                        borderRadius: '12px',
+                                        color: '#eab308',
+                                        border: '1px solid rgba(234, 179, 8, 0.2)'
+                                    }}>
+                                        <Trophy size={20} />
                                     </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Neue Turniere</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Infos zu neuen Events.</div>
+                                    </div>
+                                    <Toggle
+                                        active={prefs.notifyNewTournaments}
+                                        onChange={(v) => setPrefs({ ...prefs, notifyNewTournaments: v })}
+                                    />
                                 </div>
 
                                 {/* Updates Toggle */}
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-lg text-blue-400 border border-blue-500/20">
-                                            <AlertCircle size={20} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-bold text-white text-sm mb-0.5">Wichtige Updates</div>
-                                            <div className="text-xs text-gray-400">Änderungen & News.</div>
-                                        </div>
-                                        <Toggle
-                                            active={prefs.notifyUpdates}
-                                            onChange={(v) => setPrefs({ ...prefs, notifyUpdates: v })}
-                                        />
+                                <div style={{
+                                    padding: 'var(--spacing-4)',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--spacing-4)'
+                                }}>
+                                    <div style={{
+                                        padding: '10px',
+                                        background: 'rgba(59, 130, 246, 0.1)',
+                                        borderRadius: '12px',
+                                        color: '#3b82f6',
+                                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                                    }}>
+                                        <AlertCircle size={20} />
                                     </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Wichtige Updates</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Änderungen & News.</div>
+                                    </div>
+                                    <Toggle
+                                        active={prefs.notifyUpdates}
+                                        onChange={(v) => setPrefs({ ...prefs, notifyUpdates: v })}
+                                    />
                                 </div>
 
                                 {/* Live Ticker Toggle */}
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2.5 bg-gradient-to-br from-red-500/20 to-pink-500/10 rounded-lg text-red-500 border border-red-500/20 shadow-[0_0_15px_-5px_rgba(239,68,68,0.3)]">
-                                            <Radio size={20} className="animate-pulse-subtle" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-bold text-white text-sm mb-0.5">Live Ticker</div>
-                                            <div className="text-xs text-gray-400">Echtzeit Match-Updates.</div>
-                                        </div>
-                                        <Toggle
-                                            active={prefs.notifyLiveTicker}
-                                            onChange={(v) => setPrefs({ ...prefs, notifyLiveTicker: v })}
-                                        />
+                                <div style={{
+                                    padding: 'var(--spacing-4)',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--spacing-4)'
+                                }}>
+                                    <div style={{
+                                        padding: '10px',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        borderRadius: '12px',
+                                        color: '#ef4444',
+                                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                                    }}>
+                                        <Radio size={20} className="animate-pulse-subtle" />
                                     </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Live Ticker</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Echtzeit Match-Updates.</div>
+                                    </div>
+                                    <Toggle
+                                        active={prefs.notifyLiveTicker}
+                                        onChange={(v) => setPrefs({ ...prefs, notifyLiveTicker: v })}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="pt-6 flex gap-3 mt-6">
+                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-4)' }}>
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition text-sm font-bold border border-white/5"
+                                    style={{
+                                        flex: 1,
+                                        padding: '14px',
+                                        borderRadius: 'var(--radius-md)',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        color: 'var(--color-text-dim)',
+                                        fontWeight: 700,
+                                        fontSize: '0.9rem'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                                        e.currentTarget.style.color = 'var(--color-text-dim)';
+                                    }}
                                 >
                                     Abbrechen
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-purple-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm font-bold disabled:opacity-50 disabled:transform-none"
+                                    className="btn-primary"
+                                    style={{
+                                        flex: 2,
+                                        padding: '14px',
+                                        opacity: saving ? 0.7 : 1,
+                                        transition: 'all 0.2s'
+                                    }}
                                 >
                                     {saving ? 'Speichert...' : 'Speichern'}
                                 </button>

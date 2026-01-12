@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
 
 export async function GET(
     request: NextRequest,
@@ -26,8 +25,7 @@ export async function GET(
     }
 
     try {
-        const stats = fs.statSync(filePath);
-        const fileStream = fs.createReadStream(filePath);
+        const fileBuffer = await fs.promises.readFile(filePath);
         
         // Determine content type
         const ext = path.extname(filePath).toLowerCase();
@@ -43,19 +41,10 @@ export async function GET(
         else if (ext === '.heic') contentType = 'image/heic';
         else if (ext === '.heif') contentType = 'image/heif';
 
-        // Convert Node.js stream to Web Stream
-        const webStream = new ReadableStream({
-            start(controller) {
-                fileStream.on('data', (chunk) => controller.enqueue(chunk));
-                fileStream.on('end', () => controller.close());
-                fileStream.on('error', (err) => controller.error(err));
-            }
-        });
-
-        return new NextResponse(webStream, {
+        return new NextResponse(fileBuffer, {
             headers: {
                 'Content-Type': contentType,
-                'Content-Length': stats.size.toString(),
+                'Content-Length': fileBuffer.length.toString(),
                 'Cache-Control': 'public, max-age=31536000, immutable',
             },
         });

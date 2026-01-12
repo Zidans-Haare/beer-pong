@@ -114,28 +114,42 @@ export default function NotificationsPage() {
         <div className="container" style={{ paddingBottom: '100px', paddingTop: 'var(--spacing-6)' }}>
 
             {/* Header Section matching Players Page */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
-                <div>
-                    <h1 className="title-display" style={{ fontSize: '2rem' }}>Benachrichtigungen</h1>
-                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>Updates & Live Ticker</p>
+            {/* Header Section - Prepared for mobile stacking */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--spacing-4)',
+                marginBottom: 'var(--spacing-8)',
+                // Desktop: horizontal layout
+                // We'll use a wrapper style that naturally stacks but could be side-by-side on larger screens
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                        <h1 className="title-display" style={{ fontSize: '2rem' }}>Benachrichtigungen</h1>
+                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>Updates & Live Ticker</p>
+                    </div>
+
+                    {/* Desktop-only (Optional, but user wanted them under heading anyway) */}
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                        onClick={handleDeleteAllRead}
-                        className="glass-panel"
-                        style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-error)' }}
-                        title="Gelesene löschen"
-                    >
-                        <Trash2 size={20} />
-                    </button>
-
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => setShowSettings(true)}
                         className="glass-panel"
-                        style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}
+                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}
                     >
-                        <Settings size={20} />
+                        <Settings size={18} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Einstellungen</span>
+                    </button>
+
+                    <button
+                        onClick={handleDeleteAllRead}
+                        className="glass-panel"
+                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-error)' }}
+                        title="Gelesene löschen"
+                    >
+                        <Trash2 size={18} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Gelesene leeren</span>
                     </button>
                 </div>
             </div>

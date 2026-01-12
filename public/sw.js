@@ -24,3 +24,9 @@ self.addEventListener('notificationclick', function (event) {
         clients.openWindow(event.notification.data.link)
     );
 });
+
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});

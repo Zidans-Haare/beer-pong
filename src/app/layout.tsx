@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
+import ServiceWorkerUpdate from '@/components/ServiceWorkerUpdate';
 
 export const metadata: Metadata = {
   title: 'Bier Pong',
@@ -51,6 +52,7 @@ export default async function RootLayout({
             {children}
           </main>
           <BottomNav isAdmin={isAdmin} />
+          <ServiceWorkerUpdate />
         </div>
       </body>
     </html>

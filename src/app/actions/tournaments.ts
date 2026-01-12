@@ -115,21 +115,9 @@ export async function createTournament(formData: FormData) {
         console.log('Mapped all emails:', participantEmails);
 
         if (result.status === 'ACTIVE') {
-            await broadcastNotification({
-                title: 'Neues Turnier!',
-                message: `"${result.name}" wurde erstellt und ist jetzt aktiv!`,
-                link: `/tournaments/${result.id}`,
-                type: 'TOURNAMENT'
-            });
             return { success: true, redirectUrl: `/tournaments/${result.id}` };
         }
 
-        await broadcastNotification({
-            title: 'Neues Turnier geplant',
-            message: `"${result.name}" am ${new Date(result.date).toLocaleDateString()}. Melde dich an!`,
-            link: `/tournaments`, // Or specific link if we had a planning page
-            type: 'TOURNAMENT'
-        });
 
         return { success: true, tournament: result, participantEmails };
     } catch (error) {

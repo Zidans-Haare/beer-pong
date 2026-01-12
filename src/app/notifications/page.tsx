@@ -270,16 +270,26 @@ export default function NotificationsPage() {
 }
 
 function urlBase64ToUint8Array(base64String: string) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
+    if (!base64String) return new Uint8Array(0);
+
+    // Remove whitespace and potential non-base64 chars
+    const cleaned = base64String.trim();
+
+    const padding = '='.repeat((4 - cleaned.length % 4) % 4);
+    const base64 = (cleaned + padding)
         .replace(/\-/g, '+')
         .replace(/_/g, '/');
 
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
+    try {
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
 
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    } catch (e) {
+        console.error('Failed to decode VAPID key base64:', e, 'Cleaned string length:', cleaned.length);
+        throw e;
     }
-    return outputArray;
 }

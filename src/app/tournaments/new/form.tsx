@@ -73,6 +73,21 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                         📅 Kalendereintrag (.ics)
                     </button>
 
+                    <button
+                        onClick={async () => {
+                            if (!confirm('Benachrichtigung jetzt an alle App-Nutzer senden?')) return;
+                            const title = 'Turnier Einladung';
+                            const message = `Komm zum Turnier "${createdTournament.name}" am ${new Date(createdTournament.date).toLocaleDateString()}!`;
+                            const { broadcastNotification } = await import('@/app/actions/notifications');
+                            await broadcastNotification({ title, message, type: 'TOURNAMENT', link: '/tournaments' });
+                            alert('📢 Benachrichtigung gesendet!');
+                        }}
+                        className="btn"
+                        style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', color: 'var(--color-primary)' }}
+                    >
+                        📢 App-Benachrichtigung (Manuell)
+                    </button>
+
                     <button onClick={() => router.push('/tournaments')} className="btn" style={{ marginTop: 'var(--spacing-2)' }}>
                         Zum Turnier Dashboard
                     </button>
@@ -117,8 +132,9 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                     <input type="checkbox" id="startImmediately" name="startImmediately" style={{ width: '20px', height: '20px' }} />
-                    <label htmlFor="startImmediately" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary)' }}>Sofort starten (Direkte Teilnehmerwahl)</label>
+                    <label htmlFor="startImmediately" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-secondary)' }}>Sofort starten (Direkte Teilnehmerwahl)</label>
                 </div>
+
 
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Teilnehmer auswählen (Mehrfachauswahl möglich)</label>

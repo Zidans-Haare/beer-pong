@@ -8,9 +8,9 @@ import {
     deleteNotification,
     deleteAllReadNotifications
 } from '@/app/actions/notifications';
-import { saveSubscription, getVapidPublicKey } from '@/app/actions/push';
+import { saveSubscription, getVapidPublicKey, sendTestPush } from '@/app/actions/push';
 import { useRouter } from 'next/navigation';
-import { Settings, CheckCircle, Trash2, Bell, Radio } from 'lucide-react';
+import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -138,6 +138,29 @@ export default function NotificationsPage() {
                         <Settings size={20} />
                     </button>
                 </div>
+            </div>
+
+            {/* Diagnostic Panel */}
+            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-4)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {pushStatus === 'granted' ? <ShieldCheck size={18} color="#22c55e" /> : <ShieldAlert size={18} color={pushStatus === 'denied' ? '#ef4444' : '#eab308'} />}
+                    <span style={{ fontSize: '0.85rem' }}>
+                        Push Status: <strong>{pushStatus === 'granted' ? 'Aktiviert' : pushStatus === 'denied' ? 'Blockiert' : 'Nicht registriert'}</strong>
+                    </span>
+                </div>
+                {pushStatus === 'granted' && (
+                    <button
+                        onClick={async () => {
+                            const res = await sendTestPush();
+                            if (res.success) alert("Test-Push gesendet! Schau in deine OS-Mitteilungen.");
+                            else alert("Fehler: " + res.error);
+                        }}
+                        className="nav-link"
+                        style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px' }}
+                    >
+                        <Send size={14} /> Test-Push senden
+                    </button>
+                )}
             </div>
 
             {/* Push Permission Prompt - Styled as Glass Panel */}

@@ -14,7 +14,7 @@ export async function saveSubscription(subscription: PushSubscriptionJSON) {
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
 
     try {
-        await prisma.pushSubscription.create({
+        await (prisma as any).pushSubscription.create({
             data: {
                 userId: session.user.id,
                 endpoint: subscription.endpoint!,
@@ -31,4 +31,49 @@ export async function saveSubscription(subscription: PushSubscriptionJSON) {
 
 export async function getVapidPublicKey() {
     return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+}
+
+import webpush from 'web-push';
+
+export async function sendTestPush() {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    try {
+        const subscriptions = await (prisma as any).pushSubscription.findMany({
+            where: { userId: session.user.id }
+        });
+
+        if (subscriptions.length === 0) {
+            return { success: false, error: 'Kein Push-Abonnement gefunden. Bitte erst aktivieren.' };
+        }
+
+        const payload = JSON.stringify({
+            title: 'Test Benachrichtigung 🍺',
+            message: 'Wenn du das siehst, funktioniert Push!',
+            link: '/notifications'
+        });
+
+        // Initialize web-push if not already done in this context
+        const publicKey = process.env.VAPID_PUBLIC_KEY;
+        const privateKey = process.env.VAPID_PRIVATE_KEY;
+        if (publicKey && privateKey) {
+            webpush.setVapidDetails('mailto:admin@example.com', publicKey, privateKey);
+        }
+
+        await Promise.all(subscriptions.map((sub: any) => {
+            return webpush.sendNotification({
+                endpoint: sub.endpoint,
+                keys: {
+                    p256dh: sub.p256dh,
+                    auth: sub.auth
+                }
+            }, payload);
+        }));
+
+        return { success: true };
+    } catch (error) {
+        console.error('Test push failed:', error);
+        return { success: false, error: 'Fehler beim Senden des Tests' };
+    }
 }

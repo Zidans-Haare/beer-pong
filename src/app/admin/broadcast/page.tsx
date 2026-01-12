@@ -91,6 +91,23 @@ export default function BroadcastPage() {
                     </div>
 
                     <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Link (Optional)</label>
+                        <input
+                            name="link"
+                            placeholder="z.B. /tournaments/abc-123"
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                color: 'var(--color-text)',
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
+
+                    <div>
                         <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Typ</label>
                         <select
                             name="type"

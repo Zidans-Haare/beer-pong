@@ -73,12 +73,10 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
 
     return (
         <div style={{
-            fixed: 'fixed',
             position: 'fixed',
             inset: 0,
             zIndex: 1000,
             display: 'flex',
-            itemsCenter: 'center',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 'var(--spacing-4)',

@@ -7,8 +7,8 @@ export default async function Home() {
   const stats = await getAllPlayerStats();
 
   return (
-    <div className="container" style={{ paddingTop: 'calc(var(--spacing-12) + 20px)' }}>
-      <header style={{ marginBottom: 'var(--spacing-8)', paddingLeft: 'var(--spacing-2)' }}>
+    <div className="container" style={{ paddingTop: '20px' }}>
+      <header style={{ marginBottom: 'var(--spacing-4)', paddingLeft: 'var(--spacing-2)' }}>
         <h1 className="title-display" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
           BIER PONG
         </h1>

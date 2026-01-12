@@ -25,6 +25,7 @@ model Player {
   matchesAsPlayer1 Match[] @relation("Player1Matches")
   matchesAsPlayer2 Match[] @relation("Player2Matches")
   tournaments      TournamentParticipant[]
+  standings        TournamentStanding[]
   rsvps            RSVP[]
 }
 
@@ -38,12 +39,15 @@ model Tournament {
   hostId    String?  // Creator of the tournament
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  hasReturnLeg Boolean @default(false)
 
   // Relations
   host         User?   @relation(fields: [hostId], references: [id])
   matches      Match[]
   participants TournamentParticipant[]
+  standings    TournamentStanding[]
   rsvps        RSVP[]
+  tickerEvents TickerEvent[]
 }
 
 // ... existing TournamentParticipant, Match, RSVP models ...
@@ -62,6 +66,25 @@ model User {
   // App Relations
   player        Player?
   hostedTournaments Tournament[]
+  notifications    Notification[]
+
+  // Notification Preferences
+  notifyNewTournaments Boolean @default(true)
+  notifyUpdates        Boolean @default(true)
+  notifyLiveTicker     Boolean @default(true)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // "TOURNAMENT", "UPDATE", "SYSTEM", "GENERIC"
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -100,7 +123,7 @@ model VerificationToken {
 }
 
 model TournamentParticipant {
-  idString     String @id @default(uuid()) // Renamed to avoid confusion with composite keys if we used them, but UUID is safer
+  idString     String @id @default(uuid())
   tournamentId String
   playerId     String
   
@@ -110,16 +133,38 @@ model TournamentParticipant {
   @@unique([tournamentId, playerId])
 }
 
+model TournamentStanding {
+  id           String @id @default(uuid())
+  tournamentId String
+  playerId     String // Using Player instead of Team
+  
+  points          Int @default(0)
+  goalsFor        Int @default(0)
+  goalsAgainst    Int @default(0)
+  goalDifference  Int @default(0)
+  played          Int @default(0)
+  won             Int @default(0)
+  drawn           Int @default(0)
+  lost            Int @default(0)
+  groupId         Int // 0, 1, 2 etc. for Group A, B, C...
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, playerId])
+}
+
 model Match {
   id           String   @id @default(uuid())
   tournamentId String
-  player1Id    String?  // Can be null if TBD (e.g., initial bracket generation)
+  player1Id    String?  // Can be null if TBD
   player2Id    String?
   score1       Int      @default(0)
   score2       Int      @default(0)
   winnerId     String?
-  round        Int      // 1, 2, ... (Finals could be a specific number or inferred)
-  position     Int      // Position in the bracket (e.g. 0-15 for Round of 16)
+  isPlayed     Boolean  @default(false)
+  round        Int      // 1, 2, ...
+  position     Int      // Position in the bracket
   stage        String   @default("BRACKET") // BRACKET, GROUP
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -139,4 +184,15 @@ model RSVP {
   player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, playerId])
+}
+
+model TickerEvent {
+  id           String   @id @default(uuid())
+  tournamentId String
+  matchId      String?
+  type         String   // MATCH_START, SCORE_UPDATE, MATCH_END, COMMENTARY
+  content      String
+  createdAt    DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }

@@ -87,7 +87,7 @@ function PlayerCard({ player }: { player: any }) {
                 }}>
                     {player.image ? (
                         <img
-                            src={player.image}
+                            src={`${player.image}?v=2`}
                             alt={player.name}
                             style={{
                                 width: '100%',

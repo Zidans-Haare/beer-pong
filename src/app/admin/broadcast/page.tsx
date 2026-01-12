@@ -24,58 +24,92 @@ export default function BroadcastPage() {
     };
 
     return (
-        <div className="container mx-auto p-6 max-w-2xl">
+        <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-panel p-8"
+                className="glass-panel"
+                style={{ padding: 'var(--spacing-6)' }}
             >
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 bg-blue-500/20 rounded-full text-blue-400">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
+                    <div style={{
+                        padding: '12px',
+                        background: 'rgba(59,130,246,0.2)',
+                        borderRadius: '50%',
+                        color: '#60a5fa',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
                         <Bell size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                        <h1 className="text-gradient" style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>
                             Broadcast Senden
                         </h1>
-                        <p className="text-gray-400">Nachricht an alle Nutzer senden</p>
+                        <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Nachricht an alle Nutzer senden</p>
                     </div>
                 </div>
 
-                <form action={handleSubmit} className="space-y-6">
+                <form action={handleSubmit} style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Titel</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Titel</label>
                         <input
                             name="title"
                             required
                             placeholder="z.B. Neue Features!"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                color: 'var(--color-text)',
+                                outline: 'none',
+                                transition: 'border-color 0.2s'
+                            }}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Nachricht</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Nachricht</label>
                         <textarea
                             name="message"
                             required
                             rows={4}
                             placeholder="Deine Nachricht hier..."
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                color: 'var(--color-text)',
+                                outline: 'none',
+                                resize: 'vertical',
+                                minHeight: '100px'
+                            }}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Typ</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Typ</label>
                         <select
                             name="type"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                color: 'var(--color-text)',
+                                outline: 'none'
+                            }}
                         >
-                            <option value="UPDATE">📢 Update (Allgemein)</option>
-                            <option value="TOURNAMENT">🏆 Turnier Info</option>
-                            <option value="SYSTEM">⚠️ System</option>
-                            <option value="GENERIC">📝 Sonstiges</option>
+                            <option value="UPDATE" style={{ background: '#1e293b' }}>📢 Update (Allgemein)</option>
+                            <option value="TOURNAMENT" style={{ background: '#1e293b' }}>🏆 Turnier Info</option>
+                            <option value="SYSTEM" style={{ background: '#1e293b' }}>⚠️ System</option>
+                            <option value="GENERIC" style={{ background: '#1e293b' }}>📝 Sonstiges</option>
                         </select>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '8px' }}>
                             Nur Nutzer, die diesen Benachrichtigungstyp aktiviert haben, erhalten die Nachricht.
                         </p>
                     </div>
@@ -83,24 +117,30 @@ export default function BroadcastPage() {
                     <button
                         type="submit"
                         disabled={status === 'sending'}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                        className="btn-primary"
+                        style={{
+                            width: '100%',
+                            marginTop: 'var(--spacing-2)',
+                            opacity: status === 'sending' ? 0.7 : 1,
+                            cursor: status === 'sending' ? 'not-allowed' : 'pointer'
+                        }}
                     >
                         {status === 'sending' ? 'Sende...' : (
-                            <>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Send size={18} />
                                 Broadcast Senden
-                            </>
+                            </span>
                         )}
                     </button>
 
                     {status === 'success' && (
-                        <div className="p-4 bg-green-500/20 text-green-400 rounded-lg text-center font-medium">
+                        <div style={{ padding: '12px', background: 'rgba(34,197,94,0.1)', color: 'var(--color-success)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
                             ✅ {message}
                         </div>
                     )}
 
                     {status === 'error' && (
-                        <div className="p-4 bg-red-500/20 text-red-400 rounded-lg text-center font-medium">
+                        <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
                             ❌ {message}
                         </div>
                     )}

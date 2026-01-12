@@ -12,7 +12,7 @@ export const authConfig = {
             const isOnRegister = nextUrl.pathname.startsWith('/register');
 
             // Protect /tournaments/new and editing pages
-            if (nextUrl.pathname.startsWith('/tournaments/new')) {
+            if (nextUrl.pathname.startsWith('/tournaments/new') || nextUrl.pathname.startsWith('/admin')) {
                 if (isLoggedIn) return true;
                 return false; // Redirect to login
             }

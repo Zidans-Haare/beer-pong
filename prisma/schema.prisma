@@ -67,6 +67,7 @@ model User {
   player        Player?
   hostedTournaments Tournament[]
   notifications    Notification[]
+  pushSubscriptions PushSubscription[]
 
   // Notification Preferences
   notifyNewTournaments Boolean @default(true)
@@ -195,4 +196,14 @@ model TickerEvent {
   createdAt    DateTime @default(now())
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

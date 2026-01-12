@@ -72,7 +72,41 @@ export async function markAllNotificationsAsRead() {
     }
 }
 
-// ... existing code ...
+export async function deleteNotification(notificationId: string) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    try {
+        await prisma.notification.delete({
+            where: {
+                id: notificationId,
+                userId: session.user.id,
+            },
+        });
+        revalidatePath('/notifications');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Failed' };
+    }
+}
+
+export async function deleteAllReadNotifications() {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    try {
+        await prisma.notification.deleteMany({
+            where: {
+                userId: session.user.id,
+                isRead: true
+            },
+        });
+        revalidatePath('/notifications');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Failed' };
+    }
+}
 
 export async function updateNotificationPreferences(formData: FormData) {
     const session = await auth();
@@ -102,8 +136,10 @@ export async function updateNotificationPreferences(formData: FormData) {
 
 export async function sendManualBroadcast(formData: FormData) {
     const session = await auth();
-    // In a real app, check for ADMIN role here
-    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+    // Check for ADMIN role via Env
+    if (!session?.user?.id || session.user.email !== process.env.ADMIN_EMAIL) {
+        return { success: false, error: 'Unauthorized: Admins only' };
+    }
 
     const title = formData.get('title') as string;
     const message = formData.get('message') as string;
@@ -142,6 +178,26 @@ export async function getNotificationPreferences() {
 
 export type NotificationType = 'TOURNAMENT' | 'UPDATE' | 'SYSTEM' | 'GENERIC' | 'TICKER';
 
+import webpush from 'web-push';
+
+// Initialize web-push safely
+try {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+    if (publicKey && privateKey && publicKey.length > 20 && privateKey.length > 20) {
+        webpush.setVapidDetails(
+            'mailto:admin@example.com',
+            publicKey,
+            privateKey
+        );
+    } else {
+        console.warn('VAPID keys are missing or invalid. Push notifications will be disabled.');
+    }
+} catch (e) {
+    console.error('Failed to initialize web-push:', e);
+}
+
 export async function broadcastNotification({
     title,
     message,
@@ -153,40 +209,56 @@ export async function broadcastNotification({
     link?: string;
     type: NotificationType;
 }) {
-    // This is an internal admin-like function, but for now we won't protect it strictly 
-    // against internal calls, but ideally check for admin role here.
+    // ... (existing filtering logic) ...
 
     try {
-        // Filter users based on preferences
+        // 1. In-App Notifications
         const whereClause: any = {};
-        if (type === 'TOURNAMENT') {
-            whereClause.notifyNewTournaments = true;
-        } else if (type === 'UPDATE') {
-            whereClause.notifyUpdates = true;
-        } else if (type === 'TICKER') {
-            whereClause.notifyLiveTicker = true;
-        }
+        if (type === 'TOURNAMENT') whereClause.notifyNewTournaments = true;
+        else if (type === 'UPDATE') whereClause.notifyUpdates = true;
+        else if (type === 'TICKER') whereClause.notifyLiveTicker = true;
 
         const users = await prisma.user.findMany({
             where: whereClause,
             select: { id: true },
         });
 
-        if (users.length === 0) return { success: true, count: 0 };
+        if (users.length > 0) {
+            await prisma.notification.createMany({
+                data: users.map(user => ({
+                    userId: user.id,
+                    title,
+                    message,
+                    link,
+                    type,
+                }))
+            });
 
-        // Create notifications in batched transactions or Promise.all
-        // For large user bases, this should be a queue/job.
-        // For now, simple Promise.all is fine.
+            // 2. Web Push Notifications
+            const userIds = users.map(u => u.id);
+            const subscriptions = await prisma.pushSubscription.findMany({
+                where: { userId: { in: userIds } }
+            });
 
-        await prisma.notification.createMany({
-            data: users.map(user => ({
-                userId: user.id,
-                title,
-                message,
-                link,
-                type,
-            }))
-        });
+            const payload = JSON.stringify({ title, message, link });
+
+            // Send parallel pushes
+            await Promise.all(subscriptions.map(sub => {
+                return webpush.sendNotification({
+                    endpoint: sub.endpoint,
+                    keys: {
+                        p256dh: sub.p256dh,
+                        auth: sub.auth
+                    }
+                }, payload).catch(err => {
+                    console.error('Push failed for sub', sub.id, err);
+                    if (err.statusCode === 410 || err.statusCode === 404) {
+                        // Cleanup invalid sub
+                        prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(console.error);
+                    }
+                });
+            }));
+        }
 
         return { success: true, count: users.length };
     } catch (error) {

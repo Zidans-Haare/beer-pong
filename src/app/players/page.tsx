@@ -1,4 +1,5 @@
 import { getPlayers } from '@/app/actions/players';
+import InviteButton from '@/components/InviteButton';
 import Link from 'next/link';
 import { User, Trophy, TrendingUp, Sparkles, UserPlus } from 'lucide-react';
 
@@ -14,9 +15,7 @@ export default async function PlayersPage() {
                     <h1 className="title-display" style={{ fontSize: '2rem' }}>Spieler</h1>
                     <p className="subtitle" style={{ fontSize: '0.9rem' }}>Die Elite der Liga</p>
                 </div>
-                <Link href="/players/new" className="btn btn-secondary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <UserPlus size={20} /> <span>Spieler Anlegen</span>
-                </Link>
+                <InviteButton />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
@@ -75,7 +74,7 @@ function PlayerCard({ player }: { player: any }) {
                     width: '80px',
                     height: '80px',
                     borderRadius: '50%',
-                    background: bgGradient,
+                    background: player.image ? 'transparent' : bgGradient,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -83,9 +82,22 @@ function PlayerCard({ player }: { player: any }) {
                     fontWeight: 800,
                     color: 'white',
                     marginBottom: 'var(--spacing-4)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    overflow: 'hidden' // Ensure image stays round
                 }}>
-                    {initials}
+                    {player.image ? (
+                        <img
+                            src={player.image}
+                            alt={player.name}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                    ) : (
+                        initials
+                    )}
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', margin: 0, textAlign: 'center' }}>{player.name}</h3>
                 {player.nickname && (

@@ -40,8 +40,12 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
             <div className="glass-panel" style={{ padding: 'var(--spacing-8)', marginBottom: 'var(--spacing-8)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', gap: 'var(--spacing-8)', alignItems: 'center' }}>
-                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold' }}>
-                        {player.image ? <img src={player.image} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} /> : player.name[0]}
+                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: player.image ? 'transparent' : 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', overflow: 'hidden' }}>
+                        {player.image ? (
+                            <img src={player.image} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            player.name[0]
+                        )}
                     </div>
                     <div>
                         <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>{player.name}</h1>

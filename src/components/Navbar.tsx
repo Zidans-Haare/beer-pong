@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth, signOut } from '@/auth';
-import NotificationBell from './NotificationBell';
+import DesktopNotificationLink from './DesktopNotificationLink';
+
 import { Beer } from 'lucide-react';
 
 export default async function Navbar() {
@@ -17,14 +18,19 @@ export default async function Navbar() {
                 <Link href="/tournaments" className="nav-link" style={{ color: 'var(--color-text)' }}>Turniere</Link>
                 <Link href="/players" className="nav-link" style={{ color: 'var(--color-text)' }}>Spieler</Link>
                 <Link href="/stats" className="nav-link" style={{ color: 'var(--color-text)' }}>Statistik</Link>
+                {session?.user?.email === process.env.ADMIN_EMAIL && (
+                    <Link href="/admin/broadcast" className="nav-link" style={{ color: 'var(--color-text)' }}>Admin</Link>
+                )}
                 <div style={{ width: '1px', height: '20px', background: 'var(--color-border)', margin: '0 var(--spacing-2)' }}></div>
+
+                {session?.user && <DesktopNotificationLink />}
             </div>
 
             {/* Auth Section - Visible on Mobile too */}
             <div style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
                 {session?.user ? (
                     <>
-                        <NotificationBell />
+
                         <span className="desktop-nav-links" style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{session.user.name}</span>
                         <form action={async () => {
                             'use server';

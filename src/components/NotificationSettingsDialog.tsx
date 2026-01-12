@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { updateNotificationPreferences, getNotificationPreferences } from '@/app/actions/notifications';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, Trophy, AlertCircle, Radio } from 'lucide-react';
 
 const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) => void }) => (
     <button
         type="button"
         onClick={() => onChange(!active)}
-        className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${active ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-glow-primary' : 'bg-gray-700'}`}
+        className={`w-12 h-6 flex items-center rounded-full p-1 transition-all duration-300 ${active ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.4)]' : 'bg-white/10'}`}
     >
         <div
-            className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? 'translate-x-5' : ''}`}
+            className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? 'translate-x-6' : ''}`}
         />
     </button>
 );
@@ -53,45 +53,56 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="glass-panel w-full max-w-md p-0 relative overflow-hidden"
-                style={{ background: 'rgba(15, 23, 42, 0.85)' }}
+                style={{
+                    borderRadius: '24px',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                }}
             >
-                {/* Header with decorative top border */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div className="p-6">
+                <div className="p-8 relative">
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                        className="absolute top-5 right-5 p-2 text-white/30 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all"
                     >
-                        <X size={20} />
+                        <X size={18} />
                     </button>
 
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
-                        <Settings size={20} className="text-purple-400" />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                    <div className="flex flex-col items-center text-center mb-8">
+                        <div className="p-3 bg-white/5 rounded-2xl mb-3 border border-white/5 shadow-inner">
+                            <Settings size={28} className="text-purple-400" />
+                        </div>
+                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
                             Einstellungen
-                        </span>
-                    </h2>
+                        </h2>
+                        <p className="text-sm text-gray-400 mt-1">Verwalte deine Benachrichtigungen</p>
+                    </div>
 
                     {loading ? (
                         <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-3">
                             <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Laden...</span>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-3">
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1 pr-4">
-                                            <div className="font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">🏆 Neue Turniere</div>
-                                            <div className="text-xs text-gray-400 leading-relaxed">Erfahre sofort, wenn ein neues Turnier geplant wird.</div>
+                                {/* Tournament Toggle */}
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2.5 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-lg text-yellow-500 border border-yellow-500/20">
+                                            <Trophy size={20} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-white text-sm mb-0.5">Neue Turniere</div>
+                                            <div className="text-xs text-gray-400">Infos zu neuen Events.</div>
                                         </div>
                                         <Toggle
                                             active={prefs.notifyNewTournaments}
@@ -100,11 +111,15 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                     </div>
                                 </div>
 
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1 pr-4">
-                                            <div className="font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">📢 Updates</div>
-                                            <div className="text-xs text-gray-400 leading-relaxed">Wichtige Infos zu deinen Turnieren.</div>
+                                {/* Updates Toggle */}
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-lg text-blue-400 border border-blue-500/20">
+                                            <AlertCircle size={20} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-white text-sm mb-0.5">Wichtige Updates</div>
+                                            <div className="text-xs text-gray-400">Änderungen & News.</div>
                                         </div>
                                         <Toggle
                                             active={prefs.notifyUpdates}
@@ -113,11 +128,15 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                     </div>
                                 </div>
 
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1 pr-4">
-                                            <div className="font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">🎙️ Live Ticker</div>
-                                            <div className="text-xs text-gray-400 leading-relaxed">Match-Updates & KI-Kommentare als Push.</div>
+                                {/* Live Ticker Toggle */}
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2.5 bg-gradient-to-br from-red-500/20 to-pink-500/10 rounded-lg text-red-500 border border-red-500/20 shadow-[0_0_15px_-5px_rgba(239,68,68,0.3)]">
+                                            <Radio size={20} className="animate-pulse-subtle" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-white text-sm mb-0.5">Live Ticker</div>
+                                            <div className="text-xs text-gray-400">Echtzeit Match-Updates.</div>
                                         </div>
                                         <Toggle
                                             active={prefs.notifyLiveTicker}
@@ -127,18 +146,18 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 </div>
                             </div>
 
-                            <div className="pt-6 flex justify-end gap-3 border-t border-white/10 mt-6">
+                            <div className="pt-6 flex gap-3 mt-6">
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition text-sm font-medium"
+                                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition text-sm font-bold border border-white/5"
                                 >
                                     Abbrechen
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-purple-500/20 transition-all transform hover:scale-105 active:scale-95 text-sm font-bold disabled:opacity-50 disabled:transform-none select-none"
+                                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-purple-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm font-bold disabled:opacity-50 disabled:transform-none"
                                 >
                                     {saving ? 'Speichert...' : 'Speichern'}
                                 </button>

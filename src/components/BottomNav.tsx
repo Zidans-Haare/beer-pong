@@ -2,26 +2,58 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command } from 'lucide-react';
+import { getNotifications } from '@/app/actions/notifications';
+import { useState, useEffect } from 'react';
 
-export default function BottomNav() {
+export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
     const pathname = usePathname();
-    const isActive = (path: string) => pathname === path;
+    const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchUnread = async () => {
+            try {
+                const notifications = await getNotifications();
+                setUnreadCount(notifications.filter(n => !n.isRead).length);
+            } catch (e) {
+                console.error("Failed to fetch notifications for bottom nav", e);
+            }
+        };
+        fetchUnread();
+        const interval = setInterval(fetchUnread, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <nav className="bottom-nav">
-            <Link href="/" className={`bottom-nav-item ${isActive('/') ? 'active' : ''}`}>
+            <Link href="/" className={`bottom-nav-item ${pathname === '/' ? 'active' : ''}`}>
                 <span className="nav-icon-glow"><Home size={24} /></span>
             </Link>
             <Link href="/tournaments" className={`bottom-nav-item ${isActive('/tournaments') ? 'active' : ''}`}>
                 <span className="nav-icon-glow"><Trophy size={24} /></span>
             </Link>
-            <Link href="/stats" className={`bottom-nav-item ${isActive('/stats') ? 'active' : ''}`}>
-                <span className="nav-icon-glow"><BarChart2 size={24} /></span>
+            <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`}>
+                <div className="relative">
+                    <span className="nav-icon-glow"><Bell size={24} /></span>
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-slate-900 shadow-sm animate-pulse-subtle">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                    )}
+                </div>
             </Link>
             <Link href="/players" className={`bottom-nav-item ${isActive('/players') ? 'active' : ''}`}>
                 <span className="nav-icon-glow"><Users size={24} /></span>
             </Link>
+            <Link href="/stats" className={`bottom-nav-item ${isActive('/stats') ? 'active' : ''}`}>
+                <span className="nav-icon-glow"><BarChart2 size={24} /></span>
+            </Link>
+            {isAdmin && (
+                <Link href="/admin" className={`bottom-nav-item ${isActive('/admin') ? 'active' : ''}`}>
+                    <span className="nav-icon-glow"><Command size={24} /></span>
+                </Link>
+            )}
         </nav>
     );
 }

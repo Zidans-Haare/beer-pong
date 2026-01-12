@@ -24,11 +24,18 @@ export const viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+import { auth } from '@/auth';
+
+// ... (Metadata and Viewport exports remain unchanged - handled by Next.js imports)
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
+
   return (
     <html lang="de">
       <head>
@@ -43,7 +50,7 @@ export default function RootLayout({
           <main className="main-content">
             {children}
           </main>
-          <BottomNav />
+          <BottomNav isAdmin={isAdmin} />
         </div>
       </body>
     </html>

@@ -79,7 +79,12 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                             const title = 'Turnier Einladung';
                             const message = `Komm zum Turnier "${createdTournament.name}" am ${new Date(createdTournament.date).toLocaleDateString()}!`;
                             const { broadcastNotification } = await import('@/app/actions/notifications');
-                            await broadcastNotification({ title, message, type: 'TOURNAMENT', link: '/tournaments' });
+                            await broadcastNotification({
+                                title,
+                                message,
+                                type: 'TOURNAMENT',
+                                link: `/tournaments/${createdTournament.id}`
+                            });
                             alert('📢 Benachrichtigung gesendet!');
                         }}
                         className="btn"

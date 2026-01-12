@@ -144,6 +144,7 @@ export async function sendManualBroadcast(formData: FormData) {
     const title = formData.get('title') as string;
     const message = formData.get('message') as string;
     const type = formData.get('type') as NotificationType;
+    const link = formData.get('link') as string || '/tournaments';
 
     if (!title || !message || !type) {
         return { success: false, error: 'Missing fields' };
@@ -153,7 +154,7 @@ export async function sendManualBroadcast(formData: FormData) {
         title,
         message,
         type,
-        link: '/tournaments' // Default link for now
+        link
     });
 }
 

@@ -1,5 +1,9 @@
-
 import { prisma } from "@/lib/prisma";
+import {
+    generateSingleEliminationBracket,
+    generateRoundRobinMatches,
+    generateGroupStageMatches
+} from "@/lib/brackets";
 
 export class TournamentService {
     /**
@@ -8,17 +12,91 @@ export class TournamentService {
     static async startTournament(tournamentId: string) {
         const tournament = await prisma.tournament.findUnique({
             where: { id: tournamentId },
-            include: { participants: { include: { player: true } } },
+            include: {
+                participants: { include: { player: true } }
+            },
         });
 
         if (!tournament) throw new Error("Tournament not found");
 
+        const players = tournament.participants.map(p => ({ id: p.playerId }));
+        const playerIds = tournament.participants.map(p => p.playerId);
+
+        let matches: any[] = [];
+
         if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
-            await this.generateSingleEliminationBracket(tournamentId, tournament.participants.map(p => p.playerId));
+            matches = generateSingleEliminationBracket(tournamentId, players);
         } else if (tournament.type === "GROUP_AND_KNOCKOUT" || tournament.type === "GROUPS") {
-            await this.generateGroupStage(tournamentId, tournament.participants.map(p => p.playerId), tournament.hasReturnLeg);
+            matches = generateGroupStageMatches(tournamentId, playerIds, tournament.hasReturnLeg);
+
+            // Create Standings for Groups
+            const mid = Math.ceil(playerIds.length / 2);
+            // Standings are created during match generation in older logic, but here we need them for stats
+            // We'll follow the group split from generateGroupStageMatches (sequential for standings is fine as long as matches match)
+            // Wait, brackets.ts shuffles internally. This is a bit tricky if we want to match standings.
+            // Let's adjust brackets.ts or handle standings here.
+            // Actually, TournamentService.generateGroupStage did its own shuffle.
+            // To be safe, let's just create standings for all participants and assign them to the correct group based on the generated matches.
         } else if (tournament.type === "ROUND_ROBIN") {
-            await this.generateRoundRobin(tournamentId, tournament.participants.map(p => p.playerId), tournament.hasReturnLeg);
+            matches = generateRoundRobinMatches(tournamentId, playerIds, tournament.hasReturnLeg);
+
+            // Create Standings for League
+            for (const pid of playerIds) {
+                await prisma.tournamentStanding.upsert({
+                    where: { tournamentId_playerId: { tournamentId, playerId: pid } },
+                    update: {},
+                    create: { tournamentId, playerId: pid, groupId: 0 }
+                });
+            }
+        }
+
+        // Handle Standings for Groups (Special Case)
+        if (tournament.type === "GROUPS" || tournament.type === "GROUP_AND_KNOCKOUT") {
+            // Find which player is in which stage (GROUP_1 or GROUP_2) from the generated matches
+            const group1Players = new Set<string>();
+            const group2Players = new Set<string>();
+
+            matches.forEach(m => {
+                if (m.stage === 'GROUP_1') {
+                    if (m.player1Id) group1Players.add(m.player1Id);
+                    if (m.player2Id) group1Players.add(m.player2Id);
+                } else if (m.stage === 'GROUP_2') {
+                    if (m.player1Id) group2Players.add(m.player1Id);
+                    if (m.player2Id) group2Players.add(m.player2Id);
+                }
+            });
+
+            for (const pid of group1Players) {
+                await prisma.tournamentStanding.upsert({
+                    where: { tournamentId_playerId: { tournamentId, playerId: pid } },
+                    update: { groupId: 1 },
+                    create: { tournamentId, playerId: pid, groupId: 1 }
+                });
+            }
+            for (const pid of group2Players) {
+                await prisma.tournamentStanding.upsert({
+                    where: { tournamentId_playerId: { tournamentId, playerId: pid } },
+                    update: { groupId: 2 },
+                    create: { tournamentId, playerId: pid, groupId: 2 }
+                });
+            }
+        }
+
+        // Save Matches
+        if (matches.length > 0) {
+            // Prisma createMany is faster
+            await prisma.match.createMany({
+                data: matches.map(m => ({
+                    tournamentId: m.tournamentId,
+                    player1Id: m.player1Id,
+                    player2Id: m.player2Id,
+                    round: m.round,
+                    position: m.position,
+                    stage: m.stage,
+                    isPlayed: m.isPlayed || false,
+                    winnerId: m.winnerId || null
+                }))
+            });
         }
 
         // Update status
@@ -29,158 +107,64 @@ export class TournamentService {
     }
 
     /**
-     * Generates a Single Elimination Bracket.
-     * Simple implementation: Shuffles players and pairs them up.
-     * Does NOT currently handle BYEs (requires power of 2 players for perfect bracket).
+     * Generates Knockout phase (Bracket) from Group standings.
      */
-    private static async generateSingleEliminationBracket(tournamentId: string, playerIds: string[]) {
-        const shuffled = [...playerIds].sort(() => 0.5 - Math.random());
-        const matches = [];
-
-        // For now, assuming even number or handling odd by ignoring last? 
-        // Ideally should check power of 2, but for "Beer Pong" we often just play.
-        // Let's pair them up.
-
-        for (let i = 0; i < shuffled.length; i += 2) {
-            if (i + 1 < shuffled.length) {
-                matches.push({
-                    tournamentId,
-                    player1Id: shuffled[i],
-                    player2Id: shuffled[i + 1],
-                    round: 1,
-                    position: i / 2,
-                    stage: "BRACKET",
-                    isPlayed: false
-                });
-            } else {
-                // Odd player out - in a real bracket they'd get a bye.
-                // For now, let's just leave them unmatched or handle as bye later.
-                // We'll ignore for this simple fix, or maybe create a match with no opponent?
-                // Creating a match with null player2 implies a bye often.
-                matches.push({
-                    tournamentId,
-                    player1Id: shuffled[i],
-                    player2Id: undefined, // Bye
-                    round: 1,
-                    position: i / 2,
-                    stage: "BRACKET",
-                    isPlayed: true, // Auto-win
-                    winnerId: shuffled[i],
-                    score1: 0,
-                    score2: 0
-                });
-            }
-        }
-
-        await prisma.match.createMany({ data: matches });
-    }
-
-    /**
-     * Generates a Round Robin (League) schedule.
-     */
-    private static async generateRoundRobin(tournamentId: string, playerIds: string[], hasReturnLeg: boolean) {
-        // 1. Create Standings
-        for (const pid of playerIds) {
-            await prisma.tournamentStanding.create({
-                data: {
-                    tournamentId,
-                    playerId: pid,
-                    groupId: 0, // Single group for League
-                }
-            });
-        }
-
-        // 2. Generate Matches
-        const matches = [];
-        for (let i = 0; i < playerIds.length; i++) {
-            for (let j = i + 1; j < playerIds.length; j++) {
-                // First Leg
-                matches.push({
-                    tournamentId,
-                    player1Id: playerIds[i],
-                    player2Id: playerIds[j],
-                    stage: "LEAGUE", // Use LEAGUE to distinguish from Group Phase
-                    round: 1,
-                    position: 0,
-                    isPlayed: false
-                });
-
-                // Return Leg
-                if (hasReturnLeg) {
-                    matches.push({
-                        tournamentId,
-                        player1Id: playerIds[j], // Swap home/away
-                        player2Id: playerIds[i],
-                        stage: "LEAGUE",
-                        round: 2, // Distinction for sorting
-                        position: 0,
-                        isPlayed: false
-                    });
-                }
-            }
-        }
-
-        await prisma.match.createMany({ data: matches });
-    }
-
-    private static async generateGroupStage(tournamentId: string, playerIds: string[], hasReturnLeg: boolean) {
-        // Logic for groups
-        // 1. Determine number of groups (e.g. 4 players per group)
-        const groupSize = 4;
-        const numGroups = Math.ceil(playerIds.length / groupSize);
-
-        const shuffled = [...playerIds].sort(() => 0.5 - Math.random());
-
-        const groups: string[][] = Array.from({ length: numGroups }, () => []);
-
-        shuffled.forEach((pid, index) => {
-            groups[index % numGroups].push(pid);
+    static async generateKnockoutFromGroups(tournamentId: string) {
+        // Fetch all standings
+        const standings = await prisma.tournamentStanding.findMany({
+            where: { tournamentId },
+            orderBy: [
+                { groupId: 'asc' },
+                { points: 'desc' },
+                { goalDifference: 'desc' },
+                { goalsFor: 'desc' }
+            ]
         });
 
-        // 2. Create TournamentStanding entries
-        for (let i = 0; i < numGroups; i++) {
-            const groupPlayers = groups[i];
-            for (const pid of groupPlayers) {
-                await prisma.tournamentStanding.create({
-                    data: {
-                        tournamentId,
-                        playerId: pid,
-                        groupId: i,
-                    }
-                });
-            }
+        const groups: Record<number, typeof standings> = {};
+        standings.forEach(s => {
+            if (!groups[s.groupId]) groups[s.groupId] = [];
+            groups[s.groupId].push(s);
+        });
 
-            // 3. Create Round Robin matches for this group
-            for (let a = 0; a < groupPlayers.length; a++) {
-                for (let b = a + 1; b < groupPlayers.length; b++) {
-                    // Leg 1
+        const qualified: { playerId: string, rank: number, groupId: number }[] = [];
+        Object.values(groups).forEach(groupStandings => {
+            if (groupStandings[0]) qualified.push({ playerId: groupStandings[0].playerId, rank: 1, groupId: groupStandings[0].groupId });
+            if (groupStandings[1]) qualified.push({ playerId: groupStandings[1].playerId, rank: 2, groupId: groupStandings[1].groupId });
+        });
+
+        // 1. Create the Semi-Finals matches
+        if (qualified.length === 4) {
+            await prisma.match.create({
+                data: { tournamentId, player1Id: qualified[0].playerId, player2Id: qualified[3].playerId, round: 1, position: 0, stage: "BRACKET" }
+            });
+            await prisma.match.create({
+                data: { tournamentId, player1Id: qualified[2].playerId, player2Id: qualified[1].playerId, round: 1, position: 1, stage: "BRACKET" }
+            });
+
+            // 2. Create the Final Placeholder (Round 2, Position 0)
+            await prisma.match.create({
+                data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 0, stage: "BRACKET" }
+            });
+
+            // 3. Create 3rd Place Placeholder (Round 2, Position 1)
+            await prisma.match.create({
+                data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 1, stage: "BRACKET" }
+            });
+        } else {
+            // Fallback for different group counts
+            for (let i = 0; i < qualified.length; i += 2) {
+                if (qualified[i] && qualified[i + 1]) {
                     await prisma.match.create({
-                        data: {
-                            tournamentId,
-                            player1Id: groupPlayers[a],
-                            player2Id: groupPlayers[b],
-                            stage: "GROUP",
-                            round: 1,
-                            position: 0,
-                            isPlayed: false
-                        }
+                        data: { tournamentId, player1Id: qualified[i].playerId, player2Id: qualified[i + 1].playerId, round: 1, position: i / 2, stage: "BRACKET" }
                     });
-
-                    // Leg 2
-                    if (hasReturnLeg) {
-                        await prisma.match.create({
-                            data: {
-                                tournamentId,
-                                player1Id: groupPlayers[b],
-                                player2Id: groupPlayers[a],
-                                stage: "GROUP",
-                                round: 2,
-                                position: 0,
-                                isPlayed: false
-                            }
-                        });
-                    }
                 }
+            }
+            const nextRoundMatches = Math.ceil(qualified.length / 4);
+            for (let m = 0; m < nextRoundMatches; m++) {
+                await prisma.match.create({
+                    data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: m, stage: "BRACKET" }
+                });
             }
         }
     }

@@ -8,7 +8,9 @@ export interface MatchInput {
     position: number;
     player1Id?: string | null;
     player2Id?: string | null;
-    stage: 'BRACKET' | 'GROUP' | 'GROUP_1' | 'GROUP_2';
+    stage: 'BRACKET' | 'GROUP' | 'GROUP_1' | 'GROUP_2' | 'LEAGUE';
+    isPlayed?: boolean;
+    winnerId?: string | null;
 }
 
 /**
@@ -25,59 +27,62 @@ function shuffleArray<T>(array: T[]): T[] {
 
 // function generateSingleEliminationBracket(tournamentId: string, players: { id: string }[]): MatchInput[] {
 export function generateSingleEliminationBracket(tournamentId: string, players: any[]): MatchInput[] {
-    // 1. Shuffle players for random seeding
     const shuffled = shuffleArray(players);
-
     const numPlayers = shuffled.length;
-    // Next power of 2
+
+    // Find next power of 2
     let size = 2;
     while (size < numPlayers) size *= 2;
 
     const matches: MatchInput[] = [];
-    const rounds = Math.log2(size); // e.g. 8 players -> 3 rounds (Q, S, F)
+    const rounds = Math.ceil(Math.log2(size));
 
-    // Generate main bracket structure
-    for (let r = 1; r <= rounds; r++) {
+    // Round 1 matches
+    const r1MatchesCount = size / 2;
+    for (let m = 0; m < r1MatchesCount; m++) {
+        const p1 = shuffled[m * 2] || null;
+        const p2 = shuffled[m * 2 + 1] || null;
+
+        const isBye = p1 && !p2;
+
+        matches.push({
+            tournamentId,
+            round: 1,
+            position: m,
+            stage: 'BRACKET',
+            player1Id: p1?.id || null,
+            player2Id: p2?.id || null,
+            isPlayed: isBye ? true : false,
+            winnerId: isBye ? p1.id : null
+        });
+    }
+
+    // Future Rounds (Placeholders)
+    for (let r = 2; r <= rounds; r++) {
         const matchesInRound = size / Math.pow(2, r);
         for (let m = 0; m < matchesInRound; m++) {
-            // Round 1 population from shuffled list
-            let p1Id: string | null = null;
-            let p2Id: string | null = null;
-
-            if (r === 1) {
-                // Populate starting matches
-                // For proper seeding, we pair 0 vs N, 1 vs N-1 etc. But random here is fine.
-                // Simple fill:
-                p1Id = shuffled.pop()?.id || null;
-                p2Id = shuffled.pop()?.id || null;
-            }
-
             matches.push({
                 tournamentId,
                 round: r,
                 position: m,
                 stage: 'BRACKET',
-                player1Id: p1Id,
-                player2Id: p2Id,
+                player1Id: null,
+                player2Id: null,
+                isPlayed: false
             });
         }
     }
 
-    // Add Third Place Match if it's an elimination tournament
-    // Typically round = rounds (Final is 'rounds'), so 3rd place can be 'rounds' + 1 conceptually or same round but different id?
-    // Let's use round = rounds (same as Final) but position = 1 if Final is position 0.
-    // Standard Single Elim: Final is Round N, Match 0. 
-    // We can add 3rd place match as Round N, Match 1 (which doesn't exist normally).
-    // Or distinct stage? Let's keep stage BRACKET but use special position logic or round.
-    // Common convention: It happens parallel to finals.
+    // Add Third Place Match
     if (rounds > 1) {
         matches.push({
             tournamentId,
-            round: rounds, // Same round as final
-            position: 1,   // Final is 0, 3rd place is 1
+            round: rounds,
+            position: 1,   // Final is 0, 3rd place 1
             stage: 'BRACKET',
-            player1Id: null, // Will apply losers from Semis
+            player1Id: null,
             player2Id: null,
+            isPlayed: false
         });
     }
 
@@ -85,7 +90,7 @@ export function generateSingleEliminationBracket(tournamentId: string, players: 
 }
 
 // Helper for Berger Table generation (Round Robin logic)
-function generateBergerMatches(playerIds: string[], tournamentId: string, stage: 'GROUP' | 'GROUP_1' | 'GROUP_2' | 'BRACKET', startPosition: number): MatchInput[] {
+function generateBergerMatches(playerIds: string[], tournamentId: string, stage: 'GROUP' | 'GROUP_1' | 'GROUP_2' | 'BRACKET' | 'LEAGUE', startPosition: number, hasReturnLeg: boolean = false): MatchInput[] {
     const n = playerIds.length;
     const isOdd = n % 2 !== 0;
     const players = isOdd ? [...playerIds, null] : playerIds;
@@ -114,14 +119,28 @@ function generateBergerMatches(playerIds: string[], tournamentId: string, stage:
 
         // Add to list
         roundMatches.forEach((m, idx) => {
+            const pos = startPosition + (round * half) + idx;
             matches.push({
                 tournamentId,
                 player1Id: m.p1,
                 player2Id: m.p2,
                 round: round + 1,
-                position: startPosition + (round * half) + idx,
-                stage: stage
+                position: pos,
+                stage: stage,
+                isPlayed: false
             });
+
+            if (hasReturnLeg) {
+                matches.push({
+                    tournamentId,
+                    player1Id: m.p2,
+                    player2Id: m.p1,
+                    round: round + 1 + numRounds,
+                    position: pos + 1000, // Safe offset for return leg
+                    stage: stage,
+                    isPlayed: false
+                });
+            }
         });
 
         // Rotate
@@ -131,22 +150,20 @@ function generateBergerMatches(playerIds: string[], tournamentId: string, stage:
     return matches;
 }
 
-export function generateRoundRobinMatches(tournamentId: string, playerIds: string[]): MatchInput[] {
+export function generateRoundRobinMatches(tournamentId: string, playerIds: string[], hasReturnLeg: boolean = false): MatchInput[] {
     const shuffled = shuffleArray(playerIds);
-    // Single group, stage 'GROUP' (classic)
-    return generateBergerMatches(shuffled, tournamentId, 'GROUP', 0);
+    return generateBergerMatches(shuffled, tournamentId, 'LEAGUE', 0, hasReturnLeg);
 }
 
-export function generateGroupStageMatches(tournamentId: string, playerIds: string[]): MatchInput[] {
+export function generateGroupStageMatches(tournamentId: string, playerIds: string[], hasReturnLeg: boolean = false): MatchInput[] {
     const shuffledPlayers = shuffleArray(playerIds);
 
-    // Split into 2 groups
     const mid = Math.ceil(shuffledPlayers.length / 2);
     const group1 = shuffledPlayers.slice(0, mid);
     const group2 = shuffledPlayers.slice(mid);
 
-    const matchesG1 = generateBergerMatches(group1, tournamentId, 'GROUP_1', 100);
-    const matchesG2 = generateBergerMatches(group2, tournamentId, 'GROUP_2', 200);
+    const matchesG1 = generateBergerMatches(group1, tournamentId, 'GROUP_1', 100, hasReturnLeg);
+    const matchesG2 = generateBergerMatches(group2, tournamentId, 'GROUP_2', 200, hasReturnLeg);
 
     return [...matchesG1, ...matchesG2];
 }

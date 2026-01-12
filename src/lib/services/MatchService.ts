@@ -48,14 +48,14 @@ export class MatchService {
             const context = `Match: ${p1Name} vs ${p2Name}. Neuer Spielstand: ${scoreString}.`;
             TickerService.triggerCommentary(match.tournamentId, matchId, context);
 
-            if (match.stage === "GROUP") {
+            if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
                 await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
                 await this.checkGroupStageCompletion(match.tournamentId);
             } else if (match.stage === "LEAGUE") {
                 await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
                 await this.checkLeagueCompletion(match.tournamentId);
-            } else {
-                await this.checkBracketProgression(match.tournamentId, match.round);
+            } else if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
+                await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId);
             }
 
             // If match wasn't finished before but is now (it is set to true above), maybe log specific match end?
@@ -110,16 +110,15 @@ export class MatchService {
         const unplayed = await prisma.match.count({
             where: {
                 tournamentId,
-                stage: "GROUP",
+                stage: { in: ["GROUP", "GROUP_1", "GROUP_2"] },
                 isPlayed: false
             }
         });
 
         if (unplayed === 0) {
             // All group matches done! Generate Bracket.
-            // 1. Get top 2 from each group
-            // 2. Generate Quarter-Finals (or Semi-Finals)
-            await this.generateKnockoutFromGroups(tournamentId);
+            const { TournamentService } = await import("./TournamentService");
+            await TournamentService.generateKnockoutFromGroups(tournamentId);
         }
     }
 
@@ -143,109 +142,86 @@ export class MatchService {
         }
     }
 
-    private static async generateKnockoutFromGroups(tournamentId: string) {
-        // Fetch all standings
-        const standings = await prisma.tournamentStanding.findMany({
-            where: { tournamentId },
-            orderBy: [
-                { groupId: 'asc' },
-                { points: 'desc' },
-                { goalDifference: 'desc' },
-                { goalsFor: 'desc' }
-            ]
+
+    private static async checkBracketProgression(tournamentId: string, currentRound: number, currentPosition: number, winnerId: string | null) {
+        if (!winnerId) return;
+
+        // 1. Check if this was the Final
+        const totalMatchesInRound = await prisma.match.count({
+            where: { tournamentId, round: currentRound, stage: "BRACKET" }
         });
 
-        // Group them by groupId
-        const groups: Record<number, typeof standings> = {};
-        standings.forEach(s => {
-            if (!groups[s.groupId]) groups[s.groupId] = [];
-            groups[s.groupId].push(s);
-        });
-
-        // Assume 2 groups for simple logic (A and B) -> Semi Finals: A1 vs B2, B1 vs A2
-        // Or generic: Top 2 advance.
-        const qualified: { playerId: string, rank: number, groupId: number }[] = [];
-
-        Object.values(groups).forEach(groupStandings => {
-            // Take top 2
-            if (groupStandings[0]) qualified.push({ playerId: groupStandings[0].playerId, rank: 1, groupId: groupStandings[0].groupId });
-            if (groupStandings[1]) qualified.push({ playerId: groupStandings[1].playerId, rank: 2, groupId: groupStandings[1].groupId });
-        });
-
-        // Create matches (Simplistic paring: Group 0 Winner vs Group 1 Runner Up etc)
-        // This needs robust logic for N groups.
-        // For now, let's just pair them sequentially for simplicity or port specific logic if needed.
-        // Let's assume 2 groups (4 players advancing) -> Semi Finals.
-        if (qualified.length === 4) {
-            // A1 vs B2
-            await prisma.match.create({
-                data: { tournamentId, player1Id: qualified[0].playerId, player2Id: qualified[3].playerId, round: 1, position: 0, stage: "KNOCKOUT" }
-            });
-            // B1 vs A2
-            await prisma.match.create({
-                data: { tournamentId, player1Id: qualified[2].playerId, player2Id: qualified[1].playerId, round: 1, position: 1, stage: "KNOCKOUT" }
-            });
-        } else {
-            // Fallback: Pair blindly
-            for (let i = 0; i < qualified.length; i += 2) {
-                await prisma.match.create({
-                    data: { tournamentId, player1Id: qualified[i].playerId, player2Id: qualified[i + 1].playerId, round: 1, position: i / 2, stage: "KNOCKOUT" }
-                });
-            }
-        }
-    }
-
-    private static async checkBracketProgression(tournamentId: string, currentRound: number) {
-        // Check if all matches in this round are played
-        const unplayed = await prisma.match.count({
-            where: { tournamentId, round: currentRound, stage: { in: ["BRACKET", "KNOCKOUT"] }, isPlayed: false }
-        });
-
-        if (unplayed === 0) {
-            // Round complete!
-            // Get winners
-            const matches = await prisma.match.findMany({
-                where: { tournamentId, round: currentRound, stage: { in: ["BRACKET", "KNOCKOUT"] } },
-                orderBy: { position: 'asc' }
+        // Normally, the Final is Round X, Position 0, and it's the ONLY match in that round (unless 3rd place exists at Position 1)
+        if (totalMatchesInRound === 1 || (totalMatchesInRound === 2 && currentPosition === 0)) {
+            // Check if all matches in this round are played
+            const unplayed = await prisma.match.count({
+                where: { tournamentId, round: currentRound, stage: "BRACKET", isPlayed: false }
             });
 
-            if (matches.length === 1) {
-                // Final finished. Complete Tournament.
+            if (unplayed === 0) {
                 await prisma.tournament.update({
                     where: { id: tournamentId },
-                    data: { status: "COMPLETED", } // endDate could be set here
+                    data: { status: "COMPLETED" }
                 });
-                return;
             }
+            return;
+        }
 
-            // Generate next round
-            const nextRound = currentRound + 1;
-            for (let i = 0; i < matches.length; i += 2) {
-                const m1 = matches[i];
-                const m2 = matches[i + 1];
+        // 2. Advance winner to next round placeholder
+        const nextRound = currentRound + 1;
+        const nextPosition = Math.floor(currentPosition / 2);
+        const isPlayer1 = currentPosition % 2 === 0;
 
-                // Winner of m1 vs Winner of m2
-                // If m2 is missing (odd number?), winner m1 advances automatically or BYE?
-                // In powers of 2, m2 should exist.
+        const nextMatch = await prisma.match.findFirst({
+            where: {
+                tournamentId,
+                round: nextRound,
+                position: nextPosition,
+                stage: "BRACKET"
+            }
+        });
 
-                // Determine winners (Handle nulls if logic allows, but validation should prevent)
-                const w1 = m1.winnerId;
-                const w2 = m2 ? m2.winnerId : null; // If odd match, maybe bye?
+        if (nextMatch) {
+            await prisma.match.update({
+                where: { id: nextMatch.id },
+                data: isPlayer1 ? { player1Id: winnerId } : { player2Id: winnerId }
+            });
 
-                if (w1 && w2) {
-                    await prisma.match.create({
-                        data: {
-                            tournamentId,
-                            player1Id: w1,
-                            player2Id: w2,
-                            round: nextRound,
-                            position: i / 2,
-                            stage: matches[0].stage // Inherit stage type
-                        }
+            // Handle BYE logic if the new opponent doesn't exist (should have been handled during generation but safety first)
+            // Actually, in a pre-generated bracket, we just wait for the other side of the bracket.
+        }
+
+        // 3. Handle Loser for 3rd Place Match (Special Case)
+        // If we are in the Semi-Finals (Round = FinalRound - 1)
+        const finalRoundMatch = await prisma.match.findFirst({
+            where: { tournamentId, stage: "BRACKET" },
+            orderBy: { round: 'desc' }
+        });
+
+        if (finalRoundMatch && currentRound === finalRoundMatch.round - 1) {
+            const thirdPlaceMatch = await prisma.match.findFirst({
+                where: {
+                    tournamentId,
+                    round: finalRoundMatch.round,
+                    position: 1,
+                    stage: "BRACKET"
+                }
+            });
+
+            if (thirdPlaceMatch) {
+                const loserId = await prisma.match.findUnique({ where: { id: await prisma.match.findFirst({ where: { tournamentId, round: currentRound, position: currentPosition } }).then(m => m?.id || "") } }).then(m => m?.player1Id === winnerId ? m?.player2Id : m?.player1Id);
+                // Note: Getting loser requires re-fetching or passing it. Let's keep it simple for now.
+                // We'll re-fetch the match to find the loser.
+                const matchObj = await prisma.match.findFirst({
+                    where: { tournamentId, round: currentRound, position: currentPosition }
+                });
+                const actualLoserId = matchObj?.player1Id === winnerId ? matchObj?.player2Id : matchObj?.player1Id;
+
+                if (actualLoserId) {
+                    await prisma.match.update({
+                        where: { id: thirdPlaceMatch.id },
+                        data: isPlayer1 ? { player1Id: actualLoserId } : { player2Id: actualLoserId }
                     });
-                } else if (w1 && !m2) {
-                    // Auto advance to next round/finals? Or just set as winner of tournament if only 1 match left?
-                    // Should have been caught by matches.length === 1 check above unless odd structure.
                 }
             }
         }

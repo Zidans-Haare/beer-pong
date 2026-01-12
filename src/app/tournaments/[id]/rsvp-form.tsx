@@ -5,10 +5,12 @@ import { Player } from '@prisma/client';
 
 export default function RSVPForm({
     tournamentId,
-    currentStatus
+    currentStatus,
+    title = "Bist du dabei?"
 }: {
     tournamentId: string;
     currentStatus?: string;
+    title?: string;
 }) {
     async function action(formData: FormData) {
         const res = await submitRSVP(formData);
@@ -19,7 +21,7 @@ export default function RSVPForm({
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-4)' }}>Bist du dabei?</h3>
+            <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>{title}</h3>
             <form action={action} style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                 <input type="hidden" name="tournamentId" value={tournamentId} />
 

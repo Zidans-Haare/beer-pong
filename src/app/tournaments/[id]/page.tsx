@@ -120,7 +120,14 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                                         );
                                     }
                                     const userRsvp = tournament.rsvps.find((r: any) => r.playerId === currentPlayer.id);
-                                    return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} />;
+
+                                    // Determine if it's a "Now" tournament (created roughly at the same time as the tournament date)
+                                    // Or just check if the date is within the next hour of creation? 
+                                    // A simpler check: if it's planned for today/now.
+                                    const isNow = new Date(tournament.date).getTime() - new Date(tournament.createdAt).getTime() < 1000 * 60 * 60; // 1 hour threshold
+                                    const rsvpTitle = isNow ? "🎫 Ab in die Lobby!" : "📅 Bist du dabei?";
+
+                                    return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
                                 })()
                             ) : (
                                 <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>

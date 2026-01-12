@@ -29,16 +29,21 @@ export async function createTournament(formData: FormData) {
     const dateStr = formData.get('date') as string;
     const location = formData.get('location') as string;
     const type = formData.get('type') as string;
+    const hasReturnLeg = formData.get('hasReturnLeg') === 'on';
     const startImmediately = formData.get('startImmediately') === 'on';
-    const participantIds = formData.getAll('participants') as string[];
+
+    // We no longer use manual participant selection in the form
+    // const participantIds = formData.getAll('participants') as string[];
+    const participantIds: string[] = [];
 
     const userId = session.user.id;
 
-    if (!name || !dateStr || !location) {
+    if (!name || (!startImmediately && !dateStr) || !location) {
         throw new Error('Missing required fields');
     }
 
-    const date = new Date(dateStr);
+    // If starting now, use current date
+    const date = startImmediately ? new Date() : new Date(dateStr);
 
     // Fetch Host Player ID
     const hostPlayer = await prisma.player.findUnique({
@@ -57,29 +62,21 @@ export async function createTournament(formData: FormData) {
                     date,
                     location,
                     type: type || 'ELIMINATION',
-                    status: startImmediately ? 'ACTIVE' : 'PLANNED',
+                    status: 'PLANNED', // Even "Now" starts as PLANNED (Lobby)
                     hostId: userId,
+                    hasReturnLeg,
                 },
             });
 
-            if (participantIds.length > 0) {
-                for (const playerId of participantIds) {
-                    await tx.rSVP.create({
-                        data: {
-                            tournamentId: tournament.id,
-                            playerId,
-                            status: 'YES'
-                        }
-                    });
-                }
-            }
-
-            if (startImmediately) {
-                if (participantIds.length < 2) throw new Error('Für Sofort-Start werden mind. 2 Spieler benötigt.');
-
-                // We'll call the service after the transaction for simplicity or inside if we pass tx
-                // Actually, let's call it after to avoid mixing services with raw tx if possible, 
-                // but we need the tournament to exist. It does after this block.
+            // Add host as YES RSVP
+            if (hostPlayer) {
+                await tx.rSVP.create({
+                    data: {
+                        tournamentId: tournament.id,
+                        playerId: hostPlayer.id,
+                        status: 'YES'
+                    }
+                });
             }
 
             return tournament;
@@ -87,7 +84,18 @@ export async function createTournament(formData: FormData) {
 
         revalidatePath('/tournaments');
 
-        // Fetch ALL player emails for the invitation link, regardless of who was selected as participant
+        if (startImmediately) {
+            // Immediate Broadcast for "Now" tournaments
+            await broadcastNotification({
+                title: '🏆 Neues Turnier!',
+                message: `${name} startet JETZT! Join die Lobby!`,
+                link: `/tournaments/${result.id}`,
+                type: 'TOURNAMENT'
+            });
+            return { success: true, redirectUrl: `/tournaments/${result.id}` };
+        }
+
+        // For planned tournaments, we might want to return all emails for the sharing dialog
         const allPlayers = await prisma.player.findMany({
             select: {
                 email: true,
@@ -95,14 +103,6 @@ export async function createTournament(formData: FormData) {
             }
         });
         const participantEmails = allPlayers.map((p: any) => p.email || p.user?.email).filter(Boolean) as string[];
-
-        console.log('Mapped all emails:', participantEmails);
-
-        if (startImmediately) {
-            const { TournamentService } = await import('@/lib/services/TournamentService');
-            await TournamentService.startTournament(result.id);
-            return { success: true, redirectUrl: `/tournaments/${result.id}` };
-        }
 
         return { success: true, tournament: result, participantEmails };
     } catch (error) {

@@ -9,9 +9,12 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const router = useRouter();
     const [createdTournament, setCreatedTournament] = useState<any>(null);
     const [participantEmails, setParticipantEmails] = useState<string[]>([]);
+    const [startImmediately, setStartImmediately] = useState(true);
     const formRef = useRef<HTMLFormElement>(null);
 
     async function clientAction(formData: FormData) {
+        // Add startImmediately to formData as it might be useful or just rely on state if we were using it differently
+        // But here we use a checkbox in the form which is better for traditional formData
         const res = await createTournament(formData);
         if (res.success && res.redirectUrl) {
             router.push(res.redirectUrl);
@@ -106,12 +109,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
             <form ref={formRef} action={clientAction} style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Name des Turniers</label>
-                    <input type="text" name="name" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Sommerfest 2025" />
-                </div>
-
-                <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Datum & Uhrzeit</label>
-                    <input type="datetime-local" name="date" required defaultValue={new Date().toISOString().slice(0, 16)} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
+                    <input type="text" name="name" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Montags-Pong" />
                 </div>
 
                 <div>
@@ -119,43 +117,60 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     <input type="text" name="location" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Nicks Keller" />
                 </div>
 
+                <div className="glass-panel" style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)' }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: 'bold', color: 'var(--color-primary)' }}>Wann geht es los?</label>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-4)', marginBottom: startImmediately ? '0' : 'var(--spacing-4)' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="startImmediately"
+                                value="on"
+                                checked={startImmediately}
+                                onChange={() => setStartImmediately(true)}
+                                style={{ width: '18px', height: '18px' }}
+                            />
+                            <span>Jetzt (Lobby öffnen)</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="startImmediately"
+                                value="off"
+                                checked={!startImmediately}
+                                onChange={() => setStartImmediately(false)}
+                                style={{ width: '18px', height: '18px' }}
+                            />
+                            <span>Später planen</span>
+                        </label>
+                    </div>
+
+                    {!startImmediately && (
+                        <input
+                            type="datetime-local"
+                            name="date"
+                            required={!startImmediately}
+                            defaultValue={new Date().toISOString().slice(0, 16)}
+                            style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}
+                        />
+                    )}
+                </div>
+
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Modus</label>
-                    <select name="type" id="type" className="input-field">
+                    <select name="type" id="type" className="input-field" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}>
                         <option value="SINGLE_ELIMINATION">K.O. System</option>
                         <option value="ROUND_ROBIN">Jeder gegen Jeden (Liga)</option>
                         <option value="GROUPS">Gruppenphase + K.O.</option>
                     </select>
                 </div>
 
-                <hr style={{ borderColor: 'var(--color-border)', margin: 'var(--spacing-2) 0' }} />
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
                     <input type="checkbox" id="hasReturnLeg" name="hasReturnLeg" style={{ width: '20px', height: '20px' }} />
-                    <label htmlFor="hasReturnLeg" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary)' }}>Rückrunde spielen? (Hin- & Rückspiel)</label>
+                    <label htmlFor="hasReturnLeg" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-secondary)' }}>Rückrunde spielen? (Hin- & Rückspiel)</label>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                    <input type="checkbox" id="startImmediately" name="startImmediately" style={{ width: '20px', height: '20px' }} />
-                    <label htmlFor="startImmediately" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-secondary)' }}>Sofort starten (Direkte Teilnehmerwahl)</label>
-                </div>
-
-
-                <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Teilnehmer auswählen (Mehrfachauswahl möglich)</label>
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'var(--color-bg)', padding: 'var(--spacing-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                        {players.map(p => (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: '4px' }}>
-                                <input type="checkbox" name="participants" value={p.id} id={`p-${p.id}`} />
-                                <label htmlFor={`p-${p.id}`} style={{ cursor: 'pointer', color: 'var(--color-text)' }}>{p.name}</label>
-                            </div>
-                        ))}
-                    </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>Wird für Einladungen oder "Sofort start" verwendet.</p>
-                </div>
-
-                <button type="submit" className="btn btn-primary" style={{ marginTop: 'var(--spacing-4)' }}>
-                    Turnier Erstellen
+                <button type="submit" className="btn btn-primary" style={{ marginTop: 'var(--spacing-4)', padding: 'var(--spacing-4)', fontSize: '1.1rem' }}>
+                    {startImmediately ? '🚀 Turnier-Lobby öffnen' : '📅 Turnier planen'}
                 </button>
             </form>
         </div>

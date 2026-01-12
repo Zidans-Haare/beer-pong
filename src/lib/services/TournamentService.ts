@@ -13,14 +13,28 @@ export class TournamentService {
         const tournament = await prisma.tournament.findUnique({
             where: { id: tournamentId },
             include: {
-                participants: { include: { player: true } }
+                rsvps: {
+                    where: { status: 'YES' },
+                    include: { player: true }
+                }
             },
         });
 
         if (!tournament) throw new Error("Tournament not found");
 
-        const players = tournament.participants.map(p => ({ id: p.playerId }));
-        const playerIds = tournament.participants.map(p => p.playerId);
+        const players = tournament.rsvps.map(p => ({ id: p.playerId }));
+        const playerIds = tournament.rsvps.map(p => p.playerId);
+
+        if (playerIds.length < 2) throw new Error("Mindestens 2 Teilnehmer (Dabei) erforderlich.");
+
+        // Sync participants for consistency (optional but good for schema health)
+        for (const pid of playerIds) {
+            await prisma.tournamentParticipant.upsert({
+                where: { tournamentId_playerId: { tournamentId, playerId: pid } },
+                update: {},
+                create: { tournamentId, playerId: pid }
+            });
+        }
 
         let matches: any[] = [];
 

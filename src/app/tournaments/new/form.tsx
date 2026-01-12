@@ -150,7 +150,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                             name="date"
                             required={!startImmediately}
                             defaultValue={new Date().toISOString().slice(0, 16)}
-                            style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}
+                            style={{ width: '96%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}
                         />
                     )}
                 </div>

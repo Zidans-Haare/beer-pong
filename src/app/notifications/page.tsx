@@ -125,7 +125,7 @@ export default function NotificationsPage() {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                        <h1 className="title-display" style={{ fontSize: '2rem' }}>Benachrichtigungen</h1>
+                        <h1 className="title-display" style={{ fontSize: 'clamp(1.5rem, 6vw, 2rem)' }}>Benachrichtigungen</h1>
                         <p className="subtitle" style={{ fontSize: '0.9rem' }}>Updates & Live Ticker</p>
                     </div>
 

@@ -18,6 +18,8 @@ import { deleteTournament } from '@/app/actions/tournaments';
 import FinishTournamentButton from './finish-button';
 import AutoRefresh from '@/components/AutoRefresh';
 
+import { LiveTicker } from '@/components/LiveTicker';
+
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
@@ -54,11 +56,11 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
             </Link>
 
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '8px' }}>
                     <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-4)' }}>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text)', flexWrap: 'wrap' }}>
                         <span>📅 {format(new Date(tournament.date), 'PPP p', { locale: de })}</span>
                         <span>📍 {tournament.location}</span>
                         <span>👥 {yesCount} Teilnehmer</span>
@@ -161,6 +163,8 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
             {isActive && (
                 <div style={{ marginTop: 'var(--spacing-12)' }}>
+                    <LiveTicker tournamentId={tournament.id} />
+
                     {/* User Specific View (For Non-Hosts/Players) */}
                     {!isHost && session?.user && (
                         <div style={{ marginBottom: 'var(--spacing-12)' }}>

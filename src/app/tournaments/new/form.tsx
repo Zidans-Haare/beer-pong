@@ -111,6 +111,11 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                 <hr style={{ borderColor: 'var(--color-border)', margin: 'var(--spacing-2) 0' }} />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                    <input type="checkbox" id="hasReturnLeg" name="hasReturnLeg" style={{ width: '20px', height: '20px' }} />
+                    <label htmlFor="hasReturnLeg" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary)' }}>Rückrunde spielen? (Hin- & Rückspiel)</label>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                     <input type="checkbox" id="startImmediately" name="startImmediately" style={{ width: '20px', height: '20px' }} />
                     <label htmlFor="startImmediately" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary)' }}>Sofort starten (Direkte Teilnehmerwahl)</label>
                 </div>

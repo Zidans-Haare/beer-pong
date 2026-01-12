@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { generateSingleEliminationBracket, generateRoundRobinMatches, generateGroupStageMatches } from '@/lib/brackets';
 import { auth } from '@/auth';
+import { broadcastNotification } from './notifications';
 
 
 export async function getTournaments() {
@@ -38,6 +39,15 @@ export async function createTournament(formData: FormData) {
     }
 
     const date = new Date(dateStr);
+
+    // Fetch Host Player ID
+    const hostPlayer = await prisma.player.findUnique({
+        where: { userId: session.user.id }
+    });
+
+    if (hostPlayer && !participantIds.includes(hostPlayer.id)) {
+        participantIds.push(hostPlayer.id);
+    }
 
     try {
         const result = await prisma.$transaction(async (tx: any) => {
@@ -105,8 +115,21 @@ export async function createTournament(formData: FormData) {
         console.log('Mapped all emails:', participantEmails);
 
         if (result.status === 'ACTIVE') {
+            await broadcastNotification({
+                title: 'Neues Turnier!',
+                message: `"${result.name}" wurde erstellt und ist jetzt aktiv!`,
+                link: `/tournaments/${result.id}`,
+                type: 'TOURNAMENT'
+            });
             return { success: true, redirectUrl: `/tournaments/${result.id}` };
         }
+
+        await broadcastNotification({
+            title: 'Neues Turnier geplant',
+            message: `"${result.name}" am ${new Date(result.date).toLocaleDateString()}. Melde dich an!`,
+            link: `/tournaments`, // Or specific link if we had a planning page
+            type: 'TOURNAMENT'
+        });
 
         return { success: true, tournament: result, participantEmails };
     } catch (error) {
@@ -122,10 +145,6 @@ export async function startTournament(tournamentId: string) {
     try {
         const tournament = await prisma.tournament.findUnique({
             where: { id: tournamentId },
-            include: {
-                rsvps: { include: { player: true } },
-                matches: { include: { player1: true, player2: true }, orderBy: { id: 'asc' } }
-            }
         });
 
         if (!tournament) throw new Error('Tournament not found');
@@ -136,37 +155,29 @@ export async function startTournament(tournamentId: string) {
 
         if (tournament.status !== 'PLANNED') throw new Error('Tournament already started or completed');
 
-        const players = tournament.rsvps.map((r: any) => r.player);
+        // Verify min players
+        const playersCount = await prisma.rSVP.count({
+            where: { tournamentId, status: "YES" } // Assuming we only count YES RSVPs? Logic was implicit before.
+        });
+
+        // NOTE: The previous logic mapped RSVPs manually.
+        const tournamentWithRsvps = await prisma.tournament.findUnique({
+            where: { id: tournamentId },
+            include: { rsvps: { include: { player: true } } }
+        });
+        const players = tournamentWithRsvps?.rsvps.map(r => r.player) || [];
+
         if (players.length < 2) throw new Error('Not enough players (min 2)');
 
-        let matches;
-        if (tournament.type === 'ROUND_ROBIN') {
-            const playerIds = players.map((p: any) => p.id);
-            matches = generateRoundRobinMatches(tournament.id, playerIds);
-        } else if (tournament.type === 'GROUPS') {
-            if (players.length < 4) throw new Error('Für Gruppenphase werden mind. 4 Spieler benötigt.');
-            const playerIds = players.map((p: any) => p.id);
-            matches = generateGroupStageMatches(tournament.id, playerIds);
-        } else {
-            matches = generateSingleEliminationBracket(tournament.id, players);
-        }
-
-        await prisma.$transaction(async (tx: any) => {
-            await tx.tournament.update({
-                where: { id: tournamentId },
-                data: { status: 'ACTIVE' }
-            });
-
-            for (const match of matches) {
-                await tx.match.create({ data: match });
-            }
-        });
+        // Use the new Service
+        const { TournamentService } = await import('@/lib/services/TournamentService');
+        await TournamentService.startTournament(tournamentId);
 
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {
         console.error('Failed to start tournament:', error);
-        return { success: false, error: 'Failed to start tournament' };
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to start tournament' };
     }
 }
 
@@ -316,6 +327,15 @@ export async function finishTournament(tournamentId: string) {
             where: { id: tournamentId },
             data: { status: 'COMPLETED' }
         });
+
+        // Broadcast completion
+        await broadcastNotification({
+            title: 'Turnier beendet',
+            message: `"${tournament?.name}" ist vorbei! Klicke hier für die Ergebnisse.`,
+            link: `/tournaments/${tournamentId}`,
+            type: 'TOURNAMENT'
+        });
+
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {

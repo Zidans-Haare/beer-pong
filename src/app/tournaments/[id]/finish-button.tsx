@@ -2,6 +2,7 @@
 
 import { finishTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
+import { CheckCircle } from 'lucide-react';
 
 export default function FinishTournamentButton({ tournamentId }: { tournamentId: string }) {
     const router = useRouter();
@@ -25,10 +26,11 @@ export default function FinishTournamentButton({ tournamentId }: { tournamentId:
                 border: '1px solid var(--color-success)',
                 color: 'var(--color-success)',
                 marginTop: 'var(--spacing-4)',
-                float: 'right'
+                float: 'right',
+                gap: '8px'
             }}
         >
-            ✅ Turnier Abschließen
+            <CheckCircle size={18} /> Turnier Abschließen
         </button>
     );
 }

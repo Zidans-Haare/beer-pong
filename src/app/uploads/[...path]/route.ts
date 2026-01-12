@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { Readable } from 'stream';
 
 export async function GET(
     request: NextRequest,
@@ -11,23 +12,27 @@ export async function GET(
     
     // Construct the file path
     const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
+    console.log(`[Uploads Route] Requesting file: ${filePath}`);
 
     // Security check: Ensure the path is within user-uploads
     const uploadsDir = path.join(process.cwd(), 'user-uploads');
     const relative = path.relative(uploadsDir, filePath);
     
     if (relative.startsWith('..') || path.isAbsolute(relative)) {
+        console.error(`[Uploads Route] Access denied: ${filePath}`);
         return new NextResponse('Forbidden', { status: 403 });
     }
 
     if (!fs.existsSync(filePath)) {
+        console.error(`[Uploads Route] File not found: ${filePath}`);
         return new NextResponse('File not found', { status: 404 });
     }
 
     try {
-        const fileBuffer = fs.readFileSync(filePath);
+        const stats = fs.statSync(filePath);
+        const fileStream = fs.createReadStream(filePath);
         
-        // Determine content type (simple version)
+        // Determine content type
         const ext = path.extname(filePath).toLowerCase();
         let contentType = 'application/octet-stream';
         if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
@@ -41,14 +46,24 @@ export async function GET(
         else if (ext === '.heic') contentType = 'image/heic';
         else if (ext === '.heif') contentType = 'image/heif';
 
-        return new NextResponse(fileBuffer, {
+        // Convert Node.js stream to Web Stream
+        const webStream = new ReadableStream({
+            start(controller) {
+                fileStream.on('data', (chunk) => controller.enqueue(chunk));
+                fileStream.on('end', () => controller.close());
+                fileStream.on('error', (err) => controller.error(err));
+            }
+        });
+
+        return new NextResponse(webStream, {
             headers: {
                 'Content-Type': contentType,
-                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Content-Length': stats.size.toString(),
+                'Cache-Control': 'no-store, must-revalidate', // Temporarily disable caching
             },
         });
     } catch (error) {
-        console.error('Error serving file:', error);
+        console.error('[Uploads Route] Error serving file:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }

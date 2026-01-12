@@ -10,10 +10,10 @@ export async function GET(
     const { path: pathSegments } = await params;
     
     // Construct the file path
-    const filePath = path.join(process.cwd(), 'public', 'uploads', ...pathSegments);
+    const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
 
-    // Security check: Ensure the path is within public/uploads
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    // Security check: Ensure the path is within user-uploads
+    const uploadsDir = path.join(process.cwd(), 'user-uploads');
     const relative = path.relative(uploadsDir, filePath);
     
     if (relative.startsWith('..') || path.isAbsolute(relative)) {

@@ -43,6 +43,6 @@ next-env.d.ts
 /src/generated/prisma
 
 dev.db
-/public/uploads/
+/user-uploads/
 dev.db.bak*
 .*.swp

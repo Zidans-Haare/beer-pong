@@ -86,8 +86,8 @@ export async function updatePlayer(id: string, formData: FormData) {
             const fs = require('fs');
             const path = require('path');
 
-            // Ensure public/uploads exists
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            // Ensure user-uploads exists
+            const uploadDir = path.join(process.cwd(), 'user-uploads');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }

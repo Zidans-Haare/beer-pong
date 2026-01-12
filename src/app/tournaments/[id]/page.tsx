@@ -16,15 +16,21 @@ import { getTournamentStandings } from '@/lib/stats';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { deleteTournament } from '@/app/actions/tournaments';
 import FinishTournamentButton from './finish-button';
-import AutoRefresh from '@/components/AutoRefresh';
-
 import { LiveTicker } from '@/components/LiveTicker';
+import { calculateSchedule, getEstimatedWaitTime } from '@/lib/scheduler';
+import { getPublicSystemSettings } from '@/app/actions/admin';
+import { MatchStatusBadge } from '@/components/MatchStatusBadge';
+import { isAfter } from 'date-fns';
+import AutoRefresh from '@/components/AutoRefresh';
+import TournamentSummary from '@/components/TournamentSummary';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default async function TournamentPage({ params }: { params: Promise<{ id: string }> }) {
+    noStore();
     const { id } = await params;
     const session = await auth();
 
@@ -32,12 +38,28 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
         where: { id },
         include: {
             rsvps: { include: { player: true } },
-            matches: { include: { player1: true, player2: true }, orderBy: { id: 'asc' } }
+            matches: { include: { player1: true, player2: true }, orderBy: [{ round: 'asc' }, { position: 'asc' }] }
         }
     });
-    const players = await getPlayers();
 
     if (!tournament) notFound();
+
+    const players = await getPlayers();
+    const systemSettings = await getPublicSystemSettings();
+
+    // Determine effective settings
+    const duration = (tournament as any).matchDurationMin || systemSettings.matchDurationMin || 15;
+    const tableCount = (tournament as any).tableCount || systemSettings.tableCount || 1;
+
+    const schedule = calculateSchedule(
+        tournament.matches,
+        tournament.status === 'ACTIVE' ? new Date() : tournament.date,
+        duration,
+        tableCount
+    );
+
+    const currentPlayer = session?.user?.id ? players.find((p: any) => p.userId === session?.user?.id) : null;
+    const waitTime = currentPlayer ? getEstimatedWaitTime(schedule, currentPlayer.id) : null;
 
     const isHost = session?.user?.id === tournament.hostId;
     const yesCount = tournament.rsvps.filter((r: { status: string }) => r.status === 'YES').length;
@@ -58,6 +80,9 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '8px' }}>
                     <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-2)' }}>
+                        Aktualisiert: {new Date().toLocaleTimeString()}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-4)' }}>
                     <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text)', flexWrap: 'wrap' }}>
@@ -67,9 +92,6 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                         <span>🎮 {tournament.type}</span>
                         {tournament.status === 'COMPLETED' && <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✅ Beendet</span>}
                     </div>
-                    {isPlanner && yesCount >= 2 && (
-                        <StartTournamentButton tournamentId={tournament.id} />
-                    )}
                 </div>
             </header>
 
@@ -104,6 +126,28 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 </div>
 
                 <aside>
+                    {/* Waiting Time Info */}
+                    {waitTime && !tournament.status.includes('COMPLETED') && (
+                        <div className="glass-panel" style={{
+                            padding: 'var(--spacing-4)',
+                            marginBottom: 'var(--spacing-4)',
+                            borderLeft: '4px solid var(--color-primary)',
+                            background: 'rgba(var(--color-primary-rgb), 0.1)'
+                        }}>
+                            <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-2)' }}>🕒 Dein nächstes Spiel</h3>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                ca. {format(waitTime.startTime, 'HH:mm')} Uhr
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                                an Tisch {waitTime.table}
+                                {waitTime.afterMatchIds.length > 0 && ` (nach ${waitTime.afterMatchIds.length} Spiel${waitTime.afterMatchIds.length > 1 ? 'en' : ''})`}
+                            </div>
+                            <div style={{ marginTop: 'var(--spacing-2)', fontSize: '0.8rem' }}>
+                                Wartezeit: ~{waitTime.waitMin} Min.
+                            </div>
+                        </div>
+                    )}
+
                     {isPlanner && (
                         <>
                             {session?.user?.id ? (
@@ -168,32 +212,60 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 )}
             </div>
 
+            {/* Auto-Refresh for Lobby (PLANNED) */}
+            {isPlanner && (
+                <div style={{ marginTop: 'var(--spacing-8)' }}>
+                    <AutoRefresh intervalMs={10000} />
+                </div>
+            )}
+
             {isActive && (
                 <div style={{ marginTop: 'var(--spacing-12)' }}>
-                    <LiveTicker tournamentId={tournament.id} />
-
-                    {/* User Specific View (For Non-Hosts/Players) */}
-                    {!isHost && session?.user && (
-                        <div style={{ marginBottom: 'var(--spacing-12)' }}>
-                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Deine Spiele</h2>
-
-                            {(() => {
-                                const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
-                                if (!currentPlayer) return <p style={{ color: 'var(--color-text-dim)' }}>Kein Spielerprofil gefunden.</p>;
-
-                                return <PlayerMatchesList matches={tournament.matches} currentPlayerId={currentPlayer.id} />;
-                            })()}
-                        </div>
+                    {/* Show Summary for Completed Tournaments */}
+                    {tournament.status === 'COMPLETED' && (tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
+                        <TournamentSummary
+                            tournamentId={tournament.id}
+                            tournamentName={tournament.name}
+                            tournamentType={tournament.type}
+                            standings={await prisma.tournamentStanding.findMany({
+                                where: { tournamentId: tournament.id },
+                                include: { player: true },
+                                orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }]
+                            })}
+                            matches={tournament.matches}
+                        />
                     )}
 
-                    {tournament.type === 'ROUND_ROBIN' && (
+                    {/* Show Live Ticker only for ACTIVE tournaments */}
+                    {tournament.status === 'ACTIVE' && (
+                        <>
+                            <LiveTicker tournamentId={tournament.id} />
+
+                            {/* User Specific View (For Non-Hosts/Players) */}
+                            {!isHost && session?.user && (
+                                <div style={{ marginBottom: 'var(--spacing-12)' }}>
+                                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Deine Spiele</h2>
+
+                                    {(() => {
+                                        const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
+                                        if (!currentPlayer) return <p style={{ color: 'var(--color-text-dim)' }}>Kein Spielerprofil gefunden.</p>;
+
+                                        return <PlayerMatchesList matches={schedule as any} currentPlayerId={currentPlayer.id} />;
+                                    })()}
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Show Tables for both ACTIVE and COMPLETED */}
+                    {tournament.type === 'ROUND_ROBIN' && tournament.status === 'ACTIVE' && (
                         <>
                             <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Tabelle</h2>
                             <TournamentTable standings={await getTournamentStandings(tournament.id)} />
                         </>
                     )}
 
-                    {tournament.type === 'GROUPS' && (
+                    {tournament.type === 'GROUPS' && tournament.status === 'ACTIVE' && (
                         <>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
                                 <div>
@@ -216,11 +288,8 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                         </>
                     )}
 
-                    {/* Optional: Add a toggle for players to see full bracket if they really want to? 
-                        User said "everyone sees only their games", so default hidden is correct. 
-                    */}
-
-                    <AutoRefresh />
+                    {/* Auto-refresh only for ACTIVE */}
+                    {tournament.status === 'ACTIVE' && <AutoRefresh intervalMs={20000} />}
                 </div>
             )}
         </div>

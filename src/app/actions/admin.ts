@@ -72,3 +72,57 @@ export async function deleteUser(userId: string) {
         return { success: false, error: 'Delete failed' };
     }
 }
+
+export async function getSystemSettings() {
+    await checkAdmin();
+    try {
+        const settings = await (prisma as any).systemSettings.findUnique({
+            where: { id: 'default' }
+        });
+        if (!settings) {
+            // Create default if not exists
+            return await (prisma as any).systemSettings.create({
+                data: { id: 'default', matchDurationMin: 15, tableCount: 1 }
+            });
+        }
+        return settings;
+    } catch (error) {
+        console.error('Failed to get settings:', error);
+        return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+    }
+}
+
+export async function getPublicSystemSettings() {
+    try {
+        const settings = await (prisma as any).systemSettings.findUnique({
+            where: { id: 'default' }
+        });
+        if (!settings) {
+            // Return default if not exists
+            return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+        }
+        return settings;
+    } catch (error) {
+        console.error('Failed to get settings:', error);
+        return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+    }
+}
+
+export async function updateSystemSettings(formData: FormData) {
+    await checkAdmin();
+    const matchDurationMin = parseInt(formData.get('matchDurationMin') as string);
+    const tableCount = parseInt(formData.get('tableCount') as string);
+
+    try {
+        await (prisma as any).systemSettings.upsert({
+            where: { id: 'default' },
+            update: { matchDurationMin, tableCount },
+            create: { id: 'default', matchDurationMin, tableCount }
+        });
+        revalidatePath('/admin');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update settings:', error);
+        return { success: false, error: 'Update failed' };
+    }
+}

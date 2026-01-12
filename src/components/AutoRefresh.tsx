@@ -6,12 +6,18 @@ import { useEffect, useState } from 'react';
 export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: number }) {
     const router = useRouter();
     const [timeLeft, setTimeLeft] = useState(intervalMs / 1000);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
                 if (prev <= 1) {
+                    setIsRefreshing(true);
                     router.refresh();
+
+                    // Reset refreshing state after a bit (enough for SC to re-run and send payload)
+                    setTimeout(() => setIsRefreshing(false), 2000);
+
                     return intervalMs / 1000;
                 }
                 return prev - 1;
@@ -20,6 +26,13 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
 
         return () => clearInterval(timer);
     }, [router, intervalMs]);
+
+    const handleManualRefresh = () => {
+        setIsRefreshing(true);
+        router.refresh();
+        setTimeLeft(intervalMs / 1000);
+        setTimeout(() => setIsRefreshing(false), 2000);
+    };
 
     return (
         <div style={{
@@ -32,9 +45,9 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
             justifyContent: 'center',
             gap: 'var(--spacing-2)'
         }}>
-            <span>Auto-Refresh in {timeLeft}s</span>
+            <span>{isRefreshing ? '🔄 Aktualisiere...' : `Auto-Refresh in ${timeLeft}s`}</span>
             <button
-                onClick={() => router.refresh()}
+                onClick={handleManualRefresh}
                 className="btn-secondary"
                 style={{
                     padding: '2px 8px',

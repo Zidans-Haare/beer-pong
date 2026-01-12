@@ -34,7 +34,16 @@ export class MatchService {
             const p2Name = match.player2?.name || "TBD";
             const scoreString = `${score1}:${score2}`;
 
-            // 1. Log Score Update
+            // 1. Log Start/End/Score
+            if (!wasPlayed) {
+                await TickerService.createEvent(
+                    match.tournamentId,
+                    'MATCH_START',
+                    `Anstoß: ${p1Name} vs ${p2Name}`,
+                    matchId
+                );
+            }
+
             await TickerService.createEvent(
                 match.tournamentId,
                 'SCORE_UPDATE',
@@ -43,26 +52,18 @@ export class MatchService {
             );
 
             // 2. Trigger AI Commentary (Async)
-            // Context: Names, Score, Previous Score?
-            // Let's just pass current state.
             const context = `Match: ${p1Name} vs ${p2Name}. Neuer Spielstand: ${scoreString}.`;
             TickerService.triggerCommentary(match.tournamentId, matchId, context);
+        }
 
-            if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
-                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-                await this.checkGroupStageCompletion(match.tournamentId);
-            } else if (match.stage === "LEAGUE") {
-                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-                await this.checkLeagueCompletion(match.tournamentId);
-            } else if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
-                await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId);
-            }
-
-            // If match wasn't finished before but is now (it is set to true above), maybe log specific match end?
-            // Actually score update covers it for now, or we can check if it was final.
-            // Since we set isPlayed: true always on update (simplification in original code), effectively every update is "played".
-            // But if we want distinct "Match End", we might need to check if it's the final score.
-            // For now, let's assume every update is a potential end or progress.
+        if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
+            await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
+            await this.checkGroupStageCompletion(match.tournamentId);
+        } else if (match.stage === "LEAGUE") {
+            await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
+            await this.checkLeagueCompletion(match.tournamentId);
+        } else if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
+            await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId);
         }
 
         return updatedMatch;

@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from '@/components/MatchEditForm';
+import { MatchStatusBadge } from './MatchStatusBadge';
 
 // Define a type that includes the relations we need
 type MatchWithPlayers = Match & {
-    player1: Player | null; // Use null if relation can be missing in some cases, though usually guaranteed
+    player1: Player | null;
     player2: Player | null;
+    scheduledStart?: Date; // Add this
 };
 
 interface PlayerMatchesListProps {
@@ -119,13 +121,10 @@ export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMa
                                     </div>
                                 </div>
                                 <div>
-                                    {isPlayed ? (
-                                        <span style={{ color: isMyWin ? 'var(--color-success)' : 'var(--color-error)', fontWeight: 'bold' }}>
-                                            {isMyWin ? 'SIEG' : 'NIEDERLAGE'} ({match.score1}:{match.score2})
-                                        </span>
-                                    ) : (
-                                        <span style={{ color: 'var(--color-text-dim)' }}>Offen</span>
-                                    )}
+                                    <MatchStatusBadge
+                                        isPlayed={isPlayed}
+                                        scheduledStart={match.scheduledStart}
+                                    />
                                 </div>
                             </div>
                         );

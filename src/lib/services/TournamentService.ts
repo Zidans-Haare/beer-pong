@@ -41,6 +41,11 @@ export class TournamentService {
         if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
             matches = generateSingleEliminationBracket(tournamentId, players);
         } else if (tournament.type === "GROUP_AND_KNOCKOUT" || tournament.type === "GROUPS") {
+            // Groups require at least 4 players (2 per group minimum)
+            if (playerIds.length < 4) {
+                throw new Error("Gruppenphasen-Turniere benötigen mindestens 4 Teilnehmer. Verwende stattdessen 'Jeder gegen Jeden' oder 'K.O.-System'.");
+            }
+
             matches = generateGroupStageMatches(tournamentId, playerIds, tournament.hasReturnLeg);
 
             // Create Standings for Groups

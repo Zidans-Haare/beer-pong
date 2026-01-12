@@ -25,33 +25,39 @@ export default function RSVPForm({
             <form action={action} style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                 <input type="hidden" name="tournamentId" value={tournamentId} />
 
-                <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
+                <div style={{ display: 'flex', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
                     <button type="submit" name="status" value="YES" className="btn"
                         style={{
-                            flex: 1,
+                            flex: '1 1 100px',
                             background: currentStatus === 'YES' ? '#00ff9d' : 'rgba(0, 255, 157, 0.1)',
                             color: currentStatus === 'YES' ? 'black' : '#00ff9d',
-                            border: '1px solid #00ff9d'
+                            border: '1px solid #00ff9d',
+                            padding: 'var(--spacing-3) var(--spacing-2)',
+                            fontSize: '0.9rem'
                         }}>
                         {currentStatus === 'YES' ? '✓ Dabei' : 'Dabei'}
                     </button>
 
                     <button type="submit" name="status" value="MAYBE" className="btn"
                         style={{
-                            flex: 1,
+                            flex: '1 1 100px',
                             background: currentStatus === 'MAYBE' ? 'orange' : 'rgba(255, 165, 0, 0.1)',
                             color: currentStatus === 'MAYBE' ? 'black' : 'orange',
-                            border: '1px solid orange'
+                            border: '1px solid orange',
+                            padding: 'var(--spacing-3) var(--spacing-2)',
+                            fontSize: '0.9rem'
                         }}>
                         Vielleicht
                     </button>
 
                     <button type="submit" name="status" value="NO" className="btn"
                         style={{
-                            flex: 1,
+                            flex: '1 1 100px',
                             background: currentStatus === 'NO' ? '#ff0055' : 'rgba(255, 0, 85, 0.1)',
                             color: currentStatus === 'NO' ? 'white' : '#ff0055',
-                            border: '1px solid #ff0055'
+                            border: '1px solid #ff0055',
+                            padding: 'var(--spacing-3) var(--spacing-2)',
+                            fontSize: '0.9rem'
                         }}>
                         Absage
                     </button>

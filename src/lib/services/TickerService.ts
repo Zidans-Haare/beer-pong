@@ -21,8 +21,19 @@ export class TickerService {
             }
         });
 
-        // If it's a MATCH_END or significant update, maybe trigger commentary?
-        // This is now usually called explicitly by the caller (MatchService), but we could double check here.
+        // Broadcast Notification based on type
+        let title = '🎙️ Live-Ticker';
+        if (type === 'SCORE_UPDATE') title = '🎯 Spielstand Update';
+        else if (type === 'MATCH_START') title = '🚀 Match gestartet';
+        else if (type === 'MATCH_END') title = '🏁 Match beendet';
+        else if (type === 'COMMENTARY') title = '🎙️ Live-Kommentar';
+
+        await broadcastNotification({
+            title,
+            message: content,
+            link: `/tournaments/${tournamentId}`,
+            type: 'TICKER'
+        });
 
         return event;
     }
@@ -53,16 +64,8 @@ export class TickerService {
         try {
             const commentary = await GeminiService.generateCommentary(context);
             if (commentary) {
+                // This will trigger the notification via createEvent
                 await this.createEvent(tournamentId, 'COMMENTARY', commentary, matchId);
-
-                // Broadcast Notification (Type: TICKER)
-                // Filtered to users who want live ticker updates
-                await broadcastNotification({
-                    title: '🎙️ Live-Kommentar',
-                    message: commentary,
-                    link: `/tournaments/${tournamentId}`,
-                    type: 'TICKER'
-                });
             }
         } catch (error) {
             console.error("Error triggering commentary:", error);

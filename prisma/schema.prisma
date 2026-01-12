@@ -40,6 +40,8 @@ model Tournament {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   hasReturnLeg Boolean @default(false)
+  matchDurationMin Int @default(15)
+  tableCount       Int @default(1)
 
   // Relations
   host         User?   @relation(fields: [hostId], references: [id])
@@ -206,4 +208,10 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SystemSettings {
+  id               String @id @default("default")
+  matchDurationMin Int    @default(15)
+  tableCount       Int    @default(1)
 }

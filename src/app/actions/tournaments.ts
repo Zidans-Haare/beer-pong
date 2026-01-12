@@ -54,6 +54,11 @@ export async function createTournament(formData: FormData) {
         participantIds.push(hostPlayer.id);
     }
 
+    // Fetch System Defaults
+    const settings = await (prisma as any).systemSettings.findUnique({ where: { id: 'default' } });
+    const matchDurationMin = settings?.matchDurationMin || 15;
+    const tableCount = settings?.tableCount || 1;
+
     try {
         const result = await prisma.$transaction(async (tx: any) => {
             const tournament = await tx.tournament.create({
@@ -65,6 +70,8 @@ export async function createTournament(formData: FormData) {
                     status: 'PLANNED', // Even "Now" starts as PLANNED (Lobby)
                     hostId: userId,
                     hasReturnLeg,
+                    matchDurationMin,
+                    tableCount
                 },
             });
 

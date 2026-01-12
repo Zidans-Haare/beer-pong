@@ -110,16 +110,25 @@ export async function getPublicSystemSettings() {
 
 export async function updateSystemSettings(formData: FormData) {
     await checkAdmin();
-    const matchDurationMin = parseInt(formData.get('matchDurationMin') as string);
-    const tableCount = parseInt(formData.get('tableCount') as string);
+    
+    const rawDuration = formData.get('matchDurationMin');
+    const rawTableCount = formData.get('tableCount');
+
+    const matchDurationMin = rawDuration ? parseInt(rawDuration as string) : 15;
+    const tableCount = rawTableCount ? parseInt(rawTableCount as string) : 1;
+
+    // Validation (ensure they are valid numbers and within reasonable range)
+    const validDuration = isNaN(matchDurationMin) || matchDurationMin < 1 ? 15 : matchDurationMin;
+    const validTableCount = isNaN(tableCount) || tableCount < 1 ? 1 : tableCount;
 
     try {
         await (prisma as any).systemSettings.upsert({
             where: { id: 'default' },
-            update: { matchDurationMin, tableCount },
-            create: { id: 'default', matchDurationMin, tableCount }
+            update: { matchDurationMin: validDuration, tableCount: validTableCount },
+            create: { id: 'default', matchDurationMin: validDuration, tableCount: validTableCount }
         });
         revalidatePath('/admin');
+        revalidatePath('/admin/settings');
         return { success: true };
     } catch (error) {
         console.error('Failed to update settings:', error);

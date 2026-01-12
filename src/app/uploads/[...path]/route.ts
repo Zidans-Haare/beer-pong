@@ -12,19 +12,16 @@ export async function GET(
     
     // Construct the file path
     const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
-    console.log(`[Uploads Route] Requesting file: ${filePath}`);
 
     // Security check: Ensure the path is within user-uploads
     const uploadsDir = path.join(process.cwd(), 'user-uploads');
     const relative = path.relative(uploadsDir, filePath);
     
     if (relative.startsWith('..') || path.isAbsolute(relative)) {
-        console.error(`[Uploads Route] Access denied: ${filePath}`);
         return new NextResponse('Forbidden', { status: 403 });
     }
 
     if (!fs.existsSync(filePath)) {
-        console.error(`[Uploads Route] File not found: ${filePath}`);
         return new NextResponse('File not found', { status: 404 });
     }
 
@@ -59,11 +56,11 @@ export async function GET(
             headers: {
                 'Content-Type': contentType,
                 'Content-Length': stats.size.toString(),
-                'Cache-Control': 'no-store, must-revalidate', // Temporarily disable caching
+                'Cache-Control': 'public, max-age=31536000, immutable',
             },
         });
     } catch (error) {
-        console.error('[Uploads Route] Error serving file:', error);
+        console.error('Error serving file:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }

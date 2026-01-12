@@ -4,15 +4,19 @@ import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from '@/components/MatchEditForm';
 
-type PlayerWithUser = Player; // Simplified for now, or use Prisma type
+// Define a type that includes the relations we need
+type MatchWithPlayers = Match & {
+    player1: Player | null; // Use null if relation can be missing in some cases, though usually guaranteed
+    player2: Player | null;
+};
 
 interface PlayerMatchesListProps {
-    matches: any[]; // Using any to avoid complex nested Prisma types for now, but should ideally be specific
+    matches: MatchWithPlayers[];
     currentPlayerId: string;
 }
 
 export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMatchesListProps) {
-    const [editingMatch, setEditingMatch] = useState<any>(null);
+    const [editingMatch, setEditingMatch] = useState<MatchWithPlayers | null>(null);
 
     const myMatches = matches.filter(m => m.player1Id === currentPlayerId || m.player2Id === currentPlayerId);
 

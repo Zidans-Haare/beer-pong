@@ -1,6 +1,6 @@
 import { getPlayers } from '@/app/actions/players';
-
 import Link from 'next/link';
+import { User, Trophy, TrendingUp, Sparkles, UserPlus } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,34 +8,112 @@ export default async function PlayersPage() {
     const players = await getPlayers();
 
     return (
-        <div className="container">
-            <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-2xl)' }}>Spieler Management</h1>
-            </header>
+        <div className="container" style={{ paddingBottom: '100px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
+                <div>
+                    <h1 className="title-display" style={{ fontSize: '2rem' }}>Spieler</h1>
+                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>Die Elite der Liga</p>
+                </div>
+                <Link href="/players/new" className="btn btn-secondary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <UserPlus size={20} /> <span>Spieler Anlegen</span>
+                </Link>
+            </div>
 
-            <section className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Registrierte Spieler ({players.length})</h2>
-
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
                 {players.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Spieler registriert.</p>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--spacing-4)' }}>
-                        {players.map((player: any) => (
-                            <Link key={player.id} href={`/players/${player.id}`} className="player-card glass-panel" style={{ textDecoration: 'none', display: 'block', transition: 'transform 0.2s' }}>
-                                <div style={{ padding: 'var(--spacing-4)' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '4px', color: 'var(--color-text)' }}>{player.name}</div>
-                                    {player.nickname && (
-                                        <div style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }}>"{player.nickname}"</div>
-                                    )}
-                                    {player.motto && (
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', fontStyle: 'italic', marginTop: 'var(--spacing-2)' }}>{player.motto}</div>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
+                    <div className="glass-panel" style={{ gridColumn: '1/-1', padding: 'var(--spacing-12)', textAlign: 'center', color: 'var(--color-text-dim)' }}>
+                        <div style={{ marginBottom: 'var(--spacing-4)' }}><User size={48} style={{ opacity: 0.2 }} /></div>
+                        Noch keine Spieler registriert.
                     </div>
+                ) : (
+                    players.map((player: any) => (
+                        <PlayerCard key={player.id} player={player} />
+                    ))
                 )}
-            </section>
+            </div>
         </div>
+    );
+}
+
+function PlayerCard({ player }: { player: any }) {
+    // Generate initials
+    const initials = player.name
+        .split(' ')
+        .map((n: string) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+
+    // Random-ish gradient based on name length for variety (deterministic)
+    const gradients = [
+        'linear-gradient(135deg, #FF6B6B 0%, #d946ef 100%)',
+        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+        'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+    ];
+    const bgGradient = gradients[player.name.length % gradients.length];
+
+    return (
+        <Link href={`/players/${player.id}`} className="glass-panel" style={{
+            padding: '0',
+            textDecoration: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            overflow: 'hidden'
+        }}>
+            {/* Header / Avatar Area */}
+            <div style={{
+                padding: 'var(--spacing-6)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                background: 'rgba(255,255,255,0.02)',
+                borderBottom: '1px solid var(--color-border)'
+            }}>
+                <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: bgGradient,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    fontWeight: 800,
+                    color: 'white',
+                    marginBottom: 'var(--spacing-4)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+                }}>
+                    {initials}
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', margin: 0, textAlign: 'center' }}>{player.name}</h3>
+                {player.nickname && (
+                    <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', marginTop: '4px' }}>"{player.nickname}"</span>
+                )}
+            </div>
+
+            {/* Stats / Motto */}
+            <div style={{ padding: 'var(--spacing-6)', flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+                {player.motto ? (
+                    <div style={{ display: 'flex', gap: '8px', color: 'var(--color-text-dim)', fontSize: '0.85rem', fontStyle: 'italic', marginBottom: 'var(--spacing-2)' }}>
+                        <Sparkles size={16} style={{ minWidth: '16px', color: 'var(--color-secondary)' }} />
+                        "{player.motto}"
+                    </div>
+                ) : (
+                    <div style={{ height: '24px' }}></div> // Spacer
+                )}
+
+                {/* Placeholder for stats - if we had them in this payload */}
+                {/* 
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--color-text)' }}>
+                        <Trophy size={14} color="var(--color-warning)" />
+                        <span>-- Wins</span>
+                    </div>
+                </div> 
+                */}
+            </div>
+        </Link>
     );
 }

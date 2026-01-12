@@ -222,7 +222,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
             {isActive && (
                 <div style={{ marginTop: 'var(--spacing-12)' }}>
                     {/* Show Summary for Completed Tournaments */}
-                    {tournament.status === 'COMPLETED' && (tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
+                    {tournament.status === 'COMPLETED' && (
                         <TournamentSummary
                             tournamentId={tournament.id}
                             tournamentName={tournament.name}

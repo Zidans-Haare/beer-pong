@@ -16,22 +16,98 @@ export default function TournamentSummary({
     standings,
     matches
 }: TournamentSummaryProps) {
+    // Calculate statistics from matches if standings are empty
+    let effectiveStandings = standings;
+
+    if (standings.length === 0 && matches.length > 0) {
+        // Build standings from matches
+        const playerStats = new Map<string, any>();
+
+        matches.filter(m => m.isPlayed).forEach(match => {
+            if (!match.player1Id || !match.player2Id) return;
+
+            // Initialize players if not exists
+            if (!playerStats.has(match.player1Id)) {
+                playerStats.set(match.player1Id, {
+                    playerId: match.player1Id,
+                    player: match.player1,
+                    points: 0,
+                    won: 0,
+                    drawn: 0,
+                    lost: 0,
+                    goalsFor: 0,
+                    goalsAgainst: 0,
+                    goalDifference: 0,
+                    played: 0
+                });
+            }
+            if (!playerStats.has(match.player2Id)) {
+                playerStats.set(match.player2Id, {
+                    playerId: match.player2Id,
+                    player: match.player2,
+                    points: 0,
+                    won: 0,
+                    drawn: 0,
+                    lost: 0,
+                    goalsFor: 0,
+                    goalsAgainst: 0,
+                    goalDifference: 0,
+                    played: 0
+                });
+            }
+
+            const p1Stats = playerStats.get(match.player1Id)!;
+            const p2Stats = playerStats.get(match.player2Id)!;
+
+            p1Stats.played++;
+            p2Stats.played++;
+            p1Stats.goalsFor += match.score1 || 0;
+            p1Stats.goalsAgainst += match.score2 || 0;
+            p2Stats.goalsFor += match.score2 || 0;
+            p2Stats.goalsAgainst += match.score1 || 0;
+
+            if (match.winnerId === match.player1Id) {
+                p1Stats.won++;
+                p1Stats.points += 3;
+                p2Stats.lost++;
+            } else if (match.winnerId === match.player2Id) {
+                p2Stats.won++;
+                p2Stats.points += 3;
+                p1Stats.lost++;
+            } else {
+                p1Stats.drawn++;
+                p2Stats.drawn++;
+                p1Stats.points += 1;
+                p2Stats.points += 1;
+            }
+
+            p1Stats.goalDifference = p1Stats.goalsFor - p1Stats.goalsAgainst;
+            p2Stats.goalDifference = p2Stats.goalsFor - p2Stats.goalsAgainst;
+        });
+
+        effectiveStandings = Array.from(playerStats.values()).sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            return b.goalsFor - a.goalsFor;
+        });
+    }
+
     // Calculate statistics
     const totalMatches = matches.filter(m => m.isPlayed).length;
     const totalGoals = matches.reduce((sum, m) => sum + (m.score1 || 0) + (m.score2 || 0), 0);
 
     // Find winner (highest points in standings)
-    const winner = standings.length > 0 ? standings.sort((a, b) => b.points - a.points)[0] : null;
-    const topThree = standings.slice(0, 3);
+    const winner = effectiveStandings.length > 0 ? effectiveStandings[0] : null;
+    const topThree = effectiveStandings.slice(0, 3);
 
     // Best scorer (most goals for)
-    const bestScorer = standings.length > 0
-        ? standings.reduce((best, current) => current.goalsFor > best.goalsFor ? current : best)
+    const bestScorer = effectiveStandings.length > 0
+        ? effectiveStandings.reduce((best, current) => current.goalsFor > best.goalsFor ? current : best)
         : null;
 
     // Best defense (least goals against)
-    const bestDefense = standings.length > 0
-        ? standings.reduce((best, current) => current.goalsAgainst < best.goalsAgainst ? current : best)
+    const bestDefense = effectiveStandings.length > 0
+        ? effectiveStandings.reduce((best, current) => current.goalsAgainst < best.goalsAgainst ? current : best)
         : null;
 
     return (
@@ -49,13 +125,13 @@ export default function TournamentSummary({
                         🏆 Sieger: {winner.player?.name || 'TBD'}
                     </h2>
                     <div style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)' }}>
-                        {winner.points} Punkte • {winner.won} Siege • {winner.goalsFor}:{winner.goalsAgainst} Tore
+                        {winner.points} Punkte • {winner.won} Siege • {winner.goalsFor}:{winner.goalsAgainst} Becher
                     </div>
                 </div>
             )}
 
             {/* Podium */}
-            {topThree.length >= 3 && (
+            {effectiveStandings.length >= 3 && (
                 <div style={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -136,7 +212,7 @@ export default function TournamentSummary({
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
                         {totalGoals}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Tore insgesamt</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Becher insgesamt</div>
                 </div>
 
                 {bestScorer && (
@@ -145,7 +221,7 @@ export default function TournamentSummary({
                             ⚽ {bestScorer.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Bester Angreifer ({bestScorer.goalsFor} Tore)
+                            Bester Angreifer ({bestScorer.goalsFor} Becher)
                         </div>
                     </div>
                 )}
@@ -156,19 +232,29 @@ export default function TournamentSummary({
                             🛡️ {bestDefense.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Beste Verteidigung ({bestDefense.goalsAgainst} Gegentore)
+                            Beste Verteidigung ({bestDefense.goalsAgainst} Gegenbecher)
                         </div>
                     </div>
                 )}
             </div>
 
             {/* Final Standings */}
-            <div style={{ marginTop: 'var(--spacing-8)' }}>
-                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>
-                    📊 Endstand
-                </h2>
-                <TournamentTable standings={standings} />
-            </div>
+            {effectiveStandings.length > 0 && (
+                <div style={{ marginTop: 'var(--spacing-8)' }}>
+                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>
+                        📊 Endstand
+                    </h2>
+                    <TournamentTable standings={effectiveStandings.map(s => ({
+                        playerId: s.playerId,
+                        playerName: s.player?.name || 'Unbekannt',
+                        matchesPlayed: s.played || 0,
+                        wins: s.won || 0,
+                        losses: s.lost || 0,
+                        points: s.points || 0,
+                        cupDiff: s.goalDifference || 0
+                    }))} />
+                </div>
+            )}
         </div>
     );
 }

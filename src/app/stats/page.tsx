@@ -62,10 +62,90 @@ export default async function StatsPage() {
                                         <td style={{ padding: 'var(--spacing-4)', fontWeight: 600, color: s.cupDiff > 0 ? 'var(--color-success)' : (s.cupDiff < 0 ? 'var(--color-error)' : 'var(--color-text-dim)') }}>
                                             {s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-4)' }}>{s.tournamentsPlayed}</td>
+                                        <td style={{ padding: 'var(--spacing-4)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                {s.tournamentsWon > 0 ? (
+                                                    <>
+                                                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.tournamentsWon}</span>
+                                                        <span>{'🏆'.repeat(Math.min(s.tournamentsWon, 3))}</span>
+                                                        {s.tournamentsWon > 3 && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>+{s.tournamentsWon - 3}</span>}
+                                                    </>
+                                                ) : '-'}
+                                            </div>
+                                        </td>
                                     </tr>
                                 )
                             })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Special Stats: Tournament Efficiency */}
+            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(255,215,0,0.05) 0%, transparent 100%)' }}>
+                    <div style={{ fontSize: '1.5rem' }}>⚡</div>
+                    <div>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Turnier-Effizienz</h2>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>
+                            Verhältnis von gewonnenen zu gespielten Turnieren
+                            <span style={{
+                                display: 'inline-block',
+                                marginLeft: '12px',
+                                fontSize: '0.7rem',
+                                padding: '2px 8px',
+                                borderRadius: '99px',
+                                background: 'rgba(255, 165, 0, 0.15)',
+                                color: 'orange',
+                                border: '1px solid rgba(255, 165, 0, 0.3)'
+                            }}>
+                                Inoffiziell
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+                        <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
+                            <tr>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>RANG</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>SPIELER</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>QUOTE</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>POKALE</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>TURNIERE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[...stats]
+                                .filter(s => s.tournamentsPlayed > 0)
+                                .sort((a, b) => {
+                                    const rateA = a.tournamentsWon / a.tournamentsPlayed;
+                                    const rateB = b.tournamentsWon / b.tournamentsPlayed;
+                                    if (rateB !== rateA) return rateB - rateA;
+                                    return b.tournamentsWon - a.tournamentsWon;
+                                })
+                                .map((s, idx) => {
+                                    const rate = Math.round((s.tournamentsWon / s.tournamentsPlayed) * 100);
+
+                                    return (
+                                        <tr key={s.id} style={{
+                                            borderBottom: '1px solid var(--color-border)',
+                                            background: 'transparent'
+                                        }}>
+                                            <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: 'var(--color-text-dim)', fontSize: '1rem', fontFamily: '"Outfit", sans-serif' }}>
+                                                {idx + 1}.
+                                            </td>
+                                            <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', fontSize: '1rem' }}>
+                                                {s.name}
+                                            </td>
+                                            <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: rate >= 50 ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                                                {rate}%
+                                            </td>
+                                            <td style={{ padding: 'var(--spacing-4)' }}>{s.tournamentsWon}</td>
+                                            <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)' }}>{s.tournamentsPlayed}</td>
+                                        </tr>
+                                    )
+                                })}
                         </tbody>
                     </table>
                 </div>

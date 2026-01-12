@@ -7,6 +7,7 @@ export interface PlayerStats {
     matchesPlayed: number;
     matchesWon: number;
     tournamentsPlayed: number;
+    tournamentsWon: number;
     cupDiff: number; // Total cups hit - Total cups received
     winRate: number;
     history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number }[];
@@ -29,7 +30,30 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
                 },
                 include: { tournament: true }
             },
-            tournaments: true,
+            tournaments: {
+                where: {
+                    tournament: { status: 'COMPLETED' }
+                },
+                include: { tournament: true }
+            },
+            standings: {
+                where: {
+                    tournament: { status: 'COMPLETED' }
+                },
+                include: {
+                    tournament: {
+                        include: {
+                            standings: {
+                                orderBy: [
+                                    { points: 'desc' },
+                                    { goalDifference: 'desc' },
+                                    { goalsFor: 'desc' }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
         }
     });
 
@@ -66,17 +90,69 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
 
         const matchesPlayed = allMatches.length;
 
+        // Count tournament wins (1st place finishes)
+        let tournamentsWon = 0;
+
+        // Method 1: Check standings (for Round-Robin and Group tournaments)
+        p.standings.forEach((standing: any) => {
+            // Check if this player is first in their tournament's standings
+            const tournamentStandings = standing.tournament.standings;
+            if (tournamentStandings.length > 0 && tournamentStandings[0].playerId === p.id) {
+                tournamentsWon++;
+            }
+        });
+
+        // Method 2: Check completed tournaments where this player won the final match (for Elimination tournaments)
+        // Get all completed tournaments this player participated in
+        const completedTournamentIds = new Set<string>();
+        p.tournaments.forEach((tp: any) => {
+            if (tp.tournament?.status === 'COMPLETED') {
+                completedTournamentIds.add(tp.tournament.id);
+            }
+        });
+
+        // For each completed tournament, check if player won the final/highest round match
+        for (const tournamentId of completedTournamentIds) {
+            // Skip if we already counted this tournament via standings
+            const alreadyCounted = p.standings.some((s: any) => s.tournamentId === tournamentId);
+            if (alreadyCounted) continue;
+
+            // Find the highest round match in this tournament
+            const tournamentMatches = [...p.matchesAsPlayer1, ...p.matchesAsPlayer2]
+                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed);
+
+            if (tournamentMatches.length === 0) continue;
+
+            // Find the match with the highest round number (the final)
+            const finalMatch = tournamentMatches.reduce((highest: any, current: any) =>
+                (current.round > highest.round) ? current : highest
+            );
+
+            // If this player won the final match, they won the tournament
+            if (finalMatch.winnerId === p.id) {
+                tournamentsWon++;
+            }
+        }
+
         return {
             id: p.id,
             name: p.name,
             matchesPlayed,
             matchesWon,
             tournamentsPlayed: p.tournaments.length,
+            tournamentsWon,
             cupDiff: cupsHit - cupsReceived,
             winRate: matchesPlayed > 0 ? (matchesWon / matchesPlayed) : 0,
             history
         };
-    }).sort((a: any, b: any) => b.matchesWon - a.matchesWon || b.cupDiff - a.cupDiff);
+    }).sort((a: any, b: any) => {
+        // 1. Sort by tournament wins (trophies) - most important
+        if (b.tournamentsWon !== a.tournamentsWon) return b.tournamentsWon - a.tournamentsWon;
+        // 2. Sort by match wins
+        if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
+        // 3. Sort by cup difference as tie-breaker
+        return b.cupDiff - a.cupDiff;
+    });
 }
 
 export interface TournamentStanding {

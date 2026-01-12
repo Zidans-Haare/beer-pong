@@ -19,7 +19,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     const player = await prisma.player.findUnique({
         where: { id },
         include: {
-            tournaments: true,
+            tournaments: {
+                include: { tournament: true },
+                orderBy: { tournament: { date: 'desc' } }
+            },
             matchesAsPlayer1: { where: { winnerId: { not: null } }, include: { tournament: true } },
             matchesAsPlayer2: { where: { winnerId: { not: null } }, include: { tournament: true } },
         }
@@ -80,12 +83,14 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {/* Tournament History */}
             <h2 className="title-gradient" style={{ marginTop: 'var(--spacing-12)', marginBottom: 'var(--spacing-6)' }}>Turnier Historie</h2>
             <div style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
-                {player.tournaments.map((tournament: any) => (
-                    <Link key={tournament.id} href={`/tournaments/${tournament.id}`} style={{ textDecoration: 'none' }}>
+                {player.tournaments.map((tp: any) => (
+                    <Link key={tp.tournament.id} href={`/tournaments/${tp.tournament.id}`} style={{ textDecoration: 'none' }}>
                         <div className="glass-panel" style={{ padding: 'var(--spacing-4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'transform 0.2s' }}>
                             <div>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{tournament.name}</h3>
-                                <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{format(new Date(tournament.date), 'dd.MM.yyyy HH:mm', { locale: de })}</p>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{tp.tournament.name}</h3>
+                                <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                                    {tp.tournament.date ? format(new Date(tp.tournament.date), 'dd.MM.yyyy HH:mm', { locale: de }) : 'Datum unbekannt'}
+                                </p>
                             </div>
                             <span style={{ fontSize: '2rem' }}>&rarr;</span>
                         </div>

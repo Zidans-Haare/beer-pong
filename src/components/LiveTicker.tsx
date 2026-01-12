@@ -45,14 +45,14 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0 }}
                             className={`p-3 rounded-lg text-sm border-l-4 ${event.type === 'COMMENTARY'
-                                    ? 'bg-purple-900/20 border-purple-500 text-purple-200 italic'
-                                    : 'bg-white/5 border-blue-500 text-gray-300'
+                                ? 'bg-purple-900/20 border-purple-500 text-purple-200 italic'
+                                : 'bg-white/5 border-blue-500 text-gray-300'
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-1">
                                 <span className="font-bold text-xs uppercase opacity-70">
                                     {event.type === 'COMMENTARY' ? '🎙️ AI Kommentator' :
-                                        event.type === 'SCORE_UPDATE' ? '⚽ Tor/Punkt' :
+                                        event.type === 'SCORE_UPDATE' ? '🍺 Becher' :
                                             event.type === 'MATCH_END' ? '🏁 Spielende' : 'Info'}
                                 </span>
                                 <span className="text-xs opacity-50">

@@ -129,14 +129,7 @@ export default function NotificationsPage() {
                     >
                         <Trash2 size={20} />
                     </button>
-                    <button
-                        onClick={handleMarkAllRead}
-                        className="glass-panel"
-                        style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}
-                        title="Alle gelesen"
-                    >
-                        <CheckCircle size={20} />
-                    </button>
+
                     <button
                         onClick={() => setShowSettings(true)}
                         className="glass-panel"

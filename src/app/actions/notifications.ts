@@ -16,7 +16,7 @@ export async function getNotifications() {
             orderBy: {
                 createdAt: 'desc',
             },
-            take: 20, // Limit to recent 20
+            take: 20,
         });
         return notifications;
     } catch (error) {
@@ -211,12 +211,16 @@ export async function broadcastNotification({
 }) {
     // ... (existing filtering logic) ...
 
+    console.log(`[broadcastNotification] starting: title="${title}", type="${type}"`);
+
     try {
         // 1. In-App Notifications
         const whereClause: any = {};
         if (type === 'TOURNAMENT') whereClause.notifyNewTournaments = true;
         else if (type === 'UPDATE') whereClause.notifyUpdates = true;
         else if (type === 'TICKER') whereClause.notifyLiveTicker = true;
+
+        console.log('[broadcastNotification] whereClause:', JSON.stringify(whereClause));
 
         const users = await prisma.user.findMany({
             where: whereClause,
@@ -236,14 +240,14 @@ export async function broadcastNotification({
 
             // 2. Web Push Notifications
             const userIds = users.map(u => u.id);
-            const subscriptions = await prisma.pushSubscription.findMany({
+            const subscriptions = await (prisma as any).pushSubscription.findMany({
                 where: { userId: { in: userIds } }
             });
 
             const payload = JSON.stringify({ title, message, link });
 
             // Send parallel pushes
-            await Promise.all(subscriptions.map(sub => {
+            await Promise.all(subscriptions.map((sub: any) => {
                 return webpush.sendNotification({
                     endpoint: sub.endpoint,
                     keys: {
@@ -253,8 +257,7 @@ export async function broadcastNotification({
                 }, payload).catch(err => {
                     console.error('Push failed for sub', sub.id, err);
                     if (err.statusCode === 410 || err.statusCode === 404) {
-                        // Cleanup invalid sub
-                        prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(console.error);
+                        (prisma as any).pushSubscription.delete({ where: { id: sub.id } }).catch(console.error);
                     }
                 });
             }));

@@ -5,8 +5,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { PlayerStats } from '@/lib/stats';
 import { startOfMonth, startOfYear } from 'date-fns';
 
+type RangeType = 'ALL' | 'MONTH' | 'YEAR' | 'LAST_5';
+
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
-    const [range, setRange] = useState<'ALL' | 'MONTH' | 'YEAR' | 'LAST_5'>('ALL');
+    const [range, setRange] = useState<RangeType>('ALL');
 
     const processedData = useMemo(() => {
         const now = new Date();
@@ -91,30 +93,33 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         return { topWinRate, topCupDiff };
     }, [stats, range]);
 
+    const NEON_COLORS = ['#d946ef', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b']; // Exact match from design system
+
     return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-4)' }}>
-                    <h3 style={{ color: 'var(--color-primary)', margin: 0 }}>Siegquote Trend (Top 5)</h3>
-                    <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.1)', padding: '4px', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-6)', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h3 style={{ color: 'var(--color-text)', margin: 0, fontSize: '1.1rem' }}>Siegquote Trend (Top 5)</h3>
+                    <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
                         {[
-                            { id: 'LAST_5', label: 'Letzte 5' },
+                            { id: 'LAST_5', label: '5 Games' },
                             { id: 'MONTH', label: 'Monat' },
                             { id: 'YEAR', label: 'Jahr' },
-                            { id: 'ALL', label: 'Alles' }
+                            { id: 'ALL', label: 'All Time' }
                         ].map((opt) => (
                             <button
                                 key={opt.id}
-                                onClick={() => setRange(opt.id as any)}
+                                onClick={() => setRange(opt.id as RangeType)}
                                 style={{
-                                    border: 'none',
-                                    background: range === opt.id ? 'var(--color-primary)' : 'transparent',
-                                    color: range === opt.id ? 'black' : 'var(--color-text-dim)',
-                                    borderRadius: '4px',
-                                    padding: '4px 8px',
-                                    fontSize: '0.8rem',
+                                    border: '1px solid',
+                                    borderColor: range === opt.id ? 'var(--color-primary)' : 'transparent',
+                                    background: range === opt.id ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
+                                    color: range === opt.id ? 'white' : 'var(--color-text-dim)',
+                                    borderRadius: '6px',
+                                    padding: '6px 12px',
+                                    fontSize: '0.75rem',
                                     cursor: 'pointer',
-                                    fontWeight: 'bold',
+                                    fontWeight: '600',
                                     transition: 'all 0.2s'
                                 }}
                             >
@@ -126,18 +131,19 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
 
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                             <XAxis
                                 dataKey="timestamp"
                                 type="number"
                                 domain={['dataMin', 'dataMax']}
                                 tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
                                 stroke="var(--color-text-dim)"
+                                tick={{ fontSize: 12 }}
                             />
-                            <YAxis stroke="var(--color-text-dim)" unit="%" />
+                            <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'white' }}
+                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'white' }}
                                 labelFormatter={(label) => new Date(label).toLocaleDateString()}
                             />
                             {processedData.topWinRate.map((p, i) => (
@@ -147,8 +153,9 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     dataKey="winRate"
                                     name={p.name}
                                     type="monotone"
-                                    stroke={`hsl(${i * 60}, 70%, 50%)`}
-                                    activeDot={{ r: 8 }}
+                                    stroke={NEON_COLORS[i % NEON_COLORS.length]}
+                                    strokeWidth={2}
+                                    activeDot={{ r: 6, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length] }}
                                     dot={false}
                                 />
                             ))}
@@ -158,18 +165,18 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
             </div>
 
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>Becherdifferenz (Top 10)</h3>
+                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Becherdifferenz (Top 10)</h3>
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={processedData.topCupDiff}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                            <XAxis dataKey="name" stroke="var(--color-text-dim)" />
-                            <YAxis stroke="var(--color-text-dim)" />
+                        <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                            <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
+                            <YAxis stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
                             <Tooltip
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'white' }}
+                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'white' }}
                             />
-                            <Bar dataKey="rangeCupDiff" fill="var(--color-success)" name="Becherdiff." radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name="Becherdiff." radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

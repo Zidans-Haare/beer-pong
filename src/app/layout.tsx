@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   title: 'Bier Pong',
   description: 'Manage your beer pong tournaments professionally.',
   manifest: '/manifest.json',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

@@ -96,6 +96,46 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 </div>
             </header>
 
+            {/* Info Banner: Odd Player Count Warning */}
+            {isPlanner && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (
+                <div className="glass-panel" style={{
+                    padding: 'var(--spacing-4)',
+                    marginBottom: 'var(--spacing-6)',
+                    borderLeft: '4px solid orange',
+                    background: 'rgba(255, 165, 0, 0.1)'
+                }}>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-3)', alignItems: 'start' }}>
+                        <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                        <div>
+                            <strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                                Mit {yesCount} Spielern werden automatisch Freilose (Byes) generiert. Einige Spieler kommen direkt eine Runde weiter.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Info Banner: Bye Matches Detected (for active tournaments) */}
+            {isActive && tournament.matches.some((m: any) => m.isPlayed && m.player1Id && !m.player2Id) && (
+                <div className="glass-panel" style={{
+                    padding: 'var(--spacing-4)',
+                    marginBottom: 'var(--spacing-6)',
+                    borderLeft: '4px solid var(--color-primary)',
+                    background: 'rgba(var(--color-primary-rgb), 0.1)'
+                }}>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-3)', alignItems: 'start' }}>
+                        <span style={{ fontSize: '1.5rem' }}>ℹ️</span>
+                        <div>
+                            <strong>Freilose (Byes) vorhanden</strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                                Aufgrund ungerader Teilnehmerzahl sind einige Spieler automatisch eine Runde weiter.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="tournament-grid">
                 <div>
                     <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Teilnehmerliste</h2>

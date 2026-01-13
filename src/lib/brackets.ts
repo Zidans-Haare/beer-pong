@@ -131,12 +131,15 @@ function generateBergerMatches(playerIds: string[], tournamentId: string, stage:
             });
 
             if (hasReturnLeg) {
+                // Return leg: Use a large offset to avoid collisions
+                // Offset = 100000 + startPosition offset ensures uniqueness
+                const returnLegPosition = 100000 + startPosition + (round * half) + idx;
                 matches.push({
                     tournamentId,
                     player1Id: m.p2,
                     player2Id: m.p1,
                     round: round + 1 + numRounds,
-                    position: pos + 1000, // Safe offset for return leg
+                    position: returnLegPosition,
                     stage: stage,
                     isPlayed: false
                 });
@@ -158,12 +161,15 @@ export function generateRoundRobinMatches(tournamentId: string, playerIds: strin
 export function generateGroupStageMatches(tournamentId: string, playerIds: string[], hasReturnLeg: boolean = false): MatchInput[] {
     const shuffledPlayers = shuffleArray(playerIds);
 
-    const mid = Math.ceil(shuffledPlayers.length / 2);
+    // Balanced group split: distribute players as evenly as possible
+    // For odd numbers, the first group gets one less player
+    const mid = Math.floor(shuffledPlayers.length / 2);
     const group1 = shuffledPlayers.slice(0, mid);
     const group2 = shuffledPlayers.slice(mid);
 
-    const matchesG1 = generateBergerMatches(group1, tournamentId, 'GROUP_1', 100, hasReturnLeg);
-    const matchesG2 = generateBergerMatches(group2, tournamentId, 'GROUP_2', 200, hasReturnLeg);
+    // Use larger position offsets to avoid collisions with return legs
+    const matchesG1 = generateBergerMatches(group1, tournamentId, 'GROUP_1', 10000, hasReturnLeg);
+    const matchesG2 = generateBergerMatches(group2, tournamentId, 'GROUP_2', 20000, hasReturnLeg);
 
     return [...matchesG1, ...matchesG2];
 }

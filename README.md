@@ -20,9 +20,7 @@ A premium, modern web application for managing Beer Pong tournaments. Built with
   <img src="docs/images/rules-mobile.png" width="30%" alt="Rules Mobile" />
 </p>
 
-<p align="center">
-  <img src="docs/images/login-mobile.png" width="30%" alt="Login Mobile" />
-</p>
+
 
 ## 🛠️ Tech Stack
 

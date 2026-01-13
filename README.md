@@ -1,50 +1,81 @@
-# Beer Pong Management App
+# Beer Pong Tournament Manager 🍺
 
-This is a Next.js project designed to manage beer pong tournaments for a close-knit group of friends, providing features for player management, tournament scheduling, and live updates.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-teal)
 
-## Getting Started
+A premium, modern web application for managing Beer Pong tournaments. Built with Next.js and designed with a "Neon Flow" aesthetic, this app provides real-time tournament tracking, player statistics, and a seamless user experience for your next party.
 
-First, run the development server:
+## 📸 Screenshots
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<p align="center">
+  <img src="docs/images/home-mobile.png" width="30%" alt="Home Mobile" />
+  <img src="docs/images/stats-mobile.png" width="30%" alt="Stats Mobile" />
+  <img src="docs/images/admin-mobile.png" width="30%" alt="Admin Mobile" />
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<p align="center">
+  <img src="docs/images/tournaments-mobile.png" width="30%" alt="Tournaments Mobile" />
+  <img src="docs/images/players-mobile.png" width="30%" alt="Players Mobile" />
+  <img src="docs/images/rules-mobile.png" width="30%" alt="Rules Mobile" />
+</p>
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<p align="center">
+  <img src="docs/images/login-mobile.png" width="30%" alt="Login Mobile" />
+</p>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Operational Notes
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Database**: [SQLite](https://www.sqlite.org/) with [Prisma ORM](https://www.prisma.io/)
+- **Styling**: Custom CSS with CSS Variables & Glassmorphism
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Authentication**: [NextAuth.js](https://next-auth.js.org/) (configured for local use)
 
-This project is deployed and actively used by a friends group. Please observe the following:
+## 🚀 Getting Started
 
--   **Agent Guidelines:** For AI agents interacting with this repository, please consult the [agent.md](agent.md) file for critical operational constraints and best practices, especially regarding database interaction.
--   **Deployment Process:** On the production server, the deployment process typically involves:
-    1.  `git pull` (to fetch latest changes, ensuring local changes are stashed or committed first if necessary).
-    2.  `npm install` (to update dependencies).
-    3.  `npx prisma migrate deploy` (to apply database migrations safely).
-    4.  `npm run build` (to rebuild the application).
-    5.  `pm2 restart beer-pong` (to restart the application service).
+### Prerequisites
 
-## Learn More
+- Node.js 18+
+- npm, yarn, or pnpm
 
-To learn more about Next.js, take a look at the following resources:
+### Installation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/beer-pong.git
+   cd beer-pong
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. **Setup Database**
+   Initialize the SQLite database with Prisma:
+   ```bash
+   npx prisma migrate deploy
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Run the application**
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Open in Browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 📖 Usage
+
+- **Create a Tournament**: Go to the Admin dashboard/Tournaments to start a new event.
+- **Add Players**: Register players to track their stats globally across tournaments.
+- **Track Games**: Click on matches to enter results. The bracket updates automatically.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+Made by Nick.

@@ -3,8 +3,15 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { TournamentService } from '@/lib/services/TournamentService';
 import { MatchService } from '@/lib/services/MatchService';
+import { auth } from '@/auth';
 
 export async function GET() {
+    // Security: Only admins can run simulations
+    const session = await auth();
+    if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+    }
+
     try {
         console.log("🍻 Starting Tournament Simulation API...");
 

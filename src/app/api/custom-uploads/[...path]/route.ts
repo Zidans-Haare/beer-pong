@@ -2,11 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { auth } from '@/auth';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ path: string[] }> }
 ) {
+    // Security: Require authentication to access uploads
+    const session = await auth();
+    if (!session?.user) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         const { path: pathSegments } = await params;
 
@@ -42,8 +49,7 @@ export async function GET(
             headers: {
                 'Content-Type': contentType,
                 'Content-Length': fileSize.toString(),
-                'Cache-Control': 'public, max-age=31536000, immutable',
-                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'private, max-age=31536000, immutable',
             },
         });
     } catch (error) {

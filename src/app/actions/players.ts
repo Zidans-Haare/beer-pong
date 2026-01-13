@@ -16,6 +16,11 @@ export async function getPlayers() {
 }
 
 export async function createPlayer(formData: FormData) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Nicht eingeloggt' };
+    }
+
     const name = formData.get('name') as string;
     const nickname = formData.get('nickname') as string;
     const email = formData.get('email') as string;
@@ -128,6 +133,16 @@ export async function deletePlayer(playerId: string) {
     }
 
     try {
+        const player = await prisma.player.findUnique({ where: { id: playerId } });
+        if (!player) {
+            return { success: false, error: 'Spieler nicht gefunden' };
+        }
+
+        // Authorization: Only owner or admin can delete
+        if (player.userId !== session.user.id && !isAdmin(session.user.email)) {
+            return { success: false, error: 'Keine Berechtigung' };
+        }
+
         await prisma.player.delete({ where: { id: playerId } });
         revalidatePath('/players');
         return { success: true };

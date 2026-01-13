@@ -45,7 +45,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 <div style={{ display: 'flex', gap: 'var(--spacing-8)', alignItems: 'center' }}>
                     <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: player.image ? 'transparent' : 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', overflow: 'hidden' }}>
                         {player.image ? (
-                            <img src={`${player.image}?v=2`} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={`${player.image}?v=3`} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                             player.name[0]
                         )}

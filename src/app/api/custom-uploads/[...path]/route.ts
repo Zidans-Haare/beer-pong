@@ -9,7 +9,7 @@ export async function GET(
 ) {
     try {
         const { path: pathSegments } = await params;
-        
+
         // Construct the file path
         const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
 

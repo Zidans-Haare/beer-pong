@@ -1,17 +1,14 @@
 import Link from 'next/link';
 import { auth, signOut } from '@/auth';
 import DesktopNotificationLink from './DesktopNotificationLink';
-
-import { Beer } from 'lucide-react';
+import LogoEasterEgg from './LogoEasterEgg';
 
 export default async function Navbar() {
     const session = await auth();
 
     return (
         <nav className="glass-panel" style={{ padding: 'var(--spacing-4) var(--spacing-6)', marginBottom: 'var(--spacing-4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link href="/" className="text-gradient" style={{ fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Beer size={28} /> Bier Pong
-            </Link>
+            <LogoEasterEgg />
 
             {/* Desktop Navigation Links */}
             <div className="desktop-nav-links" style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>

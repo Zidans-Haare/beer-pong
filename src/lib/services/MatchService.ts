@@ -4,6 +4,25 @@ import { TickerService } from "./TickerService";
 
 export class MatchService {
     /**
+     * Advances a winner to the next round without updating the current match.
+     * Used for Bye-matches that are already marked as played.
+     */
+    static async advanceWinner(tournamentId: string, currentRound: number, currentPosition: number, winnerId: string) {
+        const nextRound = currentRound + 1;
+        const nextPosition = Math.floor(currentPosition / 2);
+        const isPlayer1InNext = currentPosition % 2 === 0;
+
+        const nextMatch = await prisma.match.findFirst({
+            where: { tournamentId, round: nextRound, position: nextPosition, stage: "BRACKET" }
+        });
+
+        if (nextMatch) {
+            const updateData = isPlayer1InNext ? { player1Id: winnerId } : { player2Id: winnerId };
+            await prisma.match.update({ where: { id: nextMatch.id }, data: updateData });
+        }
+    }
+
+    /**
      * Updates a match score and triggers tournament progression checks.
      */
     static async updateMatch(matchId: string, score1: number, score2: number) {
@@ -117,9 +136,11 @@ export class MatchService {
         });
 
         if (unplayed === 0) {
-            // All group matches done! Generate Bracket.
-            const { TournamentService } = await import("./TournamentService");
-            await TournamentService.generateKnockoutFromGroups(tournamentId);
+            // All group matches done!
+            // NOTE: Playoffs are NOT generated automatically.
+            // The tournament host must manually start the playoffs via the button.
+            // This gives the host control over when to transition to knockout phase.
+            console.log(`[GroupStage] All group matches completed for tournament ${tournamentId}. Ready for playoffs.`);
         }
     }
 

@@ -123,6 +123,31 @@ export class TournamentService {
             where: { id: tournamentId },
             data: { status: "ACTIVE" },
         });
+
+        // Handle Bye-Matches: Automatically advance winners to next round
+        if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
+            const byeMatches = await prisma.match.findMany({
+                where: {
+                    tournamentId,
+                    stage: 'BRACKET',
+                    isPlayed: true,
+                    winnerId: { not: null }
+                }
+            });
+
+            // Use MatchService to properly advance bye winners
+            const { MatchService } = await import('./MatchService');
+            for (const byeMatch of byeMatches) {
+                if (byeMatch.winnerId) {
+                    await MatchService.advanceWinner(
+                        tournamentId,
+                        byeMatch.round,
+                        byeMatch.position,
+                        byeMatch.winnerId
+                    );
+                }
+            }
+        }
     }
 
     /**

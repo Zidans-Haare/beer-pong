@@ -23,8 +23,11 @@ export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMa
     const myMatches = matches.filter(m => m.player1Id === currentPlayerId || m.player2Id === currentPlayerId);
 
     // Find next playable match (no winner yet)
-    // sort by id or round/pos? assuming matches are passed in order or we sort them
-    const pendingMatches = myMatches.filter(m => !m.winnerId).sort((a, b) => a.id.localeCompare(b.id));
+    // Sort by round first, then by position to get correct order
+    const pendingMatches = myMatches.filter(m => !m.winnerId).sort((a, b) => {
+        if (a.round !== b.round) return a.round - b.round;
+        return a.position - b.position;
+    });
     const nextMatch = pendingMatches[0];
 
     // Calculate max bracket round to determine labels dynamically

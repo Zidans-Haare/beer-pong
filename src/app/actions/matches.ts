@@ -21,6 +21,11 @@ export async function updateMatchResult(matchId: string, score1: number, score2:
 
         if (!match) throw new Error('Match not found');
 
+        // Validation: Both players must be assigned (no TBD matches)
+        if (!match.player1Id || !match.player2Id) {
+            return { success: false, error: 'Dieses Match kann noch nicht gespielt werden. Warte auf die Qualifikation beider Spieler.' };
+        }
+
         // Permission Check:
         // 1. Host of the tournament
         const isHost = match.tournament.hostId === session.user.id;

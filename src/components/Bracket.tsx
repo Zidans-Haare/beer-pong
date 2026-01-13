@@ -12,8 +12,14 @@ type MatchWithPlayers = Match & {
 export default function Bracket({ matches }: { matches: any[] }) {
     const [editingMatch, setEditingMatch] = useState<any>(null);
 
+    // Filter only bracket matches
+    const bracketMatches = matches.filter(m => m.stage === 'BRACKET');
+
+    // Determine max round for dynamic labeling
+    const maxRound = bracketMatches.length > 0 ? Math.max(...bracketMatches.map(m => m.round)) : 0;
+
     // Organize matches by round
-    const rounds = matches.reduce((acc, match) => {
+    const rounds = bracketMatches.reduce((acc, match) => {
         if (!acc[match.round]) acc[match.round] = [];
         acc[match.round].push(match);
         return acc;
@@ -21,13 +27,24 @@ export default function Bracket({ matches }: { matches: any[] }) {
 
     const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
 
+    const getDynamicRoundName = (round: number) => {
+        if (round === maxRound) return 'Finale / Platz 3';
+        if (round === maxRound - 1) return 'Halbfinale';
+        if (round === maxRound - 2) return 'Viertelfinale';
+        return `Runde ${round}`;
+    };
+
+    if (bracketMatches.length === 0) {
+        return <div style={{ padding: 'var(--spacing-4)', textAlign: 'center', color: 'var(--color-text-dim)' }}>K.O.-Phase beginnt erst nach der Gruppenphase.</div>;
+    }
+
     return (
         <>
             <div style={{ display: 'flex', overflowX: 'auto', gap: 'var(--spacing-8)', padding: 'var(--spacing-4)' }}>
                 {roundNumbers.map((round) => (
                     <div key={round} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 'var(--spacing-8)' }}>
                         <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>
-                            {getRoundName(round)}
+                            {getDynamicRoundName(round)}
                         </h3>
                         {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => (
                             <div
@@ -59,11 +76,4 @@ function playerClass(match: any, playerId: string | null | undefined): string {
     if (match.winnerId === playerId) return '2px solid var(--color-success)';
     if (match.winnerId && match.winnerId !== playerId) return '1px solid var(--color-error)';
     return '1px solid var(--color-border)';
-}
-
-function getRoundName(round: number): string {
-    if (round === 99) return 'Finale';
-    if (round === 98) return 'Halbfinale';
-    if (round === 97) return 'Viertelfinale';
-    return `Runde ${round}`;
 }

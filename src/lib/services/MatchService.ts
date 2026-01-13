@@ -63,7 +63,7 @@ export class MatchService {
             await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
             await this.checkLeagueCompletion(match.tournamentId);
         } else if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
-            await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId);
+            await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId, match.id);
         }
 
         return updatedMatch;
@@ -144,85 +144,68 @@ export class MatchService {
     }
 
 
-    private static async checkBracketProgression(tournamentId: string, currentRound: number, currentPosition: number, winnerId: string | null) {
+    private static async checkBracketProgression(
+        tournamentId: string,
+        currentRound: number,
+        currentPosition: number,
+        winnerId: string | null,
+        matchId: string
+    ) {
         if (!winnerId) return;
 
-        // 1. Check if this was the Final
-        const totalMatchesInRound = await prisma.match.count({
-            where: { tournamentId, round: currentRound, stage: "BRACKET" }
-        });
+        console.log(`[Progression] Checking Match ${matchId} (R:${currentRound}, P:${currentPosition}, Winner:${winnerId})`);
 
-        // Normally, the Final is Round X, Position 0, and it's the ONLY match in that round (unless 3rd place exists at Position 1)
-        if (totalMatchesInRound === 1 || (totalMatchesInRound === 2 && currentPosition === 0)) {
-            // Check if all matches in this round are played
+        // 1. Check if this logic applies (Are we in a penultimate round?)
+        const maxRoundMatch = await prisma.match.findFirst({
+            where: { tournamentId, stage: "BRACKET" },
+            orderBy: { round: 'desc' }
+        });
+        const maxRound = maxRoundMatch?.round || 0;
+
+        // If current round is the max round, check completion
+        if (currentRound >= maxRound) {
             const unplayed = await prisma.match.count({
                 where: { tournamentId, round: currentRound, stage: "BRACKET", isPlayed: false }
             });
-
             if (unplayed === 0) {
-                await prisma.tournament.update({
-                    where: { id: tournamentId },
-                    data: { status: "COMPLETED" }
-                });
+                console.log("[Progression] Tournament Completed!");
+                await prisma.tournament.update({ where: { id: tournamentId }, data: { status: "COMPLETED" } });
             }
             return;
         }
 
-        // 2. Advance winner to next round placeholder
+        // 2. Logic for Advancement
         const nextRound = currentRound + 1;
         const nextPosition = Math.floor(currentPosition / 2);
-        const isPlayer1 = currentPosition % 2 === 0;
+        const isPlayer1InNext = currentPosition % 2 === 0;
 
+        // A) Advance Winner -> Next Round Match (Final or otherwise)
         const nextMatch = await prisma.match.findFirst({
-            where: {
-                tournamentId,
-                round: nextRound,
-                position: nextPosition,
-                stage: "BRACKET"
-            }
+            where: { tournamentId, round: nextRound, position: nextPosition, stage: "BRACKET" }
         });
 
         if (nextMatch) {
-            await prisma.match.update({
-                where: { id: nextMatch.id },
-                data: isPlayer1 ? { player1Id: winnerId } : { player2Id: winnerId }
-            });
-
-            // Handle BYE logic if the new opponent doesn't exist (should have been handled during generation but safety first)
-            // Actually, in a pre-generated bracket, we just wait for the other side of the bracket.
+            const updateData = isPlayer1InNext ? { player1Id: winnerId } : { player2Id: winnerId };
+            console.log(`[Progression] Winner -> Match ${nextMatch.id} (Slot ${isPlayer1InNext ? 'P1' : 'P2'})`);
+            await prisma.match.update({ where: { id: nextMatch.id }, data: updateData });
         }
 
-        // 3. Handle Loser for 3rd Place Match (Special Case)
-        // If we are in the Semi-Finals (Round = FinalRound - 1)
-        const finalRoundMatch = await prisma.match.findFirst({
-            where: { tournamentId, stage: "BRACKET" },
-            orderBy: { round: 'desc' }
-        });
-
-        if (finalRoundMatch && currentRound === finalRoundMatch.round - 1) {
+        // B) Advance Loser -> 3rd Place Match (If applicable)
+        // Only if (CurrentRound == MaxRound - 1) AND 3rd Place match exists.
+        if (currentRound === maxRound - 1) {
             const thirdPlaceMatch = await prisma.match.findFirst({
-                where: {
-                    tournamentId,
-                    round: finalRoundMatch.round,
-                    position: 1,
-                    stage: "BRACKET"
-                }
+                where: { tournamentId, round: nextRound, position: 1, stage: "BRACKET" }
             });
 
-            if (thirdPlaceMatch) {
-                const loserId = await prisma.match.findUnique({ where: { id: await prisma.match.findFirst({ where: { tournamentId, round: currentRound, position: currentPosition } }).then(m => m?.id || "") } }).then(m => m?.player1Id === winnerId ? m?.player2Id : m?.player1Id);
-                // Note: Getting loser requires re-fetching or passing it. Let's keep it simple for now.
-                // We'll re-fetch the match to find the loser.
-                const matchObj = await prisma.match.findFirst({
-                    where: { tournamentId, round: currentRound, position: currentPosition }
-                });
-                const actualLoserId = matchObj?.player1Id === winnerId ? matchObj?.player2Id : matchObj?.player1Id;
+            if (thirdPlaceMatch && thirdPlaceMatch.id !== nextMatch?.id) {
+                // Determine Loser
+                const completedMatch = await prisma.match.findUnique({ where: { id: matchId } });
+                const loserId = completedMatch?.player1Id === winnerId ? completedMatch?.player2Id : completedMatch?.player1Id;
 
-                if (actualLoserId) {
-                    await prisma.match.update({
-                        where: { id: thirdPlaceMatch.id },
-                        data: isPlayer1 ? { player1Id: actualLoserId } : { player2Id: actualLoserId }
-                    });
+                if (loserId) {
+                    const updateData = isPlayer1InNext ? { player1Id: loserId } : { player2Id: loserId };
+                    console.log(`[Progression] Loser -> 3rd Place Match ${thirdPlaceMatch.id} (Slot ${isPlayer1InNext ? 'P1' : 'P2'})`);
+                    await prisma.match.update({ where: { id: thirdPlaceMatch.id }, data: updateData });
                 }
             }
         }

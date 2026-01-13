@@ -27,11 +27,26 @@ export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMa
     const pendingMatches = myMatches.filter(m => !m.winnerId).sort((a, b) => a.id.localeCompare(b.id));
     const nextMatch = pendingMatches[0];
 
-    const getRoundLabel = (round: number) => {
-        if (round === 99) return 'Finale';
-        if (round === 98) return 'Halbfinale';
-        if (round === 97) return 'Viertelfinale';
-        return `Runde ${round}`;
+    // Calculate max bracket round to determine labels dynamically
+    const bracketMatches = matches.filter(m => m.stage === 'BRACKET');
+    const maxBracketRound = bracketMatches.length > 0 ? Math.max(...bracketMatches.map(m => m.round)) : 0;
+
+    const getRoundLabel = (match: MatchWithPlayers) => {
+        if (match.stage && match.stage.includes('GROUP')) {
+            return `Gruppenphase - Runde ${match.round}`;
+        }
+
+        if (match.stage === 'BRACKET') {
+            if (match.round === maxBracketRound) {
+                return match.position === 1 ? 'Spiel um Platz 3' : 'Finale';
+            }
+            if (match.round === maxBracketRound - 1) return 'Halbfinale';
+            if (match.round === maxBracketRound - 2) return 'Viertelfinale';
+            return `K.O.-Runde ${match.round}`;
+        }
+
+        // Fallback for LEAGUE or others
+        return `Runde ${match.round}`;
     };
 
     return (
@@ -107,7 +122,7 @@ export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMa
                                 }}
                             >
                                 <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                    {getRoundLabel(match.round)}
+                                    {getRoundLabel(match)}
                                 </div>
                                 <div style={{ display: 'flex', gap: 'var(--spacing-4)', fontWeight: 'bold', alignItems: 'center' }}>
                                     <div style={{ textAlign: 'center' }}>

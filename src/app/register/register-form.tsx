@@ -36,6 +36,19 @@ export default function RegisterForm() {
                     <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
                 </div>
 
+                <div style={{ marginBottom: 'var(--spacing-6)' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            required
+                            style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                            Ich habe die <a href="/rules" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Regeln</a> gelesen und akzeptiert
+                        </span>
+                    </label>
+                </div>
+
                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Account erstellen</button>
 
                 {error && <p style={{ color: 'var(--color-error)', marginTop: 'var(--spacing-4)', textAlign: 'center' }}>{error}</p>}

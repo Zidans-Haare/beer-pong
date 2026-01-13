@@ -29,6 +29,10 @@ export async function updateMatchResult(matchId: string, score1: number, score2:
         const isPlayer1 = match.player1?.userId === session.user.id;
         const isPlayer2 = match.player2?.userId === session.user.id;
 
+        console.log(`[UpdateMatch] Match ${matchId}, User ${session.user.id}`);
+        console.log(`[UpdateMatch] Host: ${match.tournament.hostId}, IsHost: ${isHost}`);
+        console.log(`[UpdateMatch] P1User: ${match.player1?.userId}, P2User: ${match.player2?.userId}`);
+
         if (!isHost && !isPlayer1 && !isPlayer2) {
             return { success: false, error: 'Nur beteiligte Spieler oder der Host dürfen Ergebnisse eintragen.' };
         }

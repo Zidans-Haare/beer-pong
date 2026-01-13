@@ -19,7 +19,13 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         const score1 = winnerId === match.player1Id ? 10 : cups;
         const score2 = winnerId === match.player2Id ? 10 : cups;
 
-        await updateMatchResult(match.id, score1, score2);
+        const result = await updateMatchResult(match.id, score1, score2);
+
+        if (!result.success) {
+            alert(result.error || 'Fehler beim Speichern');
+            return;
+        }
+
         onClose();
     }
 

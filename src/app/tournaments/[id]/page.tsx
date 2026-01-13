@@ -28,6 +28,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { unstable_noStore as noStore } from 'next/cache';
+import GroupMatches from '@/components/GroupMatches';
 
 export default async function TournamentPage({ params }: { params: Promise<{ id: string }> }) {
     noStore();
@@ -258,35 +259,38 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     )}
 
                     {/* Show Tables for both ACTIVE and COMPLETED */}
-                    {tournament.type === 'ROUND_ROBIN' && tournament.status === 'ACTIVE' && (
+                    {tournament.type === 'ROUND_ROBIN' && (
                         <>
                             <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Tabelle</h2>
                             <TournamentTable standings={await getTournamentStandings(tournament.id)} />
                         </>
                     )}
 
-                    {tournament.type === 'GROUPS' && tournament.status === 'ACTIVE' && (
+                    {tournament.type === 'GROUPS' && (
                         <>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
                                 <div>
                                     <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 1</h3>
-                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} />
+                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
                                 </div>
                                 <div>
                                     <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 2</h3>
-                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} />
+                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
                                 </div>
                             </div>
                         </>
                     )}
 
-                    {/* Only Host sees the full Bracket */}
-                    {isHost && (
-                        <>
-                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', marginTop: 'var(--spacing-12)' }}>Gesamter Turnierplan (Host)</h2>
-                            <Bracket matches={tournament.matches || []} />
-                        </>
+
+
+                    {/* Show Bracket to Everyone */}
+                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', marginTop: 'var(--spacing-12)' }}>Turnierplan & K.O.-Runde</h2>
+
+                    {tournament.type !== 'SINGLE_ELIMINATION' && (
+                        <GroupMatches matches={tournament.matches as any} />
                     )}
+
+                    <Bracket matches={tournament.matches || []} />
 
                     {/* Auto-refresh only for ACTIVE */}
                     {tournament.status === 'ACTIVE' && <AutoRefresh intervalMs={20000} />}

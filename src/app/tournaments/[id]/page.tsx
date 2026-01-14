@@ -23,6 +23,7 @@ import { MatchStatusBadge } from '@/components/MatchStatusBadge';
 import { isAfter } from 'date-fns';
 import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
+import TournamentQRCode from '@/components/TournamentQRCode';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -81,8 +82,17 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '8px' }}>
                     <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-2)' }}>
-                        Aktualisiert: {new Date().toLocaleTimeString()}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                        {isPlanner && (
+                            <TournamentQRCode
+                                tournamentId={tournament.id}
+                                tournamentName={tournament.name}
+                                shortCode={tournament.shortCode || undefined}
+                            />
+                        )}
+                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)' }}>
+                            Aktualisiert: {new Date().toLocaleTimeString()}
+                        </div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-4)' }}>

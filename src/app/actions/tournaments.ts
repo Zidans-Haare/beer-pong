@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { generateSingleEliminationBracket, generateRoundRobinMatches, generateGroupStageMatches } from '@/lib/brackets';
 import { auth } from '@/auth';
 import { broadcastNotification } from './notifications';
+import { generateShortCode } from '@/lib/qrcode';
 
 
 export async function getTournaments() {
@@ -60,6 +61,16 @@ export async function createTournament(formData: FormData) {
     const tableCount = settings?.tableCount || 1;
 
     try {
+        // Generate unique short code
+        let shortCode = generateShortCode();
+        let attempts = 0;
+        while (attempts < 10) {
+            const existing = await prisma.tournament.findFirst({ where: { shortCode } });
+            if (!existing) break;
+            shortCode = generateShortCode();
+            attempts++;
+        }
+
         const result = await prisma.$transaction(async (tx: any) => {
             const tournament = await tx.tournament.create({
                 data: {
@@ -69,6 +80,7 @@ export async function createTournament(formData: FormData) {
                     type: type || 'ELIMINATION',
                     status: 'PLANNED', // Even "Now" starts as PLANNED (Lobby)
                     hostId: userId,
+                    shortCode,
                     hasReturnLeg,
                     matchDurationMin,
                     tableCount

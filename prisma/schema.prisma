@@ -37,6 +37,7 @@ model Tournament {
   status    String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
   type      String   @default("ELIMINATION") // ELIMINATION, ROUND_ROBIN, GROUPS
   hostId    String?  // Creator of the tournament
+  shortCode String?  @unique // 6-character join code (e.g., "ABC123")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   hasReturnLeg Boolean @default(false)

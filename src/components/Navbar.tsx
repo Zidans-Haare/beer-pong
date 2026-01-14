@@ -13,6 +13,7 @@ export default async function Navbar() {
             {/* Desktop Navigation Links */}
             <div className="desktop-nav-links" style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
                 <Link href="/tournaments" className="nav-link" style={{ color: 'var(--color-text)' }}>Turniere</Link>
+                <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Beitreten</Link>
                 <Link href="/players" className="nav-link" style={{ color: 'var(--color-text)' }}>Spieler</Link>
                 <Link href="/stats" className="nav-link" style={{ color: 'var(--color-text)' }}>Statistik</Link>
                 {session?.user?.email === process.env.ADMIN_EMAIL && (

@@ -4,6 +4,8 @@ import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
 import ServiceWorkerUpdate from '@/components/ServiceWorkerUpdate';
 import ClientLayout from '@/components/ClientLayout';
+import OfflineIndicator from '@/components/OfflineIndicator';
+import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
 
 export const metadata: Metadata = {
   title: 'Bier Pong',
@@ -75,6 +77,8 @@ export default async function RootLayout({
           </main>
           <BottomNav isAdmin={isAdmin} />
           <ServiceWorkerUpdate />
+          <OfflineIndicator />
+          <ServiceWorkerProvider />
         </div>
       </body>
     </html>

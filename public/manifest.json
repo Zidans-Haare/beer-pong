@@ -3,14 +3,75 @@
     "short_name": "Bier Pong",
     "description": "Professional Beer Pong Tournament Manager",
     "start_url": "/",
+    "id": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#f8f9fa",
-    "theme_color": "#2563eb",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "portrait-primary",
+    "background_color": "#030712",
+    "theme_color": "#030712",
+    "categories": ["games", "sports", "entertainment"],
     "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
         {
             "src": "/icon.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
-    ]
+    ],
+    "shortcuts": [
+        {
+            "name": "Neues Turnier",
+            "short_name": "Neu",
+            "description": "Schnell ein neues Turnier erstellen",
+            "url": "/tournaments/new",
+            "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Turniere",
+            "short_name": "Turniere",
+            "description": "Alle Turniere anzeigen",
+            "url": "/tournaments",
+            "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Spieler",
+            "short_name": "Spieler",
+            "description": "Spielerliste anzeigen",
+            "url": "/players",
+            "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Turnier-Übersicht"
+        },
+        {
+            "src": "/screenshot-narrow.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Mobile Ansicht"
+        }
+    ],
+    "prefer_related_applications": false,
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    }
 }

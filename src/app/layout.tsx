@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
 import ServiceWorkerUpdate from '@/components/ServiceWorkerUpdate';
+import ClientLayout from '@/components/ClientLayout';
 
 export const metadata: Metadata = {
   title: 'Bier Pong',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent', // Extends content into status bar
     title: 'Bier Pong',
   },
   icons: {
@@ -32,6 +33,11 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover', // Enables edge-to-edge display on notched devices
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#030712' },
+    { media: '(prefers-color-scheme: light)', color: '#030712' },
+  ],
 };
 
 import { auth } from '@/auth';
@@ -52,13 +58,20 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet" />
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" href="/icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
+        {/* Splash Screen for iOS */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
         <div className="layout-shell">
           <Navbar />
           {/* Sidebar/Nav will go here later */}
           <main className="main-content">
-            {children}
+            <ClientLayout>
+              {children}
+            </ClientLayout>
           </main>
           <BottomNav isAdmin={isAdmin} />
           <ServiceWorkerUpdate />

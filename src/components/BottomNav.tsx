@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Trophy, BarChart2, Users, Bell, Command } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
+import { haptic } from '@/lib/haptics';
 
 export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
     const pathname = usePathname();
@@ -25,15 +26,19 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
         return () => clearInterval(interval);
     }, []);
 
+    const handleNavClick = () => {
+        haptic.light();
+    };
+
     return (
         <nav className="bottom-nav">
-            <Link href="/" className={`bottom-nav-item ${pathname === '/' ? 'active' : ''}`}>
+            <Link href="/" className={`bottom-nav-item ${pathname === '/' ? 'active' : ''}`} onClick={handleNavClick}>
                 <span className="nav-icon-glow"><Home size={24} /></span>
             </Link>
-            <Link href="/tournaments" className={`bottom-nav-item ${isActive('/tournaments') ? 'active' : ''}`}>
+            <Link href="/tournaments" className={`bottom-nav-item ${isActive('/tournaments') ? 'active' : ''}`} onClick={handleNavClick}>
                 <span className="nav-icon-glow"><Trophy size={24} /></span>
             </Link>
-            <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`}>
+            <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`} onClick={handleNavClick}>
                 <div className="relative">
                     <span className="nav-icon-glow"><Bell size={24} /></span>
                     {unreadCount > 0 && (
@@ -43,14 +48,14 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
                     )}
                 </div>
             </Link>
-            <Link href="/players" className={`bottom-nav-item ${isActive('/players') ? 'active' : ''}`}>
+            <Link href="/players" className={`bottom-nav-item ${isActive('/players') ? 'active' : ''}`} onClick={handleNavClick}>
                 <span className="nav-icon-glow"><Users size={24} /></span>
             </Link>
-            <Link href="/stats" className={`bottom-nav-item ${isActive('/stats') ? 'active' : ''}`}>
+            <Link href="/stats" className={`bottom-nav-item ${isActive('/stats') ? 'active' : ''}`} onClick={handleNavClick}>
                 <span className="nav-icon-glow"><BarChart2 size={24} /></span>
             </Link>
             {isAdmin && (
-                <Link href="/admin" className={`bottom-nav-item ${isActive('/admin') ? 'active' : ''}`}>
+                <Link href="/admin" className={`bottom-nav-item ${isActive('/admin') ? 'active' : ''}`} onClick={handleNavClick}>
                     <span className="nav-icon-glow"><Command size={24} /></span>
                 </Link>
             )}

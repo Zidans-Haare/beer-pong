@@ -60,9 +60,15 @@ body {
   font-family: var(--font-family);
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   touch-action: pan-x pan-y;
+
+  /* Safe Area Support for notched devices */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 
   /* Complex Background Blobs */
   background-image:
@@ -175,7 +181,8 @@ h6 {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 100px;
+  min-height: 100dvh;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 768px) {
@@ -249,7 +256,7 @@ h6 {
 /* Mobile Bottom Nav Override */
 .bottom-nav {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: 90%;

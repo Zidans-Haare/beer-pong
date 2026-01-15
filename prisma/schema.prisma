@@ -65,7 +65,8 @@ model User {
   password      String?   // For Credentials provider
   accounts      Account[]
   sessions      Session[]
-  
+  passkeys      Passkey[]
+
   // App Relations
   player        Player?
   hostedTournaments Tournament[]
@@ -215,4 +216,20 @@ model SystemSettings {
   id               String @id @default("default")
   matchDurationMin Int    @default(15)
   tableCount       Int    @default(1)
+}
+
+model Passkey {
+  id                  String   @id @default(cuid())
+  userId              String
+  credentialId        String   @unique // Base64URL encoded
+  credentialPublicKey Bytes    // Raw public key bytes
+  counter             BigInt   @default(0)
+  credentialDeviceType String  @default("singleDevice") // singleDevice or multiDevice
+  credentialBackedUp  Boolean  @default(false)
+  transports          String?  // JSON array of transports
+  createdAt           DateTime @default(now())
+  lastUsedAt          DateTime?
+  friendlyName        String?  // e.g., "iPhone 15", "MacBook Pro"
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

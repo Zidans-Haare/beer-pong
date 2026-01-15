@@ -1,6 +1,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { TickerService } from "./TickerService";
+import { recordMatchDuration, markMatchStarted } from "@/lib/duration";
 
 export class MatchService {
     /**
@@ -46,6 +47,11 @@ export class MatchService {
                 isPlayed: true,
             },
         });
+
+        // Record match duration for statistics
+        if (!wasPlayed && winnerId) {
+            await recordMatchDuration(matchId, match.startedAt || undefined);
+        }
 
         // Trigger Ticker Events
         if (match.tournamentId) {
@@ -208,7 +214,16 @@ export class MatchService {
         if (nextMatch) {
             const updateData = isPlayer1InNext ? { player1Id: winnerId } : { player2Id: winnerId };
             console.log(`[Progression] Winner -> Match ${nextMatch.id} (Slot ${isPlayer1InNext ? 'P1' : 'P2'})`);
-            await prisma.match.update({ where: { id: nextMatch.id }, data: updateData });
+            const updated = await prisma.match.update({
+                where: { id: nextMatch.id },
+                data: updateData,
+                select: { player1Id: true, player2Id: true }
+            });
+
+            // Mark match as started if both players are now set
+            if (updated.player1Id && updated.player2Id) {
+                await markMatchStarted(nextMatch.id);
+            }
         }
 
         // B) Advance Loser -> 3rd Place Match (If applicable)
@@ -226,7 +241,16 @@ export class MatchService {
                 if (loserId) {
                     const updateData = isPlayer1InNext ? { player1Id: loserId } : { player2Id: loserId };
                     console.log(`[Progression] Loser -> 3rd Place Match ${thirdPlaceMatch.id} (Slot ${isPlayer1InNext ? 'P1' : 'P2'})`);
-                    await prisma.match.update({ where: { id: thirdPlaceMatch.id }, data: updateData });
+                    const updated3rd = await prisma.match.update({
+                        where: { id: thirdPlaceMatch.id },
+                        data: updateData,
+                        select: { player1Id: true, player2Id: true }
+                    });
+
+                    // Mark 3rd place match as started if both players are now set
+                    if (updated3rd.player1Id && updated3rd.player2Id) {
+                        await markMatchStarted(thirdPlaceMatch.id);
+                    }
                 }
             }
         }

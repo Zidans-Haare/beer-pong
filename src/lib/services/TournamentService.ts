@@ -4,6 +4,7 @@ import {
     generateRoundRobinMatches,
     generateGroupStageMatches
 } from "@/lib/brackets";
+import { markMatchStarted } from "@/lib/duration";
 
 export class TournamentService {
     /**
@@ -148,6 +149,20 @@ export class TournamentService {
                 }
             }
         }
+
+        // Mark all playable matches as started (both players assigned, not yet played)
+        const playableMatches = await prisma.match.findMany({
+            where: {
+                tournamentId,
+                isPlayed: false,
+                player1Id: { not: null },
+                player2Id: { not: null }
+            }
+        });
+
+        for (const match of playableMatches) {
+            await markMatchStarted(match.id);
+        }
     }
 
     /**
@@ -179,12 +194,16 @@ export class TournamentService {
 
         // 1. Create the Semi-Finals matches
         if (qualified.length === 4) {
-            await prisma.match.create({
+            const semi1 = await prisma.match.create({
                 data: { tournamentId, player1Id: qualified[0].playerId, player2Id: qualified[3].playerId, round: 1, position: 0, stage: "BRACKET" }
             });
-            await prisma.match.create({
+            const semi2 = await prisma.match.create({
                 data: { tournamentId, player1Id: qualified[2].playerId, player2Id: qualified[1].playerId, round: 1, position: 1, stage: "BRACKET" }
             });
+
+            // Mark semi-finals as started (both players are set)
+            await markMatchStarted(semi1.id);
+            await markMatchStarted(semi2.id);
 
             // 2. Create the Final Placeholder (Round 2, Position 0)
             await prisma.match.create({
@@ -197,13 +216,20 @@ export class TournamentService {
             });
         } else {
             // Fallback for different group counts
+            const createdMatches: string[] = [];
             for (let i = 0; i < qualified.length; i += 2) {
                 if (qualified[i] && qualified[i + 1]) {
-                    await prisma.match.create({
+                    const match = await prisma.match.create({
                         data: { tournamentId, player1Id: qualified[i].playerId, player2Id: qualified[i + 1].playerId, round: 1, position: i / 2, stage: "BRACKET" }
                     });
+                    createdMatches.push(match.id);
                 }
             }
+            // Mark all created matches as started
+            for (const matchId of createdMatches) {
+                await markMatchStarted(matchId);
+            }
+
             const nextRoundMatches = Math.ceil(qualified.length / 4);
             for (let m = 0; m < nextRoundMatches; m++) {
                 await prisma.match.create({

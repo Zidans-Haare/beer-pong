@@ -26,6 +26,7 @@ import TournamentSummary from '@/components/TournamentSummary';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import LobbyPresence from '@/components/LobbyPresence';
+import { getTournamentForecast, formatDuration } from '@/lib/duration';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -64,6 +65,9 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
     const currentPlayer = session?.user?.id ? players.find((p: any) => p.userId === session?.user?.id) : null;
     const waitTime = currentPlayer ? getEstimatedWaitTime(schedule, currentPlayer.id) : null;
+
+    // Get tournament time forecast for active tournaments
+    const forecast = tournament.status === 'ACTIVE' ? await getTournamentForecast(tournament.id) : null;
 
     const isHost = session?.user?.id === tournament.hostId;
     const yesCount = tournament.rsvps.filter((r: { status: string }) => r.status === 'YES').length;
@@ -200,6 +204,27 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 </div>
 
                 <aside>
+                    {/* Tournament Time Forecast */}
+                    {forecast && forecast.remainingMatches > 0 && (
+                        <div className="glass-panel" style={{
+                            padding: 'var(--spacing-4)',
+                            marginBottom: 'var(--spacing-4)',
+                            borderLeft: '4px solid var(--color-secondary)',
+                            background: 'rgba(78, 205, 196, 0.1)'
+                        }}>
+                            <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-2)' }}>⏱️ Turnier-Prognose</h3>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                Ende ca. {format(forecast.estimatedEndTime, 'HH:mm')} Uhr
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                                Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
+                            </div>
+                            <div style={{ marginTop: 'var(--spacing-2)', fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
+                                ~{forecast.totalRemainingMinutes} Min. • {formatDuration(forecast.avgMatchDuration)} pro Spiel
+                            </div>
+                        </div>
+                    )}
+
                     {/* Waiting Time Info */}
                     {waitTime && !tournament.status.includes('COMPLETED') && (
                         <div className="glass-panel" style={{

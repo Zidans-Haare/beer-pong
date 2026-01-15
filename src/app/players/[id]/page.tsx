@@ -6,6 +6,7 @@ import { de } from 'date-fns/locale';
 import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { isAdmin } from '@/lib/admin';
+import { getPlayerPaceStats, formatDuration, getPaceEmoji } from '@/lib/duration';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
         player.matchesAsPlayer2.filter(m => m.winnerId === player.id).length;
     const matchesPlayed = player.matchesAsPlayer1.length + player.matchesAsPlayer2.length;
     const winRate = matchesPlayed > 0 ? Math.round((matchesWon / matchesPlayed) * 100) : 0;
+
+    // Get pace stats for duration tracking
+    const paceStats = await getPlayerPaceStats(player.id);
 
     return (
         <div className="container">
@@ -71,6 +75,47 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 <StatBox label="Spiele" value={matchesPlayed} />
                 <StatBox label="Win Rate" value={`${winRate}%`} />
             </div>
+
+            {/* Pace Stats */}
+            {paceStats.totalMatches > 0 && (
+                <div style={{ marginTop: 'var(--spacing-6)', width: '100%' }}>
+                    <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                        <span>{getPaceEmoji(paceStats.paceLabel)}</span> Spieltempo
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-4)' }}>
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                                {getPaceEmoji(paceStats.paceLabel)} {paceStats.paceLabel}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
+                                Spielstil
+                            </div>
+                        </div>
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+                                {formatDuration(paceStats.averageDuration)}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
+                                Avg. Spielzeit
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-4)' }}>
+                        <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)' }}>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ECDC4' }}>
+                                {formatDuration(paceStats.fastestMatch)}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Schnellster</div>
+                        </div>
+                        <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)' }}>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#FF6B6B' }}>
+                                {formatDuration(paceStats.slowestMatch)}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Längster</div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Bio */}
             {player.bio && (

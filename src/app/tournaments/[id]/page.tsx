@@ -24,6 +24,7 @@ import { isAfter } from 'date-fns';
 import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
 import TournamentQRCode from '@/components/TournamentQRCode';
+import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -73,8 +74,26 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
     // ... imports
 
+    // Check if current user is the tournament winner
+    const isCurrentUserWinner = (() => {
+        if (tournament.status !== 'COMPLETED' || !currentPlayer) return false;
+        const finalMatch = tournament.matches.find((m: any) => m.stage === 'BRACKET' && m.winnerId);
+        const bracketMatches = tournament.matches.filter((m: any) => m.stage === 'BRACKET');
+        if (bracketMatches.length === 0) return false;
+        const maxRound = Math.max(...bracketMatches.map((m: any) => m.round));
+        const finale = bracketMatches.find((m: any) => m.round === maxRound && m.position === 0);
+        return finale?.winnerId === currentPlayer.id;
+    })();
+
     return (
         <div className="container">
+            {/* Client-side features: Wake Lock & Confetti */}
+            <TournamentClientFeatures
+                tournamentId={tournament.id}
+                tournamentStatus={tournament.status}
+                isWinner={isCurrentUserWinner}
+            />
+
             <Link href="/tournaments" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)', display: 'inline-block' }}>
                 &larr; Zurück zur Übersicht
             </Link>

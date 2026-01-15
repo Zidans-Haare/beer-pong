@@ -73,10 +73,46 @@ export async function updatePlayer(id: string, formData: FormData) {
     const motto = formData.get('motto') as string;
 
     const imageFile = formData.get('image');
+    const imageData = formData.get('imageData') as string | null;
     let imagePath = player.image;
 
-    // Handle File Upload
-    if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+    // Handle base64 image data from camera
+    if (imageData) {
+        if (imageData === '') {
+            // Image was removed
+            imagePath = null;
+        } else if (imageData.startsWith('data:image/')) {
+            try {
+                const fs = require('fs');
+                const path = require('path');
+
+                // Extract base64 data
+                const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(base64Data, 'base64');
+
+                // Validate size (max 2MB for base64)
+                if (buffer.length > 2 * 1024 * 1024) {
+                    return { success: false, error: 'Bild zu groß (max 2MB)' };
+                }
+
+                const filename = `${player.id}-${Date.now()}.jpg`;
+
+                // Ensure user-uploads exists
+                const uploadDir = path.join(process.cwd(), 'user-uploads');
+                if (!fs.existsSync(uploadDir)) {
+                    fs.mkdirSync(uploadDir, { recursive: true });
+                }
+
+                fs.writeFileSync(path.join(uploadDir, filename), buffer);
+                imagePath = `/uploads/${filename}`;
+            } catch (e) {
+                console.error('Camera image save failed', e);
+                return { success: false, error: 'Bild konnte nicht gespeichert werden' };
+            }
+        }
+    }
+    // Handle File Upload (fallback for traditional file input)
+    else if (imageFile && imageFile instanceof File && imageFile.size > 0) {
         // Basic validation
         if (!imageFile.type.startsWith('image/')) {
             return { success: false, error: 'Nur Bilder erlaubt' };

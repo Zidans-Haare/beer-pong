@@ -17,8 +17,8 @@ const defaultOptions: QRCodeOptions = {
   width: 256,
   margin: 2,
   color: {
-    dark: '#ffffff',
-    light: '#00000000', // Transparent background
+    dark: '#000000', // Black QR code
+    light: '#ffffff', // White background
   },
 };
 

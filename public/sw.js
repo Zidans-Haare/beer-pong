@@ -209,6 +209,52 @@ async function staleWhileRevalidate(request, cacheName, cacheLimit) {
 }
 
 /**
+ * Notification Categories with predefined actions
+ */
+const NOTIFICATION_CATEGORIES = {
+  match_reminder: {
+    actions: [
+      { action: 'view', title: '👀 Anzeigen' },
+      { action: 'snooze', title: '⏰ Später' },
+    ],
+    vibrate: [100, 50, 100, 50, 100],
+  },
+  match_result: {
+    actions: [
+      { action: 'view', title: '🏆 Details' },
+      { action: 'share', title: '📤 Teilen' },
+    ],
+    vibrate: [200, 100, 200],
+  },
+  tournament_start: {
+    actions: [
+      { action: 'view', title: '🎮 Los geht\'s!' },
+    ],
+    vibrate: [100, 50, 100, 50, 100, 50, 100],
+  },
+  player_joined: {
+    actions: [
+      { action: 'view', title: '👋 Lobby' },
+    ],
+    vibrate: [50, 50],
+  },
+  tournament_finished: {
+    actions: [
+      { action: 'view', title: '🏆 Ergebnisse' },
+      { action: 'share', title: '📤 Teilen' },
+    ],
+    vibrate: [200, 100, 200, 100, 200],
+  },
+  default: {
+    actions: [
+      { action: 'view', title: 'Anzeigen' },
+      { action: 'dismiss', title: 'Schließen' },
+    ],
+    vibrate: [100, 50, 100],
+  },
+};
+
+/**
  * Push Notification Handler
  */
 self.addEventListener('push', (event) => {
@@ -216,18 +262,28 @@ self.addEventListener('push', (event) => {
 
   try {
     const data = event.data.json();
+    const category = NOTIFICATION_CATEGORIES[data.category] || NOTIFICATION_CATEGORIES.default;
+
     const options = {
       body: data.message || data.body,
-      icon: '/icon.png',
+      icon: data.icon || '/icon.png',
       badge: '/icon.png',
-      vibrate: [100, 50, 100],
-      tag: data.tag || 'bierpong-notification',
-      renotify: true,
+      image: data.image, // Large image for rich notifications
+      vibrate: category.vibrate,
+      tag: data.tag || `bierpong-${data.category || 'notification'}`,
+      renotify: data.renotify !== false,
+      requireInteraction: data.requireInteraction || false,
+      silent: data.silent || false,
+      timestamp: data.timestamp || Date.now(),
       data: {
         dateOfArrival: Date.now(),
         url: data.link || data.url || '/',
+        category: data.category,
+        tournamentId: data.tournamentId,
+        matchId: data.matchId,
+        payload: data.payload,
       },
-      actions: data.actions || [],
+      actions: data.actions || category.actions,
     };
 
     event.waitUntil(
@@ -242,25 +298,81 @@ self.addEventListener('push', (event) => {
  * Notification Click Handler
  */
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
+  const action = event.action;
+  const data = event.notification.data || {};
+  const url = data.url || '/';
 
-  const url = event.notification.data?.url || '/';
+  // Handle different actions
+  switch (action) {
+    case 'dismiss':
+      event.notification.close();
+      return;
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((windowClients) => {
-        // Focus existing window if available
-        for (const client of windowClients) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.navigate(url);
-            return client.focus();
-          }
-        }
-        // Open new window
-        return clients.openWindow(url);
-      })
-  );
+    case 'snooze':
+      event.notification.close();
+      // Re-show notification after 5 minutes
+      event.waitUntil(
+        new Promise((resolve) => {
+          setTimeout(() => {
+            self.registration.showNotification(event.notification.title, {
+              body: event.notification.body,
+              icon: event.notification.icon,
+              badge: event.notification.badge,
+              data: data,
+              tag: `${event.notification.tag}-snoozed`,
+              actions: event.notification.actions,
+            });
+            resolve();
+          }, 5 * 60 * 1000)
+        })
+      );
+      return;
+
+    case 'share':
+      event.notification.close();
+      // Navigate to tournament with share param
+      const shareUrl = data.tournamentId
+        ? `/tournaments/${data.tournamentId}?share=true`
+        : url;
+      event.waitUntil(navigateToUrl(shareUrl));
+      return;
+
+    case 'view':
+    default:
+      event.notification.close();
+      event.waitUntil(navigateToUrl(url));
+      return;
+  }
 });
+
+/**
+ * Notification Close Handler (swipe away)
+ */
+self.addEventListener('notificationclose', (event) => {
+  // Track dismissed notifications if needed
+  console.log('[SW] Notification dismissed:', event.notification.tag);
+});
+
+/**
+ * Navigate to URL - focus existing window or open new
+ */
+async function navigateToUrl(url) {
+  const windowClients = await clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true,
+  });
+
+  // Focus existing window if available
+  for (const client of windowClients) {
+    if (client.url.includes(self.location.origin) && 'focus' in client) {
+      await client.navigate(url);
+      return client.focus();
+    }
+  }
+
+  // Open new window
+  return clients.openWindow(url);
+}
 
 /**
  * Message Handler - For skip waiting and cache invalidation

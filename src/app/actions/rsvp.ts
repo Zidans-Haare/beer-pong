@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { emitPlayerJoined, emitPlayerLeft } from '@/lib/realtime';
 
 import { auth } from '@/auth';
 
@@ -28,6 +29,16 @@ export async function submitRSVP(formData: FormData) {
             return { success: false, error: 'Bitte erstelle erst ein Spielerprofil.' };
         }
 
+        // Check if this is a new RSVP or status change
+        const existingRsvp = await prisma.rSVP.findUnique({
+            where: {
+                tournamentId_playerId: {
+                    tournamentId,
+                    playerId: player.id,
+                },
+            },
+        });
+
         await prisma.rSVP.upsert({
             where: {
                 tournamentId_playerId: {
@@ -42,6 +53,14 @@ export async function submitRSVP(formData: FormData) {
                 status,
             },
         });
+
+        // Emit realtime events based on status change
+        if (status === 'YES' && existingRsvp?.status !== 'YES') {
+            emitPlayerJoined(tournamentId, { id: player.id, name: player.name });
+        } else if (status !== 'YES' && existingRsvp?.status === 'YES') {
+            emitPlayerLeft(tournamentId, { id: player.id, name: player.name });
+        }
+
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {

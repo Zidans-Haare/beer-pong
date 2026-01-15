@@ -25,6 +25,7 @@ import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
+import LobbyPresence from '@/components/LobbyPresence';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -101,13 +102,16 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '8px' }}>
                     <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
                         {isPlanner && (
-                            <TournamentQRCode
-                                tournamentId={tournament.id}
-                                tournamentName={tournament.name}
-                                shortCode={tournament.shortCode || undefined}
-                            />
+                            <>
+                                <TournamentQRCode
+                                    tournamentId={tournament.id}
+                                    tournamentName={tournament.name}
+                                    shortCode={tournament.shortCode || undefined}
+                                />
+                                <LobbyPresence tournamentId={tournament.id} />
+                            </>
                         )}
                         <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)' }}>
                             Aktualisiert: {new Date().toLocaleTimeString()}

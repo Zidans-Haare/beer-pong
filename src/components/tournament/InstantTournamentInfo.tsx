@@ -16,11 +16,8 @@ export default function InstantTournamentInfo({ isJoined }: Props) {
         }}>
             {isJoined ? (
                 <>
-                    <p style={{ marginBottom: 'var(--spacing-2)', fontWeight: 600, color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <p style={{ marginBottom: 'var(--spacing-2)', fontWeight: 600, color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0 }}>
                         <Check size={16} /> Du bist dabei!
-                    </p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-                        Beim QR-Code scannen wirst du automatisch hinzugefügt.
                     </p>
                 </>
             ) : (

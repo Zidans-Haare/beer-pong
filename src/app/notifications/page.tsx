@@ -136,7 +136,7 @@ export default function NotificationsPage() {
                     <button
                         onClick={() => setShowSettings(true)}
                         className="glass-panel"
-                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}
+                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
                     >
                         <Settings size={18} />
                         <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Einstellungen</span>
@@ -197,7 +197,7 @@ export default function NotificationsPage() {
                                 <Radio size={24} className="animate-pulse" />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ fontWeight: 700, color: 'white', marginBottom: '4px' }}>Live Updates aktivieren?</h3>
+                                <h3 style={{ fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px' }}>Live Updates aktivieren?</h3>
                                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Push-Nachrichten für Ticker & Turniere empfangen.</p>
                             </div>
                             <button
@@ -274,7 +274,7 @@ export default function NotificationsPage() {
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                            <h3 style={{ fontWeight: 700, color: 'white', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <h3 style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {notification.title}
                                             </h3>
                                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontFamily: 'monospace' }}>

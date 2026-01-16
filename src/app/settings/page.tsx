@@ -33,7 +33,7 @@ export default async function SettingsPage() {
         &larr; Zurück
       </Link>
 
-      <h1 className="title-display" style={{ marginBottom: 'var(--spacing-8)' }}>
+      <h1 className="title-display" style={{ marginBottom: 'var(--spacing-8)', color: '#1d1d1f' }}>
         Einstellungen
       </h1>
 

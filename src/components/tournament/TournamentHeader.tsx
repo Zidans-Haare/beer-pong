@@ -188,18 +188,21 @@ export default function TournamentHeader({
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignItems: 'center',
-                    gap: 'var(--spacing-3)'
+                    gap: '8px'
                 }}>
                     <div style={{
-                        padding: 'var(--spacing-3) var(--spacing-4)',
+                        padding: '8px 12px',
                         background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
                         border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-md)',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 'var(--spacing-3)'
+                        gap: '8px',
+                        flex: '1 1 auto',
+                        justifyContent: 'center',
+                        minWidth: 'fit-content'
                     }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Beitritts-Code:</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>Code:</span>
                         <span style={{
                             fontFamily: 'monospace',
                             fontSize: '1.2rem',

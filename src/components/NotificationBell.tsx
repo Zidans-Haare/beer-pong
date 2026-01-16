@@ -122,22 +122,22 @@ export default function NotificationBell() {
                     <div className="absolute top-full right-[-60px] sm:right-0 mt-3 w-[85vw] max-w-[360px] sm:w-96 glass-panel z-50 overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
                         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
 
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
-                            <span className="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 backdrop-blur-md">
+                            <span className="font-bold text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
                                 <Bell size={16} /> Benachrichtigungen
                             </span>
                             <div className="flex gap-2 items-center">
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleMarkAllRead}
-                                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-medium px-2 py-1 rounded hover:bg-white/5"
+                                        className="text-xs text-blue-600 hover:text-blue-700 transition-colors font-medium px-2 py-1 rounded hover:bg-black/5"
                                     >
                                         Alle gelesen
                                     </button>
                                 )}
                                 <button
                                     onClick={() => { setIsOpen(false); setShowSettings(true); }}
-                                    className="text-gray-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10"
+                                    className="text-gray-400 hover:text-gray-900 transition-colors p-1.5 rounded-full hover:bg-black/5"
                                     title="Einstellungen"
                                 >
                                     <Settings size={16} />
@@ -165,7 +165,7 @@ export default function NotificationBell() {
                                             onClick={() => handleRead(notification.id, notification.link)}
                                             className={`
                                                 p-4 cursor-pointer transition-all duration-200 relative group
-                                                ${!notification.isRead ? 'bg-gradient-to-r from-blue-500/10 to-transparent border-l-2 border-blue-500' : 'hover:bg-white/5 border-l-2 border-transparent'}
+                                                ${!notification.isRead ? 'bg-blue-50/50 border-l-2 border-blue-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
                                             `}
                                         >
                                             <div className="flex items-start gap-3">
@@ -173,13 +173,13 @@ export default function NotificationBell() {
                                                     <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className={`font-medium mb-1 truncate ${!notification.isRead ? 'text-white' : 'text-gray-300'}`}>
+                                                    <div className={`font-medium mb-1 truncate ${!notification.isRead ? 'text-gray-900' : 'text-gray-500'}`}>
                                                         {notification.title}
                                                     </div>
-                                                    <div className="text-xs text-gray-400 leading-relaxed line-clamp-2 group-hover:text-gray-300 transition-colors">
+                                                    <div className="text-xs text-gray-500 leading-relaxed line-clamp-2 group-hover:text-gray-700 transition-colors">
                                                         {notification.message}
                                                     </div>
-                                                    <div className="text-[10px] text-gray-600 mt-2 font-mono uppercase tracking-wider">
+                                                    <div className="text-[10px] text-gray-400 mt-2 font-mono uppercase tracking-wider">
                                                         {new Date(notification.createdAt).toLocaleDateString()}
                                                     </div>
                                                 </div>

@@ -142,7 +142,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                         }}>
                             <Settings size={28} style={{ color: 'var(--color-primary)' }} />
                         </div>
-                        <h2 className="title-display" style={{ fontSize: '1.5rem', marginBottom: '4px' }}>
+                        <h2 className="title-display" style={{ fontSize: '1.5rem', marginBottom: '4px', color: '#1d1d1f' }}>
                             Einstellungen
                         </h2>
                         <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.8 }}>Verwalte deine Benachrichtigungen</p>

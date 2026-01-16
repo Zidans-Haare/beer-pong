@@ -19,12 +19,12 @@ export default async function StatsPage() {
                     gap: 'var(--spacing-2)',
                     padding: '4px 12px',
                     background: 'rgba(255, 215, 0, 0.1)',
-                    border: '1px solid rgba(255, 215, 0, 0.3)',
+                    border: '1px solid rgba(180, 83, 9, 0.3)',
                     borderRadius: 'var(--radius-md)',
                     fontSize: '0.8rem',
-                    color: '#FFD700'
+                    color: '#b45309'
                 }}>
-                    <Trophy size={14} />
+                    <Trophy size={14} color="#b45309" />
                     Nur Liga-Turniere (keine Spaß-Turniere)
                 </div>
             </header>
@@ -52,12 +52,12 @@ export default async function StatsPage() {
                         <tbody>
                             {stats.map((s, idx) => {
                                 const isTop3 = idx < 3;
-                                const rankColor = idx === 0 ? '#ffd700' : (idx === 1 ? '#c0c0c0' : (idx === 2 ? '#cd7f32' : 'var(--color-text-dim)'));
+                                const rankColor = idx === 0 ? '#b45309' : (idx === 1 ? '#c0c0c0' : (idx === 2 ? '#cd7f32' : 'var(--color-text-dim)'));
 
                                 return (
                                     <tr key={s.id} style={{
                                         borderBottom: '1px solid var(--color-border)',
-                                        background: idx === 0 ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%)' : 'transparent'
+                                        background: idx === 0 ? 'linear-gradient(90deg, rgba(180, 83, 9, 0.1) 0%, transparent 100%)' : 'transparent'
                                     }}>
                                         <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: rankColor, fontSize: '1.2rem', fontFamily: '"Outfit", sans-serif' }}>
                                             {idx === 0 && <Crown size={16} style={{ marginRight: '4px', verticalAlign: 'middle', marginBottom: '2px' }} />}
@@ -69,7 +69,7 @@ export default async function StatsPage() {
                                                 {isTop3 && <Medal size={14} color={rankColor} />}
                                             </div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-4)', color: 'white', fontWeight: 600 }}>{s.matchesWon}</td>
+                                        <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text)', fontWeight: 600 }}>{s.matchesWon}</td>
                                         <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)' }}>{s.matchesPlayed}</td>
                                         <td style={{ padding: 'var(--spacing-4)', fontWeight: 600, color: s.winRate >= 0.5 ? 'var(--color-success)' : 'var(--color-text)' }}>
                                             {Math.round(s.winRate * 100)}%
@@ -82,7 +82,7 @@ export default async function StatsPage() {
                                                 {s.tournamentsWon > 0 ? (
                                                     <>
                                                         <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.tournamentsWon}</span>
-                                                        <span style={{ display: 'inline-flex', gap: '2px' }}>{Array.from({ length: Math.min(s.tournamentsWon, 3) }).map((_, i) => <Trophy key={i} size={14} color="#FFD700" />)}</span>
+                                                        <span style={{ display: 'inline-flex', gap: '2px' }}>{Array.from({ length: Math.min(s.tournamentsWon, 3) }).map((_, i) => <Trophy key={i} size={14} color="#b45309" />)}</span>
                                                         {s.tournamentsWon > 3 && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>+{s.tournamentsWon - 3}</span>}
                                                     </>
                                                 ) : '-'}
@@ -98,8 +98,8 @@ export default async function StatsPage() {
 
             {/* Special Stats: Tournament Efficiency */}
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(255,215,0,0.05) 0%, transparent 100%)' }}>
-                    <Zap size={24} color="#FFD700" />
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
+                    <Zap size={24} color="#b45309" />
                     <div>
                         <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Turnier-Effizienz</h2>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>

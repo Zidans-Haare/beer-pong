@@ -182,7 +182,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
             {/* ============ PLANNED: Lobby ============ */}
             {isPlanned && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
 
                     {/* Team Assignment */}
                     {isTeamMode && (

@@ -7,11 +7,15 @@ datasource db {
   provider = "sqlite"
 }
 
+// Tournament Mode Enum (SQLite doesn't support enums, use String)
+// SOLO = 1v1 matches
+// TEAM = 2v2 matches
+
 model Player {
   id        String   @id @default(uuid())
   name      String
   // Optional contact email for notifications (distinct from User email)
-  email     String?  
+  email     String?
   nickname  String?
   image     String? // URL to profile image
   bio       String?
@@ -19,7 +23,7 @@ model Player {
   userId    String?  @unique // Link to Auth User
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   user             User?   @relation(fields: [userId], references: [id])
   matchesAsPlayer1 Match[] @relation("Player1Matches")
@@ -27,6 +31,10 @@ model Player {
   tournaments      TournamentParticipant[]
   standings        TournamentStanding[]
   rsvps            RSVP[]
+
+  // Team relations (for 2v2 mode)
+  teamsAsPlayer1   Team[]  @relation("TeamPlayer1")
+  teamsAsPlayer2   Team[]  @relation("TeamPlayer2")
 }
 
 model Tournament {
@@ -44,6 +52,10 @@ model Tournament {
   matchDurationMin Int @default(15)
   tableCount       Int @default(1)
 
+  // NEW: Tournament Mode & Ranking
+  mode      String  @default("SOLO")  // SOLO = 1v1, TEAM = 2v2
+  isRanked  Boolean @default(true)    // false = Spaß-Turnier (no stats impact)
+
   // Relations
   host         User?   @relation(fields: [hostId], references: [id])
   matches      Match[]
@@ -51,9 +63,50 @@ model Tournament {
   standings    TournamentStanding[]
   rsvps        RSVP[]
   tickerEvents TickerEvent[]
+  teams        Team[]
+  guests       GuestPlayer[]
 }
 
-// ... existing TournamentParticipant, Match, RSVP models ...
+// Team for 2v2 matches
+model Team {
+  id           String      @id @default(uuid())
+  name         String?     // Optional custom name like "Die Biermeister"
+  tournamentId String
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  // Team members (can mix registered players and guests)
+  player1Id    String?
+  player1      Player?     @relation("TeamPlayer1", fields: [player1Id], references: [id])
+  guest1Id     String?
+  guest1       GuestPlayer? @relation("TeamGuest1", fields: [guest1Id], references: [id])
+
+  player2Id    String?
+  player2      Player?     @relation("TeamPlayer2", fields: [player2Id], references: [id])
+  guest2Id     String?
+  guest2       GuestPlayer? @relation("TeamGuest2", fields: [guest2Id], references: [id])
+
+  createdAt    DateTime    @default(now())
+
+  // Match relations
+  matchesAsTeam1  Match[]   @relation("MatchTeam1")
+  matchesAsTeam2  Match[]   @relation("MatchTeam2")
+  matchesWon      Match[]   @relation("MatchWinnerTeam")
+}
+
+// Guest players for Spaß-Turniere (24h lifetime)
+model GuestPlayer {
+  id           String      @id @default(uuid())
+  name         String
+  sessionToken String      @unique  // For browser re-identification
+  tournamentId String
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime    // createdAt + 24h
+  createdAt    DateTime    @default(now())
+
+  // Team assignments
+  teamsAsGuest1 Team[]     @relation("TeamGuest1")
+  teamsAsGuest2 Team[]     @relation("TeamGuest2")
+}
 
 // Auth Models
 model User {
@@ -162,7 +215,7 @@ model TournamentStanding {
 model Match {
   id           String   @id @default(uuid())
   tournamentId String
-  player1Id    String?  // Can be null if TBD
+  player1Id    String?  // Can be null if TBD (for SOLO mode)
   player2Id    String?
   score1       Int      @default(0)
   score2       Int      @default(0)
@@ -178,6 +231,14 @@ model Match {
   startedAt       DateTime? // When match became playable (previous match finished)
   completedAt     DateTime? // When result was entered
   durationSeconds Int?      // Computed duration for fast queries
+
+  // Team support (for TEAM mode - 2v2)
+  team1Id       String?
+  team1         Team?     @relation("MatchTeam1", fields: [team1Id], references: [id])
+  team2Id       String?
+  team2         Team?     @relation("MatchTeam2", fields: [team2Id], references: [id])
+  winnerTeamId  String?
+  winnerTeam    Team?     @relation("MatchWinnerTeam", fields: [winnerTeamId], references: [id])
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   player1    Player?    @relation("Player1Matches", fields: [player1Id], references: [id])

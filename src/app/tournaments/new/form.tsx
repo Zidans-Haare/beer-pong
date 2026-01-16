@@ -4,12 +4,15 @@ import { createTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
 import { useState, useRef } from 'react';
+import { Users, User } from 'lucide-react';
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
     const [createdTournament, setCreatedTournament] = useState<any>(null);
     const [participantEmails, setParticipantEmails] = useState<string[]>([]);
     const [startImmediately, setStartImmediately] = useState(true);
+    const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
+    const [isRanked, setIsRanked] = useState(true);
     const formRef = useRef<HTMLFormElement>(null);
 
     async function clientAction(formData: FormData) {
@@ -155,8 +158,104 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     )}
                 </div>
 
+                {/* Spielmodus: Solo vs Team */}
+                <div className="glass-panel" style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)' }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: 'bold', color: 'var(--color-primary)' }}>Spielmodus</label>
+                    <input type="hidden" name="mode" value={mode} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
+                        <button
+                            type="button"
+                            onClick={() => setMode('SOLO')}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 'var(--spacing-2)',
+                                padding: 'var(--spacing-4)',
+                                background: mode === 'SOLO' ? 'rgba(255, 107, 107, 0.2)' : 'var(--color-surface)',
+                                border: mode === 'SOLO' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <User size={32} style={{ color: mode === 'SOLO' ? 'var(--color-primary)' : 'var(--color-text-dim)' }} />
+                            <span style={{ fontWeight: 'bold', color: mode === 'SOLO' ? 'var(--color-primary)' : 'var(--color-text)' }}>1 vs 1</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Solo-Matches</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMode('TEAM')}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 'var(--spacing-2)',
+                                padding: 'var(--spacing-4)',
+                                background: mode === 'TEAM' ? 'rgba(78, 205, 196, 0.2)' : 'var(--color-surface)',
+                                border: mode === 'TEAM' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <Users size={32} style={{ color: mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-text-dim)' }} />
+                            <span style={{ fontWeight: 'bold', color: mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-text)' }}>2 vs 2</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Team-Matches</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Wertung: Liga vs Spaß */}
+                <div className="glass-panel" style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)' }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: 'bold', color: 'var(--color-primary)' }}>Wertung</label>
+                    <input type="hidden" name="isRanked" value={isRanked ? 'true' : 'false'} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
+                        <button
+                            type="button"
+                            onClick={() => setIsRanked(true)}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 'var(--spacing-2)',
+                                padding: 'var(--spacing-4)',
+                                background: isRanked ? 'rgba(255, 215, 0, 0.15)' : 'var(--color-surface)',
+                                border: isRanked ? '2px solid #FFD700' : '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <span style={{ fontSize: '1.5rem' }}>🏆</span>
+                            <span style={{ fontWeight: 'bold', color: isRanked ? '#FFD700' : 'var(--color-text)' }}>Liga-Turnier</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center' }}>Zählt in Statistik</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsRanked(false)}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 'var(--spacing-2)',
+                                padding: 'var(--spacing-4)',
+                                background: !isRanked ? 'rgba(155, 89, 182, 0.2)' : 'var(--color-surface)',
+                                border: !isRanked ? '2px solid #9b59b6' : '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <span style={{ fontSize: '1.5rem' }}>🎉</span>
+                            <span style={{ fontWeight: 'bold', color: !isRanked ? '#9b59b6' : 'var(--color-text)' }}>Spaß-Turnier</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center' }}>Gäste erlaubt</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Modus</label>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Turnier-Format</label>
                     <select name="type" id="type" className="input-field" style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}>
                         <option value="SINGLE_ELIMINATION">K.O. System</option>
                         <option value="ROUND_ROBIN">Jeder gegen Jeden (Liga)</option>

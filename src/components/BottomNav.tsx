@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users, Bell, Command } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
@@ -37,6 +37,9 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
             </Link>
             <Link href="/tournaments" className={`bottom-nav-item ${isActive('/tournaments') ? 'active' : ''}`} onClick={handleNavClick}>
                 <span className="nav-icon-glow"><Trophy size={24} /></span>
+            </Link>
+            <Link href="/join" className={`bottom-nav-item ${isActive('/join') ? 'active' : ''}`} onClick={handleNavClick}>
+                <span className="nav-icon-glow"><QrCode size={24} /></span>
             </Link>
             <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`} onClick={handleNavClick}>
                 <div className="relative">

@@ -32,6 +32,8 @@ export async function createTournament(formData: FormData) {
     const type = formData.get('type') as string;
     const hasReturnLeg = formData.get('hasReturnLeg') === 'on';
     const startImmediately = formData.get('startImmediately') === 'on';
+    const mode = (formData.get('mode') as string) || 'SOLO';  // SOLO or TEAM
+    const isRanked = formData.get('isRanked') !== 'false';    // Default true
 
     // We no longer use manual participant selection in the form
     // const participantIds = formData.getAll('participants') as string[];
@@ -83,7 +85,9 @@ export async function createTournament(formData: FormData) {
                     shortCode,
                     hasReturnLeg,
                     matchDurationMin,
-                    tableCount
+                    tableCount,
+                    mode,      // SOLO or TEAM
+                    isRanked   // false for Spaß-Turniere
                 },
             });
 

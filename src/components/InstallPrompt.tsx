@@ -62,68 +62,88 @@ export default function InstallPrompt() {
     }
 
     return (
-        <div style={{
-            background: 'var(--surface-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 'var(--spacing-4)',
+        <div className="glass-panel" style={{
+            padding: 'var(--spacing-6)',
             marginBottom: 'var(--spacing-6)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--spacing-3)',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            alignItems: 'center', // Center horizontally
+            textAlign: 'center',
+            gap: 'var(--spacing-4)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
+            border: '1px solid var(--color-border)',
+            position: 'relative',
+            overflow: 'hidden'
         }}>
+            {/* Decoration */}
             <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 'var(--spacing-3)'
-            }}>
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '4px',
+                height: '100%',
+                background: 'var(--gradient-primary)'
+            }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                 <span style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)'
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: 'var(--color-text)'
                 }}>
                     Du nutzt die App noch nicht?
                 </span>
-                <button
-                    onClick={handleInstallClick}
-                    className="btn-primary"
-                    style={{
-                        padding: 'var(--spacing-2) var(--spacing-4)',
-                        fontSize: '0.9rem',
-                        whiteSpace: 'nowrap'
-                    }}
-                >
-                    Jetzt installieren
-                </button>
+                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                    Installiere sie jetzt für das beste Erlebnis
+                </span>
             </div>
+
+            <button
+                onClick={handleInstallClick}
+                className="btn btn-primary"
+                style={{
+                    padding: '0.8rem 2.5rem',
+                    borderRadius: '9999px', // Fully rounded (pill)
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 15px rgba(var(--primary-rgb), 0.3)',
+                    width: 'fit-content'
+                }}
+            >
+                Jetzt installieren
+            </button>
 
             {showIOSInstructions && (
                 <div style={{
                     marginTop: 'var(--spacing-2)',
-                    paddingTop: 'var(--spacing-3)',
+                    paddingTop: 'var(--spacing-4)',
                     borderTop: '1px solid var(--border-color)',
                     fontSize: '0.9rem',
-                    color: 'var(--text-secondary)',
+                    width: '100%',
+                    textAlign: 'left',
                     animation: 'fadeIn 0.3s ease-in-out'
                 }}>
-                    <p style={{ marginBottom: 'var(--spacing-2)' }}>
-                        So installierst du die App auf iOS:
+                    <p style={{ marginBottom: 'var(--spacing-3)', fontWeight: 600, textAlign: 'center' }}>
+                        Installation auf iOS:
                     </p>
-                    <ol style={{
-                        paddingLeft: 'var(--spacing-4)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 'var(--spacing-1)'
+                    <div style={{
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: '16px',
+                        borderRadius: '12px'
                     }}>
-                        <li>
-                            Tippe unten auf den <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Teilen <Share size={14} /></strong> Button.
-                        </li>
-                        <li>Wähle <strong>"Zum Home-Bildschirm"</strong>.</li>
-                        <li>Tippe oben rechts auf <strong>"Hinzufügen"</strong>.</li>
-                    </ol>
+                        <ol style={{
+                            paddingLeft: 'var(--spacing-4)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                            margin: 0
+                        }}>
+                            <li>
+                                Tippe unten auf <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)' }}>Teilen <Share size={16} /></strong>
+                            </li>
+                            <li>Wähle <strong>"Zum Home-Bildschirm"</strong></li>
+                            <li>Tippe oben rechts auf <strong>"Hinzufügen"</strong></li>
+                        </ol>
+                    </div>
                 </div>
             )}
         </div>

@@ -278,14 +278,14 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
                     {/* Tables */}
                     {tournament.type === 'ROUND_ROBIN' && (
-                        <section>
+                        <section style={{ marginTop: 'var(--spacing-8)' }}>
                             <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Tabelle</h2>
                             <TournamentTable standings={await getTournamentStandings(tournament.id)} />
                         </section>
                     )}
 
                     {tournament.type === 'GROUPS' && (
-                        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)' }}>
+                        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
                             <div>
                                 <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe A</h3>
                                 <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
@@ -298,7 +298,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     )}
 
                     {/* Bracket */}
-                    <section>
+                    <section style={{ marginTop: 'var(--spacing-8)' }}>
                         <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Bracket</h2>
                         {tournament.type !== 'SINGLE_ELIMINATION' && (
                             <GroupMatches matches={tournament.matches as any} />

@@ -1,17 +1,13 @@
-import { getTournament } from '@/app/actions/rsvp';
 import { getPlayers } from '@/app/actions/players';
 import RSVPForm from './rsvp-form';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
 
-import { startTournament } from '@/app/actions/tournaments';
 import StartTournamentButton from './start-button';
 import StartPlayoffsButton from './playoff-button';
 import Bracket from '@/components/Bracket';
 import TournamentTable from '@/components/TournamentTable';
-import PlayerMatchesList from '@/components/PlayerMatchesList';
 import { getTournamentStandings } from '@/lib/stats';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { deleteTournament } from '@/app/actions/tournaments';
@@ -19,14 +15,15 @@ import FinishTournamentButton from './finish-button';
 import { LiveTicker } from '@/components/LiveTicker';
 import { calculateSchedule, getEstimatedWaitTime } from '@/lib/scheduler';
 import { getPublicSystemSettings } from '@/app/actions/admin';
-import { MatchStatusBadge } from '@/components/MatchStatusBadge';
-import { isAfter } from 'date-fns';
 import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import LobbyPresence from '@/components/LobbyPresence';
-import { getTournamentForecast, formatDuration } from '@/lib/duration';
+import { getTournamentForecast } from '@/lib/duration';
+import TournamentHeader from '@/components/tournament/TournamentHeader';
+import TeamAssignment from '@/components/TeamAssignment';
+import { Users, User } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -43,7 +40,18 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
         where: { id },
         include: {
             rsvps: { include: { player: true } },
-            matches: { include: { player1: true, player2: true }, orderBy: [{ round: 'asc' }, { position: 'asc' }] }
+            matches: { include: { player1: true, player2: true }, orderBy: [{ round: 'asc' }, { position: 'asc' }] },
+            teams: {
+                include: {
+                    player1: { select: { id: true, name: true, image: true } },
+                    player2: { select: { id: true, name: true, image: true } },
+                    guest1: { select: { id: true, name: true } },
+                    guest2: { select: { id: true, name: true } }
+                }
+            },
+            guests: {
+                where: { expiresAt: { gt: new Date() } }
+            }
         }
     });
 
@@ -53,8 +61,8 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     const systemSettings = await getPublicSystemSettings();
 
     // Determine effective settings
-    const duration = (tournament as any).matchDurationMin || systemSettings.matchDurationMin || 15;
-    const tableCount = (tournament as any).tableCount || systemSettings.tableCount || 1;
+    const duration = tournament.matchDurationMin || systemSettings.matchDurationMin || 15;
+    const tableCount = tournament.tableCount || systemSettings.tableCount || 1;
 
     const schedule = calculateSchedule(
         tournament.matches,
@@ -70,25 +78,35 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     const forecast = tournament.status === 'ACTIVE' ? await getTournamentForecast(tournament.id) : null;
 
     const isHost = session?.user?.id === tournament.hostId;
-    const yesCount = tournament.rsvps.filter((r: { status: string }) => r.status === 'YES').length;
-    const isPlanner = tournament.status === 'PLANNED';
-    const isActive = tournament.status === 'ACTIVE' || tournament.status === 'COMPLETED';
+    const yesRsvps = tournament.rsvps.filter((r: { status: string }) => r.status === 'YES');
+    const yesCount = yesRsvps.length;
+    const guestCount = tournament.guests.length;
+    const totalParticipants = tournament.mode === 'TEAM' ? tournament.teams.length : (yesCount + guestCount);
 
-    // Need to fetch matches? getTournament included them?
-    // I need to update getTournament in `src/app/actions/rsvp.ts` to include matches
+    const isPlanned = tournament.status === 'PLANNED';
+    const isActive = tournament.status === 'ACTIVE';
+    const isCompleted = tournament.status === 'COMPLETED';
+    const isTeamMode = tournament.mode === 'TEAM';
 
-    // ... imports
+    // Check if it's a "Now" tournament (instant lobby)
+    const isInstantTournament = new Date(tournament.date).getTime() - new Date(tournament.createdAt).getTime() < 1000 * 60 * 60;
 
     // Check if current user is the tournament winner
     const isCurrentUserWinner = (() => {
-        if (tournament.status !== 'COMPLETED' || !currentPlayer) return false;
-        const finalMatch = tournament.matches.find((m: any) => m.stage === 'BRACKET' && m.winnerId);
+        if (!isCompleted || !currentPlayer) return false;
         const bracketMatches = tournament.matches.filter((m: any) => m.stage === 'BRACKET');
         if (bracketMatches.length === 0) return false;
         const maxRound = Math.max(...bracketMatches.map((m: any) => m.round));
         const finale = bracketMatches.find((m: any) => m.round === maxRound && m.position === 0);
         return finale?.winnerId === currentPlayer.id;
     })();
+
+    // Available players for team assignment (those who RSVP'd YES)
+    const availablePlayers = yesRsvps.map((r: any) => ({
+        id: r.player.id,
+        name: r.player.name,
+        image: r.player.image
+    }));
 
     return (
         <div className="container">
@@ -99,301 +117,264 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 isWinner={isCurrentUserWinner}
             />
 
-            <Link href="/tournaments" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)', display: 'inline-block' }}>
-                &larr; Zurück zur Übersicht
+            <Link href="/tournaments" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-4)', display: 'inline-block' }}>
+                &larr; Zurück
             </Link>
 
-            <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '8px' }}>
-                    <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--spacing-2)' }}>{tournament.name}</h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
-                        {isPlanner && (
-                            <>
-                                <TournamentQRCode
-                                    tournamentId={tournament.id}
-                                    tournamentName={tournament.name}
-                                    shortCode={tournament.shortCode || undefined}
-                                />
-                                <LobbyPresence tournamentId={tournament.id} />
-                            </>
-                        )}
-                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)' }}>
-                            Aktualisiert: {new Date().toLocaleTimeString()}
-                        </div>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-4)' }}>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-6)', color: 'var(--color-text)', flexWrap: 'wrap' }}>
-                        <span>📅 {format(new Date(tournament.date), 'PPP p', { locale: de })}</span>
-                        <span>📍 {tournament.location}</span>
-                        <span>👥 {yesCount} Teilnehmer</span>
-                        <span>🎮 {tournament.type}</span>
-                        {tournament.status === 'COMPLETED' && <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✅ Beendet</span>}
-                    </div>
-                </div>
-            </header>
+            {/* New Header with Mode Badges */}
+            <TournamentHeader
+                tournament={{
+                    id: tournament.id,
+                    name: tournament.name,
+                    date: tournament.date,
+                    location: tournament.location,
+                    status: tournament.status,
+                    mode: tournament.mode,
+                    isRanked: tournament.isRanked,
+                    type: tournament.type,
+                    shortCode: tournament.shortCode
+                }}
+                participantCount={totalParticipants}
+                isHost={isHost}
+                showQR={isPlanned}
+            />
 
-            {/* Info Banner: Odd Player Count Warning */}
-            {isPlanner && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (
+            {/* Warnings */}
+            {isPlanned && !isTeamMode && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (
                 <div className="glass-panel" style={{
-                    padding: 'var(--spacing-4)',
-                    marginBottom: 'var(--spacing-6)',
+                    padding: 'var(--spacing-3)',
+                    marginBottom: 'var(--spacing-4)',
                     borderLeft: '4px solid orange',
-                    background: 'rgba(255, 165, 0, 0.1)'
+                    background: 'rgba(255, 165, 0, 0.1)',
+                    fontSize: '0.9rem'
                 }}>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-3)', alignItems: 'start' }}>
-                        <span style={{ fontSize: '1.5rem' }}>⚠️</span>
-                        <div>
-                            <strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong>
-                            <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                Mit {yesCount} Spielern werden automatisch Freilose (Byes) generiert. Einige Spieler kommen direkt eine Runde weiter.
-                            </p>
-                        </div>
-                    </div>
+                    <strong style={{ color: 'orange' }}>⚠️ Ungerade Teilnehmerzahl</strong>
+                    <span style={{ color: 'var(--color-text-dim)', marginLeft: 'var(--spacing-2)' }}>
+                        Freilose werden automatisch generiert.
+                    </span>
                 </div>
             )}
 
-            {/* Info Banner: Bye Matches Detected (for active tournaments) */}
-            {isActive && tournament.matches.some((m: any) => m.isPlayed && m.player1Id && !m.player2Id) && (
-                <div className="glass-panel" style={{
-                    padding: 'var(--spacing-4)',
-                    marginBottom: 'var(--spacing-6)',
-                    borderLeft: '4px solid var(--color-primary)',
-                    background: 'rgba(var(--color-primary-rgb), 0.1)'
-                }}>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-3)', alignItems: 'start' }}>
-                        <span style={{ fontSize: '1.5rem' }}>ℹ️</span>
-                        <div>
-                            <strong>Freilose (Byes) vorhanden</strong>
-                            <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                Aufgrund ungerader Teilnehmerzahl sind einige Spieler automatisch eine Runde weiter.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Main Content Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-6)' }}>
 
-            <div className="tournament-grid">
-                <div>
-                    <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Teilnehmerliste</h2>
-                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                        {tournament.rsvps.length === 0 ? (
-                            <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Antworten.</p>
-                        ) : (
-                            <ul style={{ listStyle: 'none', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 'var(--spacing-2)' }}>
-                                {tournament.rsvps.map((rsvp: any) => (
-                                    <li key={rsvp.id} style={{
-                                        padding: 'var(--spacing-2)',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        textAlign: 'center',
-                                        opacity: rsvp.status === 'NO' ? 0.5 : 1,
-                                        border: rsvp.status === 'YES' ? '1px solid var(--color-success)' : rsvp.status === 'MAYBE' ? '1px solid orange' : '1px solid transparent'
-                                    }}>
-                                        <div>{rsvp.player.name}</div>
-                                        <div style={{ fontSize: '0.8rem', color: rsvp.status === 'YES' ? 'var(--color-success)' : rsvp.status === 'MAYBE' ? 'orange' : 'var(--color-danger)' }}>
-                                            {rsvp.status === 'YES' ? 'Dabei' : rsvp.status === 'MAYBE' ? 'Vielleicht' : 'Abgesagt'}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                {/* PLANNED: Lobby View */}
+                {isPlanned && (
+                    <>
+                        {/* QR & Presence Row */}
+                        <div style={{ display: 'flex', gap: 'var(--spacing-4)', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <TournamentQRCode
+                                tournamentId={tournament.id}
+                                tournamentName={tournament.name}
+                                shortCode={tournament.shortCode || undefined}
+                            />
+                            <LobbyPresence tournamentId={tournament.id} />
+                        </div>
+
+                        {/* Team Assignment (for TEAM mode) */}
+                        {isTeamMode && (
+                            <TeamAssignment
+                                tournamentId={tournament.id}
+                                teams={tournament.teams as any}
+                                availablePlayers={availablePlayers}
+                                availableGuests={tournament.guests}
+                                isHost={isHost}
+                            />
                         )}
-                    </div>
 
-                    {/* Absagen toggle or something could go here */}
-                </div>
+                        {/* Participant List */}
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                            <h3 style={{ marginBottom: 'var(--spacing-3)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                                {isTeamMode ? <Users size={18} /> : <User size={18} />}
+                                {isTeamMode ? 'Spieler & Gäste' : 'Teilnehmer'} ({yesCount + guestCount})
+                            </h3>
 
-                <aside>
-                    {/* Tournament Time Forecast */}
-                    {forecast && forecast.remainingMatches > 0 && (
-                        <div className="glass-panel" style={{
-                            padding: 'var(--spacing-4)',
-                            marginBottom: 'var(--spacing-4)',
-                            borderLeft: '4px solid var(--color-secondary)',
-                            background: 'rgba(78, 205, 196, 0.1)'
-                        }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-2)' }}>⏱️ Turnier-Prognose</h3>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-                                Ende ca. {format(forecast.estimatedEndTime, 'HH:mm')} Uhr
-                            </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
-                            </div>
-                            <div style={{ marginTop: 'var(--spacing-2)', fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                ~{forecast.totalRemainingMinutes} Min. • {formatDuration(forecast.avgMatchDuration)} pro Spiel
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Waiting Time Info */}
-                    {waitTime && !tournament.status.includes('COMPLETED') && (
-                        <div className="glass-panel" style={{
-                            padding: 'var(--spacing-4)',
-                            marginBottom: 'var(--spacing-4)',
-                            borderLeft: '4px solid var(--color-primary)',
-                            background: 'rgba(var(--color-primary-rgb), 0.1)'
-                        }}>
-                            <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-2)' }}>🕒 Dein nächstes Spiel</h3>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-                                ca. {format(waitTime.startTime, 'HH:mm')} Uhr
-                            </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                an Tisch {waitTime.table}
-                                {waitTime.afterMatchIds.length > 0 && ` (nach ${waitTime.afterMatchIds.length} Spiel${waitTime.afterMatchIds.length > 1 ? 'en' : ''})`}
-                            </div>
-                            <div style={{ marginTop: 'var(--spacing-2)', fontSize: '0.8rem' }}>
-                                Wartezeit: ~{waitTime.waitMin} Min.
-                            </div>
-                        </div>
-                    )}
-
-                    {isPlanner && (
-                        <>
-                            {session?.user?.id ? (
-                                (() => {
-                                    // Find current user's player
-                                    const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
-                                    if (!currentPlayer) {
-                                        return (
-                                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                                <p style={{ marginBottom: 'var(--spacing-2)' }}>Du hast noch kein Spielerprofil.</p>
-                                                <Link href="/register" className="btn btn-primary" style={{ fontSize: '0.9rem' }}>Profil erstellen</Link>
-                                                {/* Or edit/create flow if we had one separate from register */}
-                                            </div>
-                                        );
-                                    }
-                                    const userRsvp = tournament.rsvps.find((r: any) => r.playerId === currentPlayer.id);
-
-                                    // Determine if it's a "Now" tournament (created roughly at the same time as the tournament date)
-                                    // Or just check if the date is within the next hour of creation? 
-                                    // A simpler check: if it's planned for today/now.
-                                    const isNow = new Date(tournament.date).getTime() - new Date(tournament.createdAt).getTime() < 1000 * 60 * 60; // 1 hour threshold
-                                    const rsvpTitle = isNow ? "🎫 Ab in die Lobby!" : "📅 Bist du dabei?";
-
-                                    return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
-                                })()
+                            {(yesCount + guestCount) === 0 ? (
+                                <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Teilnehmer.</p>
                             ) : (
-                                <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                    <p>Bitte einloggen zum Teilnehmen.</p>
-                                    <Link href="/login" className="btn btn-secondary">Login</Link>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
+                                    {/* Registered Players */}
+                                    {yesRsvps.map((rsvp: any) => (
+                                        <div key={rsvp.id} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 'var(--spacing-2)',
+                                            padding: 'var(--spacing-2) var(--spacing-3)',
+                                            background: 'var(--color-surface)',
+                                            border: '1px solid var(--color-success)',
+                                            borderRadius: 'var(--radius-md)',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            {rsvp.player.image ? (
+                                                <img src={rsvp.player.image} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
+                                                    {rsvp.player.name[0]}
+                                                </div>
+                                            )}
+                                            {rsvp.player.name}
+                                        </div>
+                                    ))}
+
+                                    {/* Guests */}
+                                    {tournament.guests.map((guest: any) => (
+                                        <div key={guest.id} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 'var(--spacing-2)',
+                                            padding: 'var(--spacing-2) var(--spacing-3)',
+                                            background: 'var(--color-surface)',
+                                            border: '1px solid #9b59b6',
+                                            borderRadius: 'var(--radius-md)',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#9b59b6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
+                                                {guest.name[0]}
+                                            </div>
+                                            {guest.name}
+                                            <span style={{ fontSize: '0.7rem', color: '#9b59b6' }}>Gast</span>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-                        </>
-                    )}
-                </aside>
-                {/* Action Buttons (Only for Host) */}
-                {isHost && (
-                    <div className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
-                        <h3 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>Verwaltung</h3>
+                        </div>
 
-                        {/* Start Button */}
-                        {tournament.status === 'PLANNED' && (
-                            <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                                <StartTournamentButton tournamentId={tournament.id} />
+                        {/* RSVP Form (for ranked tournaments only) */}
+                        {tournament.isRanked && session?.user?.id && (
+                            (() => {
+                                const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
+                                if (!currentPlayer) {
+                                    return (
+                                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                                            <p style={{ marginBottom: 'var(--spacing-2)' }}>Du hast noch kein Spielerprofil.</p>
+                                            <Link href="/players/new" className="btn btn-primary" style={{ fontSize: '0.9rem' }}>Profil erstellen</Link>
+                                        </div>
+                                    );
+                                }
+                                const userRsvp = tournament.rsvps.find((r: any) => r.playerId === currentPlayer.id);
+                                const rsvpTitle = isInstantTournament ? "Beitreten" : "Bist du dabei?";
+                                return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
+                            })()
+                        )}
+
+                        {/* Not logged in */}
+                        {!session?.user?.id && tournament.isRanked && (
+                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                                <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
+                                <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">Einloggen</Link>
                             </div>
                         )}
 
-                        {/* Playoffs Button */}
-                        {tournament.status === 'ACTIVE' && (tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
-                            <StartPlayoffsButton tournamentId={tournament.id} />
-                        )}
-
-                        {/* Finish Button */}
-                        {tournament.status === 'ACTIVE' && (
-                            <FinishTournamentButton tournamentId={tournament.id} />
-                        )}
-
-                        {/* Delete Button */}
-                        <div style={{ marginTop: 'var(--spacing-4)', paddingTop: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
-                            <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Auto-Refresh for Lobby (PLANNED) */}
-            {isPlanner && (
-                <div style={{ marginTop: 'var(--spacing-8)' }}>
-                    <AutoRefresh intervalMs={10000} />
-                </div>
-            )}
-
-            {isActive && (
-                <div style={{ marginTop: 'var(--spacing-12)' }}>
-                    {/* Show Summary for Completed Tournaments */}
-                    {tournament.status === 'COMPLETED' && (
-                        <TournamentSummary
-                            tournamentId={tournament.id}
-                            tournamentName={tournament.name}
-                            tournamentType={tournament.type}
-                            standings={await prisma.tournamentStanding.findMany({
-                                where: { tournamentId: tournament.id },
-                                include: { player: true },
-                                orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }]
-                            })}
-                            matches={tournament.matches}
-                        />
-                    )}
-
-                    {/* Show Live Ticker only for ACTIVE tournaments */}
-                    {tournament.status === 'ACTIVE' && (
-                        <>
-                            <LiveTicker tournamentId={tournament.id} />
-
-                            {/* User Specific View (For Non-Hosts/Players) */}
-                            {!isHost && session?.user && (
-                                <div style={{ marginBottom: 'var(--spacing-12)' }}>
-                                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Deine Spiele</h2>
-
-                                    {(() => {
-                                        const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
-                                        if (!currentPlayer) return <p style={{ color: 'var(--color-text-dim)' }}>Kein Spielerprofil gefunden.</p>;
-
-                                        return <PlayerMatchesList matches={schedule as any} currentPlayerId={currentPlayer.id} />;
-                                    })()}
+                        {/* Host Controls */}
+                        {isHost && (
+                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                                <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
+                                    <StartTournamentButton tournamentId={tournament.id} />
+                                    <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
                                 </div>
-                            )}
-                        </>
-                    )}
+                            </div>
+                        )}
 
-                    {/* Show Tables for both ACTIVE and COMPLETED */}
-                    {tournament.type === 'ROUND_ROBIN' && (
-                        <>
-                            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>Tabelle</h2>
-                            <TournamentTable standings={await getTournamentStandings(tournament.id)} />
-                        </>
-                    )}
+                        <AutoRefresh intervalMs={10000} />
+                    </>
+                )}
 
-                    {tournament.type === 'GROUPS' && (
-                        <>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                {/* ACTIVE & COMPLETED: Tournament View */}
+                {(isActive || isCompleted) && (
+                    <>
+                        {/* Tournament Summary (Completed) */}
+                        {isCompleted && (
+                            <TournamentSummary
+                                tournamentId={tournament.id}
+                                tournamentName={tournament.name}
+                                tournamentType={tournament.type}
+                                standings={await prisma.tournamentStanding.findMany({
+                                    where: { tournamentId: tournament.id },
+                                    include: { player: true },
+                                    orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }]
+                                })}
+                                matches={tournament.matches}
+                            />
+                        )}
+
+                        {/* Live Info Row */}
+                        {isActive && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-4)' }}>
+                                {/* Forecast */}
+                                {forecast && forecast.remainingMatches > 0 && (
+                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', borderLeft: '4px solid var(--color-secondary)' }}>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-1)' }}>Geschätztes Ende</div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>{format(forecast.estimatedEndTime, 'HH:mm')} Uhr</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
+                                            Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Wait Time */}
+                                {waitTime && (
+                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', borderLeft: '4px solid var(--color-primary)' }}>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-1)' }}>Dein nächstes Spiel</div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>ca. {format(waitTime.startTime, 'HH:mm')} Uhr</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
+                                            Tisch {waitTime.table} • ~{waitTime.waitMin} Min. Wartezeit
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Live Ticker */}
+                        {isActive && <LiveTicker tournamentId={tournament.id} />}
+
+                        {/* Tables for Round Robin / Groups */}
+                        {tournament.type === 'ROUND_ROBIN' && (
+                            <div>
+                                <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Tabelle</h2>
+                                <TournamentTable standings={await getTournamentStandings(tournament.id)} />
+                            </div>
+                        )}
+
+                        {tournament.type === 'GROUPS' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
                                 <div>
-                                    <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 1</h3>
+                                    <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)' }}>Gruppe A</h3>
                                     <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
                                 </div>
                                 <div>
-                                    <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}>Gruppe 2</h3>
+                                    <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)' }}>Gruppe B</h3>
                                     <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
                                 </div>
                             </div>
-                        </>
-                    )}
+                        )}
 
+                        {/* Bracket */}
+                        <div>
+                            <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Bracket</h2>
+                            {tournament.type !== 'SINGLE_ELIMINATION' && (
+                                <GroupMatches matches={tournament.matches as any} />
+                            )}
+                            <Bracket matches={tournament.matches || []} />
+                        </div>
 
+                        {/* Host Controls */}
+                        {isHost && isActive && (
+                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                                <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
+                                    {(tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
+                                        <StartPlayoffsButton tournamentId={tournament.id} />
+                                    )}
+                                    <FinishTournamentButton tournamentId={tournament.id} />
+                                </div>
+                            </div>
+                        )}
 
-                    {/* Show Bracket to Everyone */}
-                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', marginTop: 'var(--spacing-12)' }}>Turnierplan & K.O.-Runde</h2>
-
-                    {tournament.type !== 'SINGLE_ELIMINATION' && (
-                        <GroupMatches matches={tournament.matches as any} />
-                    )}
-
-                    <Bracket matches={tournament.matches || []} />
-
-                    {/* Auto-refresh only for ACTIVE */}
-                    {tournament.status === 'ACTIVE' && <AutoRefresh intervalMs={20000} />}
-                </div>
-            )}
+                        {isActive && <AutoRefresh intervalMs={20000} />}
+                    </>
+                )}
+            </div>
         </div>
     );
 }

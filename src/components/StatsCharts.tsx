@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { PlayerStats } from '@/lib/stats';
 import { startOfMonth, startOfYear } from 'date-fns';
@@ -9,6 +9,11 @@ type RangeType = 'ALL' | 'MONTH' | 'YEAR' | 'LAST_5';
 
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
     const [range, setRange] = useState<RangeType>('ALL');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const processedData = useMemo(() => {
         const now = new Date();
@@ -130,55 +135,59 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 </div>
 
                 <div style={{ height: '300px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                            <XAxis
-                                dataKey="timestamp"
-                                type="number"
-                                domain={['dataMin', 'dataMax']}
-                                tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
-                                stroke="var(--color-text-dim)"
-                                tick={{ fontSize: 12 }}
-                            />
-                            <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                            />
-                            {processedData.topWinRate.map((p, i) => (
-                                <Line
-                                    key={p.id}
-                                    data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
-                                    dataKey="winRate"
-                                    name={p.name}
-                                    type="monotone"
-                                    stroke={NEON_COLORS[i % NEON_COLORS.length]}
-                                    strokeWidth={2}
-                                    activeDot={{ r: 6, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length] }}
-                                    dot={false}
+                    {mounted && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                                <XAxis
+                                    dataKey="timestamp"
+                                    type="number"
+                                    domain={['dataMin', 'dataMax']}
+                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
+                                    stroke="var(--color-text-dim)"
+                                    tick={{ fontSize: 12 }}
                                 />
-                            ))}
-                        </LineChart>
-                    </ResponsiveContainer>
+                                <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
+                                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                                />
+                                {processedData.topWinRate.map((p, i) => (
+                                    <Line
+                                        key={p.id}
+                                        data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
+                                        dataKey="winRate"
+                                        name={p.name}
+                                        type="monotone"
+                                        stroke={NEON_COLORS[i % NEON_COLORS.length]}
+                                        strokeWidth={2}
+                                        activeDot={{ r: 6, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length] }}
+                                        dot={false}
+                                    />
+                                ))}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
 
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
                 <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Becherdifferenz (Top 10)</h3>
                 <div style={{ height: '300px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                            <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
-                            <YAxis stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
-                            <Tooltip
-                                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                            />
-                            <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name="Becherdiff." radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {mounted && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                                <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
+                                <YAxis stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
+                                />
+                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name="Becherdiff." radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
         </div>

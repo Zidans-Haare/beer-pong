@@ -1,10 +1,16 @@
 'use client';
 
 import { PlayerStats } from '@/lib/stats';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Top 3 players by winrate
     const topPlayers = useMemo(() => {
         return stats.sort((a, b) => b.winRate - a.winRate).slice(0, 3);
@@ -20,30 +26,32 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
             </div>
 
             <div style={{ height: '200px', width: '100%', marginTop: 'var(--spacing-4)' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={topPlayers.length > 0 ? topPlayers[0].history : []}>
-                        <defs>
-                            <linearGradient id="colorWinRate" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.4} />
-                                <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
-                        <XAxis dataKey="date" hide />
-                        <Tooltip
-                            contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', boxShadow: 'var(--shadow-lg)' }}
-                            itemStyle={{ color: 'var(--color-text)' }}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="winRate"
-                            stroke="var(--color-primary)"
-                            fillOpacity={1}
-                            fill="url(#colorWinRate)"
-                            strokeWidth={3}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                {mounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={topPlayers.length > 0 ? topPlayers[0].history : []}>
+                            <defs>
+                                <linearGradient id="colorWinRate" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.4} />
+                                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                            <XAxis dataKey="date" hide />
+                            <Tooltip
+                                contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', boxShadow: 'var(--shadow-lg)' }}
+                                itemStyle={{ color: 'var(--color-text)' }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="winRate"
+                                stroke="var(--color-primary)"
+                                fillOpacity={1}
+                                fill="url(#colorWinRate)"
+                                strokeWidth={3}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-4)' }}>

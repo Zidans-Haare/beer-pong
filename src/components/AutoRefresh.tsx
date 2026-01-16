@@ -45,7 +45,7 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
             justifyContent: 'center',
             gap: 'var(--spacing-2)'
         }}>
-            <span>{isRefreshing ? '🔄 Aktualisiere...' : `Auto-Refresh in ${timeLeft}s`}</span>
+            <span>{isRefreshing ? 'Aktualisiere...' : `Auto-Refresh in ${timeLeft}s`}</span>
             <button
                 onClick={handleManualRefresh}
                 className="btn-secondary"

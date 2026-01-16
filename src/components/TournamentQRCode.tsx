@@ -81,11 +81,13 @@ export default function TournamentQRCode({
           color: 'white',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '10px 14px',
+          gap: '4px', // Reduced gap
+          padding: '6px 10px', // Compact padding
+          fontSize: '0.9rem', // Smaller text
+          whiteSpace: 'nowrap' // Prevent text wrapping
         }}
       >
-        <QrCode size={20} />
+        <QrCode size={18} />
         QR-Code
       </button>
 

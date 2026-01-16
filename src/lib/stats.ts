@@ -10,7 +10,7 @@ export interface PlayerStats {
     tournamentsWon: number;
     cupDiff: number; // Total cups hit - Total cups received
     winRate: number;
-    history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number }[];
+    history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[];
 }
 
 export async function getAllPlayerStats(): Promise<PlayerStats[]> {
@@ -69,7 +69,7 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
         let matchesWon = 0;
         let cupsHit = 0;
         let cupsReceived = 0;
-        const history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number }[] = [];
+        const history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[] = [];
 
         allMatches.forEach((m, index) => {
             const isWinner = m.winnerId === p.id;
@@ -81,12 +81,27 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
             cupsHit += myScore;
             cupsReceived += oppScore;
 
+            // Calculate duration in seconds
+            // Priority: durationSeconds -> completedAt - startedAt -> 15 min default (900s)
+            let duration = 0;
+            if (m.durationSeconds) {
+                duration = m.durationSeconds;
+            } else if (m.completedAt && m.startedAt) {
+                const start = new Date(m.startedAt).getTime();
+                const end = new Date(m.completedAt).getTime();
+                duration = Math.floor((end - start) / 1000);
+            }
+
+            // Filter out unrealistic durations (e.g. < 1 min or > 4 hours) if calculated from timestamps which might be off
+            if (duration < 60) duration = 0;
+
             history.push({
                 date: new Date(m.updatedAt).toLocaleDateString(),
                 timestamp: new Date(m.updatedAt).getTime(),
                 winRate: Math.round((matchesWon / (index + 1)) * 100),
                 cupsHit: cupsHit,
-                cupDiff: cupsHit - cupsReceived
+                cupDiff: cupsHit - cupsReceived,
+                duration: duration
             });
         });
 

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
 import { useState, useRef } from 'react';
 import { Users, User, Trophy, PartyPopper, Play, Calendar, Mail, CalendarPlus, Megaphone } from 'lucide-react';
+import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
+import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
@@ -71,32 +73,44 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                 </p>
 
                 <div style={{ display: 'grid', gap: 'var(--spacing-4)', maxWidth: '400px', margin: '0 auto' }}>
-                    <a href={mailtoLink} target="_blank" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', textDecoration: 'none' }}>
-                        <Mail size={18} /> Email an alle ({participantEmails.length})
-                    </a>
+
+                    <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                        <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Teilnehmer informieren</h3>
+                        <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
+                            <a href={mailtoLink} target="_blank" className="btn" style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', textDecoration: 'none',
+                                background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)'
+                            }}>
+                                <Mail size={18} /> Email senden ({participantEmails.length})
+                            </a>
+
+                            <button
+                                onClick={async () => {
+                                    if (!confirm('Benachrichtigung jetzt an alle App-Nutzer senden?')) return;
+                                    const title = 'Turnier Einladung';
+                                    const message = `Komm zum Turnier "${createdTournament.name}" am ${new Date(createdTournament.date).toLocaleDateString()}!`;
+                                    const { broadcastNotification } = await import('@/app/actions/notifications');
+                                    await broadcastNotification({
+                                        title,
+                                        message,
+                                        type: 'TOURNAMENT',
+                                        link: `/tournaments/${createdTournament.id}`
+                                    });
+                                    alert('Benachrichtigung gesendet!');
+                                }}
+                                className="btn"
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
+                                    background: 'rgba(231, 76, 60, 0.15)', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.3)'
+                                }}
+                            >
+                                <Megaphone size={18} /> App-Push senden
+                            </button>
+                        </div>
+                    </div>
 
                     <button onClick={downloadICS} className="btn" style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)' }}>
                         <CalendarPlus size={18} /> Kalendereintrag (.ics)
-                    </button>
-
-                    <button
-                        onClick={async () => {
-                            if (!confirm('Benachrichtigung jetzt an alle App-Nutzer senden?')) return;
-                            const title = 'Turnier Einladung';
-                            const message = `Komm zum Turnier "${createdTournament.name}" am ${new Date(createdTournament.date).toLocaleDateString()}!`;
-                            const { broadcastNotification } = await import('@/app/actions/notifications');
-                            await broadcastNotification({
-                                title,
-                                message,
-                                type: 'TOURNAMENT',
-                                link: `/tournaments/${createdTournament.id}`
-                            });
-                            alert('Benachrichtigung gesendet!');
-                        }}
-                        className="btn"
-                        style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', color: 'var(--color-primary)' }}
-                    >
-                        <Megaphone size={18} /> App-Benachrichtigung (Manuell)
                     </button>
 
                     <button onClick={() => router.push('/tournaments')} className="btn" style={{ marginTop: 'var(--spacing-2)' }}>
@@ -117,7 +131,25 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Ort</label>
-                    <input type="text" name="location" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} placeholder="z.B. Nicks Keller" />
+                    <div style={{ width: '100%', boxSizing: 'border-box' }}>
+                        <LocationPicker
+                            defaultValue=""
+                            onLocationSelect={(address, lat, lng) => {
+                                // We create hidden inputs to submit this data with the form
+                                const form = formRef.current;
+                                if (form) {
+                                    let locInput = form.querySelector('input[name="location"]') as HTMLInputElement;
+                                    if (!locInput) {
+                                        locInput = document.createElement('input');
+                                        locInput.type = 'hidden';
+                                        locInput.name = 'location';
+                                        form.appendChild(locInput);
+                                    }
+                                    locInput.value = address;
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
 
                 <div className="glass-panel" style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)' }}>
@@ -272,6 +304,124 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     {startImmediately ? <><Play size={20} /> Turnier-Lobby öffnen</> : <><Calendar size={20} /> Turnier planen</>}
                 </button>
             </form>
+        </div>
+    );
+}
+
+// --- Google Maps Components ---
+
+const libraries: ("places")[] = ["places"];
+
+function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
+    const { isLoaded } = useLoadScript({
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        libraries,
+    });
+
+    if (!isLoaded) return <div>Lade Karte...</div>;
+
+    return <MapSearch onSelect={onLocationSelect} />;
+}
+
+function MapSearch({ onSelect }: { onSelect: (addr: string, lat: number, lng: number) => void }) {
+    const {
+        ready,
+        value,
+        suggestions: { status, data },
+        setValue,
+        clearSuggestions,
+    } = usePlacesAutocomplete({
+        requestOptions: {
+            componentRestrictions: { country: "de" },
+        },
+        debounce: 300,
+    });
+
+    const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+    const handleSelect = async (address: string) => {
+        setValue(address, false);
+        clearSuggestions();
+
+        try {
+            const results = await getGeocode({ address });
+            const { lat, lng } = await getLatLng(results[0]);
+            setSelectedLocation({ lat, lng });
+            onSelect(address, lat, lng);
+        } catch (error) {
+            console.error("Error: ", error);
+        }
+    };
+
+    return (
+        <div style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
+            <div style={{ position: 'relative' }}>
+                <input
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    disabled={!ready}
+                    className="input-field"
+                    placeholder="Suche nach einem Ort..."
+                    style={{
+                        width: '100%',
+                        boxSizing: 'border-box', // Fix width issue
+                        padding: 'var(--spacing-3)',
+                        background: 'var(--color-bg)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text)',
+                        borderRadius: 'var(--radius-sm)'
+                    }}
+                />
+                {status === "OK" && (
+                    <ul style={{
+                        position: 'absolute',
+                        zIndex: 10,
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
+                        width: '100%',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        padding: 0,
+                        margin: 0,
+                        listStyle: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        boxShadow: 'var(--shadow-lg)'
+                    }}>
+                        {data.map(({ place_id, description }) => (
+                            <li
+                                key={place_id}
+                                onClick={() => handleSelect(description)}
+                                style={{
+                                    padding: 'var(--spacing-3)',
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid var(--color-border)',
+                                    color: 'var(--color-text)'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary-transparent)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                {description}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            {selectedLocation && (
+                <div style={{ height: '200px', width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                    <GoogleMap
+                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                        center={selectedLocation}
+                        zoom={15}
+                        options={{
+                            disableDefaultUI: true,
+                            zoomControl: true,
+                        }}
+                    >
+                        <Marker position={selectedLocation} />
+                    </GoogleMap>
+                </div>
+            )}
         </div>
     );
 }

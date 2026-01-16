@@ -2,35 +2,45 @@
 
 import { finishTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
-import { CheckCircle } from 'lucide-react';
+import { Flag } from 'lucide-react';
+import { useState } from 'react';
 
 export default function FinishTournamentButton({ tournamentId }: { tournamentId: string }) {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
 
-    async function onClick() {
+    async function handleClick() {
         if (!confirm('Turnier wirklich abschließen? Es können dann keine Ergebnisse mehr eingetragen werden.')) return;
 
+        setIsLoading(true);
         const res = await finishTournament(tournamentId);
         if (res.success) {
             router.refresh();
         } else {
             alert(res.error);
+            setIsLoading(false);
         }
     }
 
     return (
         <button
-            onClick={onClick}
+            onClick={handleClick}
+            disabled={isLoading}
             className="btn"
             style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(39, 174, 96, 0.1)',
                 border: '1px solid var(--color-success)',
                 color: 'var(--color-success)',
-                marginTop: 'var(--spacing-4)',
-                float: 'right',
-                gap: '8px'
+                padding: 'var(--spacing-3) var(--spacing-4)',
+                fontWeight: 500,
+                opacity: isLoading ? 0.7 : 1
             }}
         >
-            <CheckCircle size={18} /> Turnier Abschließen
+            <Flag size={16} />
+            {isLoading ? 'Beendet...' : 'Turnier beenden'}
         </button>
     );
 }

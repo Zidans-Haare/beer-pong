@@ -69,6 +69,82 @@ export async function submitRSVP(formData: FormData) {
     }
 }
 
+/**
+ * Auto-join for instant tournaments (called when user scans QR code)
+ * Automatically sets RSVP to YES without user interaction
+ */
+export async function autoJoinInstantTournament(tournamentId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Nicht eingeloggt' };
+    }
+
+    try {
+        // Check if tournament exists and is instant
+        const tournament = await prisma.tournament.findUnique({
+            where: { id: tournamentId }
+        });
+
+        if (!tournament) {
+            return { success: false, error: 'Turnier nicht gefunden' };
+        }
+
+        // Only auto-join for ranked instant tournaments
+        // Spaß-Turniere use guest system instead
+        if (!tournament.isRanked) {
+            return { success: false, error: 'Auto-join nur für Liga-Turniere' };
+        }
+
+        // Find player for current user
+        const player = await prisma.player.findUnique({
+            where: { userId: session.user.id }
+        });
+
+        if (!player) {
+            return { success: false, error: 'Bitte erstelle erst ein Spielerprofil.' };
+        }
+
+        // Check if already RSVP'd
+        const existingRsvp = await prisma.rSVP.findUnique({
+            where: {
+                tournamentId_playerId: {
+                    tournamentId,
+                    playerId: player.id,
+                },
+            },
+        });
+
+        // Only create/update if not already YES
+        if (existingRsvp?.status !== 'YES') {
+            await prisma.rSVP.upsert({
+                where: {
+                    tournamentId_playerId: {
+                        tournamentId,
+                        playerId: player.id,
+                    },
+                },
+                update: { status: 'YES' },
+                create: {
+                    tournamentId,
+                    playerId: player.id,
+                    status: 'YES',
+                },
+            });
+
+            // Emit realtime event
+            if (existingRsvp?.status !== 'YES') {
+                emitPlayerJoined(tournamentId, { id: player.id, name: player.name });
+            }
+        }
+
+        revalidatePath(`/tournaments/${tournamentId}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to auto-join tournament:', error);
+        return { success: false, error: 'Fehler beim automatischen Beitritt' };
+    }
+}
+
 export async function getTournament(id: string) {
     return await prisma.tournament.findUnique({
         where: { id },

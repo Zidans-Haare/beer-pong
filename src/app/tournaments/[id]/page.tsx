@@ -28,9 +28,12 @@ import { prisma } from '@/lib/prisma';
 import { unstable_noStore as noStore } from 'next/cache';
 import GroupMatches from '@/components/GroupMatches';
 
-export default async function TournamentPage({ params }: { params: Promise<{ id: string }> }) {
+import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
+
+export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
     const { id } = await params;
+    const { newlyCreated } = await searchParams;
     const session = await auth();
 
     const tournament = await prisma.tournament.findUnique({
@@ -118,7 +121,8 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     const availablePlayers = yesRsvps.map((r: any) => ({
         id: r.player.id,
         name: r.player.name,
-        image: r.player.image
+        image: r.player.image,
+        email: r.player.email
     }));
 
     return (
@@ -128,6 +132,13 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 tournamentStatus={tournament.status}
                 isWinner={isCurrentUserWinner}
             />
+
+            {newlyCreated === 'true' && (
+                <TournamentSuccessModal
+                    tournament={tournament}
+                    participants={availablePlayers}
+                />
+            )}
 
             <Link
                 href="/tournaments"

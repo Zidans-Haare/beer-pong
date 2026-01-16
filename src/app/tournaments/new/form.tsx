@@ -4,14 +4,12 @@ import { createTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
 import { useState, useRef } from 'react';
-import { Users, User, Trophy, PartyPopper, Play, Calendar, Mail, CalendarPlus, Megaphone } from 'lucide-react';
+import { Users, User, Trophy, PartyPopper, Play, Calendar } from 'lucide-react';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
-    const [createdTournament, setCreatedTournament] = useState<any>(null);
-    const [participantEmails, setParticipantEmails] = useState<string[]>([]);
     const [startImmediately, setStartImmediately] = useState(true);
     const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
     const [isRanked, setIsRanked] = useState(true);
@@ -22,103 +20,13 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
         // But here we use a checkbox in the form which is better for traditional formData
         const res = await createTournament(formData);
         if (res.success && res.redirectUrl) {
-            router.push(res.redirectUrl);
+            router.push(res.redirectUrl); // Old behavior if BE sends redirect
         } else if (res.success && res.tournament) {
-            // Show success dialog for planned tournament
-            setCreatedTournament(res.tournament);
-            setParticipantEmails(res.participantEmails || []);
+            // New behavior: Redirect to detailed page with success flag
+            router.push(`/tournaments/${res.tournament.id}?newlyCreated=true`);
         } else {
             alert('Fehler: ' + res.error);
         }
-    }
-
-    // Generate Mailto Link
-    const mailtoLink = (() => {
-        if (!createdTournament) return '#';
-        const subject = encodeURIComponent(`Bierpong Turnier: ${createdTournament.name}`);
-        const body = encodeURIComponent(`Hallo Leute,\n\nes steht ein neues Bierpong-Turnier an!\n\nWann: ${new Date(createdTournament.date).toLocaleString()}\nWo: ${createdTournament.location}\nModus: ${createdTournament.type}\n\nBitte gebt Bescheid ob ihr dabei seid!\n\nViele Grüße,\nDer Host`);
-        const recipients = participantEmails.join(',');
-        return `mailto:${recipients}?subject=${subject}&body=${body}`;
-    })();
-
-    // Generate ICS Download
-    const downloadICS = async () => {
-        if (!createdTournament) return;
-        const { generateICS } = await import('@/lib/ics');
-        const icsContent = generateICS({
-            title: createdTournament.name,
-            description: `Bierpong Turnier (${createdTournament.type})`,
-            location: createdTournament.location,
-            start: new Date(createdTournament.date),
-            durationMinutes: 180 // Default 3 hours
-        });
-
-        const blob = new Blob([icsContent], { type: 'text/calendar' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'tournament.ics';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    };
-
-    if (createdTournament) {
-        return (
-            <div className="glass-panel" style={{ textAlign: 'center', padding: 'var(--spacing-8)' }}>
-                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)' }}>Turnier erfolgreich erstellt!</h2>
-                <p style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)' }}>
-                    Das Turnier "{createdTournament.name}" wurde angelegt. <br />
-                    Jetzt Teilnehmer einladen?
-                </p>
-
-                <div style={{ display: 'grid', gap: 'var(--spacing-4)', maxWidth: '400px', margin: '0 auto' }}>
-
-                    <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                        <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Teilnehmer informieren</h3>
-                        <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
-                            <a href={mailtoLink} target="_blank" className="btn" style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', textDecoration: 'none',
-                                background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)'
-                            }}>
-                                <Mail size={18} /> Email senden ({participantEmails.length})
-                            </a>
-
-                            <button
-                                onClick={async () => {
-                                    if (!confirm('Benachrichtigung jetzt an alle App-Nutzer senden?')) return;
-                                    const title = 'Turnier Einladung';
-                                    const message = `Komm zum Turnier "${createdTournament.name}" am ${new Date(createdTournament.date).toLocaleDateString()}!`;
-                                    const { broadcastNotification } = await import('@/app/actions/notifications');
-                                    await broadcastNotification({
-                                        title,
-                                        message,
-                                        type: 'TOURNAMENT',
-                                        link: `/tournaments/${createdTournament.id}`
-                                    });
-                                    alert('Benachrichtigung gesendet!');
-                                }}
-                                className="btn"
-                                style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
-                                    background: 'rgba(231, 76, 60, 0.15)', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.3)'
-                                }}
-                            >
-                                <Megaphone size={18} /> App-Push senden
-                            </button>
-                        </div>
-                    </div>
-
-                    <button onClick={downloadICS} className="btn" style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)' }}>
-                        <CalendarPlus size={18} /> Kalendereintrag (.ics)
-                    </button>
-
-                    <button onClick={() => router.push('/tournaments')} className="btn" style={{ marginTop: 'var(--spacing-2)' }}>
-                        Zum Turnier Dashboard
-                    </button>
-                </div>
-            </div>
-        );
     }
 
     return (

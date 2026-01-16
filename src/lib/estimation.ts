@@ -16,59 +16,57 @@ export function calculateTournamentDuration(
 ): number {
     if (playerCount < 2) return 0;
 
-    let totalMatches = 0;
-
-    switch (type) {
-        case 'SINGLE_ELIMINATION':
-        case 'ELIMINATION':
-            // N-1 matches
-            totalMatches = playerCount - 1;
-            break;
-        case 'ROUND_ROBIN':
-            // N * (N-1) / 2
-            totalMatches = (playerCount * (playerCount - 1)) / 2;
-            break;
-        case 'GROUPS':
-        case 'GROUP_AND_KNOCKOUT':
-            // Estimate: Groups of 4?
-            // If we assume groups of ~4.
-            // 4 players -> 6 matches per group.
-            // Then KO.
-            // Simplified: Round Robin estimation usually works as an upper bound or slightly less.
-            // Let's approximate as Round Robin for complexity, or N * 1.5?
-            // Let's use a standard approximation: Group phase ~ 0.75 * Round Robin?
-            // Actually, if groups are small (4), matches are fewer than full Round Robin.
-            // Let's stick to a robust simple estimate for now: N * 2 matches?
-            // Better: use Round Robin logic for groups (conservative) or just (N * (N-1) / 2) * 0.6
-            // Let's use a explicit simulation for 4-player groups if possible, but for now:
-            totalMatches = playerCount * 2; // Rough heuristic
-            break;
-        default:
-            totalMatches = playerCount;
-    }
-
-    if (hasReturnLeg) {
-        totalMatches *= 2;
-    }
-
-    // With multiple tables, matches are played in parallel.
-    // Efficiency isn't 100%, let's say 90% efficiency.
-    // Duration = (TotalMatches / TableCount) * Duration
-    // However, rounds constrain parallelization (in Elimination).
-    // In Elimination, depth is log2(N). You can't play Final before Semi is done.
-    // Min duration = Rounds * Duration.
-    // Max duration = TotalMatches * Duration (1 table).
+    let totalDuration = 0;
 
     if (type === 'SINGLE_ELIMINATION' || type === 'ELIMINATION') {
-        if (tableCount >= playerCount / 2) {
-            // Maximum parallelization: Duration determined by rounds
-            const rounds = Math.ceil(Math.log2(playerCount));
-            return rounds * matchDurationMinutes * (hasReturnLeg ? 2 : 1);
+        // Round-based simulation is most accurate for Elimination
+        let currentPlayers = playerCount;
+        let matchDuration = matchDurationMinutes * (hasReturnLeg ? 2 : 1);
+
+        while (currentPlayers > 1) {
+            let matchesInRound = Math.floor(currentPlayers / 2);
+            // Parallelism bottleneck: can only play matches on available tables
+            let roundsToClearLevel = Math.ceil(matchesInRound / tableCount);
+            totalDuration += roundsToClearLevel * matchDuration;
+
+            // Advance winners + any byes
+            currentPlayers = Math.ceil(currentPlayers / 2);
         }
+        return totalDuration;
     }
 
-    // Default sequential-ish calculation
-    return Math.ceil(totalMatches / tableCount) * matchDurationMinutes;
+    if (type === 'ROUND_ROBIN') {
+        // Total matches = N * (N-1) / 2
+        let totalMatches = (playerCount * (playerCount - 1)) / 2;
+        if (hasReturnLeg) totalMatches *= 2;
+
+        // Parallelism bottleneck 1: Table count
+        // Parallelism bottleneck 2: Player count (can only play floor(N/2) matches at once)
+        const maxParallelMatches = Math.min(tableCount, Math.floor(playerCount / 2));
+
+        const parallelRounds = Math.ceil(totalMatches / maxParallelMatches);
+        return parallelRounds * matchDurationMinutes;
+    }
+
+    if (type === 'GROUPS' || type === 'GROUP_AND_KNOCKOUT') {
+        // Assume 2 groups (standard for this app's Group logic)
+        const p1 = Math.floor(playerCount / 2);
+        const p2 = playerCount - p1;
+        const groupMatches = ((p1 * (p1 - 1)) / 2) + ((p2 * (p2 - 1)) / 2);
+
+        // Group phase parallelism
+        const maxParallelGroup = Math.min(tableCount, Math.floor(Math.max(p1, p2))); // Heuristic
+        const groupDuration = Math.ceil(groupMatches / tableCount) * matchDurationMinutes;
+
+        // Knockout phase: assuming Top 2 from each group -> Semi (2 matches) -> Final/3rd (2 matches)
+        // 2 parallelizable stages
+        const koDuration = 2 * matchDurationMinutes;
+
+        return groupDuration + koDuration;
+    }
+
+    // Fallback
+    return Math.ceil(playerCount / tableCount) * matchDurationMinutes;
 }
 
 export function formatDuration(minutes: number): string {

@@ -2,19 +2,19 @@
 import LiveTournamentWidget from '@/components/dashboard/LiveTournamentWidget';
 import DashboardStatsWidget from '@/components/dashboard/DashboardStatsWidget';
 import InstallPrompt from '@/components/InstallPrompt';
+import HeroSection from '@/components/dashboard/HeroSection';
+import RecentMatchesWidget from '@/components/dashboard/RecentMatchesWidget';
 import { getAllPlayerStats } from '@/lib/stats';
+import { auth } from '@/auth';
 
 export default async function Home() {
+  const session = await auth();
   const stats = await getAllPlayerStats();
 
   return (
-    <div className="container" style={{ paddingTop: '20px' }}>
-      <header style={{ marginBottom: 'var(--spacing-4)', paddingLeft: 'var(--spacing-2)' }}>
-        <h1 className="title-display" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-          BIER PONG
-        </h1>
-        <div className="subtitle">TOURNAMENT APP</div>
-      </header>
+    <div className="container" style={{ paddingBottom: '80px' }}>
+
+      <HeroSection userName={session?.user?.name} />
 
       <div style={{
         display: 'grid',
@@ -24,13 +24,14 @@ export default async function Home() {
         {/* Install Prompt */}
         <InstallPrompt />
 
-        {/* Live Widget */}
+        {/* Live Widget - Priority 1 */}
         <LiveTournamentWidget />
 
-        {/* Stats Widget */}
+        {/* Stats Widget (Podium) - Priority 2 */}
         <DashboardStatsWidget stats={stats} />
 
-
+        {/* Recent Matches - Priority 3 */}
+        <RecentMatchesWidget />
       </div>
     </div>
   );

@@ -82,7 +82,7 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
             cupsReceived += oppScore;
 
             // Calculate duration in seconds
-            // Priority: durationSeconds -> completedAt - startedAt -> 15 min default (900s)
+            // Priority: durationSeconds -> completedAt - startedAt -> 12 min default (720s)
             let duration = 0;
             if (m.durationSeconds) {
                 duration = m.durationSeconds;
@@ -92,8 +92,9 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
                 duration = Math.floor((end - start) / 1000);
             }
 
-            // Filter out unrealistic durations (e.g. < 1 min or > 4 hours) if calculated from timestamps which might be off
-            if (duration < 60) duration = 0;
+            // Fallback: If duration is missing or unrealistic (< 1 min), assume 12 minutes (720s)
+            // This ensures the chart has data points even for old games
+            if (duration < 60) duration = 720;
 
             history.push({
                 date: new Date(m.updatedAt).toLocaleDateString(),

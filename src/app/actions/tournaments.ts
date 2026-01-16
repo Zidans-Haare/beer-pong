@@ -110,7 +110,7 @@ export async function createTournament(formData: FormData) {
         if (startImmediately) {
             // Immediate Broadcast for "Now" tournaments
             await broadcastNotification({
-                title: '🏆 Neues Turnier!',
+                title: 'Neues Turnier!',
                 message: `${name} startet JETZT! Join die Lobby!`,
                 link: `/tournaments/${result.id}`,
                 type: 'TOURNAMENT'

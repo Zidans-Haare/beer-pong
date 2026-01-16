@@ -136,7 +136,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
             {newlyCreated === 'true' && (
                 <TournamentSuccessModal
                     tournament={tournament}
-                    participants={availablePlayers}
+                    participants={players.map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        email: p.email || null
+                    }))}
                 />
             )}
 

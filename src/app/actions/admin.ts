@@ -110,7 +110,7 @@ export async function getPublicSystemSettings() {
 
 export async function updateSystemSettings(formData: FormData) {
     await checkAdmin();
-    
+
     const rawDuration = formData.get('matchDurationMin');
     const rawTableCount = formData.get('tableCount');
 
@@ -135,3 +135,14 @@ export async function updateSystemSettings(formData: FormData) {
         return { success: false, error: 'Update failed' };
     }
 }
+
+export async function getPublicGlobalDurationStats() {
+    try {
+        const { getGlobalDurationStats } = await import('@/lib/duration');
+        return await getGlobalDurationStats();
+    } catch (error) {
+        console.error('Failed to get duration stats:', error);
+        return { averageSeconds: 720, averageMinutes: 12, matchCount: 0, isCalculated: false };
+    }
+}
+

@@ -103,6 +103,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
     const guestCount = tournament.guests.length;
     const totalParticipants = tournament.mode === 'TEAM' ? tournament.teams.length : (yesCount + guestCount);
 
+    // Get smart duration stats
+    const { getGlobalDurationStats } = await import('@/lib/duration');
+    const durationStats = await getGlobalDurationStats();
+    const smartDuration = durationStats.isCalculated ? durationStats.averageMinutes : (tournament.matchDurationMin || systemSettings.matchDurationMin || 15);
+
     const isPlanned = tournament.status === 'PLANNED';
     const isActive = tournament.status === 'ACTIVE';
     const isCompleted = tournament.status === 'COMPLETED';
@@ -221,7 +226,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <LobbyDurationWidget
                         type={tournament.type}
                         playerCount={totalParticipants}
-                        matchDurationMin={tournament.matchDurationMin || 12}
+                        matchDurationMin={smartDuration}
                         tableCount={tournament.tableCount || 1}
                         hasReturnLeg={tournament.hasReturnLeg}
                     />

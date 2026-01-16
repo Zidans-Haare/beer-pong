@@ -17,7 +17,19 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [isRanked, setIsRanked] = useState(true);
     const [hasReturnLeg, setHasReturnLeg] = useState(false);
     const [type, setType] = useState('SINGLE_ELIMINATION');
+    const [systemMatchDuration, setSystemMatchDuration] = useState(15);
     const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        // Fetch real duration stats on mount
+        import('@/app/actions/admin').then(m => {
+            m.getPublicGlobalDurationStats().then(stats => {
+                if (stats.isCalculated) {
+                    setSystemMatchDuration(stats.averageMinutes);
+                }
+            });
+        });
+    }, []);
 
     async function clientAction(formData: FormData) {
         // Add startImmediately to formData as it might be useful or just rely on state if we were using it differently
@@ -257,7 +269,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     </label>
                 </div>
 
-                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} />
+                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} matchDuration={systemMatchDuration} />
 
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',
@@ -272,9 +284,9 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 }
 
 // Helper Component for Form Live Forecast
-function DurationForecast({ type, hasReturnLeg }: { type: string, hasReturnLeg: boolean }) {
+function DurationForecast({ type, hasReturnLeg, matchDuration }: { type: string, hasReturnLeg: boolean, matchDuration: number }) {
     const [estPlayers, setEstPlayers] = useState(8);
-    const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, 1, 12, hasReturnLeg), [type, estPlayers, hasReturnLeg]);
+    const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, 1, matchDuration, hasReturnLeg), [type, estPlayers, hasReturnLeg, matchDuration]);
     const endTime = useMemo(() => getEstimatedEndTime(duration), [duration]);
 
     return (

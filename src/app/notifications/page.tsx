@@ -10,7 +10,7 @@ import {
 } from '@/app/actions/notifications';
 import { saveSubscription, getVapidPublicKey, sendTestPush } from '@/app/actions/push';
 import { useRouter } from 'next/navigation';
-import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
+import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, Send, Trophy, Mic, Megaphone } from 'lucide-react';
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -80,7 +80,7 @@ export default function NotificationsPage() {
 
             await saveSubscription(subscription.toJSON());
             setPushStatus('granted');
-            alert("Push-Benachrichtigungen aktiviert! 🚀");
+            alert("Push-Benachrichtigungen aktiviert!");
         } catch (error) {
             console.error("Push Error", error);
             alert("Fehler beim Aktivieren der Benachrichtigungen.");
@@ -229,20 +229,20 @@ export default function NotificationsPage() {
                             const isLive = notification.type === 'LIVE_TICKER';
                             const isUpdate = notification.type === 'UPDATE';
 
-                            let icon = '🔔';
+                            let IconComponent = Bell;
                             let iconColor = 'var(--color-text-dim)';
                             let borderColor = 'transparent';
 
                             if (isTournament) {
-                                icon = '🏆';
+                                IconComponent = Trophy;
                                 iconColor = '#eab308'; // yellow-500
                                 borderColor = 'rgba(234,179,8,0.3)';
                             } else if (isLive) {
-                                icon = '🎙️';
+                                IconComponent = Mic;
                                 iconColor = '#ef4444'; // red-500
                                 borderColor = 'rgba(239,68,68,0.3)';
                             } else if (isUpdate) {
-                                icon = '📢';
+                                IconComponent = Megaphone;
                                 iconColor = '#3b82f6'; // blue-500
                                 borderColor = 'rgba(59,130,246,0.3)';
                             }
@@ -269,8 +269,8 @@ export default function NotificationsPage() {
                                         overflow: 'hidden'
                                     }}
                                 >
-                                    <div style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'flex-start', paddingTop: '2px' }}>
-                                        {icon}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '2px', color: iconColor }}>
+                                        <IconComponent size={24} />
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>

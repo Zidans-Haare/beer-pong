@@ -7,6 +7,7 @@ import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { isAdmin } from '@/lib/admin';
 import { getPlayerPaceStats, formatDuration, getPaceEmoji } from '@/lib/duration';
+import { Pencil } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,8 +60,8 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                         {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>"{player.motto}"</p>}
 
                         {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
-                            <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
-                                ✏️ Profil bearbeiten
+                            <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Pencil size={14} /> Profil bearbeiten
                             </Link>
                         )}
                     </div>

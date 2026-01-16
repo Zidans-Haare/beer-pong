@@ -95,7 +95,7 @@ export default function ServiceWorkerUpdate() {
                     width: '100%'
                 }}>
                     <div style={{ flex: 1 }}>
-                        <h4 style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Neues Update verfügbar! 🚀</h4>
+                        <h4 style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Neues Update verfügbar!</h4>
                         <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>Lade die App neu, um die neuesten Features zu nutzen.</p>
                     </div>
 

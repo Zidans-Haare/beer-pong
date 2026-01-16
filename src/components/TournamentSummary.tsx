@@ -1,5 +1,6 @@
 import { TournamentStanding } from '@prisma/client';
 import TournamentTable from '@/components/TournamentTable';
+import { Trophy, Target, Shield, BarChart3 } from 'lucide-react';
 
 interface TournamentSummaryProps {
     tournamentId: string;
@@ -121,8 +122,8 @@ export default function TournamentSummary({
                     background: 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.1))',
                     border: '2px solid gold'
                 }}>
-                    <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-4)' }}>
-                        🏆 Sieger: {winner.player?.name || 'TBD'}
+                    <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                        <Trophy size={32} color="#FFD700" /> Sieger: {winner.player?.name || 'TBD'}
                     </h2>
                     <div style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)' }}>
                         {winner.points} Punkte • {winner.won} Siege • {winner.goalsFor}:{winner.goalsAgainst} Becher
@@ -148,7 +149,7 @@ export default function TournamentSummary({
                         background: 'rgba(192,192,192,0.1)',
                         border: '1px solid silver'
                     }}>
-                        <div style={{ fontSize: '3rem' }}>🥈</div>
+                        <div style={{ fontSize: '2.5rem', color: 'silver' }}>2.</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
                             {topThree[1]?.player?.name}
                         </div>
@@ -166,7 +167,7 @@ export default function TournamentSummary({
                         border: '2px solid gold',
                         transform: 'scale(1.1)'
                     }}>
-                        <div style={{ fontSize: '4rem' }}>🥇</div>
+                        <div><Trophy size={48} color="#FFD700" /></div>
                         <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
                             {topThree[0]?.player?.name}
                         </div>
@@ -183,7 +184,7 @@ export default function TournamentSummary({
                         background: 'rgba(205,127,50,0.1)',
                         border: '1px solid #CD7F32'
                     }}>
-                        <div style={{ fontSize: '3rem' }}>🥉</div>
+                        <div style={{ fontSize: '2.5rem', color: '#CD7F32' }}>3.</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
                             {topThree[2]?.player?.name}
                         </div>
@@ -217,8 +218,8 @@ export default function TournamentSummary({
 
                 {bestScorer && (
                     <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)' }}>
-                            ⚽ {bestScorer.player?.name}
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Target size={20} /> {bestScorer.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
                             Bester Angreifer ({bestScorer.goalsFor} Becher)
@@ -228,8 +229,8 @@ export default function TournamentSummary({
 
                 {bestDefense && (
                     <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)' }}>
-                            🛡️ {bestDefense.player?.name}
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Shield size={20} /> {bestDefense.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
                             Beste Verteidigung ({bestDefense.goalsAgainst} Gegenbecher)
@@ -241,8 +242,8 @@ export default function TournamentSummary({
             {/* Final Standings */}
             {effectiveStandings.length > 0 && (
                 <div style={{ marginTop: 'var(--spacing-8)' }}>
-                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>
-                        📊 Endstand
+                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <BarChart3 size={24} /> Endstand
                     </h2>
                     <TournamentTable standings={effectiveStandings.map(s => ({
                         playerId: s.playerId,

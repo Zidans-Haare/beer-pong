@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createGuestPlayer } from '@/app/actions/guests';
 import { haptic } from '@/lib/haptics';
+import { UserPlus } from 'lucide-react';
 
 interface Props {
   tournamentId: string;
@@ -104,7 +105,7 @@ export default function GuestJoinForm({ tournamentId }: Props) {
           cursor: loading || name.trim().length < 2 ? 'not-allowed' : 'pointer'
         }}
       >
-        {loading ? 'Moment...' : '🎉 Mitmachen!'}
+        {loading ? 'Moment...' : <><UserPlus size={20} style={{ marginRight: '8px' }} /> Mitmachen!</>}
       </button>
 
       <p style={{

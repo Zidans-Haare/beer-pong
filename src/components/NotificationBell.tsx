@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/app/actions/notifications';
 import { usePathname, useRouter } from 'next/navigation';
 import NotificationSettingsDialog from './NotificationSettingsDialog';
-import { Settings } from 'lucide-react';
+import { Settings, Bell } from 'lucide-react';
 
 type Notification = {
     id: string;
@@ -108,7 +108,7 @@ export default function NotificationBell() {
 
                         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
                             <span className="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
-                                🔔 Benachrichtigungen
+                                <Bell size={16} /> Benachrichtigungen
                             </span>
                             <div className="flex gap-2 items-center">
                                 {unreadCount > 0 && (

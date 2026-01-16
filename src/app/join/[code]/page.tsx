@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import GuestJoinForm from './GuestJoinForm';
 import { isGuestForTournament } from '@/app/actions/guests';
 import { autoJoinInstantTournament } from '@/app/actions/rsvp';
+import { PartyPopper } from 'lucide-react';
 
 interface Props {
   params: Promise<{ code: string }>;
@@ -66,7 +67,7 @@ export default async function JoinByCodePage({ params }: Props) {
   return (
     <div className="container" style={{ maxWidth: '500px', padding: 'var(--spacing-6)' }}>
       <div className="glass-panel" style={{ padding: 'var(--spacing-6)', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: 'var(--spacing-4)' }}>🎉</div>
+        <div style={{ marginBottom: 'var(--spacing-4)', color: '#9b59b6' }}><PartyPopper size={48} /></div>
         <h1 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-2)' }}>
           {tournament.name}
         </h1>

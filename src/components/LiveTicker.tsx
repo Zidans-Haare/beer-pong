@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getTickerEvents } from '@/app/actions/ticker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Mic, Beer, Flag, Info } from 'lucide-react';
 
 interface TickerEvent {
     id: string;
@@ -58,10 +58,10 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                                     }`}
                             >
                                 <div className="flex justify-between items-start mb-1">
-                                    <span className="font-bold text-xs uppercase opacity-70">
-                                        {event.type === 'COMMENTARY' ? '🎙️ AI Kommentator' :
-                                            event.type === 'SCORE_UPDATE' ? '🍺 Becher' :
-                                                event.type === 'MATCH_END' ? '🏁 Spielende' : 'Info'}
+                                    <span className="font-bold text-xs uppercase opacity-70" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                        {event.type === 'COMMENTARY' ? <><Mic size={12} /> AI Kommentator</> :
+                                            event.type === 'SCORE_UPDATE' ? <><Beer size={12} /> Becher</> :
+                                                event.type === 'MATCH_END' ? <><Flag size={12} /> Spielende</> : <><Info size={12} /> Info</>}
                                     </span>
                                     <span className="text-xs opacity-50">
                                         {new Date(event.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

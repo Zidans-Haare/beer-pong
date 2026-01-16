@@ -2,7 +2,7 @@
 
 import { updateMatchResult } from '@/app/actions/matches';
 import { useState } from 'react';
-import { getTeamDisplayName } from '@/lib/teams';
+import { getTeamDisplayName } from '@/lib/team-utils';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
     const isTeamMatch = !!match.team1Id && !!match.team2Id;

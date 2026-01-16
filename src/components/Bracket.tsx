@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
-import { getTeamDisplayName } from '@/lib/teams';
+import { getTeamDisplayName } from '@/lib/team-utils';
 
 export default function Bracket({ matches }: { matches: any[] }) {
     const [editingMatch, setEditingMatch] = useState<any>(null);

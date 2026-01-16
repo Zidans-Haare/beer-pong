@@ -4,7 +4,7 @@ import { createTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
 import { useState, useRef } from 'react';
-import { Users, User } from 'lucide-react';
+import { Users, User, Trophy, PartyPopper, Play, Calendar, Mail, CalendarPlus, Megaphone } from 'lucide-react';
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
@@ -34,7 +34,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const mailtoLink = (() => {
         if (!createdTournament) return '#';
         const subject = encodeURIComponent(`Bierpong Turnier: ${createdTournament.name}`);
-        const body = encodeURIComponent(`Hallo Leute,\n\nes steht ein neues Bierpong-Turnier an!\n\n📅 Wann: ${new Date(createdTournament.date).toLocaleString()}\n📍 Wo: ${createdTournament.location}\n🏆 Modus: ${createdTournament.type}\n\nBitte gebt Bescheid ob ihr dabei seid!\n\nViele Grüße,\nDer Host`);
+        const body = encodeURIComponent(`Hallo Leute,\n\nes steht ein neues Bierpong-Turnier an!\n\nWann: ${new Date(createdTournament.date).toLocaleString()}\nWo: ${createdTournament.location}\nModus: ${createdTournament.type}\n\nBitte gebt Bescheid ob ihr dabei seid!\n\nViele Grüße,\nDer Host`);
         const recipients = participantEmails.join(',');
         return `mailto:${recipients}?subject=${subject}&body=${body}`;
     })();
@@ -44,7 +44,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
         if (!createdTournament) return;
         const { generateICS } = await import('@/lib/ics');
         const icsContent = generateICS({
-            title: `🏆 ${createdTournament.name}`,
+            title: createdTournament.name,
             description: `Bierpong Turnier (${createdTournament.type})`,
             location: createdTournament.location,
             start: new Date(createdTournament.date),
@@ -64,7 +64,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     if (createdTournament) {
         return (
             <div className="glass-panel" style={{ textAlign: 'center', padding: 'var(--spacing-8)' }}>
-                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)' }}>Turnier erfolgreich erstellt! 🎉</h2>
+                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)' }}>Turnier erfolgreich erstellt!</h2>
                 <p style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)' }}>
                     Das Turnier "{createdTournament.name}" wurde angelegt. <br />
                     Jetzt Teilnehmer einladen?
@@ -72,11 +72,11 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 
                 <div style={{ display: 'grid', gap: 'var(--spacing-4)', maxWidth: '400px', margin: '0 auto' }}>
                     <a href={mailtoLink} target="_blank" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', textDecoration: 'none' }}>
-                        📧 Email an alle ({participantEmails.length})
+                        <Mail size={18} /> Email an alle ({participantEmails.length})
                     </a>
 
                     <button onClick={downloadICS} className="btn" style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)' }}>
-                        📅 Kalendereintrag (.ics)
+                        <CalendarPlus size={18} /> Kalendereintrag (.ics)
                     </button>
 
                     <button
@@ -91,12 +91,12 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                                 type: 'TOURNAMENT',
                                 link: `/tournaments/${createdTournament.id}`
                             });
-                            alert('📢 Benachrichtigung gesendet!');
+                            alert('Benachrichtigung gesendet!');
                         }}
                         className="btn"
                         style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', color: 'var(--color-primary)' }}
                     >
-                        📢 App-Benachrichtigung (Manuell)
+                        <Megaphone size={18} /> App-Benachrichtigung (Manuell)
                     </button>
 
                     <button onClick={() => router.push('/tournaments')} className="btn" style={{ marginTop: 'var(--spacing-2)' }}>
@@ -227,7 +227,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            <span style={{ fontSize: '1.5rem' }}>🏆</span>
+                            <Trophy size={24} style={{ color: isRanked ? '#FFD700' : 'var(--color-text-dim)' }} />
                             <span style={{ fontWeight: 'bold', color: isRanked ? '#FFD700' : 'var(--color-text)' }}>Liga-Turnier</span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center' }}>Zählt in Statistik</span>
                         </button>
@@ -247,7 +247,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            <span style={{ fontSize: '1.5rem' }}>🎉</span>
+                            <PartyPopper size={24} style={{ color: !isRanked ? '#9b59b6' : 'var(--color-text-dim)' }} />
                             <span style={{ fontWeight: 'bold', color: !isRanked ? '#9b59b6' : 'var(--color-text)' }}>Spaß-Turnier</span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center' }}>Gäste erlaubt</span>
                         </button>
@@ -268,8 +268,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     <label htmlFor="hasReturnLeg" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-secondary)' }}>Rückrunde spielen? (Hin- & Rückspiel)</label>
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ marginTop: 'var(--spacing-4)', padding: 'var(--spacing-4)', fontSize: '1.1rem' }}>
-                    {startImmediately ? '🚀 Turnier-Lobby öffnen' : '📅 Turnier planen'}
+                <button type="submit" className="btn btn-primary" style={{ marginTop: 'var(--spacing-4)', padding: 'var(--spacing-4)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    {startImmediately ? <><Play size={20} /> Turnier-Lobby öffnen</> : <><Calendar size={20} /> Turnier planen</>}
                 </button>
             </form>
         </div>

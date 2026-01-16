@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { sendManualBroadcast } from '@/app/actions/notifications';
-import { Send, Bell } from 'lucide-react';
+import { Send, Bell, Megaphone, Trophy, AlertTriangle, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function BroadcastPage() {
@@ -121,10 +121,10 @@ export default function BroadcastPage() {
                                 outline: 'none'
                             }}
                         >
-                            <option value="UPDATE" style={{ background: '#1e293b' }}>📢 Update (Allgemein)</option>
-                            <option value="TOURNAMENT" style={{ background: '#1e293b' }}>🏆 Turnier Info</option>
-                            <option value="SYSTEM" style={{ background: '#1e293b' }}>⚠️ System</option>
-                            <option value="GENERIC" style={{ background: '#1e293b' }}>📝 Sonstiges</option>
+                            <option value="UPDATE" style={{ background: '#1e293b' }}>Update (Allgemein)</option>
+                            <option value="TOURNAMENT" style={{ background: '#1e293b' }}>Turnier Info</option>
+                            <option value="SYSTEM" style={{ background: '#1e293b' }}>System</option>
+                            <option value="GENERIC" style={{ background: '#1e293b' }}>Sonstiges</option>
                         </select>
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '8px' }}>
                             Nur Nutzer, die diesen Benachrichtigungstyp aktiviert haben, erhalten die Nachricht.
@@ -152,13 +152,13 @@ export default function BroadcastPage() {
 
                     {status === 'success' && (
                         <div style={{ padding: '12px', background: 'rgba(34,197,94,0.1)', color: 'var(--color-success)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                            ✅ {message}
+                            {message}
                         </div>
                     )}
 
                     {status === 'error' && (
                         <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', color: 'var(--color-error)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                            ❌ {message}
+                            {message}
                         </div>
                     )}
                 </form>

@@ -1,6 +1,6 @@
 import { getAllPlayerStats } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
-import { Trophy, Medal, Crown } from 'lucide-react';
+import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +24,7 @@ export default async function StatsPage() {
                     fontSize: '0.8rem',
                     color: '#FFD700'
                 }}>
-                    <span>🏆</span>
+                    <Trophy size={14} />
                     Nur Liga-Turniere (keine Spaß-Turniere)
                 </div>
             </header>
@@ -82,7 +82,7 @@ export default async function StatsPage() {
                                                 {s.tournamentsWon > 0 ? (
                                                     <>
                                                         <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.tournamentsWon}</span>
-                                                        <span>{'🏆'.repeat(Math.min(s.tournamentsWon, 3))}</span>
+                                                        <span style={{ display: 'inline-flex', gap: '2px' }}>{Array.from({ length: Math.min(s.tournamentsWon, 3) }).map((_, i) => <Trophy key={i} size={14} color="#FFD700" />)}</span>
                                                         {s.tournamentsWon > 3 && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>+{s.tournamentsWon - 3}</span>}
                                                     </>
                                                 ) : '-'}
@@ -99,7 +99,7 @@ export default async function StatsPage() {
             {/* Special Stats: Tournament Efficiency */}
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(255,215,0,0.05) 0%, transparent 100%)' }}>
-                    <div style={{ fontSize: '1.5rem' }}>⚡</div>
+                    <Zap size={24} color="#FFD700" />
                     <div>
                         <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Turnier-Effizienz</h2>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>

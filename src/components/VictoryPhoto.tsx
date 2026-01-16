@@ -47,7 +47,7 @@ export default function VictoryPhoto({
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `${winnerName} gewinnt! 🏆`,
+          title: `${winnerName} gewinnt!`,
           text: `${winnerName} vs ${loserName} (${score}) - ${tournamentName}`,
           files: [file],
         });

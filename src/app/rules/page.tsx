@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Flame } from 'lucide-react';
 
 export default function RulesPage() {
     return (
@@ -82,7 +83,7 @@ export default function RulesPage() {
                 </section>
 
                 <section style={{ marginBottom: 'var(--spacing-8)' }}>
-                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)' }}>On Fire 🔥</h2>
+                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>On Fire <Flame size={24} color="#FF6B6B" /></h2>
                     <p style={{ lineHeight: 1.6, color: 'var(--color-text-dim)' }}>
                         Wenn ein Spieler zwei Becher in Folge trifft, kann er "Heating Up" rufen.
                         Trifft er den dritten, ist er "On Fire" und darf werfen, bis er verfehlt.

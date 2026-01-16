@@ -29,34 +29,50 @@ export class MatchService {
     static async updateMatch(matchId: string, score1: number, score2: number) {
         const match = await prisma.match.findUnique({
             where: { id: matchId },
-            include: { tournament: true, player1: true, player2: true },
+            include: { tournament: true, player1: true, player2: true, team1: true, team2: true },
         });
 
         if (!match) throw new Error("Match not found");
 
-        const winnerId = score1 > score2 ? match.player1Id : (score2 > score1 ? match.player2Id : null);
+        const isTeamMatch = !!match.team1Id && !!match.team2Id;
         const wasPlayed = match.isPlayed;
+
+        // Determine winner (team or player based on match type)
+        let updateData: any = {
+            score1,
+            score2,
+            isPlayed: true,
+        };
+
+        if (isTeamMatch) {
+            updateData.winnerTeamId = score1 > score2 ? match.team1Id : (score2 > score1 ? match.team2Id : null);
+        } else {
+            updateData.winnerId = score1 > score2 ? match.player1Id : (score2 > score1 ? match.player2Id : null);
+        }
 
         // Update the match
         const updatedMatch = await prisma.match.update({
             where: { id: matchId },
-            data: {
-                score1,
-                score2,
-                winnerId,
-                isPlayed: true,
-            },
+            data: updateData,
         });
 
         // Record match duration for statistics
-        if (!wasPlayed && winnerId) {
+        const winner = isTeamMatch ? updateData.winnerTeamId : updateData.winnerId;
+        if (!wasPlayed && winner) {
             await recordMatchDuration(matchId, match.startedAt || undefined);
         }
 
         // Trigger Ticker Events
         if (match.tournamentId) {
-            const p1Name = match.player1?.name || "TBD";
-            const p2Name = match.player2?.name || "TBD";
+            let name1: string, name2: string;
+            if (isTeamMatch) {
+                const { getTeamDisplayName } = await import('@/lib/teams');
+                name1 = match.team1 ? getTeamDisplayName(match.team1) : "TBD";
+                name2 = match.team2 ? getTeamDisplayName(match.team2) : "TBD";
+            } else {
+                name1 = match.player1?.name || "TBD";
+                name2 = match.player2?.name || "TBD";
+            }
             const scoreString = `${score1}:${score2}`;
 
             // 1. Log Start/End/Score
@@ -64,7 +80,7 @@ export class MatchService {
                 await TickerService.createEvent(
                     match.tournamentId,
                     'MATCH_START',
-                    `Anstoß: ${p1Name} vs ${p2Name}`,
+                    `Anstoß: ${name1} vs ${name2}`,
                     matchId
                 );
             }
@@ -72,23 +88,33 @@ export class MatchService {
             await TickerService.createEvent(
                 match.tournamentId,
                 'SCORE_UPDATE',
-                `${p1Name} vs ${p2Name}: ${scoreString}`,
+                `${name1} vs ${name2}: ${scoreString}`,
                 matchId
             );
 
             // 2. Trigger AI Commentary (Async)
-            const context = `Match: ${p1Name} vs ${p2Name}. Neuer Spielstand: ${scoreString}.`;
+            const context = `Match: ${name1} vs ${name2}. Neuer Spielstand: ${scoreString}.`;
             TickerService.triggerCommentary(match.tournamentId, matchId, context);
         }
 
-        if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
-            await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-            await this.checkGroupStageCompletion(match.tournamentId);
-        } else if (match.stage === "LEAGUE") {
-            await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-            await this.checkLeagueCompletion(match.tournamentId);
-        } else if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
-            await this.checkBracketProgression(match.tournamentId, match.round, match.position, winnerId, match.id);
+        // Skip group standings for team matches (would need team standings table)
+        if (!isTeamMatch) {
+            if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
+                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
+                await this.checkGroupStageCompletion(match.tournamentId);
+            } else if (match.stage === "LEAGUE") {
+                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
+                await this.checkLeagueCompletion(match.tournamentId);
+            }
+        }
+        
+        if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {
+            // For team matches, we need to handle progression differently (using team IDs)
+            if (isTeamMatch) {
+                await this.checkBracketProgressionTeam(match.tournamentId, match.round, match.position, updateData.winnerTeamId, match.id);
+            } else {
+                await this.checkBracketProgression(match.tournamentId, match.round, match.position, updateData.winnerId, match.id);
+            }
         }
 
         return updatedMatch;
@@ -249,6 +275,86 @@ export class MatchService {
 
                     // Mark 3rd place match as started if both players are now set
                     if (updated3rd.player1Id && updated3rd.player2Id) {
+                        await markMatchStarted(thirdPlaceMatch.id);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Check bracket progression for team matches (using team IDs)
+     */
+    private static async checkBracketProgressionTeam(
+        tournamentId: string,
+        currentRound: number,
+        currentPosition: number,
+        winnerTeamId: string | null,
+        matchId: string
+    ) {
+        if (!winnerTeamId) return;
+
+        console.log(`[Progression] Checking Team Match ${matchId} (R:${currentRound}, P:${currentPosition}, WinnerTeam:${winnerTeamId})`);
+
+        const maxRoundMatch = await prisma.match.findFirst({
+            where: { tournamentId, stage: "BRACKET" },
+            orderBy: { round: 'desc' }
+        });
+        const maxRound = maxRoundMatch?.round || 0;
+
+        if (currentRound >= maxRound) {
+            const unplayed = await prisma.match.count({
+                where: { tournamentId, round: currentRound, stage: "BRACKET", isPlayed: false }
+            });
+            if (unplayed === 0) {
+                console.log("[Progression] Tournament Completed!");
+                await prisma.tournament.update({ where: { id: tournamentId }, data: { status: "COMPLETED" } });
+            }
+            return;
+        }
+
+        const nextRound = currentRound + 1;
+        const nextPosition = Math.floor(currentPosition / 2);
+        const isTeam1InNext = currentPosition % 2 === 0;
+
+        const nextMatch = await prisma.match.findFirst({
+            where: { tournamentId, round: nextRound, position: nextPosition, stage: "BRACKET" }
+        });
+
+        if (nextMatch) {
+            const updateData = isTeam1InNext ? { team1Id: winnerTeamId } : { team2Id: winnerTeamId };
+            console.log(`[Progression] Winner Team -> Match ${nextMatch.id} (Slot ${isTeam1InNext ? 'T1' : 'T2'})`);
+            const updated = await prisma.match.update({
+                where: { id: nextMatch.id },
+                data: updateData,
+                select: { team1Id: true, team2Id: true }
+            });
+
+            if (updated.team1Id && updated.team2Id) {
+                await markMatchStarted(nextMatch.id);
+            }
+        }
+
+        // 3rd Place Match for teams
+        if (currentRound === maxRound - 1) {
+            const thirdPlaceMatch = await prisma.match.findFirst({
+                where: { tournamentId, round: nextRound, position: 1, stage: "BRACKET" }
+            });
+
+            if (thirdPlaceMatch && thirdPlaceMatch.id !== nextMatch?.id) {
+                const completedMatch = await prisma.match.findUnique({ where: { id: matchId } });
+                const loserTeamId = completedMatch?.team1Id === winnerTeamId ? completedMatch?.team2Id : completedMatch?.team1Id;
+
+                if (loserTeamId) {
+                    const updateData = isTeam1InNext ? { team1Id: loserTeamId } : { team2Id: loserTeamId };
+                    console.log(`[Progression] Loser Team -> 3rd Place Match ${thirdPlaceMatch.id}`);
+                    const updated3rd = await prisma.match.update({
+                        where: { id: thirdPlaceMatch.id },
+                        data: updateData,
+                        select: { team1Id: true, team2Id: true }
+                    });
+
+                    if (updated3rd.team1Id && updated3rd.team2Id) {
                         await markMatchStarted(thirdPlaceMatch.id);
                     }
                 }

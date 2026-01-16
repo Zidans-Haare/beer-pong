@@ -9,6 +9,7 @@ import { markMatchStarted } from "@/lib/duration";
 export class TournamentService {
     /**
      * Starts a tournament by setting status to ACTIVE and generating initial matches.
+     * Supports both registered players (via RSVPs) and guests (for Spaß-Turniere).
      */
     static async startTournament(tournamentId: string) {
         const tournament = await prisma.tournament.findUnique({
@@ -17,19 +18,124 @@ export class TournamentService {
                 rsvps: {
                     where: { status: 'YES' },
                     include: { player: true }
+                },
+                guests: {
+                    where: { expiresAt: { gt: new Date() } }
+                },
+                teams: {
+                    include: {
+                        player1: true,
+                        player2: true,
+                        guest1: true,
+                        guest2: true
+                    }
                 }
             },
         });
 
         if (!tournament) throw new Error("Tournament not found");
 
-        const players = tournament.rsvps.map(p => ({ id: p.playerId }));
-        const playerIds = tournament.rsvps.map(p => p.playerId);
+        // TEAM MODE: Use teams instead of individual players
+        if (tournament.mode === 'TEAM') {
+            const teams = tournament.teams;
+            
+            if (teams.length < 2) {
+                throw new Error("Mindestens 2 Teams erforderlich für Team-Modus.");
+            }
 
-        if (playerIds.length < 2) throw new Error("Mindestens 2 Teilnehmer (Dabei) erforderlich.");
+            // Generate matches using team IDs
+            let matches: any[] = [];
+            const teamIds = teams.map(t => ({ id: t.id }));
 
-        // Sync participants for consistency (optional but good for schema health)
-        for (const pid of playerIds) {
+            if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
+                matches = this.generateTeamBracket(tournamentId, teamIds);
+            } else if (tournament.type === "GROUP_AND_KNOCKOUT" || tournament.type === "GROUPS") {
+                if (teams.length < 4) {
+                    throw new Error("Gruppenphasen-Turniere benötigen mindestens 4 Teams. Verwende stattdessen 'Jeder gegen Jeden' oder 'K.O.-System'.");
+                }
+                matches = this.generateTeamGroupMatches(tournamentId, teams.map(t => t.id), tournament.hasReturnLeg);
+            } else if (tournament.type === "ROUND_ROBIN") {
+                matches = this.generateTeamRoundRobin(tournamentId, teams.map(t => t.id), tournament.hasReturnLeg);
+            }
+
+            // Save Team Matches (with team1Id/team2Id)
+            if (matches.length > 0) {
+                await prisma.match.createMany({
+                    data: matches.map(m => ({
+                        tournamentId: m.tournamentId,
+                        team1Id: m.team1Id,
+                        team2Id: m.team2Id,
+                        round: m.round,
+                        position: m.position,
+                        stage: m.stage,
+                        isPlayed: m.isPlayed || false,
+                        winnerTeamId: m.winnerTeamId || null
+                    }))
+                });
+            }
+
+            // Update status
+            await prisma.tournament.update({
+                where: { id: tournamentId },
+                data: { status: "ACTIVE" },
+            });
+
+            // Mark all playable matches as started
+            const playableMatches = await prisma.match.findMany({
+                where: {
+                    tournamentId,
+                    isPlayed: false,
+                    team1Id: { not: null },
+                    team2Id: { not: null }
+                }
+            });
+
+            for (const match of playableMatches) {
+                await markMatchStarted(match.id);
+            }
+
+            return;
+        }
+
+        // SOLO MODE: Original logic using player IDs
+        // Collect all participants
+        const playerIds: string[] = tournament.rsvps.map(p => p.playerId);
+
+        // For guests in Spaß-Turniere, create temporary player records
+        const guestPlayerIds: string[] = [];
+        if (tournament.guests.length > 0) {
+            for (const guest of tournament.guests) {
+                // Check if a player with this guest's name already exists (reuse if possible)
+                // Or create a new "guest" player entry
+                let guestPlayer = await prisma.player.findFirst({
+                    where: {
+                        name: guest.name,
+                        isGuest: true
+                    }
+                });
+
+                if (!guestPlayer) {
+                    guestPlayer = await prisma.player.create({
+                        data: {
+                            name: guest.name,
+                            isGuest: true
+                        }
+                    });
+                }
+
+                guestPlayerIds.push(guestPlayer.id);
+            }
+        }
+
+        // Combine all participant IDs
+        const allPlayerIds = [...playerIds, ...guestPlayerIds];
+
+        if (allPlayerIds.length < 2) {
+            throw new Error("Mindestens 2 Teilnehmer erforderlich (Spieler oder Gäste).");
+        }
+
+        // Sync participants for consistency
+        for (const pid of allPlayerIds) {
             await prisma.tournamentParticipant.upsert({
                 where: { tournamentId_playerId: { tournamentId, playerId: pid } },
                 update: {},
@@ -38,30 +144,21 @@ export class TournamentService {
         }
 
         let matches: any[] = [];
+        const players = allPlayerIds.map(id => ({ id }));
 
         if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
             matches = generateSingleEliminationBracket(tournamentId, players);
         } else if (tournament.type === "GROUP_AND_KNOCKOUT" || tournament.type === "GROUPS") {
-            // Groups require at least 4 players (2 per group minimum)
-            if (playerIds.length < 4) {
+            if (allPlayerIds.length < 4) {
                 throw new Error("Gruppenphasen-Turniere benötigen mindestens 4 Teilnehmer. Verwende stattdessen 'Jeder gegen Jeden' oder 'K.O.-System'.");
             }
 
-            matches = generateGroupStageMatches(tournamentId, playerIds, tournament.hasReturnLeg);
-
-            // Create Standings for Groups
-            const mid = Math.ceil(playerIds.length / 2);
-            // Standings are created during match generation in older logic, but here we need them for stats
-            // We'll follow the group split from generateGroupStageMatches (sequential for standings is fine as long as matches match)
-            // Wait, brackets.ts shuffles internally. This is a bit tricky if we want to match standings.
-            // Let's adjust brackets.ts or handle standings here.
-            // Actually, TournamentService.generateGroupStage did its own shuffle.
-            // To be safe, let's just create standings for all participants and assign them to the correct group based on the generated matches.
+            matches = generateGroupStageMatches(tournamentId, allPlayerIds, tournament.hasReturnLeg);
         } else if (tournament.type === "ROUND_ROBIN") {
-            matches = generateRoundRobinMatches(tournamentId, playerIds, tournament.hasReturnLeg);
+            matches = generateRoundRobinMatches(tournamentId, allPlayerIds, tournament.hasReturnLeg);
 
             // Create Standings for League
-            for (const pid of playerIds) {
+            for (const pid of allPlayerIds) {
                 await prisma.tournamentStanding.upsert({
                     where: { tournamentId_playerId: { tournamentId, playerId: pid } },
                     update: {},
@@ -70,16 +167,15 @@ export class TournamentService {
             }
         }
 
-        // Handle Standings for Groups (Special Case)
+        // Handle Standings for Groups
         if (tournament.type === "GROUPS" || tournament.type === "GROUP_AND_KNOCKOUT") {
-            // Find which player is in which stage (GROUP_1 or GROUP_2) from the generated matches
             const group1Players = new Set<string>();
             const group2Players = new Set<string>();
 
             matches.forEach(m => {
                 if (m.stage === 'GROUP_1') {
                     if (m.player1Id) group1Players.add(m.player1Id);
-                    if (m.player2Id) group1Players.add(m.player2Id);
+                    if (m.player2Id) group2Players.add(m.player2Id);
                 } else if (m.stage === 'GROUP_2') {
                     if (m.player1Id) group2Players.add(m.player1Id);
                     if (m.player2Id) group2Players.add(m.player2Id);
@@ -104,7 +200,6 @@ export class TournamentService {
 
         // Save Matches
         if (matches.length > 0) {
-            // Prisma createMany is faster
             await prisma.match.createMany({
                 data: matches.map(m => ({
                     tournamentId: m.tournamentId,
@@ -125,7 +220,7 @@ export class TournamentService {
             data: { status: "ACTIVE" },
         });
 
-        // Handle Bye-Matches: Automatically advance winners to next round
+        // Handle Bye-Matches
         if (tournament.type === "SINGLE_ELIMINATION" || tournament.type === "ELIMINATION") {
             const byeMatches = await prisma.match.findMany({
                 where: {
@@ -136,7 +231,6 @@ export class TournamentService {
                 }
             });
 
-            // Use MatchService to properly advance bye winners
             const { MatchService } = await import('./MatchService');
             for (const byeMatch of byeMatches) {
                 if (byeMatch.winnerId) {
@@ -150,7 +244,7 @@ export class TournamentService {
             }
         }
 
-        // Mark all playable matches as started (both players assigned, not yet played)
+        // Mark all playable matches as started
         const playableMatches = await prisma.match.findMany({
             where: {
                 tournamentId,
@@ -169,7 +263,6 @@ export class TournamentService {
      * Generates Knockout phase (Bracket) from Group standings.
      */
     static async generateKnockoutFromGroups(tournamentId: string) {
-        // Fetch all standings
         const standings = await prisma.tournamentStanding.findMany({
             where: { tournamentId },
             orderBy: [
@@ -192,7 +285,6 @@ export class TournamentService {
             if (groupStandings[1]) qualified.push({ playerId: groupStandings[1].playerId, rank: 2, groupId: groupStandings[1].groupId });
         });
 
-        // 1. Create the Semi-Finals matches
         if (qualified.length === 4) {
             const semi1 = await prisma.match.create({
                 data: { tournamentId, player1Id: qualified[0].playerId, player2Id: qualified[3].playerId, round: 1, position: 0, stage: "BRACKET" }
@@ -201,21 +293,17 @@ export class TournamentService {
                 data: { tournamentId, player1Id: qualified[2].playerId, player2Id: qualified[1].playerId, round: 1, position: 1, stage: "BRACKET" }
             });
 
-            // Mark semi-finals as started (both players are set)
             await markMatchStarted(semi1.id);
             await markMatchStarted(semi2.id);
 
-            // 2. Create the Final Placeholder (Round 2, Position 0)
             await prisma.match.create({
                 data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 0, stage: "BRACKET" }
             });
 
-            // 3. Create 3rd Place Placeholder (Round 2, Position 1)
             await prisma.match.create({
                 data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 1, stage: "BRACKET" }
             });
         } else {
-            // Fallback for different group counts
             const createdMatches: string[] = [];
             for (let i = 0; i < qualified.length; i += 2) {
                 if (qualified[i] && qualified[i + 1]) {
@@ -225,7 +313,7 @@ export class TournamentService {
                     createdMatches.push(match.id);
                 }
             }
-            // Mark all created matches as started
+
             for (const matchId of createdMatches) {
                 await markMatchStarted(matchId);
             }
@@ -237,5 +325,187 @@ export class TournamentService {
                 });
             }
         }
+    }
+
+    /**
+     * Generate bracket matches for team mode (using team IDs instead of player IDs)
+     */
+    private static generateTeamBracket(tournamentId: string, teams: { id: string }[]): any[] {
+        // Shuffle teams
+        const shuffled = [...teams];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        const numTeams = shuffled.length;
+        let size = 2;
+        while (size < numTeams) size *= 2;
+
+        const matches: any[] = [];
+        const rounds = Math.ceil(Math.log2(size));
+
+        // Round 1 matches
+        const r1MatchesCount = size / 2;
+        for (let m = 0; m < r1MatchesCount; m++) {
+            const t1 = shuffled[m * 2] || null;
+            const t2 = shuffled[m * 2 + 1] || null;
+            const isBye = t1 && !t2;
+
+            matches.push({
+                tournamentId,
+                round: 1,
+                position: m,
+                stage: 'BRACKET',
+                team1Id: t1?.id || null,
+                team2Id: t2?.id || null,
+                isPlayed: isBye ? true : false,
+                winnerTeamId: isBye ? t1.id : null
+            });
+        }
+
+        // Future Rounds (Placeholders)
+        for (let r = 2; r <= rounds; r++) {
+            const matchesInRound = size / Math.pow(2, r);
+            for (let m = 0; m < matchesInRound; m++) {
+                matches.push({
+                    tournamentId,
+                    round: r,
+                    position: m,
+                    stage: 'BRACKET',
+                    team1Id: null,
+                    team2Id: null,
+                    isPlayed: false
+                });
+            }
+        }
+
+        // Add Third Place Match
+        if (rounds > 1) {
+            matches.push({
+                tournamentId,
+                round: rounds,
+                position: 1,
+                stage: 'BRACKET',
+                team1Id: null,
+                team2Id: null,
+                isPlayed: false
+            });
+        }
+
+        return matches;
+    }
+
+    /**
+     * Generate round-robin matches for teams
+     */
+    private static generateTeamRoundRobin(tournamentId: string, teamIds: string[], hasReturnLeg: boolean = false): any[] {
+        const matches: any[] = [];
+        const n = teamIds.length;
+        const isOdd = n % 2 !== 0;
+        const teams = isOdd ? [...teamIds, null] : teamIds;
+        const numTeams = teams.length;
+        const numRounds = numTeams - 1;
+        const half = numTeams / 2;
+
+        const rotatingTeams = teams.slice(0, numTeams - 1);
+        const lastTeam = teams[numTeams - 1];
+
+        for (let round = 0; round < numRounds; round++) {
+            // Pair with fixed team
+            const t1 = rotatingTeams[0];
+            const t2 = lastTeam;
+            if (t1 && t2) {
+                matches.push({
+                    tournamentId,
+                    team1Id: t1,
+                    team2Id: t2,
+                    round: round + 1,
+                    position: round * half,
+                    stage: 'LEAGUE',
+                    isPlayed: false
+                });
+
+                if (hasReturnLeg) {
+                    matches.push({
+                        tournamentId,
+                        team1Id: t2,
+                        team2Id: t1,
+                        round: round + 1,
+                        position: 100000 + (round * half),
+                        stage: 'LEAGUE',
+                        isPlayed: false
+                    });
+                }
+            }
+
+            // Pair others
+            for (let i = 1; i < half; i++) {
+                const a = rotatingTeams[i];
+                const b = rotatingTeams[rotatingTeams.length - i];
+                if (a && b) {
+                    matches.push({
+                        tournamentId,
+                        team1Id: a,
+                        team2Id: b,
+                        round: round + 1,
+                        position: round * half + i,
+                        stage: 'LEAGUE',
+                        isPlayed: false
+                    });
+
+                    if (hasReturnLeg) {
+                        matches.push({
+                            tournamentId,
+                            team1Id: b,
+                            team2Id: a,
+                            round: round + 1,
+                            position: 100000 + (round * half) + i,
+                            stage: 'LEAGUE',
+                            isPlayed: false
+                        });
+                    }
+                }
+            }
+
+            // Rotate
+            const first = rotatingTeams.shift();
+            if (first) rotatingTeams.push(first);
+        }
+
+        return matches;
+    }
+
+    /**
+     * Generate group matches for teams
+     */
+    private static generateTeamGroupMatches(tournamentId: string, teamIds: string[], hasReturnLeg: boolean = false): any[] {
+        const shuffled = [...teamIds];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        const half = Math.floor(shuffled.length / 2);
+        const group1 = shuffled.slice(0, half);
+        const group2 = shuffled.slice(half);
+
+        const matches: any[] = [];
+
+        // Group 1 matches
+        const g1Matches = this.generateTeamRoundRobin(tournamentId, group1, hasReturnLeg);
+        g1Matches.forEach(m => {
+            m.stage = 'GROUP_1';
+            matches.push(m);
+        });
+
+        // Group 2 matches
+        const g2Matches = this.generateTeamRoundRobin(tournamentId, group2, hasReturnLeg);
+        g2Matches.forEach(m => {
+            m.stage = 'GROUP_2';
+            matches.push(m);
+        });
+
+        return matches;
     }
 }

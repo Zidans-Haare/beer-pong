@@ -30,16 +30,18 @@ export default function FinishTournamentButton({ tournamentId }: { tournamentId:
             style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '8px',
+                width: '100%',
                 background: 'rgba(39, 174, 96, 0.1)',
                 border: '1px solid var(--color-success)',
                 color: 'var(--color-success)',
-                padding: 'var(--spacing-3) var(--spacing-4)',
+                padding: 'var(--spacing-4)',
                 fontWeight: 500,
                 opacity: isLoading ? 0.7 : 1
             }}
         >
-            <Flag size={16} />
+            <Flag size={20} />
             {isLoading ? 'Beendet...' : 'Turnier beenden'}
         </button>
     );

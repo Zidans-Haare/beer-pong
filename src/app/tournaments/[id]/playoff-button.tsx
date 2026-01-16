@@ -26,16 +26,18 @@ export default function StartPlayoffsButton({ tournamentId }: { tournamentId: st
             style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '8px',
+                width: '100%',
                 background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                 color: '#1a1a2e',
                 fontWeight: 600,
-                padding: 'var(--spacing-3) var(--spacing-4)',
+                padding: 'var(--spacing-4)',
                 border: 'none',
                 opacity: isLoading ? 0.7 : 1
             }}
         >
-            <Trophy size={18} />
+            <Trophy size={20} />
             {isLoading ? 'Generiert...' : 'Finale starten'}
         </button>
     );

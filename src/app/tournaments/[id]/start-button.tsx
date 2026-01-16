@@ -26,13 +26,15 @@ export default function StartTournamentButton({ tournamentId }: { tournamentId: 
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                padding: 'var(--spacing-3) var(--spacing-5)',
+                width: '100%',
+                padding: '0 var(--spacing-4)',
+                height: '60px',
                 fontSize: '1rem',
                 fontWeight: 600,
                 opacity: isLoading ? 0.7 : 1
             }}
         >
-            <Play size={18} fill="currentColor" />
+            <Play size={20} fill="currentColor" />
             {isLoading ? 'Startet...' : 'Turnier starten'}
         </button>
     );

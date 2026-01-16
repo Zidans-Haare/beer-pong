@@ -113,12 +113,12 @@ export default function TournamentHeader({
                         alignItems: 'center',
                         gap: '4px',
                         padding: '4px 10px',
-                        background: tournament.isRanked ? 'rgba(255, 215, 0, 0.12)' : 'rgba(155, 89, 182, 0.15)',
-                        border: `1px solid ${tournament.isRanked ? 'rgba(255, 215, 0, 0.5)' : 'rgba(155, 89, 182, 0.5)'}`,
+                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : 'rgba(155, 89, 182, 0.15)',
+                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : 'rgba(155, 89, 182, 0.5)'}`,
                         borderRadius: '99px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: tournament.isRanked ? '#FFD700' : '#9b59b6'
+                        color: tournament.isRanked ? '#d97706' : '#9b59b6'
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
                         {tournament.isRanked ? 'Liga' : 'Spaß'}
@@ -185,31 +185,29 @@ export default function TournamentHeader({
             {isPlanned && tournament.shortCode && (
                 <div style={{
                     marginTop: 'var(--spacing-4)',
-                    display: 'flex',
-                    flexWrap: 'nowrap', // Force single row
-                    alignItems: 'center',
-                    gap: '6px', // Reduced gap
-                    overflowX: 'auto', // Failsafe for very small screens
-                    scrollbarWidth: 'none' // Hide scrollbar
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 'var(--spacing-3)',
+                    width: '100%'
                 }}>
-                    <div style={{
-                        padding: '6px 8px', // Compact padding
-                        background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
+                    <div className="btn" style={{
+                        padding: '6px 10px',
+                        background: 'var(--color-surface)',
                         border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'inline-flex',
+                        color: 'var(--color-text)',
+                        display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        // flex: '1 1 auto', // Don't force grow excessively
                         justifyContent: 'center',
-                        minWidth: 'fit-content'
+                        gap: '8px',
+                        width: '100%',
+                        cursor: 'default'
                     }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>Code:</span>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>Code:</span>
                         <span style={{
                             fontFamily: 'monospace',
-                            fontSize: '1rem', // Slightly smaller
+                            fontSize: '1rem',
                             fontWeight: 700,
-                            letterSpacing: '1px', // Reduced spacing
+                            letterSpacing: '1px',
                             color: 'var(--color-primary)'
                         }}>
                             {tournament.shortCode}
@@ -219,10 +217,11 @@ export default function TournamentHeader({
                             style={{
                                 background: 'none',
                                 border: 'none',
-                                padding: '4px',
+                                padding: '0',
                                 cursor: 'pointer',
                                 color: 'var(--color-text-dim)',
-                                display: 'flex'
+                                display: 'flex',
+                                marginLeft: '4px'
                             }}
                             title="Link kopieren"
                         >

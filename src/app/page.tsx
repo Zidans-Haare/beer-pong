@@ -1,6 +1,7 @@
 
 import LiveTournamentWidget from '@/components/dashboard/LiveTournamentWidget';
 import DashboardStatsWidget from '@/components/dashboard/DashboardStatsWidget';
+import InstallPrompt from '@/components/InstallPrompt';
 import { getAllPlayerStats } from '@/lib/stats';
 
 export default async function Home() {
@@ -20,6 +21,9 @@ export default async function Home() {
         gridTemplateColumns: '1fr',
         gap: 'var(--spacing-6)'
       }}>
+        {/* Install Prompt */}
+        <InstallPrompt />
+
         {/* Live Widget */}
         <LiveTournamentWidget />
 

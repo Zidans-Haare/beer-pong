@@ -13,7 +13,7 @@ export default async function PlayersPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
                 <div>
                     <h1 className="title-display" style={{ fontSize: '2rem' }}>Spieler</h1>
-                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>Die Elite der Liga</p>
+
                 </div>
                 <InviteButton />
             </div>

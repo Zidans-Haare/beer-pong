@@ -119,7 +119,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     border: '1px solid',
                                     borderColor: range === opt.id ? 'var(--color-primary)' : 'transparent',
                                     background: range === opt.id ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
-                                    color: range === opt.id ? 'white' : 'var(--color-text-dim)',
+                                    color: range === opt.id ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                     borderRadius: '6px',
                                     padding: '6px 12px',
                                     fontSize: '0.75rem',

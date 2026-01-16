@@ -191,13 +191,13 @@ export default function TournamentHeader({
                     gap: '8px'
                 }}>
                     <div style={{
-                        padding: '8px 12px',
+                        padding: '8px 10px',
                         background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
                         border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-md)',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: '6px',
                         flex: '1 1 auto',
                         justifyContent: 'center',
                         minWidth: 'fit-content'
@@ -205,7 +205,7 @@ export default function TournamentHeader({
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>Code:</span>
                         <span style={{
                             fontFamily: 'monospace',
-                            fontSize: '1.2rem',
+                            fontSize: '1.1rem',
                             fontWeight: 700,
                             letterSpacing: '2px',
                             color: 'var(--color-primary)'

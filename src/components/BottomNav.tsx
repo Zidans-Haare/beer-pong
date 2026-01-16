@@ -42,13 +42,13 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
                 <span className="nav-icon-glow"><QrCode size={24} /></span>
             </Link>
             <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`} onClick={handleNavClick}>
-                <div className="relative">
-                    <span className="nav-icon-glow"><Bell size={24} /></span>
+                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="nav-icon-glow" style={{ display: 'flex' }}><Bell size={24} /></span>
                     {unreadCount > 0 && (
                         <span style={{
                             position: 'absolute',
-                            top: '-4px',
-                            right: '-4px',
+                            top: '0',
+                            right: '0',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -60,7 +60,8 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
                             fontSize: '10px',
                             fontWeight: 700,
                             borderRadius: '9px',
-                            border: '2px solid var(--color-surface)'
+                            border: '2px solid var(--color-surface)',
+                            zIndex: 10
                         }}>
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>

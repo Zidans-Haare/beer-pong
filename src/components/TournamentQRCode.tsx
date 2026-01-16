@@ -81,8 +81,8 @@ export default function TournamentQRCode({
           color: 'white',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '12px 20px',
+          gap: '6px',
+          padding: '10px 14px',
         }}
       >
         <QrCode size={20} />

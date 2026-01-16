@@ -21,6 +21,7 @@ model Player {
   bio       String?
   motto     String?
   userId    String?  @unique // Link to Auth User
+  isGuest   Boolean  @default(false) // True for temporary guest players
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

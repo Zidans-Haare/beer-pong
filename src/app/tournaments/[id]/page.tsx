@@ -21,7 +21,7 @@ import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
 import TeamAssignment from '@/components/TeamAssignment';
-import { Users, User, Clock, Target } from 'lucide-react';
+import { Users, User, Clock, Target, ChevronRight, Zap } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -58,7 +58,6 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     const players = await getPlayers();
     const systemSettings = await getPublicSystemSettings();
 
-    // Determine effective settings
     const duration = tournament.matchDurationMin || systemSettings.matchDurationMin || 15;
     const tableCount = tournament.tableCount || systemSettings.tableCount || 1;
 
@@ -71,8 +70,6 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
     const currentPlayer = session?.user?.id ? players.find((p: any) => p.userId === session?.user?.id) : null;
     const waitTime = currentPlayer ? getEstimatedWaitTime(schedule, currentPlayer.id) : null;
-
-    // Get tournament time forecast for active tournaments
     const forecast = tournament.status === 'ACTIVE' ? await getTournamentForecast(tournament.id) : null;
 
     const isHost = session?.user?.id === tournament.hostId;
@@ -86,10 +83,8 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     const isCompleted = tournament.status === 'COMPLETED';
     const isTeamMode = tournament.mode === 'TEAM';
 
-    // Check if it's a "Now" tournament (instant lobby)
     const isInstantTournament = new Date(tournament.date).getTime() - new Date(tournament.createdAt).getTime() < 1000 * 60 * 60;
 
-    // Check if current user is the tournament winner
     const isCurrentUserWinner = (() => {
         if (!isCompleted || !currentPlayer) return false;
         const bracketMatches = tournament.matches.filter((m: any) => m.stage === 'BRACKET');
@@ -99,7 +94,6 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
         return finale?.winnerId === currentPlayer.id;
     })();
 
-    // Available players for team assignment (those who RSVP'd YES)
     const availablePlayers = yesRsvps.map((r: any) => ({
         id: r.player.id,
         name: r.player.name,
@@ -107,19 +101,29 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     }));
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
-            {/* Client-side features: Wake Lock & Confetti */}
+        <div className="container" style={{ paddingBottom: '120px' }}>
             <TournamentClientFeatures
                 tournamentId={tournament.id}
                 tournamentStatus={tournament.status}
                 isWinner={isCurrentUserWinner}
             />
 
-            <Link href="/tournaments" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-4)', display: 'inline-block' }}>
-                &larr; Zurück
+            <Link
+                href="/tournaments"
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    marginBottom: 'var(--spacing-4)',
+                    color: 'var(--color-text-dim)',
+                    fontSize: '0.9rem',
+                    textDecoration: 'none'
+                }}
+            >
+                <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                Alle Turniere
             </Link>
 
-            {/* Header with badges, info, and QR (for PLANNED) */}
             <TournamentHeader
                 tournament={{
                     id: tournament.id,
@@ -137,27 +141,29 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 showQR={isPlanned}
             />
 
-            {/* Warnings */}
+            {/* Warning: Odd participants */}
             {isPlanned && !isTeamMode && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (
-                <div className="glass-panel" style={{
-                    padding: 'var(--spacing-3)',
+                <div style={{
+                    padding: 'var(--spacing-3) var(--spacing-4)',
                     marginBottom: 'var(--spacing-4)',
-                    borderLeft: '4px solid orange',
-                    background: 'rgba(255, 165, 0, 0.1)',
-                    fontSize: '0.9rem'
+                    background: 'rgba(255, 165, 0, 0.08)',
+                    border: '1px solid rgba(255, 165, 0, 0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-2)'
                 }}>
-                    <strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong>
-                    <span style={{ color: 'var(--color-text-dim)', marginLeft: 'var(--spacing-2)' }}>
-                        Freilose werden automatisch generiert.
-                    </span>
+                    <Zap size={16} color="orange" />
+                    <span><strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong> – Freilose werden automatisch vergeben</span>
                 </div>
             )}
 
-            {/* ============ PLANNED: Lobby View ============ */}
+            {/* ============ PLANNED: Lobby ============ */}
             {isPlanned && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
 
-                    {/* Team Assignment (for TEAM mode) */}
+                    {/* Team Assignment */}
                     {isTeamMode && (
                         <TeamAssignment
                             tournamentId={tournament.id}
@@ -168,64 +174,129 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                         />
                     )}
 
-                    {/* Participant List */}
-                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                        <h3 style={{ marginBottom: 'var(--spacing-3)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                    {/* Participants */}
+                    <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                        <h3 style={{
+                            marginBottom: 'var(--spacing-4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 'var(--spacing-2)',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}>
                             {isTeamMode ? <Users size={18} /> : <User size={18} />}
-                            {isTeamMode ? 'Spieler & Gäste' : 'Teilnehmer'} ({yesCount + guestCount})
+                            {isTeamMode ? 'Verfügbare Spieler' : 'Teilnehmer'}
+                            <span style={{
+                                marginLeft: 'auto',
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                color: 'var(--color-text-dim)',
+                                background: 'rgba(255,255,255,0.05)',
+                                padding: '2px 8px',
+                                borderRadius: '99px'
+                            }}>
+                                {yesCount + guestCount}
+                            </span>
                         </h3>
 
                         {(yesCount + guestCount) === 0 ? (
-                            <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Teilnehmer.</p>
+                            <p style={{ color: 'var(--color-text-dim)', textAlign: 'center', padding: 'var(--spacing-4)' }}>
+                                Noch keine Teilnehmer. Teile den Link!
+                            </p>
                         ) : (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
-                                {/* Registered Players */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                                gap: 'var(--spacing-2)'
+                            }}>
                                 {yesRsvps.map((rsvp: any) => (
                                     <div key={rsvp.id} style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 'var(--spacing-2)',
                                         padding: 'var(--spacing-2) var(--spacing-3)',
-                                        background: 'var(--color-surface)',
+                                        background: 'rgba(255,255,255,0.03)',
                                         border: '1px solid var(--color-border)',
                                         borderRadius: 'var(--radius-md)',
-                                        fontSize: '0.9rem'
+                                        fontSize: '0.85rem'
                                     }}>
                                         {rsvp.player.image ? (
-                                            <img src={rsvp.player.image} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                            <img
+                                                src={rsvp.player.image}
+                                                alt=""
+                                                style={{
+                                                    width: 28,
+                                                    height: 28,
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: '2px solid var(--color-border)'
+                                                }}
+                                            />
                                         ) : (
-                                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
-                                                {rsvp.player.name[0]}
+                                            <div style={{
+                                                width: 28,
+                                                height: 28,
+                                                borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                color: 'white'
+                                            }}>
+                                                {rsvp.player.name[0].toUpperCase()}
                                             </div>
                                         )}
-                                        {rsvp.player.name}
+                                        <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {rsvp.player.name}
+                                        </span>
                                     </div>
                                 ))}
 
-                                {/* Guests */}
                                 {tournament.guests.map((guest: any) => (
                                     <div key={guest.id} style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 'var(--spacing-2)',
                                         padding: 'var(--spacing-2) var(--spacing-3)',
-                                        background: 'var(--color-surface)',
-                                        border: '1px solid #9b59b6',
+                                        background: 'rgba(155, 89, 182, 0.08)',
+                                        border: '1px solid rgba(155, 89, 182, 0.3)',
                                         borderRadius: 'var(--radius-md)',
-                                        fontSize: '0.9rem'
+                                        fontSize: '0.85rem'
                                     }}>
-                                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#9b59b6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
-                                            {guest.name[0]}
+                                        <div style={{
+                                            width: 28,
+                                            height: 28,
+                                            borderRadius: '50%',
+                                            background: '#9b59b6',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            color: 'white'
+                                        }}>
+                                            {guest.name[0].toUpperCase()}
                                         </div>
-                                        {guest.name}
-                                        <span style={{ fontSize: '0.7rem', color: '#9b59b6', fontWeight: 500 }}>Gast</span>
+                                        <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {guest.name}
+                                        </span>
+                                        <span style={{
+                                            fontSize: '0.65rem',
+                                            fontWeight: 600,
+                                            color: '#9b59b6',
+                                            marginLeft: 'auto'
+                                        }}>
+                                            GAST
+                                        </span>
                                     </div>
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </section>
 
-                    {/* RSVP Form (for ranked tournaments only) */}
+                    {/* RSVP Form */}
                     {tournament.isRanked && session?.user?.id && (
                         (() => {
                             const player = players.find((p: any) => p.userId === session?.user?.id);
@@ -238,8 +309,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                                 );
                             }
                             const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
-                            const rsvpTitle = isInstantTournament ? "Beitreten" : "Bist du dabei?";
-                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
+                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={isInstantTournament ? "Beitreten" : "Bist du dabei?"} />;
                         })()
                     )}
 
@@ -253,24 +323,24 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
                     {/* Host Controls */}
                     {isHost && (
-                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                            <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                        <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>Host-Aktionen</h3>
                             <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
                                 <StartTournamentButton tournamentId={tournament.id} />
                                 <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
                             </div>
-                        </div>
+                        </section>
                     )}
 
                     <AutoRefresh intervalMs={10000} />
                 </div>
             )}
 
-            {/* ============ ACTIVE & COMPLETED: Tournament View ============ */}
+            {/* ============ ACTIVE & COMPLETED ============ */}
             {(isActive || isCompleted) && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
 
-                    {/* Tournament Summary (Completed) */}
+                    {/* Summary (completed) */}
                     {isCompleted && (
                         <TournamentSummary
                             tournamentId={tournament.id}
@@ -287,37 +357,43 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
                     {/* Live Info Cards */}
                     {isActive && ((forecast?.remainingMatches ?? 0) > 0 || waitTime) && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--spacing-3)' }}>
-                            {/* Forecast */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                            gap: 'var(--spacing-3)'
+                        }}>
                             {forecast && forecast.remainingMatches > 0 && (
-                                <div className="glass-panel" style={{
+                                <div style={{
                                     padding: 'var(--spacing-4)',
-                                    borderLeft: '3px solid var(--color-secondary)'
+                                    background: 'linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(78, 205, 196, 0.02) 100%)',
+                                    border: '1px solid rgba(78, 205, 196, 0.3)',
+                                    borderRadius: 'var(--radius-md)'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
-                                        <Clock size={16} color="var(--color-secondary)" />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Geschätztes Ende</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
+                                        <Clock size={14} color="var(--color-secondary)" />
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ende</span>
                                     </div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{format(forecast.estimatedEndTime, 'HH:mm')} Uhr</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
-                                        Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{format(forecast.estimatedEndTime, 'HH:mm')}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
+                                        {forecast.remainingMatches} {forecast.remainingMatches === 1 ? 'Spiel' : 'Spiele'} übrig
                                     </div>
                                 </div>
                             )}
 
-                            {/* Wait Time */}
                             {waitTime && (
-                                <div className="glass-panel" style={{
+                                <div style={{
                                     padding: 'var(--spacing-4)',
-                                    borderLeft: '3px solid var(--color-primary)'
+                                    background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.02) 100%)',
+                                    border: '1px solid rgba(255, 107, 107, 0.3)',
+                                    borderRadius: 'var(--radius-md)'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
-                                        <Target size={16} color="var(--color-primary)" />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Dein nächstes Spiel</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
+                                        <Target size={14} color="var(--color-primary)" />
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dein Spiel</span>
                                     </div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>ca. {format(waitTime.startTime, 'HH:mm')} Uhr</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
-                                        Tisch {waitTime.table} &bull; ~{waitTime.waitMin} Min.
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>~{format(waitTime.startTime, 'HH:mm')}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
+                                        Tisch {waitTime.table} • {waitTime.waitMin} Min.
                                     </div>
                                 </div>
                             )}
@@ -327,10 +403,10 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     {/* Live Ticker */}
                     {isActive && <LiveTicker tournamentId={tournament.id} />}
 
-                    {/* Tables for Round Robin / Groups */}
+                    {/* Tables */}
                     {tournament.type === 'ROUND_ROBIN' && (
                         <section>
-                            <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.2rem' }}>Tabelle</h2>
+                            <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Tabelle</h2>
                             <TournamentTable standings={await getTournamentStandings(tournament.id)} />
                         </section>
                     )}
@@ -338,11 +414,11 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     {tournament.type === 'GROUPS' && (
                         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)' }}>
                             <div>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1.1rem' }}>Gruppe A</h3>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe A</h3>
                                 <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
                             </div>
                             <div>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1.1rem' }}>Gruppe B</h3>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe B</h3>
                                 <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
                             </div>
                         </section>
@@ -350,7 +426,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
                     {/* Bracket */}
                     <section>
-                        <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.2rem' }}>Bracket</h2>
+                        <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Bracket</h2>
                         {tournament.type !== 'SINGLE_ELIMINATION' && (
                             <GroupMatches matches={tournament.matches as any} />
                         )}
@@ -359,15 +435,15 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
 
                     {/* Host Controls */}
                     {isHost && isActive && (
-                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                            <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                        <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>Host-Aktionen</h3>
                             <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
                                 {(tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
                                     <StartPlayoffsButton tournamentId={tournament.id} />
                                 )}
                                 <FinishTournamentButton tournamentId={tournament.id} />
                             </div>
-                        </div>
+                        </section>
                     )}
 
                     {isActive && <AutoRefresh intervalMs={20000} />}

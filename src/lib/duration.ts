@@ -150,7 +150,7 @@ async function getPlayerAverageDuration(playerId: string): Promise<number | null
 }
 
 /**
- * Get global average duration across all matches
+ * Get global average duration across all matches (internal)
  */
 async function getGlobalAverageDuration(): Promise<number | null> {
   const result = await prisma.match.aggregate({
@@ -164,6 +164,38 @@ async function getGlobalAverageDuration(): Promise<number | null> {
   }
 
   return Math.round(result._avg.durationSeconds || DEFAULT_DURATION_SECONDS);
+}
+
+export interface GlobalDurationStats {
+  averageSeconds: number;
+  averageMinutes: number;
+  matchCount: number;
+  isCalculated: boolean; // true if based on real data, false if using default
+}
+
+/**
+ * Get global duration statistics for display/admin
+ */
+export async function getGlobalDurationStats(): Promise<GlobalDurationStats> {
+  const result = await prisma.match.aggregate({
+    where: { durationSeconds: { not: null } },
+    _avg: { durationSeconds: true },
+    _count: { durationSeconds: true },
+  });
+
+  const matchCount = result._count.durationSeconds || 0;
+  const hasEnoughData = matchCount >= MIN_MATCHES_FOR_STATS;
+
+  const averageSeconds = hasEnoughData && result._avg.durationSeconds
+    ? Math.round(result._avg.durationSeconds)
+    : DEFAULT_DURATION_SECONDS;
+
+  return {
+    averageSeconds,
+    averageMinutes: Math.round(averageSeconds / 60),
+    matchCount,
+    isCalculated: hasEnoughData,
+  };
 }
 
 /**

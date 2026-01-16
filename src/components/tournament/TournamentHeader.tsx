@@ -1,8 +1,9 @@
+'use client';
+
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { MapPin, Calendar, Users, User } from 'lucide-react';
-import TournamentQRCode from '@/components/TournamentQRCode';
-import LobbyPresence from '@/components/LobbyPresence';
+import { MapPin, Calendar, Users, User, Trophy, Sparkles, Share2, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
 
 interface Props {
     tournament: {
@@ -27,114 +28,137 @@ export default function TournamentHeader({
     isHost,
     showQR = false
 }: Props) {
+    const [copied, setCopied] = useState(false);
     const isPlanned = tournament.status === 'PLANNED';
+    const isActive = tournament.status === 'ACTIVE';
     const isCompleted = tournament.status === 'COMPLETED';
+
+    const copyLink = async () => {
+        const url = tournament.shortCode
+            ? `${window.location.origin}/join/${tournament.shortCode}`
+            : window.location.href;
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const statusConfig = {
+        PLANNED: { label: 'Lobby', color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
+        ACTIVE: { label: 'Live', color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.15)' },
+        COMPLETED: { label: 'Beendet', color: '#27ae60', bg: 'rgba(39, 174, 96, 0.15)' }
+    };
+
+    const status = statusConfig[tournament.status as keyof typeof statusConfig] || statusConfig.PLANNED;
 
     return (
         <header style={{ marginBottom: 'var(--spacing-6)' }}>
-            {/* Title Row */}
+            {/* Status Bar */}
             <div style={{
                 display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                flexWrap: 'wrap',
-                gap: 'var(--spacing-3)',
-                marginBottom: 'var(--spacing-4)'
+                marginBottom: 'var(--spacing-3)'
             }}>
-                <div style={{ flex: 1 }}>
-                    <h1
-                        className="title-gradient"
-                        style={{
-                            fontSize: 'var(--font-size-2xl)',
-                            marginBottom: 'var(--spacing-2)'
-                        }}
-                    >
-                        {tournament.name}
-                    </h1>
-
-                    {/* Badges */}
-                    <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 'var(--spacing-2)',
-                        marginBottom: 'var(--spacing-3)'
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                    {/* Status Badge */}
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 12px',
+                        background: status.bg,
+                        border: `1px solid ${status.color}`,
+                        borderRadius: '99px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: status.color,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
                     }}>
-                        {/* Mode Badge */}
-                        <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 'var(--spacing-1)',
-                            padding: '2px 8px',
-                            background: tournament.mode === 'TEAM'
-                                ? 'rgba(78, 205, 196, 0.2)'
-                                : 'rgba(255, 107, 107, 0.2)',
-                            border: `1px solid ${tournament.mode === 'TEAM'
-                                ? 'var(--color-secondary)'
-                                : 'var(--color-primary)'}`,
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold',
-                            color: tournament.mode === 'TEAM'
-                                ? 'var(--color-secondary)'
-                                : 'var(--color-primary)'
-                        }}>
-                            {tournament.mode === 'TEAM' ? <Users size={12} /> : <User size={12} />}
-                            {tournament.mode === 'TEAM' ? '2v2' : '1v1'}
-                        </span>
-
-                        {/* Ranked Badge */}
-                        <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 'var(--spacing-1)',
-                            padding: '2px 8px',
-                            background: tournament.isRanked
-                                ? 'rgba(255, 215, 0, 0.15)'
-                                : 'rgba(155, 89, 182, 0.2)',
-                            border: `1px solid ${tournament.isRanked ? '#FFD700' : '#9b59b6'}`,
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold',
-                            color: tournament.isRanked ? '#FFD700' : '#9b59b6'
-                        }}>
-                            {tournament.isRanked ? '🏆 Liga' : '🎉 Spaß'}
-                        </span>
-
-                        {/* Status Badge */}
-                        {isCompleted && (
+                        {isActive && (
                             <span style={{
-                                padding: '2px 8px',
-                                background: 'rgba(39, 174, 96, 0.2)',
-                                border: '1px solid #27ae60',
-                                borderRadius: 'var(--radius-sm)',
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                color: '#27ae60'
-                            }}>
-                                ✓ Beendet
-                            </span>
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                background: status.color,
+                                animation: 'pulse 2s infinite'
+                            }} />
                         )}
-                    </div>
+                        {status.label}
+                    </span>
+
+                    {/* Mode Badge */}
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        background: tournament.mode === 'TEAM'
+                            ? 'rgba(78, 205, 196, 0.15)'
+                            : 'rgba(255, 107, 107, 0.15)',
+                        border: `1px solid ${tournament.mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-primary)'}`,
+                        borderRadius: '99px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: tournament.mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-primary)'
+                    }}>
+                        {tournament.mode === 'TEAM' ? <Users size={12} /> : <User size={12} />}
+                        {tournament.mode === 'TEAM' ? '2v2' : '1v1'}
+                    </span>
+
+                    {/* Ranked Badge */}
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        background: tournament.isRanked ? 'rgba(255, 215, 0, 0.12)' : 'rgba(155, 89, 182, 0.15)',
+                        border: `1px solid ${tournament.isRanked ? 'rgba(255, 215, 0, 0.5)' : 'rgba(155, 89, 182, 0.5)'}`,
+                        borderRadius: '99px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: tournament.isRanked ? '#FFD700' : '#9b59b6'
+                    }}>
+                        {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
+                        {tournament.isRanked ? 'Liga' : 'Spaß'}
+                    </span>
                 </div>
 
-                {/* QR Code & Lobby Presence for planned tournaments */}
-                {showQR && isPlanned && (
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--spacing-3)'
-                    }}>
-                        <TournamentQRCode
-                            tournamentId={tournament.id}
-                            tournamentName={tournament.name}
-                            shortCode={tournament.shortCode || undefined}
-                        />
-                        <LobbyPresence tournamentId={tournament.id} />
-                    </div>
+                {/* Share Button */}
+                {isPlanned && (
+                    <button
+                        onClick={copyLink}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            background: copied ? 'rgba(39, 174, 96, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                            border: `1px solid ${copied ? '#27ae60' : 'var(--color-border)'}`,
+                            borderRadius: 'var(--radius-md)',
+                            color: copied ? '#27ae60' : 'var(--color-text)',
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {copied ? <Check size={14} /> : <Share2 size={14} />}
+                        {copied ? 'Kopiert!' : 'Teilen'}
+                    </button>
                 )}
             </div>
 
-            {/* Info Row */}
+            {/* Title */}
+            <h1 style={{
+                fontSize: 'clamp(1.5rem, 5vw, 2rem)',
+                fontWeight: 700,
+                marginBottom: 'var(--spacing-3)',
+                lineHeight: 1.2
+            }}>
+                {tournament.name}
+            </h1>
+
+            {/* Meta Info */}
             <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -142,19 +166,66 @@ export default function TournamentHeader({
                 fontSize: '0.9rem',
                 color: 'var(--color-text-dim)'
             }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-1)' }}>
-                    <Calendar size={16} />
-                    {format(new Date(tournament.date), 'dd.MM.yyyy HH:mm', { locale: de })}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={15} style={{ opacity: 0.7 }} />
+                    {format(new Date(tournament.date), "EEEE, d. MMMM 'um' HH:mm 'Uhr'", { locale: de })}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-1)' }}>
-                    <MapPin size={16} />
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={15} style={{ opacity: 0.7 }} />
                     {tournament.location}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-1)' }}>
-                    <Users size={16} />
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Users size={15} style={{ opacity: 0.7 }} />
                     {participantCount} {tournament.mode === 'TEAM' ? 'Teams' : 'Spieler'}
                 </span>
             </div>
+
+            {/* Join Code (for PLANNED) */}
+            {isPlanned && tournament.shortCode && (
+                <div style={{
+                    marginTop: 'var(--spacing-4)',
+                    padding: 'var(--spacing-3) var(--spacing-4)',
+                    background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-3)'
+                }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Beitritts-Code:</span>
+                    <span style={{
+                        fontFamily: 'monospace',
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        letterSpacing: '2px',
+                        color: 'var(--color-primary)'
+                    }}>
+                        {tournament.shortCode}
+                    </span>
+                    <button
+                        onClick={copyLink}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '4px',
+                            cursor: 'pointer',
+                            color: 'var(--color-text-dim)',
+                            display: 'flex'
+                        }}
+                        title="Link kopieren"
+                    >
+                        {copied ? <Check size={16} color="#27ae60" /> : <Copy size={16} />}
+                    </button>
+                </div>
+            )}
+
+            {/* Inline CSS for pulse animation */}
+            <style>{`
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.4; }
+                }
+            `}</style>
         </header>
     );
 }

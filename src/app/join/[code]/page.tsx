@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import GuestJoinForm from './GuestJoinForm';
 import { isGuestForTournament } from '@/app/actions/guests';
+import { autoJoinInstantTournament } from '@/app/actions/rsvp';
 
 interface Props {
   params: Promise<{ code: string }>;
@@ -26,7 +27,8 @@ export default async function JoinByCodePage({ params }: Props) {
       status: true,
       mode: true,
       location: true,
-      date: true
+      date: true,
+      createdAt: true
     },
   });
 
@@ -34,8 +36,16 @@ export default async function JoinByCodePage({ params }: Props) {
     notFound();
   }
 
-  // If user is logged in, redirect directly to tournament
+  // Check if this is an instant tournament (<1 hour between creation and date)
+  const isInstantTournament = new Date(tournament.date).getTime() - new Date(tournament.createdAt).getTime() < 1000 * 60 * 60;
+
+  // If user is logged in
   if (session?.user) {
+    // For instant tournaments and ranked: auto-join (set RSVP=YES)
+    if (isInstantTournament && tournament.isRanked) {
+      await autoJoinInstantTournament(tournament.id);
+    }
+    // Redirect to tournament page
     redirect(`/tournaments/${tournament.id}`);
   }
 

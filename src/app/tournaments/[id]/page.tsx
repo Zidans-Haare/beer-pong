@@ -2,16 +2,10 @@ import { getPlayers } from '@/app/actions/players';
 import RSVPForm from './rsvp-form';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { format } from 'date-fns';
 
-import StartTournamentButton from './start-button';
-import StartPlayoffsButton from './playoff-button';
 import Bracket from '@/components/Bracket';
 import TournamentTable from '@/components/TournamentTable';
 import { getTournamentStandings } from '@/lib/stats';
-import AdminDeleteButton from '@/components/AdminDeleteButton';
-import { deleteTournament } from '@/app/actions/tournaments';
-import FinishTournamentButton from './finish-button';
 import { LiveTicker } from '@/components/LiveTicker';
 import { calculateSchedule, getEstimatedWaitTime } from '@/lib/scheduler';
 import { getPublicSystemSettings } from '@/app/actions/admin';
@@ -21,7 +15,12 @@ import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
 import TeamAssignment from '@/components/TeamAssignment';
-import { Users, User, Clock, Target, ChevronRight, Zap } from 'lucide-react';
+import ParticipantList from '@/components/tournament/ParticipantList';
+import HostControls from '@/components/tournament/HostControls';
+import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
+import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
+import LiveInfoCards from '@/components/tournament/LiveInfoCards';
+import { ChevronRight, Zap } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -38,7 +37,29 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
         where: { id },
         include: {
             rsvps: { include: { player: true } },
-            matches: { include: { player1: true, player2: true }, orderBy: [{ round: 'asc' }, { position: 'asc' }] },
+            matches: {
+                include: {
+                    player1: true,
+                    player2: true,
+                    team1: {
+                        include: {
+                            player1: { select: { id: true, name: true, image: true } },
+                            player2: { select: { id: true, name: true, image: true } },
+                            guest1: { select: { id: true, name: true } },
+                            guest2: { select: { id: true, name: true } }
+                        }
+                    },
+                    team2: {
+                        include: {
+                            player1: { select: { id: true, name: true, image: true } },
+                            player2: { select: { id: true, name: true, image: true } },
+                            guest1: { select: { id: true, name: true } },
+                            guest2: { select: { id: true, name: true } }
+                        }
+                    }
+                },
+                orderBy: [{ round: 'asc' }, { position: 'asc' }]
+            },
             teams: {
                 include: {
                     player1: { select: { id: true, name: true, image: true } },
@@ -175,161 +196,55 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     )}
 
                     {/* Participants */}
-                    <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                        <h3 style={{
-                            marginBottom: 'var(--spacing-4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 'var(--spacing-2)',
-                            fontSize: '1rem',
-                            fontWeight: 600
-                        }}>
-                            {isTeamMode ? <Users size={18} /> : <User size={18} />}
-                            {isTeamMode ? 'Verfügbare Spieler' : 'Teilnehmer'}
-                            <span style={{
-                                marginLeft: 'auto',
-                                fontSize: '0.8rem',
-                                fontWeight: 500,
-                                color: 'var(--color-text-dim)',
-                                background: 'rgba(255,255,255,0.05)',
-                                padding: '2px 8px',
-                                borderRadius: '99px'
-                            }}>
-                                {yesCount + guestCount}
-                            </span>
-                        </h3>
+                    <ParticipantList
+                        players={availablePlayers}
+                        guests={tournament.guests}
+                        isTeamMode={isTeamMode}
+                    />
 
-                        {(yesCount + guestCount) === 0 ? (
-                            <p style={{ color: 'var(--color-text-dim)', textAlign: 'center', padding: 'var(--spacing-4)' }}>
-                                Noch keine Teilnehmer. Teile den Link!
-                            </p>
-                        ) : (
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                                gap: 'var(--spacing-2)'
-                            }}>
-                                {yesRsvps.map((rsvp: any) => (
-                                    <div key={rsvp.id} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 'var(--spacing-2)',
-                                        padding: 'var(--spacing-2) var(--spacing-3)',
-                                        background: 'rgba(255,255,255,0.03)',
-                                        border: '1px solid var(--color-border)',
-                                        borderRadius: 'var(--radius-md)',
-                                        fontSize: '0.85rem'
-                                    }}>
-                                        {rsvp.player.image ? (
-                                            <img
-                                                src={rsvp.player.image}
-                                                alt=""
-                                                style={{
-                                                    width: 28,
-                                                    height: 28,
-                                                    borderRadius: '50%',
-                                                    objectFit: 'cover',
-                                                    border: '2px solid var(--color-border)'
-                                                }}
-                                            />
-                                        ) : (
-                                            <div style={{
-                                                width: 28,
-                                                height: 28,
-                                                borderRadius: '50%',
-                                                background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                color: 'white'
-                                            }}>
-                                                {rsvp.player.name[0].toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {rsvp.player.name}
-                                        </span>
-                                    </div>
-                                ))}
-
-                                {tournament.guests.map((guest: any) => (
-                                    <div key={guest.id} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 'var(--spacing-2)',
-                                        padding: 'var(--spacing-2) var(--spacing-3)',
-                                        background: 'rgba(155, 89, 182, 0.08)',
-                                        border: '1px solid rgba(155, 89, 182, 0.3)',
-                                        borderRadius: 'var(--radius-md)',
-                                        fontSize: '0.85rem'
-                                    }}>
-                                        <div style={{
-                                            width: 28,
-                                            height: 28,
-                                            borderRadius: '50%',
-                                            background: '#9b59b6',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 600,
-                                            color: 'white'
-                                        }}>
-                                            {guest.name[0].toUpperCase()}
-                                        </div>
-                                        <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {guest.name}
-                                        </span>
-                                        <span style={{
-                                            fontSize: '0.65rem',
-                                            fontWeight: 600,
-                                            color: '#9b59b6',
-                                            marginLeft: 'auto'
-                                        }}>
-                                            GAST
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-
-                    {/* RSVP Form */}
-                    {tournament.isRanked && session?.user?.id && (
+                    {/* RSVP Form - Nur bei geplanten Turnieren (nicht Sofort-Turniere) */}
+                    {!isInstantTournament && tournament.isRanked && session?.user?.id && (
                         (() => {
                             const player = players.find((p: any) => p.userId === session?.user?.id);
                             if (!player) {
-                                return (
-                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                        <p style={{ marginBottom: 'var(--spacing-2)' }}>Du hast noch kein Spielerprofil.</p>
-                                        <Link href="/players/new" className="btn btn-primary" style={{ fontSize: '0.9rem' }}>Profil erstellen</Link>
-                                    </div>
-                                );
+                                return <PlayerProfilePrompt />;
                             }
                             const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
-                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={isInstantTournament ? "Beitreten" : "Bist du dabei?"} />;
+                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title="Bist du dabei?" />;
                         })()
                     )}
 
-                    {/* Not logged in */}
-                    {!session?.user?.id && tournament.isRanked && (
+                    {/* Not logged in - Nur bei geplanten Turnieren */}
+                    {!isInstantTournament && !session?.user?.id && tournament.isRanked && (
                         <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
                             <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
-                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">Einloggen</Link>
+                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">
+                                Einloggen
+                            </Link>
                         </div>
+                    )}
+
+                    {/* Sofort-Turnier: Info für eingeloggte User (Auto-Join über QR) */}
+                    {isInstantTournament && tournament.isRanked && session?.user?.id && (
+                        (() => {
+                            const player = players.find((p: any) => p.userId === session?.user?.id);
+                            if (!player) {
+                                return <PlayerProfilePrompt />;
+                            }
+                            const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
+                            return <InstantTournamentInfo isJoined={userRsvp?.status === 'YES'} />;
+                        })()
                     )}
 
                     {/* Host Controls */}
                     {isHost && (
-                        <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>Host-Aktionen</h3>
-                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
-                                <StartTournamentButton tournamentId={tournament.id} />
-                                <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
-                            </div>
-                        </section>
+                        <HostControls
+                            tournamentId={tournament.id}
+                            tournamentType={tournament.type}
+                            tournamentStatus={tournament.status}
+                            isPlanned={isPlanned}
+                            isActive={false}
+                        />
                     )}
 
                     <AutoRefresh intervalMs={10000} />
@@ -356,49 +271,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     )}
 
                     {/* Live Info Cards */}
-                    {isActive && ((forecast?.remainingMatches ?? 0) > 0 || waitTime) && (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-                            gap: 'var(--spacing-3)'
-                        }}>
-                            {forecast && forecast.remainingMatches > 0 && (
-                                <div style={{
-                                    padding: 'var(--spacing-4)',
-                                    background: 'linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(78, 205, 196, 0.02) 100%)',
-                                    border: '1px solid rgba(78, 205, 196, 0.3)',
-                                    borderRadius: 'var(--radius-md)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
-                                        <Clock size={14} color="var(--color-secondary)" />
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ende</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{format(forecast.estimatedEndTime, 'HH:mm')}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                        {forecast.remainingMatches} {forecast.remainingMatches === 1 ? 'Spiel' : 'Spiele'} übrig
-                                    </div>
-                                </div>
-                            )}
-
-                            {waitTime && (
-                                <div style={{
-                                    padding: 'var(--spacing-4)',
-                                    background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.02) 100%)',
-                                    border: '1px solid rgba(255, 107, 107, 0.3)',
-                                    borderRadius: 'var(--radius-md)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
-                                        <Target size={14} color="var(--color-primary)" />
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dein Spiel</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>~{format(waitTime.startTime, 'HH:mm')}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                        Tisch {waitTime.table} • {waitTime.waitMin} Min.
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {isActive && <LiveInfoCards forecast={forecast} waitTime={waitTime} />}
 
                     {/* Live Ticker */}
                     {isActive && <LiveTicker tournamentId={tournament.id} />}
@@ -434,16 +307,14 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     </section>
 
                     {/* Host Controls */}
-                    {isHost && isActive && (
-                        <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>Host-Aktionen</h3>
-                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
-                                {(tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
-                                    <StartPlayoffsButton tournamentId={tournament.id} />
-                                )}
-                                <FinishTournamentButton tournamentId={tournament.id} />
-                            </div>
-                        </section>
+                    {isHost && (
+                        <HostControls
+                            tournamentId={tournament.id}
+                            tournamentType={tournament.type}
+                            tournamentStatus={tournament.status}
+                            isPlanned={false}
+                            isActive={isActive}
+                        />
                     )}
 
                     {isActive && <AutoRefresh intervalMs={20000} />}

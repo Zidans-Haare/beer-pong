@@ -17,13 +17,11 @@ import { calculateSchedule, getEstimatedWaitTime } from '@/lib/scheduler';
 import { getPublicSystemSettings } from '@/app/actions/admin';
 import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
-import TournamentQRCode from '@/components/TournamentQRCode';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
-import LobbyPresence from '@/components/LobbyPresence';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
 import TeamAssignment from '@/components/TeamAssignment';
-import { Users, User } from 'lucide-react';
+import { Users, User, Clock, Target } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -109,7 +107,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
     }));
 
     return (
-        <div className="container">
+        <div className="container" style={{ paddingBottom: '100px' }}>
             {/* Client-side features: Wake Lock & Confetti */}
             <TournamentClientFeatures
                 tournamentId={tournament.id}
@@ -121,7 +119,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                 &larr; Zurück
             </Link>
 
-            {/* New Header with Mode Badges */}
+            {/* Header with badges, info, and QR (for PLANNED) */}
             <TournamentHeader
                 tournament={{
                     id: tournament.id,
@@ -148,233 +146,233 @@ export default async function TournamentPage({ params }: { params: Promise<{ id:
                     background: 'rgba(255, 165, 0, 0.1)',
                     fontSize: '0.9rem'
                 }}>
-                    <strong style={{ color: 'orange' }}>⚠️ Ungerade Teilnehmerzahl</strong>
+                    <strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong>
                     <span style={{ color: 'var(--color-text-dim)', marginLeft: 'var(--spacing-2)' }}>
                         Freilose werden automatisch generiert.
                     </span>
                 </div>
             )}
 
-            {/* Main Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-6)' }}>
+            {/* ============ PLANNED: Lobby View ============ */}
+            {isPlanned && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
 
-                {/* PLANNED: Lobby View */}
-                {isPlanned && (
-                    <>
-                        {/* QR & Presence Row */}
-                        <div style={{ display: 'flex', gap: 'var(--spacing-4)', flexWrap: 'wrap', alignItems: 'center' }}>
-                            <TournamentQRCode
-                                tournamentId={tournament.id}
-                                tournamentName={tournament.name}
-                                shortCode={tournament.shortCode || undefined}
-                            />
-                            <LobbyPresence tournamentId={tournament.id} />
-                        </div>
+                    {/* Team Assignment (for TEAM mode) */}
+                    {isTeamMode && (
+                        <TeamAssignment
+                            tournamentId={tournament.id}
+                            teams={tournament.teams as any}
+                            availablePlayers={availablePlayers}
+                            availableGuests={tournament.guests}
+                            isHost={isHost}
+                        />
+                    )}
 
-                        {/* Team Assignment (for TEAM mode) */}
-                        {isTeamMode && (
-                            <TeamAssignment
-                                tournamentId={tournament.id}
-                                teams={tournament.teams as any}
-                                availablePlayers={availablePlayers}
-                                availableGuests={tournament.guests}
-                                isHost={isHost}
-                            />
-                        )}
+                    {/* Participant List */}
+                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                        <h3 style={{ marginBottom: 'var(--spacing-3)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                            {isTeamMode ? <Users size={18} /> : <User size={18} />}
+                            {isTeamMode ? 'Spieler & Gäste' : 'Teilnehmer'} ({yesCount + guestCount})
+                        </h3>
 
-                        {/* Participant List */}
-                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                            <h3 style={{ marginBottom: 'var(--spacing-3)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                                {isTeamMode ? <Users size={18} /> : <User size={18} />}
-                                {isTeamMode ? 'Spieler & Gäste' : 'Teilnehmer'} ({yesCount + guestCount})
-                            </h3>
-
-                            {(yesCount + guestCount) === 0 ? (
-                                <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Teilnehmer.</p>
-                            ) : (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
-                                    {/* Registered Players */}
-                                    {yesRsvps.map((rsvp: any) => (
-                                        <div key={rsvp.id} style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 'var(--spacing-2)',
-                                            padding: 'var(--spacing-2) var(--spacing-3)',
-                                            background: 'var(--color-surface)',
-                                            border: '1px solid var(--color-success)',
-                                            borderRadius: 'var(--radius-md)',
-                                            fontSize: '0.9rem'
-                                        }}>
-                                            {rsvp.player.image ? (
-                                                <img src={rsvp.player.image} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
-                                                    {rsvp.player.name[0]}
-                                                </div>
-                                            )}
-                                            {rsvp.player.name}
-                                        </div>
-                                    ))}
-
-                                    {/* Guests */}
-                                    {tournament.guests.map((guest: any) => (
-                                        <div key={guest.id} style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 'var(--spacing-2)',
-                                            padding: 'var(--spacing-2) var(--spacing-3)',
-                                            background: 'var(--color-surface)',
-                                            border: '1px solid #9b59b6',
-                                            borderRadius: 'var(--radius-md)',
-                                            fontSize: '0.9rem'
-                                        }}>
-                                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#9b59b6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
-                                                {guest.name[0]}
+                        {(yesCount + guestCount) === 0 ? (
+                            <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Teilnehmer.</p>
+                        ) : (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
+                                {/* Registered Players */}
+                                {yesRsvps.map((rsvp: any) => (
+                                    <div key={rsvp.id} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 'var(--spacing-2)',
+                                        padding: 'var(--spacing-2) var(--spacing-3)',
+                                        background: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        {rsvp.player.image ? (
+                                            <img src={rsvp.player.image} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
+                                                {rsvp.player.name[0]}
                                             </div>
-                                            {guest.name}
-                                            <span style={{ fontSize: '0.7rem', color: '#9b59b6' }}>Gast</span>
+                                        )}
+                                        {rsvp.player.name}
+                                    </div>
+                                ))}
+
+                                {/* Guests */}
+                                {tournament.guests.map((guest: any) => (
+                                    <div key={guest.id} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 'var(--spacing-2)',
+                                        padding: 'var(--spacing-2) var(--spacing-3)',
+                                        background: 'var(--color-surface)',
+                                        border: '1px solid #9b59b6',
+                                        borderRadius: 'var(--radius-md)',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#9b59b6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'white' }}>
+                                            {guest.name[0]}
                                         </div>
-                                    ))}
+                                        {guest.name}
+                                        <span style={{ fontSize: '0.7rem', color: '#9b59b6', fontWeight: 500 }}>Gast</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RSVP Form (for ranked tournaments only) */}
+                    {tournament.isRanked && session?.user?.id && (
+                        (() => {
+                            const player = players.find((p: any) => p.userId === session?.user?.id);
+                            if (!player) {
+                                return (
+                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                                        <p style={{ marginBottom: 'var(--spacing-2)' }}>Du hast noch kein Spielerprofil.</p>
+                                        <Link href="/players/new" className="btn btn-primary" style={{ fontSize: '0.9rem' }}>Profil erstellen</Link>
+                                    </div>
+                                );
+                            }
+                            const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
+                            const rsvpTitle = isInstantTournament ? "Beitreten" : "Bist du dabei?";
+                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
+                        })()
+                    )}
+
+                    {/* Not logged in */}
+                    {!session?.user?.id && tournament.isRanked && (
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                            <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
+                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">Einloggen</Link>
+                        </div>
+                    )}
+
+                    {/* Host Controls */}
+                    {isHost && (
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                            <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
+                                <StartTournamentButton tournamentId={tournament.id} />
+                                <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
+                            </div>
+                        </div>
+                    )}
+
+                    <AutoRefresh intervalMs={10000} />
+                </div>
+            )}
+
+            {/* ============ ACTIVE & COMPLETED: Tournament View ============ */}
+            {(isActive || isCompleted) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
+
+                    {/* Tournament Summary (Completed) */}
+                    {isCompleted && (
+                        <TournamentSummary
+                            tournamentId={tournament.id}
+                            tournamentName={tournament.name}
+                            tournamentType={tournament.type}
+                            standings={await prisma.tournamentStanding.findMany({
+                                where: { tournamentId: tournament.id },
+                                include: { player: true },
+                                orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }]
+                            })}
+                            matches={tournament.matches}
+                        />
+                    )}
+
+                    {/* Live Info Cards */}
+                    {isActive && ((forecast?.remainingMatches ?? 0) > 0 || waitTime) && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--spacing-3)' }}>
+                            {/* Forecast */}
+                            {forecast && forecast.remainingMatches > 0 && (
+                                <div className="glass-panel" style={{
+                                    padding: 'var(--spacing-4)',
+                                    borderLeft: '3px solid var(--color-secondary)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
+                                        <Clock size={16} color="var(--color-secondary)" />
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Geschätztes Ende</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{format(forecast.estimatedEndTime, 'HH:mm')} Uhr</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
+                                        Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Wait Time */}
+                            {waitTime && (
+                                <div className="glass-panel" style={{
+                                    padding: 'var(--spacing-4)',
+                                    borderLeft: '3px solid var(--color-primary)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
+                                        <Target size={16} color="var(--color-primary)" />
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Dein nächstes Spiel</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>ca. {format(waitTime.startTime, 'HH:mm')} Uhr</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
+                                        Tisch {waitTime.table} &bull; ~{waitTime.waitMin} Min.
+                                    </div>
                                 </div>
                             )}
                         </div>
+                    )}
 
-                        {/* RSVP Form (for ranked tournaments only) */}
-                        {tournament.isRanked && session?.user?.id && (
-                            (() => {
-                                const currentPlayer = players.find((p: any) => p.userId === session?.user?.id);
-                                if (!currentPlayer) {
-                                    return (
-                                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                            <p style={{ marginBottom: 'var(--spacing-2)' }}>Du hast noch kein Spielerprofil.</p>
-                                            <Link href="/players/new" className="btn btn-primary" style={{ fontSize: '0.9rem' }}>Profil erstellen</Link>
-                                        </div>
-                                    );
-                                }
-                                const userRsvp = tournament.rsvps.find((r: any) => r.playerId === currentPlayer.id);
-                                const rsvpTitle = isInstantTournament ? "Beitreten" : "Bist du dabei?";
-                                return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title={rsvpTitle} />;
-                            })()
-                        )}
+                    {/* Live Ticker */}
+                    {isActive && <LiveTicker tournamentId={tournament.id} />}
 
-                        {/* Not logged in */}
-                        {!session?.user?.id && tournament.isRanked && (
-                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
-                                <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">Einloggen</Link>
-                            </div>
-                        )}
+                    {/* Tables for Round Robin / Groups */}
+                    {tournament.type === 'ROUND_ROBIN' && (
+                        <section>
+                            <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.2rem' }}>Tabelle</h2>
+                            <TournamentTable standings={await getTournamentStandings(tournament.id)} />
+                        </section>
+                    )}
 
-                        {/* Host Controls */}
-                        {isHost && (
-                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
-                                <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
-                                    <StartTournamentButton tournamentId={tournament.id} />
-                                    <AdminDeleteButton id={tournament.id} type="Tournament" deleteAction={deleteTournament} />
-                                </div>
-                            </div>
-                        )}
-
-                        <AutoRefresh intervalMs={10000} />
-                    </>
-                )}
-
-                {/* ACTIVE & COMPLETED: Tournament View */}
-                {(isActive || isCompleted) && (
-                    <>
-                        {/* Tournament Summary (Completed) */}
-                        {isCompleted && (
-                            <TournamentSummary
-                                tournamentId={tournament.id}
-                                tournamentName={tournament.name}
-                                tournamentType={tournament.type}
-                                standings={await prisma.tournamentStanding.findMany({
-                                    where: { tournamentId: tournament.id },
-                                    include: { player: true },
-                                    orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }]
-                                })}
-                                matches={tournament.matches}
-                            />
-                        )}
-
-                        {/* Live Info Row */}
-                        {isActive && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-4)' }}>
-                                {/* Forecast */}
-                                {forecast && forecast.remainingMatches > 0 && (
-                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', borderLeft: '4px solid var(--color-secondary)' }}>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-1)' }}>Geschätztes Ende</div>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>{format(forecast.estimatedEndTime, 'HH:mm')} Uhr</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                            Noch {forecast.remainingMatches} Spiel{forecast.remainingMatches !== 1 ? 'e' : ''}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Wait Time */}
-                                {waitTime && (
-                                    <div className="glass-panel" style={{ padding: 'var(--spacing-4)', borderLeft: '4px solid var(--color-primary)' }}>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-1)' }}>Dein nächstes Spiel</div>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>ca. {format(waitTime.startTime, 'HH:mm')} Uhr</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                            Tisch {waitTime.table} • ~{waitTime.waitMin} Min. Wartezeit
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Live Ticker */}
-                        {isActive && <LiveTicker tournamentId={tournament.id} />}
-
-                        {/* Tables for Round Robin / Groups */}
-                        {tournament.type === 'ROUND_ROBIN' && (
+                    {tournament.type === 'GROUPS' && (
+                        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)' }}>
                             <div>
-                                <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Tabelle</h2>
-                                <TournamentTable standings={await getTournamentStandings(tournament.id)} />
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1.1rem' }}>Gruppe A</h3>
+                                <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
                             </div>
-                        )}
-
-                        {tournament.type === 'GROUPS' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
-                                <div>
-                                    <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)' }}>Gruppe A</h3>
-                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
-                                </div>
-                                <div>
-                                    <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)' }}>Gruppe B</h3>
-                                    <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
-                                </div>
+                            <div>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1.1rem' }}>Gruppe B</h3>
+                                <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
                             </div>
-                        )}
+                        </section>
+                    )}
 
-                        {/* Bracket */}
-                        <div>
-                            <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Bracket</h2>
-                            {tournament.type !== 'SINGLE_ELIMINATION' && (
-                                <GroupMatches matches={tournament.matches as any} />
-                            )}
-                            <Bracket matches={tournament.matches || []} />
+                    {/* Bracket */}
+                    <section>
+                        <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.2rem' }}>Bracket</h2>
+                        {tournament.type !== 'SINGLE_ELIMINATION' && (
+                            <GroupMatches matches={tournament.matches as any} />
+                        )}
+                        <Bracket matches={tournament.matches || []} />
+                    </section>
+
+                    {/* Host Controls */}
+                    {isHost && isActive && (
+                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
+                            <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
+                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
+                                {(tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
+                                    <StartPlayoffsButton tournamentId={tournament.id} />
+                                )}
+                                <FinishTournamentButton tournamentId={tournament.id} />
+                            </div>
                         </div>
+                    )}
 
-                        {/* Host Controls */}
-                        {isHost && isActive && (
-                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)' }}>Host-Aktionen</h3>
-                                <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
-                                    {(tournament.type === 'ROUND_ROBIN' || tournament.type === 'GROUPS') && (
-                                        <StartPlayoffsButton tournamentId={tournament.id} />
-                                    )}
-                                    <FinishTournamentButton tournamentId={tournament.id} />
-                                </div>
-                            </div>
-                        )}
-
-                        {isActive && <AutoRefresh intervalMs={20000} />}
-                    </>
-                )}
-            </div>
+                    {isActive && <AutoRefresh intervalMs={20000} />}
+                </div>
+            )}
         </div>
     );
 }

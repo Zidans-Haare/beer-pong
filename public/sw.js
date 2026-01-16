@@ -3,7 +3,7 @@
  * Provides offline support, caching strategies, and push notifications
  */
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3-fix';
 const STATIC_CACHE = `bierpong-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bierpong-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bierpong-images-${CACHE_VERSION}`;

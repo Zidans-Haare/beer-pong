@@ -73,7 +73,7 @@ export async function GET(
 /**
  * Broadcast an event to all connected clients for a tournament
  */
-export function broadcastToTournament(
+function broadcastToTournament(
   tournamentId: string,
   eventType: string,
   data: unknown
@@ -97,6 +97,6 @@ export function broadcastToTournament(
 /**
  * Get count of active connections for a tournament
  */
-export function getConnectionCount(tournamentId: string): number {
+function getConnectionCount(tournamentId: string): number {
   return connections.get(tournamentId)?.size || 0;
 }

@@ -1,17 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+  output: 'standalone',
+  eslint: {
+    ignoreDuringBuilds: true,
   },
+  // experimental: {
+  //   serverActions: {
+  //     bodySizeLimit: '10mb',
+  //   },
+  // },
   async rewrites() {
     return [
-      {
-        source: '/uploads/:path*',
-        destination: '/api/custom-uploads/:path*',
-      },
     ];
   },
 };

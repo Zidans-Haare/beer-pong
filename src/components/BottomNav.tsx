@@ -43,7 +43,7 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
             </Link>
             <Link href="/notifications" className={`bottom-nav-item ${isActive('/notifications') ? 'active' : ''}`} onClick={handleNavClick}>
                 <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="nav-icon-glow" style={{ display: 'flex' }}><Bell size={24} /></span>
+                    <span className="nav-icon-glow" style={{ display: 'flex', position: 'relative', top: '-2px' }}><Bell size={24} /></span>
                     {unreadCount > 0 && (
                         <span style={{
                             position: 'absolute',

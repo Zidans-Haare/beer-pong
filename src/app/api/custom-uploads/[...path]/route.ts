@@ -2,33 +2,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { auth } from '@/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ path: string[] }> }
 ) {
-    // Security: Require authentication to access uploads
-    const session = await auth();
-    if (!session?.user) {
-        return new NextResponse('Unauthorized', { status: 401 });
-    }
-
     try {
         const { path: pathSegments } = await params;
+        
+        console.log('DEBUG UPLOAD: Called with path:', pathSegments);
 
         // Construct the file path
+        // Ensure we handle cases where pathSegments might be encoded or weird
         const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
+        console.log('DEBUG UPLOAD: Full filePath:', filePath);
 
         // Security check
         const uploadsDir = path.join(process.cwd(), 'user-uploads');
         const relative = path.relative(uploadsDir, filePath);
         
         if (relative.startsWith('..') || path.isAbsolute(relative)) {
+             console.log('DEBUG UPLOAD: Forbidden access');
             return new NextResponse('Forbidden', { status: 403 });
         }
 
         if (!fs.existsSync(filePath)) {
+            console.log('DEBUG UPLOAD: File not found on disk');
             return new NextResponse('File not found', { status: 404 });
         }
 
@@ -49,11 +50,12 @@ export async function GET(
             headers: {
                 'Content-Type': contentType,
                 'Content-Length': fileSize.toString(),
-                'Cache-Control': 'private, max-age=31536000, immutable',
+                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Access-Control-Allow-Origin': '*',
             },
         });
     } catch (error) {
-        console.error('Error serving file:', error); // Keep server-side error logging
+        console.error('Error serving file:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }

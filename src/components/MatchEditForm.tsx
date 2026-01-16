@@ -2,10 +2,30 @@
 
 import { updateMatchResult } from '@/app/actions/matches';
 import { useState } from 'react';
+import { getTeamDisplayName } from '@/lib/teams';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
-    const [winnerId, setWinnerId] = useState<string | null>(match.winnerId || null);
-    const [loserCups, setLoserCups] = useState<string>(match.winnerId ? (match.winnerId === match.player1Id ? match.score2.toString() : match.score1.toString()) : '');
+    const isTeamMatch = !!match.team1Id && !!match.team2Id;
+    
+    // For team matches: use winnerTeamId, for solo: use winnerId
+    const currentWinner = isTeamMatch ? match.winnerTeamId : match.winnerId;
+    const [winnerId, setWinnerId] = useState<string | null>(currentWinner || null);
+    
+    // Calculate loser cups from existing score
+    const getLoserCups = () => {
+        if (!currentWinner) return '';
+        if (isTeamMatch) {
+            return currentWinner === match.team1Id ? match.score2.toString() : match.score1.toString();
+        }
+        return currentWinner === match.player1Id ? match.score2.toString() : match.score1.toString();
+    };
+    const [loserCups, setLoserCups] = useState<string>(getLoserCups());
+
+    // Get display names
+    const team1Name = match.team1 ? getTeamDisplayName(match.team1) : 'Team 1';
+    const team2Name = match.team2 ? getTeamDisplayName(match.team2) : 'Team 2';
+    const player1Name = match.player1?.name || 'Spieler 1';
+    const player2Name = match.player2?.name || 'Spieler 2';
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -16,8 +36,10 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         if (isNaN(cups) || cups < 0 || cups > 10) return alert('Ungültige Becherzahl (0-10)');
 
         // Winner gets 10, Loser gets input
-        const score1 = winnerId === match.player1Id ? 10 : cups;
-        const score2 = winnerId === match.player2Id ? 10 : cups;
+        // For team matches: compare team IDs, for solo: compare player IDs
+        const isTeam1Winner = isTeamMatch ? winnerId === match.team1Id : winnerId === match.player1Id;
+        const score1 = isTeam1Winner ? 10 : cups;
+        const score2 = isTeam1Winner ? cups : 10;
 
         const result = await updateMatchResult(match.id, score1, score2);
 
@@ -28,6 +50,15 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
 
         onClose();
     }
+
+    const handleWinnerClick = (id: string) => {
+        setWinnerId(id);
+        // Reset loser cups when winner changes
+        const newLoserCups = isTeamMatch 
+            ? (id === match.team1Id ? match.score2 : match.score1)
+            : (id === match.player1Id ? match.score2 : match.score1);
+        setLoserCups(newLoserCups?.toString() || '');
+    };
 
     return (
         <div style={{
@@ -42,33 +73,33 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
                         <button
                             type="button"
-                            onClick={() => setWinnerId(match.player1Id)}
+                            onClick={() => handleWinnerClick(isTeamMatch ? match.team1Id : match.player1Id)}
                             style={{
                                 padding: 'var(--spacing-4)',
-                                border: winnerId === match.player1Id ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === match.player1Id ? 'var(--color-surface)' : 'var(--color-bg)',
+                                border: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
+                                background: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? 'var(--color-surface)' : 'var(--color-bg)',
                                 color: 'var(--color-text)',
                                 borderRadius: 'var(--radius-sm)',
                                 cursor: 'pointer',
-                                fontWeight: winnerId === match.player1Id ? 'bold' : 'normal'
+                                fontWeight: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? 'bold' : 'normal'
                             }}
                         >
-                            {match.player1?.name || 'Spieler 1'}
+                            {isTeamMatch ? team1Name : player1Name}
                         </button>
                         <button
                             type="button"
-                            onClick={() => setWinnerId(match.player2Id)}
+                            onClick={() => handleWinnerClick(isTeamMatch ? match.team2Id : match.player2Id)}
                             style={{
                                 padding: 'var(--spacing-4)',
-                                border: winnerId === match.player2Id ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === match.player2Id ? 'var(--color-surface)' : 'var(--color-bg)',
+                                border: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
+                                background: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? 'var(--color-surface)' : 'var(--color-bg)',
                                 color: 'var(--color-text)',
                                 borderRadius: 'var(--radius-sm)',
                                 cursor: 'pointer',
-                                fontWeight: winnerId === match.player2Id ? 'bold' : 'normal'
+                                fontWeight: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? 'bold' : 'normal'
                             }}
                         >
-                            {match.player2?.name || 'Spieler 2'}
+                            {isTeamMatch ? team2Name : player2Name}
                         </button>
                     </div>
 

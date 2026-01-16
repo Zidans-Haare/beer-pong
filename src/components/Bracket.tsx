@@ -3,11 +3,7 @@
 import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
-
-type MatchWithPlayers = Match & {
-    player1: Player | null;
-    player2: Player | null;
-};
+import { getTeamDisplayName } from '@/lib/teams';
 
 export default function Bracket({ matches }: { matches: any[] }) {
     const [editingMatch, setEditingMatch] = useState<any>(null);
@@ -46,23 +42,33 @@ export default function Bracket({ matches }: { matches: any[] }) {
                         <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>
                             {getDynamicRoundName(round)}
                         </h3>
-                        {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => (
-                            <div
-                                key={match.id}
-                                className="glass-panel"
-                                style={{ padding: 'var(--spacing-3)', width: '200px', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s' }}
-                                onClick={() => setEditingMatch(match)}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: playerClass(match, match.player1Id) }}>
-                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.player1?.name || 'TBD'}</span>
-                                    <span>{match.score1}</span>
+                        {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => {
+                            const isTeamMatch = !!match.team1Id && !!match.team2Id;
+                            const name1 = isTeamMatch && match.team1 
+                                ? getTeamDisplayName(match.team1) 
+                                : (match.player1?.name || 'TBD');
+                            const name2 = isTeamMatch && match.team2 
+                                ? getTeamDisplayName(match.team2) 
+                                : (match.player2?.name || 'TBD');
+                            
+                            return (
+                                <div
+                                    key={match.id}
+                                    className="glass-panel"
+                                    style={{ padding: 'var(--spacing-3)', width: '200px', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    onClick={() => setEditingMatch(match)}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, true) }}>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name1}</span>
+                                        <span>{match.score1}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, false) }}>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name2}</span>
+                                        <span>{match.score2}</span>
+                                    </div>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', borderBottom: playerClass(match, match.player2Id) }}>
-                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.player2?.name || 'TBD'}</span>
-                                    <span>{match.score2}</span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ))}
             </div>
@@ -71,9 +77,18 @@ export default function Bracket({ matches }: { matches: any[] }) {
     );
 }
 
-function playerClass(match: any, playerId: string | null | undefined): string {
-    if (!playerId) return '1px solid transparent';
-    if (match.winnerId === playerId) return '2px solid var(--color-success)';
-    if (match.winnerId && match.winnerId !== playerId) return '1px solid var(--color-error)';
-    return '1px solid var(--color-border)';
+function getMatchSideClass(match: any, isTeamMatch: boolean, isSide1: boolean): string {
+    if (isTeamMatch) {
+        const teamId = isSide1 ? match.team1Id : match.team2Id;
+        if (!teamId) return '1px solid transparent';
+        if (match.winnerTeamId === teamId) return '2px solid var(--color-success)';
+        if (match.winnerTeamId && match.winnerTeamId !== teamId) return '1px solid var(--color-error)';
+        return '1px solid var(--color-border)';
+    } else {
+        const playerId = isSide1 ? match.player1Id : match.player2Id;
+        if (!playerId) return '1px solid transparent';
+        if (match.winnerId === playerId) return '2px solid var(--color-success)';
+        if (match.winnerId && match.winnerId !== playerId) return '1px solid var(--color-error)';
+        return '1px solid var(--color-border)';
+    }
 }

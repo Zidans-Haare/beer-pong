@@ -7,6 +7,8 @@ import { useState, useRef } from 'react';
 import { Users, User, Trophy, PartyPopper, Play, Calendar, Search, MapPin } from 'lucide-react';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
+import { useMemo } from 'react';
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
@@ -14,6 +16,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
     const [isRanked, setIsRanked] = useState(true);
     const [hasReturnLeg, setHasReturnLeg] = useState(false);
+    const [type, setType] = useState('SINGLE_ELIMINATION');
     const formRef = useRef<HTMLFormElement>(null);
 
     async function clientAction(formData: FormData) {
@@ -208,7 +211,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                 <div>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>Turnier-Format</label>
                     <div style={{ position: 'relative' }}>
-                        <select name="type" id="type" style={{
+                        <select name="type" id="type" value={type} onChange={(e) => setType(e.target.value)} style={{
                             width: '100%', padding: '14px', borderRadius: 'var(--radius-md)',
                             border: '1px solid var(--color-border)', background: 'var(--color-surface)',
                             appearance: 'none', fontSize: '1rem', color: 'var(--color-text)'
@@ -254,6 +257,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     </label>
                 </div>
 
+                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} />
+
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',
                     borderRadius: 'var(--radius-full)', background: 'var(--gradient-primary)',
@@ -263,6 +268,51 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                 </button>
             </form >
         </div >
+    );
+}
+
+// Helper Component for Form Live Forecast
+function DurationForecast({ type, hasReturnLeg }: { type: string, hasReturnLeg: boolean }) {
+    const [estPlayers, setEstPlayers] = useState(8);
+    const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, 1, 12, hasReturnLeg), [type, estPlayers, hasReturnLeg]);
+    const endTime = useMemo(() => getEstimatedEndTime(duration), [duration]);
+
+    return (
+        <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+            <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>
+                Zeit-Prognose
+            </label>
+
+            <div style={{ marginBottom: 'var(--spacing-4)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--color-text-dim)' }}>Erwartete Spieler:</span>
+                    <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{estPlayers}</span>
+                </div>
+                <input
+                    type="range"
+                    min="2"
+                    max="32"
+                    value={estPlayers}
+                    onChange={(e) => setEstPlayers(parseInt(e.target.value))}
+                    style={{
+                        width: '100%',
+                        accentColor: 'var(--color-primary)',
+                        cursor: 'pointer'
+                    }}
+                />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
+                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Dauer ca.</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-text)' }}>{formatDuration(duration)}</div>
+                </div>
+                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Ende ca.</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>{endTime}</div>
+                </div>
+            </div>
+        </div>
     );
 }
 

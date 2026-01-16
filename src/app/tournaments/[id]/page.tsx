@@ -29,6 +29,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 import GroupMatches from '@/components/GroupMatches';
 
 import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
+import LobbyDurationWidget from '@/components/tournament/LobbyDurationWidget';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -215,6 +216,14 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         players={availablePlayers}
                         guests={tournament.guests}
                         isTeamMode={isTeamMode}
+                    />
+
+                    <LobbyDurationWidget
+                        type={tournament.type}
+                        playerCount={totalParticipants}
+                        matchDurationMin={tournament.matchDurationMin || 12}
+                        tableCount={tournament.tableCount || 1}
+                        hasReturnLeg={tournament.hasReturnLeg}
                     />
 
                     {/* RSVP Form - Nur bei geplanten Turnieren (nicht Sofort-Turniere) */}

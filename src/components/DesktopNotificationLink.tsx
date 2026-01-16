@@ -28,12 +28,29 @@ export default function DesktopNotificationLink() {
     return (
         <Link
             href="/notifications"
-            className="relative p-2 text-gray-400 hover:text-white transition-colors hidden md:block"
+            className="hidden md:block"
             title="Benachrichtigungen"
+            style={{ position: 'relative', padding: '8px', color: 'var(--color-text-dim)', transition: 'color 0.2s' }}
         >
             <Bell size={20} />
             {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-slate-900 shadow-sm animate-pulse-subtle">
+                <span style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '16px',
+                    height: '16px',
+                    padding: '0 4px',
+                    background: 'var(--color-error)',
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: '2px solid var(--color-surface)'
+                }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
             )}

@@ -79,7 +79,7 @@ export default function PasskeySettings({ passkeys }: PasskeySettingsProps) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: 'var(--spacing-3)',
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: 'var(--color-surface-hover)',
                 borderRadius: 'var(--radius-sm)',
                 marginBottom: '8px',
               }}

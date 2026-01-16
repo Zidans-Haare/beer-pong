@@ -44,7 +44,7 @@ export default function GroupMatches({ matches }: { matches: MatchWithPlayers[] 
                                 {byRound[round].map(match => (
                                     <div key={match.id} style={{
                                         padding: 'var(--spacing-2)',
-                                        background: 'rgba(255,255,255,0.03)',
+                                        background: 'var(--color-surface-hover)',
                                         borderRadius: 'var(--radius-sm)',
                                         border: match.winnerId ? '1px solid var(--color-border)' : '1px dashed var(--color-border)'
                                     }}>

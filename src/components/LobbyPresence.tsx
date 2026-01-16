@@ -103,7 +103,7 @@ export default function LobbyPresence({
           alignItems: 'center',
           gap: 8,
           padding: '8px 12px',
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'var(--color-surface-hover)',
           borderRadius: 20,
           fontSize: '0.85rem',
         }}
@@ -134,7 +134,7 @@ export default function LobbyPresence({
                   background: user.odAvatar
                     ? `url(${user.odAvatar}) center/cover`
                     : getAvatarColor(user.odName),
-                  border: '2px solid var(--card-bg)',
+                  border: '2px solid var(--color-surface)',
                   marginLeft: i > 0 ? -8 : 0,
                   display: 'flex',
                   alignItems: 'center',
@@ -156,7 +156,7 @@ export default function LobbyPresence({
                   height: 24,
                   borderRadius: '50%',
                   background: 'var(--color-text-dim)',
-                  border: '2px solid var(--card-bg)',
+                  border: '2px solid var(--color-surface)',
                   marginLeft: -8,
                   display: 'flex',
                   alignItems: 'center',

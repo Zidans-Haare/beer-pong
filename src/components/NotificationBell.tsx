@@ -91,7 +91,23 @@ export default function NotificationBell() {
                 </svg>
 
                 {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-slate-900 shadow-sm animate-pulse-subtle">
+                    <span style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '18px',
+                        height: '18px',
+                        padding: '0 4px',
+                        background: 'var(--color-error)',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        borderRadius: '9px',
+                        border: '2px solid var(--color-surface)'
+                    }}>
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}

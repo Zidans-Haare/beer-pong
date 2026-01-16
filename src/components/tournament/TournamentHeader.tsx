@@ -2,8 +2,9 @@
 
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { MapPin, Calendar, Users, User, Trophy, Sparkles, Share2, Copy, Check } from 'lucide-react';
+import { MapPin, Calendar, Users, User, Trophy, Sparkles, Share2, Copy, Check, QrCode } from 'lucide-react';
 import { useState } from 'react';
+import TournamentQRCode from '@/components/TournamentQRCode';
 
 interface Props {
     tournament: {
@@ -133,7 +134,7 @@ export default function TournamentHeader({
                             alignItems: 'center',
                             gap: '6px',
                             padding: '6px 12px',
-                            background: copied ? 'rgba(39, 174, 96, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                            background: copied ? 'rgba(39, 174, 96, 0.2)' : 'var(--color-surface-hover)',
                             border: `1px solid ${copied ? '#27ae60' : 'var(--color-border)'}`,
                             borderRadius: 'var(--radius-md)',
                             color: copied ? '#27ae60' : 'var(--color-text)',
@@ -180,42 +181,58 @@ export default function TournamentHeader({
                 </span>
             </div>
 
-            {/* Join Code (for PLANNED) */}
+            {/* Join Code & QR (for PLANNED) */}
             {isPlanned && tournament.shortCode && (
                 <div style={{
                     marginTop: 'var(--spacing-4)',
-                    padding: 'var(--spacing-3) var(--spacing-4)',
-                    background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-md)',
-                    display: 'inline-flex',
+                    display: 'flex',
+                    flexWrap: 'wrap',
                     alignItems: 'center',
                     gap: 'var(--spacing-3)'
                 }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Beitritts-Code:</span>
-                    <span style={{
-                        fontFamily: 'monospace',
-                        fontSize: '1.2rem',
-                        fontWeight: 700,
-                        letterSpacing: '2px',
-                        color: 'var(--color-primary)'
+                    <div style={{
+                        padding: 'var(--spacing-3) var(--spacing-4)',
+                        background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 'var(--spacing-3)'
                     }}>
-                        {tournament.shortCode}
-                    </span>
-                    <button
-                        onClick={copyLink}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: '4px',
-                            cursor: 'pointer',
-                            color: 'var(--color-text-dim)',
-                            display: 'flex'
-                        }}
-                        title="Link kopieren"
-                    >
-                        {copied ? <Check size={16} color="#27ae60" /> : <Copy size={16} />}
-                    </button>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Beitritts-Code:</span>
+                        <span style={{
+                            fontFamily: 'monospace',
+                            fontSize: '1.2rem',
+                            fontWeight: 700,
+                            letterSpacing: '2px',
+                            color: 'var(--color-primary)'
+                        }}>
+                            {tournament.shortCode}
+                        </span>
+                        <button
+                            onClick={copyLink}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: '4px',
+                                cursor: 'pointer',
+                                color: 'var(--color-text-dim)',
+                                display: 'flex'
+                            }}
+                            title="Link kopieren"
+                        >
+                            {copied ? <Check size={16} color="#27ae60" /> : <Copy size={16} />}
+                        </button>
+                    </div>
+
+                    {/* QR Code Button */}
+                    {showQR && (
+                        <TournamentQRCode
+                            tournamentId={tournament.id}
+                            tournamentName={tournament.name}
+                            shortCode={tournament.shortCode}
+                        />
+                    )}
                 </div>
             )}
 

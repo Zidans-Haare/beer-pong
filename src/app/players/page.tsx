@@ -67,7 +67,7 @@ function PlayerCard({ player }: { player: any }) {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                background: 'rgba(255,255,255,0.02)',
+                background: 'var(--color-surface-hover)',
                 borderBottom: '1px solid var(--color-border)'
             }}>
                 <div style={{
@@ -99,7 +99,7 @@ function PlayerCard({ player }: { player: any }) {
                         initials
                     )}
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', margin: 0, textAlign: 'center' }}>{player.name}</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', margin: 0, textAlign: 'center' }}>{player.name}</h3>
                 {player.nickname && (
                     <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', marginTop: '4px' }}>"{player.nickname}"</span>
                 )}

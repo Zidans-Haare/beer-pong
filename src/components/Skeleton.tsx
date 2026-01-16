@@ -24,7 +24,7 @@ export function Skeleton({
         width,
         height,
         borderRadius,
-        background: 'linear-gradient(90deg, var(--card-bg) 0%, rgba(255,255,255,0.1) 50%, var(--card-bg) 100%)',
+        background: 'linear-gradient(90deg, var(--color-surface) 0%, rgba(0,0,0,0.06) 50%, var(--color-surface) 100%)',
         backgroundSize: '200% 100%',
         ...style,
       }}
@@ -69,7 +69,7 @@ export function SkeletonCard() {
   return (
     <div
       style={{
-        background: 'var(--card-bg)',
+        background: 'var(--color-surface)',
         borderRadius: 16,
         padding: 16,
         display: 'flex',
@@ -94,7 +94,7 @@ export function SkeletonMatchCard() {
   return (
     <div
       style={{
-        background: 'var(--card-bg)',
+        background: 'var(--color-surface)',
         borderRadius: 16,
         padding: 16,
       }}
@@ -148,7 +148,7 @@ export function SkeletonTournamentCard() {
   return (
     <div
       style={{
-        background: 'var(--card-bg)',
+        background: 'var(--color-surface)',
         borderRadius: 16,
         padding: 20,
         display: 'flex',
@@ -182,7 +182,7 @@ export function SkeletonPlayerCard() {
   return (
     <div
       style={{
-        background: 'var(--card-bg)',
+        background: 'var(--color-surface)',
         borderRadius: 16,
         padding: 16,
         display: 'flex',

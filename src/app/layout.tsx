@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent', // Extends content into status bar
+    statusBarStyle: 'default',
     title: 'Bier Pong',
   },
   icons: {
@@ -37,8 +37,8 @@ export const viewport = {
   userScalable: false,
   viewportFit: 'cover', // Enables edge-to-edge display on notched devices
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#030712' },
-    { media: '(prefers-color-scheme: light)', color: '#030712' },
+    { media: '(prefers-color-scheme: dark)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
   ],
 };
 

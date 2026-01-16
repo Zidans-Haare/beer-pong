@@ -36,7 +36,7 @@ export default function TournamentTable({ standings, highlightTop = 0 }: { stand
                         const isQualifying = i < highlightTop;
                         return (
                             <tr key={s.playerId} style={{
-                                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                borderBottom: '1px solid var(--color-border)',
                                 background: isQualifying ? 'rgba(74, 222, 128, 0.1)' : 'transparent',
                                 borderLeft: isQualifying ? '4px solid var(--color-success)' : '4px solid transparent'
                             }}>

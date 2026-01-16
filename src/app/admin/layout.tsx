@@ -33,11 +33,10 @@ export default async function AdminLayout({
                     top: 0,
                     zIndex: 50,
                     borderRadius: 0,
-                    borderRight: '1px solid rgba(255,255,255,0.1)',
+                    borderRight: '1px solid var(--color-border)',
                     display: 'none', // Hidden on mobile by default, toggled via media query below
                     flexDirection: 'column',
-                    background: 'rgba(15, 23, 42, 0.95)', // Ensure opacity against overlapping elements
-                    backdropFilter: 'blur(20px)'
+                    background: 'var(--color-surface)'
                 }}
             >
                 <style dangerouslySetInnerHTML={{
@@ -52,7 +51,7 @@ export default async function AdminLayout({
                     }
                 `}} />
 
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)' }}>
                     <h2 className="text-gradient" style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>
                         ADMIN LEVEL
                     </h2>
@@ -106,14 +105,13 @@ export default async function AdminLayout({
                     width: '90%',
                     maxWidth: '350px',
                     borderRadius: '100px',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--color-border)',
                     zIndex: 60, // Higher z-index to ensure visibility
                     display: 'none', // Hidden on desktop
                     justifyContent: 'space-evenly',
                     padding: '12px 20px',
-                    background: 'rgba(15, 23, 42, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+                    background: 'var(--color-surface)',
+                    boxShadow: 'var(--shadow-xl)'
                 }}
             >
                 {navItems.map(item => (

@@ -237,8 +237,9 @@ export default function TournamentQRCode({
                   onClick={handleCopy}
                   className="btn"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: 'white',
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',

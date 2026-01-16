@@ -60,7 +60,7 @@ export default async function LiveTournamentWidget() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
                         {activeTournament.matches.map((match) => (
                             <div key={match.id} style={{
-                                background: 'rgba(255,255,255,0.03)',
+                                background: 'var(--color-surface-hover)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-sm)',
                                 padding: '8px',
@@ -69,11 +69,11 @@ export default async function LiveTournamentWidget() {
                                 alignItems: 'center',
                                 gap: '4px'
                             }}>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'white' }}>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>
                                     {match.player1?.name || 'TBD'}
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)' }}>VS</div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'white' }}>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>
                                     {match.player2?.name || 'TBD'}
                                 </div>
                             </div>

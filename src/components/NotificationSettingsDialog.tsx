@@ -17,7 +17,7 @@ const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) 
             borderRadius: '999px',
             padding: '4px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            background: active ? 'var(--gradient-primary)' : 'rgba(255, 255, 255, 0.1)',
+            background: active ? 'var(--gradient-primary)' : 'rgba(0, 0, 0, 0.08)',
             boxShadow: active ? 'var(--shadow-glow-primary)' : 'none',
             position: 'relative',
         }}
@@ -113,7 +113,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                             right: '20px',
                             padding: '8px',
                             color: 'var(--color-text-dim)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            backgroundColor: 'var(--color-surface-hover)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
@@ -121,7 +121,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.color = 'var(--color-text)';
                             e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                         }}
                         onMouseLeave={(e) => {
@@ -159,8 +159,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 <div style={{
                                     padding: 'var(--spacing-4)',
                                     borderRadius: 'var(--radius-md)',
-                                    background: 'rgba(255, 255, 255, 0.03)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    background: 'var(--color-surface-hover)',
+                                    border: '1px solid var(--color-border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 'var(--spacing-4)'
@@ -175,7 +175,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <Trophy size={20} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Neue Turniere</div>
+                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Neue Turniere</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Infos zu neuen Events.</div>
                                     </div>
                                     <Toggle
@@ -188,8 +188,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 <div style={{
                                     padding: 'var(--spacing-4)',
                                     borderRadius: 'var(--radius-md)',
-                                    background: 'rgba(255, 255, 255, 0.03)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    background: 'var(--color-surface-hover)',
+                                    border: '1px solid var(--color-border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 'var(--spacing-4)'
@@ -204,7 +204,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <AlertCircle size={20} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Wichtige Updates</div>
+                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Wichtige Updates</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Änderungen & News.</div>
                                     </div>
                                     <Toggle
@@ -217,8 +217,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 <div style={{
                                     padding: 'var(--spacing-4)',
                                     borderRadius: 'var(--radius-md)',
-                                    background: 'rgba(255, 255, 255, 0.03)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    background: 'var(--color-surface-hover)',
+                                    border: '1px solid var(--color-border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 'var(--spacing-4)'
@@ -233,7 +233,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <Radio size={20} className="animate-pulse-subtle" />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>Live Ticker</div>
+                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Live Ticker</div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Echtzeit Match-Updates.</div>
                                     </div>
                                     <Toggle
@@ -251,15 +251,15 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         flex: 1,
                                         padding: '14px',
                                         borderRadius: 'var(--radius-md)',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        background: 'var(--color-surface-hover)',
+                                        border: '1px solid var(--color-border)',
                                         color: 'var(--color-text-dim)',
                                         fontWeight: 700,
                                         fontSize: '0.9rem'
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                                        e.currentTarget.style.color = 'white';
+                                        e.currentTarget.style.color = 'var(--color-text)';
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';

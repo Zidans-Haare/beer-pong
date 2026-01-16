@@ -59,7 +59,7 @@ export default function BroadcastPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--color-surface-hover)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-sm)',
                                 color: 'var(--color-text)',
@@ -79,7 +79,7 @@ export default function BroadcastPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--color-surface-hover)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-sm)',
                                 color: 'var(--color-text)',
@@ -98,7 +98,7 @@ export default function BroadcastPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--color-surface-hover)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-sm)',
                                 color: 'var(--color-text)',
@@ -114,17 +114,17 @@ export default function BroadcastPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--color-surface-hover)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-sm)',
                                 color: 'var(--color-text)',
                                 outline: 'none'
                             }}
                         >
-                            <option value="UPDATE" style={{ background: '#1e293b' }}>Update (Allgemein)</option>
-                            <option value="TOURNAMENT" style={{ background: '#1e293b' }}>Turnier Info</option>
-                            <option value="SYSTEM" style={{ background: '#1e293b' }}>System</option>
-                            <option value="GENERIC" style={{ background: '#1e293b' }}>Sonstiges</option>
+                            <option value="UPDATE">Update (Allgemein)</option>
+                            <option value="TOURNAMENT">Turnier Info</option>
+                            <option value="SYSTEM">System</option>
+                            <option value="GENERIC">Sonstiges</option>
                         </select>
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '8px' }}>
                             Nur Nutzer, die diesen Benachrichtigungstyp aktiviert haben, erhalten die Nachricht.

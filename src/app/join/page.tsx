@@ -192,15 +192,15 @@ export default function JoinPage() {
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 textAlign: 'center',
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: 'var(--color-surface-hover)',
                 border: '2px solid',
                 borderColor: error
                   ? 'var(--color-error)'
                   : digit
                   ? 'var(--color-primary)'
-                  : 'rgba(255, 255, 255, 0.2)',
+                  : 'var(--color-border)',
                 borderRadius: 'var(--radius-sm)',
-                color: 'white',
+                color: 'var(--color-text)',
                 outline: 'none',
                 transition: 'all 0.2s',
                 textTransform: 'uppercase',
@@ -267,7 +267,9 @@ export default function JoinPage() {
         </div>
 
         {/* QR Scanner */}
-        <QRScanner onScan={handleQRScan} />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <QRScanner onScan={handleQRScan} />
+        </div>
       </motion.div>
     </div>
   );

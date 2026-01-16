@@ -106,7 +106,7 @@ export default function UsersPage() {
                             {loading ? (
                                 <tr><td colSpan={3} style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-text-dim)' }}>Lade User...</td></tr>
                             ) : filteredUsers.map(user => (
-                                <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
+                                <tr key={user.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.2s' }}>
                                     <td style={{ padding: 'var(--spacing-4)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
                                             <div style={{
@@ -130,7 +130,7 @@ export default function UsersPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-2)' }}>
                                             <button
                                                 onClick={() => setSelectedUser(user)}
-                                                style={{ padding: '8px', color: 'var(--color-text-dim)', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-sm)' }}
+                                                style={{ padding: '8px', color: 'var(--color-text-dim)', background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)' }}
                                                 title="Passwort ändern"
                                             >
                                                 <Key size={18} />
@@ -168,9 +168,9 @@ export default function UsersPage() {
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 style={{
-                                    width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)',
+                                    width: '100%', padding: '12px', background: 'var(--color-surface-hover)',
                                     border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)',
-                                    color: 'white', fontSize: '1rem'
+                                    color: 'var(--color-text)', fontSize: '1rem'
                                 }}
                                 autoFocus
                             />
@@ -179,7 +179,7 @@ export default function UsersPage() {
                                 <button
                                     type="button"
                                     onClick={() => setSelectedUser(null)}
-                                    style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.1)' }}
+                                    style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-hover)' }}
                                 >
                                     Abbrechen
                                 </button>

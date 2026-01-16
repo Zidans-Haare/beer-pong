@@ -86,11 +86,11 @@ function TournamentCard({ t }: { t: any }) {
             boxShadow: isLobby ? '0 0 20px rgba(0, 255, 157, 0.3)' : (isActive ? '0 0 20px rgba(217, 70, 239, 0.2)' : 'none')
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'white', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
+                <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
                 <span style={{
                     padding: '4px 10px',
                     borderRadius: '6px',
-                    background: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'),
+                    background: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'var(--color-surface-hover)'),
                     color: isLobby ? 'black' : (isActive ? 'white' : 'var(--color-text-dim)'),
                     fontSize: '0.7rem',
                     fontWeight: 700,
@@ -119,7 +119,7 @@ function TournamentCard({ t }: { t: any }) {
             <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
-                    color: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'white'),
+                    color: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'var(--color-text)'),
                     fontSize: '0.85rem', fontWeight: 600
                 }}>
                     Zum Turnier <ArrowRight size={16} />

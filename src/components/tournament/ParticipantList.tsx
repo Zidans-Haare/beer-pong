@@ -39,7 +39,7 @@ export default function ParticipantList({ players, guests, isTeamMode }: Props) 
                     fontSize: '0.8rem',
                     fontWeight: 500,
                     color: 'var(--color-text-dim)',
-                    background: 'rgba(255,255,255,0.05)',
+                    background: 'var(--color-surface-hover)',
                     padding: '2px 8px',
                     borderRadius: '99px'
                 }}>
@@ -86,7 +86,7 @@ function ParticipantCard({ name, image, isGuest }: { name: string; image?: strin
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-2) var(--spacing-3)',
-            background: isGuest ? 'rgba(155, 89, 182, 0.08)' : 'rgba(255,255,255,0.03)',
+            background: isGuest ? 'rgba(155, 89, 182, 0.08)' : 'var(--color-surface-hover)',
             border: `1px solid ${isGuest ? 'rgba(155, 89, 182, 0.3)' : 'var(--color-border)'}`,
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem'

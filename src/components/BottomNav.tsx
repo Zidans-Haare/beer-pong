@@ -45,7 +45,23 @@ export default function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
                 <div className="relative">
                     <span className="nav-icon-glow"><Bell size={24} /></span>
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-slate-900 shadow-sm animate-pulse-subtle">
+                        <span style={{
+                            position: 'absolute',
+                            top: '-4px',
+                            right: '-4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minWidth: '18px',
+                            height: '18px',
+                            padding: '0 4px',
+                            background: 'var(--color-error)',
+                            color: 'white',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            borderRadius: '9px',
+                            border: '2px solid var(--color-surface)'
+                        }}>
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}

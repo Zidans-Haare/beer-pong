@@ -132,7 +132,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                             <XAxis
                                 dataKey="timestamp"
                                 type="number"
@@ -143,7 +143,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                             />
                             <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'white' }}
+                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                                 labelFormatter={(label) => new Date(label).toLocaleDateString()}
                             />
                             {processedData.topWinRate.map((p, i) => (
@@ -169,12 +169,12 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                             <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
                             <YAxis stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
                             <Tooltip
-                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'white' }}
+                                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                             />
                             <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name="Becherdiff." radius={[4, 4, 0, 0]} />
                         </BarChart>

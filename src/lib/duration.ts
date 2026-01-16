@@ -168,12 +168,14 @@ async function getGlobalAverageDuration(): Promise<number | null> {
 
 /**
  * Get detailed pace statistics for a player
+ * Only considers ranked tournaments (Liga-Turniere)
  */
 export async function getPlayerPaceStats(playerId: string): Promise<PlayerPaceStats> {
   const matches = await prisma.match.findMany({
     where: {
       durationSeconds: { not: null },
       OR: [{ player1Id: playerId }, { player2Id: playerId }],
+      tournament: { isRanked: true }, // Only ranked tournaments
     },
     select: { durationSeconds: true },
     orderBy: { durationSeconds: 'asc' },

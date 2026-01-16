@@ -12,6 +12,21 @@ export default async function StatsPage() {
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
                 <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>
+                <div style={{
+                    marginTop: 'var(--spacing-3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-2)',
+                    padding: '4px 12px',
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    border: '1px solid rgba(255, 215, 0, 0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    color: '#FFD700'
+                }}>
+                    <span>🏆</span>
+                    Nur Liga-Turniere (keine Spaß-Turniere)
+                </div>
             </header>
 
             <StatsCharts stats={stats} />

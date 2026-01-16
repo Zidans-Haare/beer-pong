@@ -46,3 +46,6 @@ dev.db
 /user-uploads/
 dev.db.bak*
 .*.swp
+
+# Claude Code transcripts
+2026-*.txt

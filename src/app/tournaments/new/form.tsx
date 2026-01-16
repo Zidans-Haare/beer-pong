@@ -3,12 +3,12 @@
 import { createTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Users, User, Trophy, PartyPopper, Play, Calendar, Search, MapPin } from 'lucide-react';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
-import { useMemo } from 'react';
+
 
 export default function CreateTournamentForm({ players }: { players: Player[] }) {
     const router = useRouter();
@@ -18,6 +18,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [hasReturnLeg, setHasReturnLeg] = useState(false);
     const [type, setType] = useState('SINGLE_ELIMINATION');
     const [systemMatchDuration, setSystemMatchDuration] = useState(15);
+    const [tableCount, setTableCount] = useState(1);
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -269,7 +270,34 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     </label>
                 </div>
 
-                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} matchDuration={systemMatchDuration} />
+                {/* Table Count Selection */}
+                <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
+                        <label style={{ fontWeight: '600', color: 'var(--color-text)' }}>Anzahl der Tische</label>
+                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)', background: 'var(--color-surface)', padding: '4px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                            {tableCount}
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        name="tableCount"
+                        min="1"
+                        max="8"
+                        value={tableCount}
+                        onChange={(e) => setTableCount(parseInt(e.target.value))}
+                        style={{
+                            width: '100%',
+                            accentColor: 'var(--color-primary)',
+                            cursor: 'pointer'
+                        }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>
+                        <span>1 Tisch</span>
+                        <span>8 Tische</span>
+                    </div>
+                </div>
+
+                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} matchDuration={systemMatchDuration} tableCount={tableCount} />
 
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',
@@ -284,9 +312,9 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 }
 
 // Helper Component for Form Live Forecast
-function DurationForecast({ type, hasReturnLeg, matchDuration }: { type: string, hasReturnLeg: boolean, matchDuration: number }) {
+function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount }: { type: string, hasReturnLeg: boolean, matchDuration: number, tableCount: number }) {
     const [estPlayers, setEstPlayers] = useState(8);
-    const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, 1, matchDuration, hasReturnLeg), [type, estPlayers, hasReturnLeg, matchDuration]);
+    const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, tableCount, matchDuration, hasReturnLeg), [type, estPlayers, hasReturnLeg, matchDuration, tableCount]);
     const endTime = useMemo(() => getEstimatedEndTime(duration), [duration]);
 
     return (

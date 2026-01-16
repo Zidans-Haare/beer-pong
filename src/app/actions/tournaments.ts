@@ -60,7 +60,10 @@ export async function createTournament(formData: FormData) {
     // Fetch System Defaults
     const settings = await (prisma as any).systemSettings.findUnique({ where: { id: 'default' } });
     const matchDurationMin = settings?.matchDurationMin || 15;
-    const tableCount = settings?.tableCount || 1;
+
+    // Use user-specified table count or system default
+    const formTableCount = formData.get('tableCount');
+    const tableCount = formTableCount ? parseInt(formTableCount as string) : (settings?.tableCount || 1);
 
     try {
         // Generate unique short code

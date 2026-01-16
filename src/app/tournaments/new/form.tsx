@@ -343,13 +343,13 @@ function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount }: { t
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
-                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Dauer ca.</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-text)' }}>{formatDuration(duration)}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatDuration(duration)}</div>
                 </div>
-                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Ende ca.</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>{endTime}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-secondary)', whiteSpace: 'nowrap' }}>{endTime} Uhr</div>
                 </div>
             </div>
         </div>

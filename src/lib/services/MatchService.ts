@@ -2,8 +2,95 @@
 import { prisma } from "@/lib/prisma";
 import { TickerService } from "./TickerService";
 import { recordMatchDuration, markMatchStarted } from "@/lib/duration";
+import { sendPushToUser } from "@/lib/push";
 
 export class MatchService {
+    /**
+     * Notifies both players that their match is ready to play.
+     */
+    private static async notifyMatchReady(matchId: string, tournamentId: string) {
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            include: {
+                player1: true,
+                player2: true,
+                team1: { include: { player1: true, player2: true } },
+                team2: { include: { player1: true, player2: true } },
+                tournament: true,
+            },
+        });
+
+        if (!match || !match.tournament) return;
+
+        const tournamentLink = `/tournament/${tournamentId}`;
+        const isTeamMatch = !!match.team1Id && !!match.team2Id;
+
+        if (isTeamMatch) {
+            // Team match - notify all team members
+            const { getTeamDisplayName } = await import("@/lib/teams");
+            const team1Name = match.team1 ? getTeamDisplayName(match.team1) : "Team 1";
+            const team2Name = match.team2 ? getTeamDisplayName(match.team2) : "Team 2";
+
+            // Notify Team 1 members
+            if (match.team1) {
+                const team1Players = [match.team1.player1Id, match.team1.player2Id].filter(Boolean);
+                for (const playerId of team1Players) {
+                    if (playerId) {
+                        const player = await prisma.player.findUnique({ where: { id: playerId } });
+                        if (player?.userId) {
+                            await sendPushToUser(
+                                player.userId,
+                                "Du bist dran!",
+                                `Euer Match gegen ${team2Name} kann jetzt gespielt werden.`,
+                                tournamentLink
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Notify Team 2 members
+            if (match.team2) {
+                const team2Players = [match.team2.player1Id, match.team2.player2Id].filter(Boolean);
+                for (const playerId of team2Players) {
+                    if (playerId) {
+                        const player = await prisma.player.findUnique({ where: { id: playerId } });
+                        if (player?.userId) {
+                            await sendPushToUser(
+                                player.userId,
+                                "Du bist dran!",
+                                `Euer Match gegen ${team1Name} kann jetzt gespielt werden.`,
+                                tournamentLink
+                            );
+                        }
+                    }
+                }
+            }
+        } else {
+            // Player match - notify both players
+            const player1Name = match.player1?.name || "Gegner";
+            const player2Name = match.player2?.name || "Gegner";
+
+            if (match.player1?.userId) {
+                await sendPushToUser(
+                    match.player1.userId,
+                    "Du bist dran!",
+                    `Dein Match gegen ${player2Name} kann jetzt gespielt werden.`,
+                    tournamentLink
+                );
+            }
+
+            if (match.player2?.userId) {
+                await sendPushToUser(
+                    match.player2.userId,
+                    "Du bist dran!",
+                    `Dein Match gegen ${player1Name} kann jetzt gespielt werden.`,
+                    tournamentLink
+                );
+            }
+        }
+    }
+
     /**
      * Advances a winner to the next round without updating the current match.
      * Used for Bye-matches that are already marked as played.
@@ -75,16 +162,7 @@ export class MatchService {
             }
             const scoreString = `${score1}:${score2}`;
 
-            // 1. Log Start/End/Score
-            if (!wasPlayed) {
-                await TickerService.createEvent(
-                    match.tournamentId,
-                    'MATCH_START',
-                    `Anstoß: ${name1} vs ${name2}`,
-                    matchId
-                );
-            }
-
+            // Log Score Update (no more "Anstoß" - it was redundant)
             await TickerService.createEvent(
                 match.tournamentId,
                 'SCORE_UPDATE',
@@ -249,6 +327,8 @@ export class MatchService {
             // Mark match as started if both players are now set
             if (updated.player1Id && updated.player2Id) {
                 await markMatchStarted(nextMatch.id);
+                // Notify players that their match is ready
+                this.notifyMatchReady(nextMatch.id, tournamentId);
             }
         }
 
@@ -276,6 +356,8 @@ export class MatchService {
                     // Mark 3rd place match as started if both players are now set
                     if (updated3rd.player1Id && updated3rd.player2Id) {
                         await markMatchStarted(thirdPlaceMatch.id);
+                        // Notify players that their match is ready
+                        this.notifyMatchReady(thirdPlaceMatch.id, tournamentId);
                     }
                 }
             }
@@ -332,6 +414,8 @@ export class MatchService {
 
             if (updated.team1Id && updated.team2Id) {
                 await markMatchStarted(nextMatch.id);
+                // Notify team players that their match is ready
+                this.notifyMatchReady(nextMatch.id, tournamentId);
             }
         }
 
@@ -356,6 +440,8 @@ export class MatchService {
 
                     if (updated3rd.team1Id && updated3rd.team2Id) {
                         await markMatchStarted(thirdPlaceMatch.id);
+                        // Notify team players that their match is ready
+                        this.notifyMatchReady(thirdPlaceMatch.id, tournamentId);
                     }
                 }
             }

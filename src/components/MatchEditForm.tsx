@@ -1,16 +1,16 @@
 'use client';
 
-import { updateMatchResult } from '@/app/actions/matches';
+import { updateMatchResult, startMatchAction } from '@/app/actions/matches';
 import { useState } from 'react';
 import { getTeamDisplayName } from '@/lib/team-utils';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
     const isTeamMatch = !!match.team1Id && !!match.team2Id;
-    
+
     // For team matches: use winnerTeamId, for solo: use winnerId
     const currentWinner = isTeamMatch ? match.winnerTeamId : match.winnerId;
     const [winnerId, setWinnerId] = useState<string | null>(currentWinner || null);
-    
+
     // Calculate loser cups from existing score
     const getLoserCups = () => {
         if (!currentWinner) return '';
@@ -54,11 +54,24 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
     const handleWinnerClick = (id: string) => {
         setWinnerId(id);
         // Reset loser cups when winner changes
-        const newLoserCups = isTeamMatch 
+        const newLoserCups = isTeamMatch
             ? (id === match.team1Id ? match.score2 : match.score1)
             : (id === match.player1Id ? match.score2 : match.score1);
         setLoserCups(newLoserCups?.toString() || '');
     };
+
+    const [isStarting, setIsStarting] = useState(false);
+
+    async function handleStart() {
+        setIsStarting(true);
+        const result = await startMatchAction(match.id);
+        setIsStarting(false);
+        if (result.success) {
+            onClose();
+        } else {
+            alert('Fehler beim Starten');
+        }
+    }
 
     return (
         <div style={{
@@ -66,7 +79,37 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
             background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
             <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '350px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)' }}>
-                <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-text)' }}>Ergebnis eintragen</h3>
+                <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-text)' }}>
+                    {match.isPlayed ? 'Ergebnis korrigieren' : 'Match-Optionen'}
+                </h3>
+
+                {!match.startedAt && !match.isPlayed && (
+                    <div style={{ marginBottom: 'var(--spacing-6)', paddingBottom: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)' }}>
+                        <button
+                            type="button"
+                            onClick={handleStart}
+                            disabled={isStarting}
+                            className="btn"
+                            style={{
+                                width: '100%',
+                                background: 'var(--color-primary)',
+                                color: 'white',
+                                border: 'none',
+                                padding: 'var(--spacing-3) var(--spacing-4)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {isStarting ? 'Startet...' : '⚽️ Anstoß (Ticker starten)'}
+                        </button>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', textAlign: 'center', marginTop: 'var(--spacing-2)' }}>
+                            Sendet eine Benachrichtigung an alle.
+                        </p>
+                    </div>
+                )}
                 <form onSubmit={handleSubmit}>
                     <p style={{ marginBottom: 'var(--spacing-2)', textAlign: 'center', color: 'var(--color-text-dim)' }}>Wer hat gewonnen?</p>
 

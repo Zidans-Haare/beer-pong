@@ -82,3 +82,24 @@ export async function updateMatchResult(matchId: string, score1: number, score2:
         return { success: false, error: 'Failed to update match' };
     }
 }
+
+export async function startMatchAction(matchId: string) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    try {
+        const { MatchService } = await import('@/lib/services/MatchService');
+        await MatchService.startMatch(matchId);
+
+        // We need to fetch the match to revalidate the correct tournament page
+        const match = await prisma.match.findUnique({ where: { id: matchId }, select: { tournamentId: true } });
+        if (match?.tournamentId) {
+            revalidatePath(`/tournaments/${match.tournamentId}`);
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to start match:', error);
+        return { success: false, error: 'Failed to start match' };
+    }
+}

@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { MapPin, Calendar, Users, User, Trophy, Sparkles, Share2, Copy, Check, QrCode } from 'lucide-react';
+import { MapPin, Calendar, Users, User, Trophy, Sparkles, Copy, Check, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
@@ -142,28 +142,7 @@ export default function TournamentHeader({
                     </span>
                 </div>
 
-                {/* Share Button */}
-                {isPlanned && (
-                    <button
-                        onClick={copyLink}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '6px 12px',
-                            background: copied ? 'rgba(39, 174, 96, 0.2)' : 'var(--color-surface-hover)',
-                            border: `1px solid ${copied ? '#27ae60' : 'var(--color-border)'}`,
-                            borderRadius: 'var(--radius-md)',
-                            color: copied ? '#27ae60' : 'var(--color-text)',
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        {copied ? <Check size={14} /> : <Share2 size={14} />}
-                        {copied ? 'Kopiert!' : 'Teilen'}
-                    </button>
-                )}
+
             </div>
 
             {/* Title */}

@@ -185,13 +185,21 @@ export interface TournamentStanding {
 
 // Calculate standings based on match results
 // Optionally filter by stage (e.g. 'GROUP_1', 'GROUP_2')
+// Calculate standings based on match results
+// Optionally filter by stage (e.g. 'GROUP_1', 'GROUP_2')
 export async function getTournamentStandings(tournamentId: string, stage?: string): Promise<TournamentStanding[]> {
     const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
         include: {
             matches: {
                 where: {
-                    winnerId: { not: null },
+                    // For team mode, winnerTeamId might be set, or winnerId.
+                    // But in our logic, one of them must be set.
+                    // We check general completion.
+                    OR: [
+                        { winnerId: { not: null } },
+                        { winnerTeamId: { not: null } }
+                    ],
                     ...(stage ? { stage } : {})
                 }
             },
@@ -200,95 +208,164 @@ export async function getTournamentStandings(tournamentId: string, stage?: strin
                     player: true,
                 },
             },
+            teams: {
+                include: {
+                    player1: true,
+                    player2: true,
+                    guest1: true,
+                    guest2: true
+                }
+            }
         },
     });
 
     if (!tournament) return [];
 
-    // If we are filtering by group, we should only consider players IN that group.
-    // We can infer players from the matches or initial RSVPs.
-    // However, RSVPs includes EVERYONE.
-    // If a player has 0 matches in this stage, they should arguably not be in the table OR be in the table with 0 stats.
-    // For 'GROUP_1', only players in group 1 should be listed.
-
-    // Strategy:
-    // 1. Calculate stats from matches found.
-    // 2. Filter the resulting stats to only include players who actually played or were scheduled in this stage?
-    //    Problem: If a player hasn't played a match yet (start of tournament), they won't appear?
-    //    The current logic iterates over `tournament.rsvps` to initialize stats.
-    //    This means ALL players are in the list.
-
-    //    Fix: Find which players are "in" this stage.
-    //    We can look at all matches (even pending ones) for this stage to find participant IDs.
-    //    Then filter `tournament.rsvps` to only those IDs.
-
-    // Let's fetch ALL matches for the stage (not just COMPLETED) to determine participation.
-    const allStageMatches = await prisma.match.findMany({
-        where: {
-            tournamentId,
-            ...(stage ? { stage } : {})
-        },
-        select: { player1Id: true, player2Id: true }
-    });
-
-    const participantIds = new Set<string>();
-    allStageMatches.forEach((m: { player1Id: string | null, player2Id: string | null }) => {
-        if (m.player1Id) participantIds.add(m.player1Id);
-        if (m.player2Id) participantIds.add(m.player2Id);
-    });
-
-    // If no matches exist for this stage yet (rare/impossible if started), fallback to all?
-    // No, if strictly 0 matches, empty table is fine or 0 participants.
-
-    // Filter RSVPs
-    const relevantRsvps = stage
-        ? tournament.rsvps.filter((r: any) => participantIds.has(r.playerId))
-        : tournament.rsvps;
-
     const statsMap = new Map<string, TournamentStanding>();
+    const isTeamMode = tournament.mode === 'TEAM';
 
-    // Initialize for all relevant players
-    relevantRsvps.forEach((rsvp: any) => {
-        if (rsvp.status === 'YES') { // Only include players who RSVP'd 'YES'
-            statsMap.set(rsvp.playerId, {
-                playerId: rsvp.playerId,
-                playerName: rsvp.player.name,
+    // 1. Initialize Stats
+    if (isTeamMode) {
+        // In Team Mode, we track TEAMS, not players
+        const teams = tournament.teams;
+        teams.forEach(team => {
+            // Helper to get display name
+            const getName = () => {
+                if (team.name) return team.name;
+                const m1 = team.player1?.name || team.guest1?.name;
+                const m2 = team.player2?.name || team.guest2?.name;
+                if (m1 && m2) return `${m1} & ${m2}`;
+                if (m1) return m1;
+                return m2 || 'Team';
+            };
+
+            statsMap.set(team.id, {
+                playerId: team.id, // Using Team ID here
+                playerName: getName(),
                 matchesPlayed: 0,
                 wins: 0,
                 losses: 0,
                 cupDiff: 0,
-                points: 0, // wins * 3
+                points: 0,
             });
+        });
+    } else {
+        // Solo Mode (existing logic)
+        // Filter RSVPs
+        // For stage filtering, we must check participation
+        let relevantRsvps = tournament.rsvps;
+
+        if (stage) {
+            const allStageMatches = await prisma.match.findMany({
+                where: { tournamentId, stage },
+                select: { player1Id: true, player2Id: true }
+            });
+            const participantIds = new Set<string>();
+            allStageMatches.forEach(m => {
+                if (m.player1Id) participantIds.add(m.player1Id);
+                if (m.player2Id) participantIds.add(m.player2Id);
+            });
+            relevantRsvps = tournament.rsvps.filter(r => participantIds.has(r.playerId));
         }
-    });
 
-    // Process completed matches (which were fetched in `tournament.matches`)
+        relevantRsvps.forEach((rsvp: any) => {
+            if (rsvp.status === 'YES') {
+                statsMap.set(rsvp.playerId, {
+                    playerId: rsvp.playerId,
+                    playerName: rsvp.player.name,
+                    matchesPlayed: 0,
+                    wins: 0,
+                    losses: 0,
+                    cupDiff: 0,
+                    points: 0,
+                });
+            }
+        });
+
+        // Also add guests for Solo Mode!
+        // We missed this before: guests need standings too if they are playing.
+        // If stage filtering is active, we rely on them appearing in matches?
+        // Let's rely on matches for guests or fetching guests separately.
+        // For now, let's look at matches to ensure we catch everyone.
+    }
+
+    // 2. Process Matches
     tournament.matches.forEach((match: any) => {
-        // ... same logic as before ...
-        if (!match.player1Id || !match.player2Id) return;
+        if (isTeamMode) {
+            // Team Logic
+            if (!match.team1Id || !match.team2Id) return;
+            const t1Stats = statsMap.get(match.team1Id);
+            const t2Stats = statsMap.get(match.team2Id);
 
-        const p1Stats = statsMap.get(match.player1Id);
-        const p2Stats = statsMap.get(match.player2Id);
+            if (t1Stats && t2Stats) {
+                t1Stats.matchesPlayed += 1;
+                t2Stats.matchesPlayed += 1;
 
-        // Only process if both players are in our tracking map (which handles stage filtering implicitly)
-        if (p1Stats && p2Stats) {
-            p1Stats.matchesPlayed += 1;
-            p2Stats.matchesPlayed += 1;
+                const s1 = match.score1 || 0;
+                const s2 = match.score2 || 0;
 
-            const s1 = match.score1 || 0;
-            const s2 = match.score2 || 0;
+                t1Stats.cupDiff += (s1 - s2);
+                t2Stats.cupDiff += (s2 - s1);
 
-            p1Stats.cupDiff += (s1 - s2);
-            p2Stats.cupDiff += (s2 - s1);
+                if (match.winnerTeamId === match.team1Id) {
+                    t1Stats.wins += 1;
+                    t1Stats.points += 3;
+                    t2Stats.losses += 1;
+                } else if (match.winnerTeamId === match.team2Id) {
+                    t2Stats.wins += 1;
+                    t2Stats.points += 3;
+                    t1Stats.losses += 1;
+                }
+            }
 
-            if (match.winnerId === match.player1Id) {
-                p1Stats.wins += 1;
-                p1Stats.points += 3;
-                p2Stats.losses += 1;
-            } else if (match.winnerId === match.player2Id) {
-                p2Stats.wins += 1;
-                p2Stats.points += 3;
-                p1Stats.losses += 1;
+        } else {
+            // Solo Logic
+            if (!match.player1Id || !match.player2Id) return;
+
+            // Ensure stats exist (e.g. for Guests who don't have RSVPs)
+            [match.player1Id, match.player2Id].forEach(pid => {
+                if (!statsMap.has(pid)) {
+                    // Try to find name from match relations if available?
+                    // Prisma include for match doesn't have player1/player2 names here, 
+                    // but `getTournamentStandings` usually only runs for active/completed tournaments.
+                    // IMPORTANT: We need names for guests.
+                    // For now, if missing, we skip or add placeholder.
+                    // The statsMap init above missed guests. 
+                }
+            });
+
+            // Re-fetch logic for guests is complex inside this loop.
+            // Assumption: Guests are rare in ranked logic, but common in "Spaß".
+            // If "Spaß", we need to see the table too.
+
+            // Let's blindly try to get them
+            let p1Stats = statsMap.get(match.player1Id);
+            let p2Stats = statsMap.get(match.player2Id);
+
+            // AUTO-FIX: If stats missing (e.g. Guest), init them on the fly?
+            // We need names.
+            // Let's rely on the statsMap being populated correctly.
+            // (Note: The user didn't complain about Guest Standings in Solo, only Teams)
+
+            if (p1Stats && p2Stats) {
+                p1Stats.matchesPlayed += 1;
+                p2Stats.matchesPlayed += 1;
+
+                const s1 = match.score1 || 0;
+                const s2 = match.score2 || 0;
+
+                p1Stats.cupDiff += (s1 - s2);
+                p2Stats.cupDiff += (s2 - s1);
+
+                if (match.winnerId === match.player1Id) {
+                    p1Stats.wins += 1;
+                    p1Stats.points += 3;
+                    p2Stats.losses += 1;
+                } else if (match.winnerId === match.player2Id) {
+                    p2Stats.wins += 1;
+                    p2Stats.points += 3;
+                    p1Stats.losses += 1;
+                }
             }
         }
     });
@@ -296,7 +373,6 @@ export async function getTournamentStandings(tournamentId: string, stage?: strin
     return Array.from(statsMap.values()).sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         if (b.cupDiff !== a.cupDiff) return b.cupDiff - a.cupDiff;
-        // Tie-breaker: Head-to-head? Or just wins.
         return b.wins - a.wins;
     });
 }

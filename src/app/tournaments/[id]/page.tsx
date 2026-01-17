@@ -15,6 +15,7 @@ import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
 import TeamAssignment from '@/components/TeamAssignment';
+import TeamList from '@/components/tournament/TeamList';
 import ParticipantList from '@/components/tournament/ParticipantList';
 import HostControls from '@/components/tournament/HostControls';
 import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
@@ -220,13 +221,18 @@ export default async function TournamentPage({ params, searchParams }: { params:
 
                     {/* Team Assignment */}
                     {isTeamMode && (
-                        <TeamAssignment
-                            tournamentId={tournament.id}
-                            teams={tournament.teams as any}
-                            availablePlayers={availablePlayers}
-                            availableGuests={tournament.guests}
-                            isHost={isHost}
-                        />
+                        <>
+                            <TeamAssignment
+                                tournamentId={tournament.id}
+                                teams={tournament.teams as any}
+                                availablePlayers={availablePlayers}
+                                availableGuests={tournament.guests}
+                                isHost={isHost}
+                            />
+
+                            {/* Read-only Team List for everyone */}
+                            <TeamList teams={tournament.teams as any} />
+                        </>
                     )}
 
                     {/* Participants */}
@@ -348,7 +354,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     {tournament.type === 'ROUND_ROBIN' && (
                         <section style={{ marginTop: 'var(--spacing-8)' }}>
                             <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Tabelle</h2>
-                            <TournamentTable standings={await getTournamentStandings(tournament.id)} />
+                            <TournamentTable
+                                standings={await getTournamentStandings(tournament.id)}
+                                label={isTeamMode ? 'Team' : 'Spieler'}
+                            />
                         </section>
                     )}
 
@@ -356,11 +365,19 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
                             <div>
                                 <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe A</h3>
-                                <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_1')} highlightTop={2} />
+                                <TournamentTable
+                                    standings={await getTournamentStandings(tournament.id, 'GROUP_1')}
+                                    highlightTop={2}
+                                    label={isTeamMode ? 'Team' : 'Spieler'}
+                                />
                             </div>
                             <div>
                                 <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe B</h3>
-                                <TournamentTable standings={await getTournamentStandings(tournament.id, 'GROUP_2')} highlightTop={2} />
+                                <TournamentTable
+                                    standings={await getTournamentStandings(tournament.id, 'GROUP_2')}
+                                    highlightTop={2}
+                                    label={isTeamMode ? 'Team' : 'Spieler'}
+                                />
                             </div>
                         </section>
                     )}

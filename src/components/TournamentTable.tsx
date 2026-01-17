@@ -14,7 +14,7 @@ interface Standing {
     cupDiff: number;
 }
 
-export default function TournamentTable({ standings, highlightTop = 0 }: { standings: Standing[], highlightTop?: number }) {
+export default function TournamentTable({ standings, highlightTop = 0, label = 'Spieler' }: { standings: Standing[], highlightTop?: number, label?: string }) {
     if (standings.length === 0) return <p style={{ color: 'var(--color-text-dim)', textAlign: 'center' }}>Noch keine Ergebnisse.</p>;
 
     return (
@@ -23,7 +23,7 @@ export default function TournamentTable({ standings, highlightTop = 0 }: { stand
                 <thead>
                     <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <th style={{ padding: 'var(--spacing-3)' }}>#</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>Spieler</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{label}</th>
                         <th style={{ padding: 'var(--spacing-3)' }}>Spiele</th>
                         <th style={{ padding: 'var(--spacing-3)' }}>S</th>
                         <th style={{ padding: 'var(--spacing-3)' }}>N</th>

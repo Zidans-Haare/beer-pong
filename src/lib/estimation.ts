@@ -79,8 +79,10 @@ export function formatDuration(minutes: number): string {
     return `${m} Min`;
 }
 
-export function getEstimatedEndTime(durationMinutes: number): string {
+export function getEstimatedEndTime(durationMinutes: number, baseDate?: Date): string {
     const now = new Date();
-    const end = new Date(now.getTime() + durationMinutes * 60000);
+    // Use baseDate if it's in the future, otherwise use now
+    const start = baseDate && baseDate.getTime() > now.getTime() ? baseDate : now;
+    const end = new Date(start.getTime() + durationMinutes * 60000);
     return end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 }

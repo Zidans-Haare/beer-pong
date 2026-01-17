@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import GuestJoinForm from './GuestJoinForm';
 import { isGuestForTournament } from '@/app/actions/guests';
-import { autoJoinInstantTournament } from '@/app/actions/rsvp';
+import { joinTournamentAction } from '@/app/actions/rsvp';
 import { PartyPopper } from 'lucide-react';
 
 interface Props {
@@ -42,10 +42,8 @@ export default async function JoinByCodePage({ params }: Props) {
 
   // If user is logged in
   if (session?.user) {
-    // For instant tournaments and ranked: auto-join (set RSVP=YES)
-    if (isInstantTournament && tournament.isRanked) {
-      await autoJoinInstantTournament(tournament.id);
-    }
+    // Auto-join for all tournament types (Ranked & Spaß)
+    await joinTournamentAction(tournament.id);
     // Redirect to tournament page
     redirect(`/tournaments/${tournament.id}`);
   }

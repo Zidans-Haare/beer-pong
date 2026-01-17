@@ -70,29 +70,23 @@ export async function submitRSVP(formData: FormData) {
 }
 
 /**
- * Auto-join for instant tournaments (called when user scans QR code)
- * Automatically sets RSVP to YES without user interaction
+ * Action to join a tournament (called when user scans QR code or uses join code)
+ * Automatically sets RSVP to YES for logged-in users
  */
-export async function autoJoinInstantTournament(tournamentId: string) {
+export async function joinTournamentAction(tournamentId: string) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Nicht eingeloggt' };
     }
 
     try {
-        // Check if tournament exists and is instant
+        // Check if tournament exists
         const tournament = await prisma.tournament.findUnique({
             where: { id: tournamentId }
         });
 
         if (!tournament) {
             return { success: false, error: 'Turnier nicht gefunden' };
-        }
-
-        // Only auto-join for ranked instant tournaments
-        // Spaß-Turniere use guest system instead
-        if (!tournament.isRanked) {
-            return { success: false, error: 'Auto-join nur für Liga-Turniere' };
         }
 
         // Find player for current user
@@ -132,16 +126,14 @@ export async function autoJoinInstantTournament(tournamentId: string) {
             });
 
             // Emit realtime event
-            if (existingRsvp?.status !== 'YES') {
-                emitPlayerJoined(tournamentId, { id: player.id, name: player.name });
-            }
+            emitPlayerJoined(tournamentId, { id: player.id, name: player.name });
         }
 
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {
-        console.error('Failed to auto-join tournament:', error);
-        return { success: false, error: 'Fehler beim automatischen Beitritt' };
+        console.error('Failed to join tournament:', error);
+        return { success: false, error: 'Fehler beim Beitritt' };
     }
 }
 

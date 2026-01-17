@@ -190,3 +190,37 @@ export async function isGuestForTournament(tournamentId: string) {
     const guest = await getCurrentGuest();
     return guest?.tournamentId === tournamentId ? guest : null;
 }
+
+/**
+ * Securely leave a tournament as a guest
+ */
+export async function leaveTournamentAsGuest(guestId: string, tournamentId: string) {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(GUEST_SESSION_COOKIE)?.value;
+
+    if (!sessionToken) {
+        return { success: false, error: 'Keine Gast-Session gefunden' };
+    }
+
+    try {
+        const guest = await prisma.guestPlayer.findUnique({
+            where: { id: guestId }
+        });
+
+        if (!guest || guest.sessionToken !== sessionToken || guest.tournamentId !== tournamentId) {
+            return { success: false, error: 'Nicht autorisiert' };
+        }
+
+        await prisma.guestPlayer.delete({
+            where: { id: guestId }
+        });
+
+        // Clear the cookie
+        cookieStore.set(GUEST_SESSION_COOKIE, '', { maxAge: 0 });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to leave tournament as guest:', error);
+        return { success: false, error: 'Fehler beim Verlassen' };
+    }
+}

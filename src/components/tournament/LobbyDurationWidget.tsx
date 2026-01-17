@@ -10,11 +10,14 @@ interface Props {
     matchDurationMin?: number;
     tableCount?: number;
     hasReturnLeg?: boolean;
+    startTime?: Date;
 }
 
-export default function LobbyDurationWidget({ type, playerCount, matchDurationMin = 12, tableCount = 1, hasReturnLeg = false }: Props) {
+export default function LobbyDurationWidget({ type, playerCount, matchDurationMin = 12, tableCount = 1, hasReturnLeg = false, startTime }: Props) {
     const duration = useMemo(() => calculateTournamentDuration(type, playerCount, tableCount, matchDurationMin, hasReturnLeg), [type, playerCount, tableCount, matchDurationMin, hasReturnLeg]);
-    const endTime = useMemo(() => getEstimatedEndTime(duration), [duration]);
+    const endTime = useMemo(() => getEstimatedEndTime(duration, startTime), [duration, startTime]);
+
+    const isFutureStart = startTime && startTime.getTime() > Date.now();
 
     if (playerCount < 2) return null;
 
@@ -57,7 +60,7 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                     {endTime} Uhr
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-                    wenn es jetzt losgeht
+                    {isFutureStart ? 'wenn es pünktlich losgeht' : 'wenn es jetzt losgeht'}
                 </div>
             </div>
         </div>

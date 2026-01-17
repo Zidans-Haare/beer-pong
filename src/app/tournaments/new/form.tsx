@@ -19,6 +19,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [type, setType] = useState('SINGLE_ELIMINATION');
     const [systemMatchDuration, setSystemMatchDuration] = useState(15);
     const [tableCount, setTableCount] = useState(1);
+    const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -150,7 +151,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                                 type="datetime-local"
                                 name="date"
                                 required={!startImmediately}
-                                defaultValue={new Date().toISOString().slice(0, 16)}
+                                value={customDate}
+                                onChange={(e) => setCustomDate(e.target.value)}
                                 style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -297,7 +299,14 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     </div>
                 </div>
 
-                <DurationForecast type={type} hasReturnLeg={hasReturnLeg} matchDuration={systemMatchDuration} tableCount={tableCount} />
+                <DurationForecast
+                    key={`${type}-${hasReturnLeg}-${tableCount}-${customDate}-${startImmediately}`}
+                    type={type}
+                    hasReturnLeg={hasReturnLeg}
+                    matchDuration={systemMatchDuration}
+                    tableCount={tableCount}
+                    startDate={startImmediately ? undefined : new Date(customDate)}
+                />
 
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',
@@ -312,10 +321,10 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
 }
 
 // Helper Component for Form Live Forecast
-function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount }: { type: string, hasReturnLeg: boolean, matchDuration: number, tableCount: number }) {
+function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, startDate }: { type: string, hasReturnLeg: boolean, matchDuration: number, tableCount: number, startDate?: Date }) {
     const [estPlayers, setEstPlayers] = useState(8);
     const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, tableCount, matchDuration, hasReturnLeg), [type, estPlayers, hasReturnLeg, matchDuration, tableCount]);
-    const endTime = useMemo(() => getEstimatedEndTime(duration), [duration]);
+    const endTime = useMemo(() => getEstimatedEndTime(duration, startDate), [duration, startDate]);
 
     return (
         <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>

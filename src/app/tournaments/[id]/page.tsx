@@ -26,6 +26,8 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { unstable_noStore as noStore } from 'next/cache';
+import { isGuestForTournament } from '@/app/actions/guests';
+import GuestStatusBadge from '@/components/tournament/GuestStatusBadge';
 import GroupMatches from '@/components/GroupMatches';
 
 import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
@@ -94,7 +96,16 @@ export default async function TournamentPage({ params, searchParams }: { params:
     );
 
     const currentPlayer = session?.user?.id ? players.find((p: any) => p.userId === session?.user?.id) : null;
-    const waitTime = currentPlayer ? getEstimatedWaitTime(schedule, currentPlayer.id) : null;
+    const currentGuest = await isGuestForTournament(tournament.id);
+
+    // If guest, find their temporary Player ID for wait time calculation
+    let guestPlayerId = null;
+    if (currentGuest) {
+        const guestPlayerEntry = players.find((p: any) => p.name === currentGuest.name && p.isGuest);
+        guestPlayerId = guestPlayerEntry?.id;
+    }
+
+    const waitTime = currentPlayer ? getEstimatedWaitTime(schedule, currentPlayer.id) : (guestPlayerId ? getEstimatedWaitTime(schedule, guestPlayerId) : null);
     const forecast = tournament.status === 'ACTIVE' ? await getTournamentForecast(tournament.id) : null;
 
     const isHost = session?.user?.id === tournament.hostId;
@@ -229,10 +240,21 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         matchDurationMin={smartDuration}
                         tableCount={tournament.tableCount || 1}
                         hasReturnLeg={tournament.hasReturnLeg}
+                        startTime={tournament.date}
                     />
 
-                    {/* RSVP Form - Nur bei geplanten Turnieren (nicht Sofort-Turniere) */}
-                    {!isInstantTournament && tournament.isRanked && session?.user?.id && (
+                    {/* Guest Status */}
+                    {currentGuest && (
+                        <GuestStatusBadge
+                            guestId={currentGuest.id}
+                            guestName={currentGuest.name}
+                            tournamentId={tournament.id}
+                            isPlanned={isPlanned}
+                        />
+                    )}
+
+                    {/* RSVP Form */}
+                    {session?.user?.id && (
                         (() => {
                             const player = players.find((p: any) => p.userId === session?.user?.id);
                             if (!player) {
@@ -253,8 +275,8 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         </div>
                     )}
 
-                    {/* Sofort-Turnier: Info für eingeloggte User (Auto-Join über QR) */}
-                    {isInstantTournament && tournament.isRanked && session?.user?.id && (
+                    {/* Sofort-Turnier: Info für eingeloggte User */}
+                    {isInstantTournament && session?.user?.id && (
                         (() => {
                             const player = players.find((p: any) => p.userId === session?.user?.id);
                             if (!player) {

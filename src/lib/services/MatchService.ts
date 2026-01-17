@@ -198,44 +198,7 @@ export class MatchService {
         return updatedMatch;
     }
 
-    /**
-     * Starts a match manually (Anstoß).
-     * Triggers Ticker Notification and sets startedAt timestamp.
-     */
-    static async startMatch(matchId: string) {
-        const match = await prisma.match.findUnique({
-            where: { id: matchId },
-            include: { tournament: true, player1: true, player2: true, team1: true, team2: true },
-        });
 
-        if (!match) throw new Error("Match not found");
-        if (match.startedAt) return; // Already started
-
-        // 1. Mark as started in DB
-        await markMatchStarted(matchId);
-
-        // 2. Ticker Notification (Anstoß)
-        if (match.tournamentId) {
-            const isTeamMatch = !!match.team1Id && !!match.team2Id;
-            let name1: string, name2: string;
-
-            if (isTeamMatch) {
-                const { getTeamDisplayName } = await import('@/lib/teams');
-                name1 = match.team1 ? getTeamDisplayName(match.team1) : "Team 1";
-                name2 = match.team2 ? getTeamDisplayName(match.team2) : "Team 2";
-            } else {
-                name1 = match.player1?.name || "Spieler 1";
-                name2 = match.player2?.name || "Spieler 2";
-            }
-
-            await TickerService.createEvent(
-                match.tournamentId,
-                'MATCH_START',
-                `Anstoß: ${name1} vs ${name2}!`,
-                matchId
-            );
-        }
-    }
 
     private static async updateGroupStandings(tournamentId: string, p1: string, p2: string, s1: number, s2: number) {
         // Helper to update a single player's stats

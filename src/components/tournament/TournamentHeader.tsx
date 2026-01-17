@@ -5,6 +5,7 @@ import { de } from 'date-fns/locale';
 import { MapPin, Calendar, Users, User, Trophy, Sparkles, Share2, Copy, Check, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import TournamentQRCode from '@/components/TournamentQRCode';
+import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 
 interface Props {
     tournament: {
@@ -122,6 +123,22 @@ export default function TournamentHeader({
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
                         {tournament.isRanked ? 'Liga' : 'Spaß'}
+                    </span>
+
+                    {/* Type Badge */}
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        background: 'rgba(52, 152, 219, 0.1)',
+                        border: '1px solid rgba(52, 152, 219, 0.3)',
+                        borderRadius: '99px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#3498db'
+                    }}>
+                        {getTournamentTypeLabel(tournament.type)}
                     </span>
                 </div>
 

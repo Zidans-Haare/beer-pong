@@ -207,7 +207,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
-                        <Trophy size={18} /> Liga
+                        <Trophy size={18} /> Rangliste
                     </button>
                     <button type="button" onClick={() => setIsRanked(false)}
                         style={{
@@ -218,7 +218,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
-                        <PartyPopper size={18} /> Just 4 Fun
+                        <PartyPopper size={18} /> Spaß-Modus
                     </button>
                 </div>
 
@@ -232,8 +232,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                             appearance: 'none', fontSize: '1rem', color: 'var(--color-text)'
                         }}>
                             <option value="SINGLE_ELIMINATION">K.O. System</option>
-                            <option value="ROUND_ROBIN">Jeder gegen Jeden (Liga)</option>
-                            <option value="GROUPS">Gruppenphase + K.O.</option>
+                            <option value="ROUND_ROBIN">Jeder gegen Jeden</option>
+                            <option value="GROUPS">Gruppen & K.O.</option>
                         </select>
                         <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>▼</div>
                     </div>

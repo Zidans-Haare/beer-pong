@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Calendar, MapPin, Gamepad2, Plus, ArrowRight } from 'lucide-react';
+import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,7 +113,7 @@ function TournamentCard({ t }: { t: any }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
                     <Gamepad2 size={16} />
-                    <span>{t.type}</span>
+                    <span>{getTournamentTypeLabel(t.type)}</span>
                 </div>
             </div>
 

@@ -32,6 +32,7 @@ import GroupMatches from '@/components/GroupMatches';
 
 import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
 import LobbyDurationWidget from '@/components/tournament/LobbyDurationWidget';
+import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -311,7 +312,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         <TournamentSummary
                             tournamentId={tournament.id}
                             tournamentName={tournament.name}
-                            tournamentType={tournament.type}
+                            tournamentType={getTournamentTypeLabel(tournament.type)}
                             standings={await prisma.tournamentStanding.findMany({
                                 where: { tournamentId: tournament.id },
                                 include: { player: true },

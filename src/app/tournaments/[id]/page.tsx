@@ -28,6 +28,7 @@ import { prisma } from '@/lib/prisma';
 import { unstable_noStore as noStore } from 'next/cache';
 import { isGuestForTournament } from '@/app/actions/guests';
 import GuestStatusBadge from '@/components/tournament/GuestStatusBadge';
+import GuestJoinForm from '@/app/join/[code]/GuestJoinForm';
 import GroupMatches from '@/components/GroupMatches';
 
 import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
@@ -267,13 +268,28 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {/* Not logged in - Nur bei geplanten Turnieren */}
-                    {!isInstantTournament && !session?.user?.id && tournament.isRanked && (
-                        <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                            <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
-                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">
-                                Einloggen
-                            </Link>
-                        </div>
+                    {!isInstantTournament && !session?.user?.id && (
+                        tournament.isRanked ? (
+                            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
+                                <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
+                                <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">
+                                    Einloggen
+                                </Link>
+                            </div>
+                        ) : (
+                            !currentGuest && (
+                                <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
+                                    <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1.2rem', textAlign: 'center' }}>Als Gast beitreten</h3>
+                                    <GuestJoinForm tournamentId={tournament.id} />
+                                    <div style={{ marginTop: 'var(--spacing-6)', textAlign: 'center', fontSize: '0.9rem' }}>
+                                        <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>Oder einloggen?</p>
+                                        <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
+                                            Zum Login
+                                        </Link>
+                                    </div>
+                                </div>
+                            )
+                        )
                     )}
 
                     {/* Sofort-Turnier: Info für eingeloggte User */}

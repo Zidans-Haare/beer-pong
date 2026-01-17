@@ -52,14 +52,17 @@ export function calculateTournamentDuration(
         // Assume 2 groups (standard for this app's Group logic)
         const p1 = Math.floor(playerCount / 2);
         const p2 = playerCount - p1;
-        const groupMatches = ((p1 * (p1 - 1)) / 2) + ((p2 * (p2 - 1)) / 2);
+        let groupMatches = ((p1 * (p1 - 1)) / 2) + ((p2 * (p2 - 1)) / 2);
+
+        // Double group matches if return leg is enabled
+        if (hasReturnLeg) groupMatches *= 2;
 
         // Group phase parallelism
         const maxParallelGroup = Math.min(tableCount, Math.floor(Math.max(p1, p2))); // Heuristic
         const groupDuration = Math.ceil(groupMatches / tableCount) * matchDurationMinutes;
 
         // Knockout phase: assuming Top 2 from each group -> Semi (2 matches) -> Final/3rd (2 matches)
-        // 2 parallelizable stages
+        // 2 parallelizable stages (K.O. phase doesn't have return leg)
         const koDuration = 2 * matchDurationMinutes;
 
         return groupDuration + koDuration;

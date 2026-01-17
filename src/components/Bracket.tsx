@@ -5,11 +5,23 @@ import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
 import { getTeamDisplayName } from '@/lib/team-utils';
 
-export default function Bracket({ matches }: { matches: any[] }) {
+export default function Bracket({ matches, tableCount }: { matches: any[], tableCount: number }) {
     const [editingMatch, setEditingMatch] = useState<any>(null);
 
     // Filter only bracket matches
     const bracketMatches = matches.filter(m => m.stage === 'BRACKET');
+
+    // Identify active matches (first unplayed match per table that has both players)
+    const activeMatchIds = new Set<string>();
+    for (let t = 1; t <= tableCount; t++) {
+        const nextMatch = matches.find(m =>
+            !m.isPlayed &&
+            m.tableNumber === t &&
+            (m.player1Id || m.team1Id) &&
+            (m.player2Id || m.team2Id)
+        );
+        if (nextMatch) activeMatchIds.add(nextMatch.id);
+    }
 
     // Determine max round for dynamic labeling
     const maxRound = bracketMatches.length > 0 ? Math.max(...bracketMatches.map(m => m.round)) : 0;
@@ -44,20 +56,52 @@ export default function Bracket({ matches }: { matches: any[] }) {
                         </h3>
                         {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => {
                             const isTeamMatch = !!match.team1Id && !!match.team2Id;
-                            const name1 = isTeamMatch && match.team1 
-                                ? getTeamDisplayName(match.team1) 
+                            const name1 = isTeamMatch && match.team1
+                                ? getTeamDisplayName(match.team1)
                                 : (match.player1?.name || 'TBD');
-                            const name2 = isTeamMatch && match.team2 
-                                ? getTeamDisplayName(match.team2) 
+                            const name2 = isTeamMatch && match.team2
+                                ? getTeamDisplayName(match.team2)
                                 : (match.player2?.name || 'TBD');
-                            
+
+                            const isActive = activeMatchIds.has(match.id);
+
                             return (
                                 <div
                                     key={match.id}
                                     className="glass-panel"
-                                    style={{ padding: 'var(--spacing-3)', width: '200px', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    style={{
+                                        padding: 'var(--spacing-3)',
+                                        width: '200px',
+                                        flexShrink: 0,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        position: 'relative',
+                                        border: isActive ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                        boxShadow: isActive ? '0 0 15px var(--color-primary-glow)' : 'none',
+                                        transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                                        zIndex: isActive ? 10 : 1
+                                    }}
                                     onClick={() => setEditingMatch(match)}
                                 >
+                                    {isActive && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '-12px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            background: 'var(--color-primary)',
+                                            color: 'white',
+                                            padding: '2px 8px',
+                                            borderRadius: 'var(--radius-full)',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 'bold',
+                                            boxShadow: 'var(--shadow-sm)',
+                                            whiteSpace: 'nowrap',
+                                            zIndex: 20
+                                        }}>
+                                            Tisch {match.tableNumber}
+                                        </div>
+                                    )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, true) }}>
                                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name1}</span>
                                         <span>{match.score1}</span>

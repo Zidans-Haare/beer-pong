@@ -330,9 +330,9 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <section style={{ marginTop: 'var(--spacing-8)' }}>
                         <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Bracket</h2>
                         {tournament.type !== 'SINGLE_ELIMINATION' && (
-                            <GroupMatches matches={tournament.matches as any} />
+                            <GroupMatches matches={schedule as any} tableCount={tableCount} />
                         )}
-                        <Bracket matches={tournament.matches || []} />
+                        <Bracket matches={schedule as any} tableCount={tableCount} />
                     </section>
 
                     {/* Host Controls */}

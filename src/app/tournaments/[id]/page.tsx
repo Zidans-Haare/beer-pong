@@ -268,7 +268,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {/* Not logged in - Nur bei geplanten Turnieren */}
-                    {!isInstantTournament && !session?.user?.id && (
+                    {!session?.user?.id && (
                         tournament.isRanked ? (
                             <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
                                 <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>

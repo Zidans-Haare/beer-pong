@@ -79,9 +79,8 @@ export default function JoinPage() {
       const res = await fetch(`/api/tournaments/by-code/${fullCode}`);
 
       if (res.ok) {
-        const { tournamentId } = await res.json();
         haptic.success();
-        router.push(`/tournaments/${tournamentId}`);
+        router.push(`/join/${fullCode}`);
       } else {
         setError('Turnier nicht gefunden. Prüfe den Code.');
         haptic.error();
@@ -197,8 +196,8 @@ export default function JoinPage() {
                 borderColor: error
                   ? 'var(--color-error)'
                   : digit
-                  ? 'var(--color-primary)'
-                  : 'var(--color-border)',
+                    ? 'var(--color-primary)'
+                    : 'var(--color-border)',
                 borderRadius: 'var(--radius-sm)',
                 color: 'var(--color-text)',
                 outline: 'none',

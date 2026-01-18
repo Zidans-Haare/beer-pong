@@ -388,9 +388,6 @@ function MapSearch({ onSelect }: { onSelect: (addr: string, lat: number, lng: nu
         setValue,
         clearSuggestions,
     } = usePlacesAutocomplete({
-        requestOptions: {
-            componentRestrictions: { country: "de" },
-        },
         debounce: 300,
     });
 

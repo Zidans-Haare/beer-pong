@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Users, UserPlus, Shuffle, X, Check } from 'lucide-react';
 import { autoAssignTeams, assignToTeam, createTeam, deleteTeam, updateTeamName } from '@/app/actions/teams';
 import { haptic } from '@/lib/haptics';
+import Avatar from '@/components/Avatar';
 
 interface Player {
     id: string;
@@ -361,32 +362,7 @@ export default function TeamAssignment({
                                     fontSize: '0.9rem'
                                 }}
                             >
-                                {player.image ? (
-                                    <img
-                                        src={player.image}
-                                        alt=""
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            objectFit: 'cover'
-                                        }}
-                                    />
-                                ) : (
-                                    <div style={{
-                                        width: 20,
-                                        height: 20,
-                                        borderRadius: '50%',
-                                        background: 'var(--color-primary)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.7rem',
-                                        color: 'white'
-                                    }}>
-                                        {player.name[0]}
-                                    </div>
-                                )}
+                                <Avatar src={player.image} name={player.name} size={20} />
                                 {player.name}
                             </button>
                         ))}
@@ -486,32 +462,12 @@ function TeamSlot({
                 </>
             ) : (
                 <>
-                    {!isGuest && (member as Player)?.image ? (
-                        <img
-                            src={(member as Player).image!}
-                            alt=""
-                            style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: '50%',
-                                objectFit: 'cover'
-                            }}
-                        />
-                    ) : (
-                        <div style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: '50%',
-                            background: isGuest ? '#9b59b6' : 'var(--color-primary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            color: 'white'
-                        }}>
-                            {member?.name[0]}
-                        </div>
-                    )}
+                    <Avatar
+                        src={!isGuest ? (member as Player)?.image : null}
+                        name={member?.name || ''}
+                        size={24}
+                        isGuest={isGuest}
+                    />
                     <span>{member?.name}</span>
                     {isGuest && (
                         <span style={{

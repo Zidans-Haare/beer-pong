@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Wifi, WifiOff } from 'lucide-react';
 import { haptic } from '@/lib/haptics';
+import Avatar from '@/components/Avatar';
 
 interface PresenceUser {
   odId: string;
@@ -128,25 +129,17 @@ export default function LobbyPresence({
                 initial={{ scale: 0, x: -10 }}
                 animate={{ scale: 1, x: 0 }}
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  background: user.odAvatar
-                    ? `url(${user.odAvatar}) center/cover`
-                    : getAvatarColor(user.odName),
-                  border: '2px solid var(--color-surface)',
                   marginLeft: i > 0 ? -8 : 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  color: 'white',
                   zIndex: 5 - i,
                 }}
                 title={user.odName}
               >
-                {!user.odAvatar && user.odName.charAt(0).toUpperCase()}
+                <Avatar
+                  src={user.odAvatar}
+                  name={user.odName}
+                  size={24}
+                  style={{ border: '2px solid var(--color-surface)' }}
+                />
               </motion.div>
             ))}
             {presence.length > 5 && (
@@ -205,22 +198,4 @@ export default function LobbyPresence({
       </AnimatePresence>
     </>
   );
-}
-
-// Generate consistent color based on name
-function getAvatarColor(name: string): string {
-  const colors = [
-    '#FF6B6B',
-    '#4ECDC4',
-    '#45B7D1',
-    '#96CEB4',
-    '#FFEAA7',
-    '#DDA0DD',
-    '#98D8C8',
-    '#F7DC6F',
-    '#BB8FCE',
-    '#85C1E9',
-  ];
-  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[hash % colors.length];
 }

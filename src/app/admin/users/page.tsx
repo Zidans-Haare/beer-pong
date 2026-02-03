@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getUsers, resetUserPassword, deleteUser } from '@/app/actions/admin';
 import { Search, Key, Trash2 } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 type User = {
     id: string;
@@ -109,14 +110,11 @@ export default function UsersPage() {
                                 <tr key={user.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.2s' }}>
                                     <td style={{ padding: 'var(--spacing-4)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
-                                            <div style={{
-                                                width: '40px', height: '40px', borderRadius: '50%',
-                                                background: 'var(--gradient-primary)',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                overflow: 'hidden', fontWeight: 'bold'
-                                            }}>
-                                                {user.image ? <img src={user.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.name?.[0] || '?')}
-                                            </div>
+                                            <Avatar
+                                                src={user.image}
+                                                name={user.name || user.email || '?'}
+                                                size={40}
+                                            />
                                             <div>
                                                 <div style={{ fontWeight: 500 }}>{user.name}</div>
                                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{user.email}</div>

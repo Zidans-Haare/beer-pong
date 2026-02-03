@@ -21,9 +21,11 @@ export default function ProfileImagePicker({
 }: ProfileImagePickerProps) {
   const [showCamera, setShowCamera] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(currentImage || null);
+  const [imgError, setImgError] = useState(false);
 
   const handleCapture = (imageData: string) => {
     setPreviewImage(imageData);
+    setImgError(false);
     onImageChange(imageData);
     setShowCamera(false);
     haptic.success();
@@ -69,10 +71,11 @@ export default function ProfileImagePicker({
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
           }}
         >
-          {previewImage ? (
+          {previewImage && !imgError ? (
             <img
               src={previewImage}
               alt={name}
+              onError={() => setImgError(true)}
               style={{
                 width: '100%',
                 height: '100%',

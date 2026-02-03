@@ -1,6 +1,7 @@
 'use client';
 
 import { Users } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 interface Team {
     id: string;
@@ -79,13 +80,12 @@ export default function TeamList({ teams }: { teams: Team[] }) {
 function TeamMemberRow({ member, isGuest }: { member: { name: string; image?: string | null }, isGuest: boolean }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-            {(member as any).image ? (
-                <img src={(member as any).image} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
-            ) : (
-                <div style={{ width: 20, height: 20, borderRadius: '50%', background: isGuest ? '#9b59b6' : 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>
-                    {member.name[0]}
-                </div>
-            )}
+            <Avatar
+                src={(member as any).image}
+                name={member.name}
+                size={20}
+                isGuest={isGuest}
+            />
             <span style={{ color: isGuest ? '#9b59b6' : 'var(--color-text)' }}>
                 {member.name} {isGuest && '(Gast)'}
             </span>

@@ -2,6 +2,7 @@ import { getPlayers } from '@/app/actions/players';
 import InviteButton from '@/components/InviteButton';
 import Link from 'next/link';
 import { User, Trophy, TrendingUp, Sparkles, UserPlus } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,34 +71,13 @@ function PlayerCard({ player }: { player: any }) {
                 background: 'var(--color-surface-hover)',
                 borderBottom: '1px solid var(--color-border)'
             }}>
-                <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: player.image ? 'transparent' : bgGradient,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    fontWeight: 800,
-                    color: 'white',
-                    marginBottom: 'var(--spacing-4)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                    overflow: 'hidden' // Ensure image stays round
-                }}>
-                    {player.image ? (
-                        <img
-                            src={`${player.image}?v=3`}
-                            alt={player.name}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                            }}
-                        />
-                    ) : (
-                        initials
-                    )}
+                <div style={{ marginBottom: 'var(--spacing-4)' }}>
+                    <Avatar
+                        src={player.image ? `${player.image}?v=3` : null}
+                        name={player.name}
+                        size={80}
+                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+                    />
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', margin: 0, textAlign: 'center' }}>{player.name}</h3>
                 {player.nickname && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { Users, User } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 interface Player {
     id: string;
@@ -91,34 +92,13 @@ function ParticipantCard({ name, image, isGuest }: { name: string; image?: strin
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem'
         }}>
-            {image && !isGuest ? (
-                <img
-                    src={image}
-                    alt=""
-                    style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        border: '2px solid var(--color-border)'
-                    }}
-                />
-            ) : (
-                <div style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    background: isGuest ? '#9b59b6' : 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: 'white'
-                }}>
-                    {name[0].toUpperCase()}
-                </div>
-            )}
+            <Avatar
+                src={isGuest ? null : image}
+                name={name}
+                size={28}
+                isGuest={isGuest}
+                style={{ border: '2px solid var(--color-border)' }}
+            />
             <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                 {name}
             </span>

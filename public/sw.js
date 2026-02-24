@@ -3,7 +3,7 @@
  * Provides offline support, caching strategies, and push notifications
  */
 
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v6';
 const STATIC_CACHE = `bierpong-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bierpong-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bierpong-images-${CACHE_VERSION}`;
@@ -88,6 +88,11 @@ self.addEventListener('fetch', (event) => {
   // Skip API routes that modify data
   if (url.pathname.startsWith('/api/') && request.method !== 'GET') return;
 
+  // Skip _next/static and _next/data - let browser HTTP cache handle these
+  // Next.js uses content-hashed filenames, so the browser cache is sufficient
+  // Caching these in the SW causes stale chunk errors after deploys
+  if (url.pathname.startsWith('/_next/')) return;
+
   // Strategy: Network First for HTML pages (always try to get fresh content)
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(networkFirst(request));
@@ -120,8 +125,7 @@ self.addEventListener('fetch', (event) => {
  * Check if request is for a static asset
  */
 function isStaticAsset(pathname) {
-  return /\.(js|css|woff|woff2|ttf|eot)$/i.test(pathname) ||
-    pathname.startsWith('/_next/static/');
+  return /\.(js|css|woff|woff2|ttf|eot)$/i.test(pathname);
 }
 
 /**

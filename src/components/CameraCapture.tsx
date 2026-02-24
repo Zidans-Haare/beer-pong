@@ -267,6 +267,7 @@ export default function CameraCapture({
         }}
       >
         <button
+          type="button"
           onClick={() => {
             stopCamera();
             onClose?.();
@@ -283,6 +284,7 @@ export default function CameraCapture({
 
         {isActive && (
           <button
+            type="button"
             onClick={switchCamera}
             style={{
               padding: 8,
@@ -328,6 +330,7 @@ export default function CameraCapture({
               )}
 
               <button
+                type="button"
                 onClick={startCamera}
                 className="btn btn-primary"
                 style={{
@@ -344,6 +347,7 @@ export default function CameraCapture({
 
               {showGalleryOption && (
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="btn"
                   style={{
@@ -446,6 +450,7 @@ export default function CameraCapture({
         {/* Camera active - show capture button */}
         {isActive && !capturedImage && (
           <motion.button
+            type="button"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             onClick={takePhoto}
@@ -476,6 +481,7 @@ export default function CameraCapture({
         {capturedImage && (
           <>
             <motion.button
+              type="button"
               initial={{ scale: 0, x: 50 }}
               animate={{ scale: 1, x: 0 }}
               onClick={retake}
@@ -494,6 +500,7 @@ export default function CameraCapture({
             </motion.button>
 
             <motion.button
+              type="button"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               onClick={confirmPhoto}

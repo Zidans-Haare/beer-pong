@@ -27,7 +27,7 @@
     "idb-keyval": "^6.2.2",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.562.0",
-    "next": "^15.1.6",
+    "next": "15.5.11",
     "next-auth": "^5.0.0-beta.30",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
@@ -46,7 +46,7 @@
     "@types/web-push": "^3.6.4",
     "@vitest/coverage-v8": "^4.0.17",
     "eslint": "^9",
-    "eslint-config-next": "15.1.6",
+    "eslint-config-next": "^15.5.11",
     "prisma": "^7.2.0",
     "typescript": "^5",
     "vitest": "^4.0.17"

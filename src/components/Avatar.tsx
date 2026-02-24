@@ -29,10 +29,12 @@ function getAvatarColor(name: string): string {
 }
 
 export default function Avatar({ src, name, size = 28, isGuest = false, style = {} }: AvatarProps) {
+    const [imgLoaded, setImgLoaded] = useState(false);
     const [imgError, setImgError] = useState(false);
 
     const initial = name ? name.charAt(0).toUpperCase() : '?';
-    const showFallback = !src || imgError;
+    const hasSrc = !!src;
+    const showFallback = !hasSrc || imgError;
 
     const containerStyle: React.CSSProperties = {
         width: size,
@@ -44,35 +46,43 @@ export default function Avatar({ src, name, size = 28, isGuest = false, style = 
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: showFallback
-            ? (isGuest ? '#9b59b6' : getAvatarColor(name || ''))
-            : 'transparent',
+        background: isGuest ? '#9b59b6' : getAvatarColor(name || ''),
         fontSize: size * 0.4,
         fontWeight: 600,
         color: 'white',
+        position: 'relative',
         ...style
     };
 
-    if (showFallback) {
-        return (
-            <div style={containerStyle}>
-                {initial}
-            </div>
-        );
-    }
-
     return (
         <div style={containerStyle}>
-            <img
-                src={src!}
-                alt=""
-                onError={() => setImgError(true)}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                }}
-            />
+            {/* Always render fallback initial as background */}
+            <span style={{
+                position: hasSrc && imgLoaded && !imgError ? 'absolute' : 'static',
+                opacity: hasSrc && imgLoaded && !imgError ? 0 : 1
+            }}>
+                {initial}
+            </span>
+
+            {/* Only render img if we have a src and no error */}
+            {hasSrc && !imgError && (
+                <img
+                    src={src}
+                    alt=""
+                    onLoad={() => setImgLoaded(true)}
+                    onError={() => setImgError(true)}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        opacity: imgLoaded ? 1 : 0,
+                        transition: 'opacity 0.2s ease'
+                    }}
+                />
+            )}
         </div>
     );
 }

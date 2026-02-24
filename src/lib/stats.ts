@@ -282,11 +282,26 @@ export async function getTournamentStandings(tournamentId: string, stage?: strin
             }
         });
 
-        // Also add guests for Solo Mode!
-        // We missed this before: guests need standings too if they are playing.
-        // If stage filtering is active, we rely on them appearing in matches?
-        // Let's rely on matches for guests or fetching guests separately.
-        // For now, let's look at matches to ensure we catch everyone.
+        // Collect player IDs from matches that aren't in statsMap (e.g. guests)
+        const missingPlayerIds = new Set<string>();
+        tournament.matches.forEach((match: any) => {
+            if (match.player1Id && !statsMap.has(match.player1Id)) missingPlayerIds.add(match.player1Id);
+            if (match.player2Id && !statsMap.has(match.player2Id)) missingPlayerIds.add(match.player2Id);
+        });
+
+        if (missingPlayerIds.size > 0) {
+            const missingPlayers = await prisma.player.findMany({
+                where: { id: { in: Array.from(missingPlayerIds) } },
+                select: { id: true, name: true }
+            });
+            missingPlayers.forEach(p => {
+                statsMap.set(p.id, {
+                    playerId: p.id,
+                    playerName: p.name,
+                    matchesPlayed: 0, wins: 0, losses: 0, cupDiff: 0, points: 0,
+                });
+            });
+        }
     }
 
     // 2. Process Matches
@@ -322,30 +337,8 @@ export async function getTournamentStandings(tournamentId: string, stage?: strin
             // Solo Logic
             if (!match.player1Id || !match.player2Id) return;
 
-            // Ensure stats exist (e.g. for Guests who don't have RSVPs)
-            [match.player1Id, match.player2Id].forEach(pid => {
-                if (!statsMap.has(pid)) {
-                    // Try to find name from match relations if available?
-                    // Prisma include for match doesn't have player1/player2 names here, 
-                    // but `getTournamentStandings` usually only runs for active/completed tournaments.
-                    // IMPORTANT: We need names for guests.
-                    // For now, if missing, we skip or add placeholder.
-                    // The statsMap init above missed guests. 
-                }
-            });
-
-            // Re-fetch logic for guests is complex inside this loop.
-            // Assumption: Guests are rare in ranked logic, but common in "Spaß".
-            // If "Spaß", we need to see the table too.
-
-            // Let's blindly try to get them
-            let p1Stats = statsMap.get(match.player1Id);
-            let p2Stats = statsMap.get(match.player2Id);
-
-            // AUTO-FIX: If stats missing (e.g. Guest), init them on the fly?
-            // We need names.
-            // Let's rely on the statsMap being populated correctly.
-            // (Note: The user didn't complain about Guest Standings in Solo, only Teams)
+            const p1Stats = statsMap.get(match.player1Id);
+            const p2Stats = statsMap.get(match.player2Id);
 
             if (p1Stats && p2Stats) {
                 p1Stats.matchesPlayed += 1;

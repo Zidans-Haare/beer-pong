@@ -175,15 +175,16 @@ export class MatchService {
             TickerService.triggerCommentary(match.tournamentId, matchId, context);
         }
 
-        // Skip group standings for team matches (would need team standings table)
-        if (!isTeamMatch) {
-            if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
+        if (match.stage === "GROUP" || match.stage === "GROUP_1" || match.stage === "GROUP_2") {
+            if (!isTeamMatch) {
                 await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-                await this.checkGroupStageCompletion(match.tournamentId);
-            } else if (match.stage === "LEAGUE") {
-                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
-                await this.checkLeagueCompletion(match.tournamentId);
             }
+            await this.checkGroupStageCompletion(match.tournamentId);
+        } else if (match.stage === "LEAGUE") {
+            if (!isTeamMatch) {
+                await this.updateGroupStandings(match.tournamentId, match.player1Id!, match.player2Id!, score1, score2);
+            }
+            await this.checkLeagueCompletion(match.tournamentId);
         }
 
         if (match.stage === "BRACKET" || match.stage === "KNOCKOUT") {

@@ -144,7 +144,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Siegquote Trend (Top 5)</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                                 <XAxis
@@ -184,7 +184,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Spielzeit Verlauf (Min)</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                                 <XAxis
@@ -229,7 +229,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                 <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Becherdifferenz (Top 10)</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                                 <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />

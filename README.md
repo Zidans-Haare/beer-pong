@@ -6,6 +6,8 @@
 
 A premium, modern web application for managing Beer Pong tournaments professionally. Built with Next.js 15 and designed with a "Neon Flow" aesthetic, this app provides real-time tournament tracking, comprehensive player statistics, and a seamless mobile-first user experience.
 
+Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
+
 ## ✨ Key Features
 
 ### 🏆 Tournament Management

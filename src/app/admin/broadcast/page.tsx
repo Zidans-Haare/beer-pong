@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 export default function BroadcastPage() {
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [linkChoice, setLinkChoice] = useState('/tournaments');
+    const [customLink, setCustomLink] = useState('');
 
     const handleSubmit = async (formData: FormData) => {
         setStatus('sending');
@@ -91,10 +93,11 @@ export default function BroadcastPage() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Link (Optional)</label>
-                        <input
-                            name="link"
-                            placeholder="z.B. /tournaments/abc-123"
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Link</label>
+                        <input type="hidden" name="link" value={linkChoice === '__custom__' ? customLink : linkChoice} />
+                        <select
+                            value={linkChoice}
+                            onChange={(e) => setLinkChoice(e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -104,7 +107,31 @@ export default function BroadcastPage() {
                                 color: 'var(--color-text)',
                                 outline: 'none'
                             }}
-                        />
+                        >
+                            <option value="/">Startseite</option>
+                            <option value="/players">Spieler</option>
+                            <option value="/tournaments">Turniere</option>
+                            <option value="/stats">Statistiken</option>
+                            <option value="/settings">Einstellungen</option>
+                            <option value="__custom__">Eigener Link...</option>
+                        </select>
+                        {linkChoice === '__custom__' && (
+                            <input
+                                value={customLink}
+                                onChange={(e) => setCustomLink(e.target.value)}
+                                placeholder="z.B. /tournaments/abc-123"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    marginTop: '8px',
+                                    background: 'var(--color-surface-hover)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    color: 'var(--color-text)',
+                                    outline: 'none'
+                                }}
+                            />
+                        )}
                     </div>
 
                     <div>

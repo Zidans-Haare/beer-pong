@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   // },
   async rewrites() {
     return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/custom-uploads/:path*',
+      },
     ];
   },
 };

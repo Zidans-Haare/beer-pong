@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { getUploadDir } from '@/lib/uploads';
 
 export async function getPlayers() {
     try {
@@ -96,12 +97,7 @@ export async function updatePlayer(id: string, formData: FormData) {
                 }
 
                 const filename = `${player.id}-${Date.now()}.jpg`;
-
-                // Ensure user-uploads exists
-                const uploadDir = path.join(process.cwd(), 'user-uploads');
-                if (!fs.existsSync(uploadDir)) {
-                    fs.mkdirSync(uploadDir, { recursive: true });
-                }
+                const uploadDir = getUploadDir();
 
                 fs.writeFileSync(path.join(uploadDir, filename), buffer);
                 imagePath = `/uploads/${filename}`;
@@ -126,12 +122,7 @@ export async function updatePlayer(id: string, formData: FormData) {
             const filename = `${player.id}-${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
             const fs = require('fs');
             const path = require('path');
-
-            // Ensure user-uploads exists
-            const uploadDir = path.join(process.cwd(), 'user-uploads');
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
+            const uploadDir = getUploadDir();
 
             fs.writeFileSync(path.join(uploadDir, filename), buffer);
             imagePath = `/uploads/${filename}`;

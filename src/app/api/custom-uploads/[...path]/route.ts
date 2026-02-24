@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getUploadDir } from '@/lib/uploads';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,13 +15,8 @@ export async function GET(
         
         console.log('DEBUG UPLOAD: Called with path:', pathSegments);
 
-        // Construct the file path
-        // Ensure we handle cases where pathSegments might be encoded or weird
-        const filePath = path.join(process.cwd(), 'user-uploads', ...pathSegments);
-        console.log('DEBUG UPLOAD: Full filePath:', filePath);
-
-        // Security check
-        const uploadsDir = path.join(process.cwd(), 'user-uploads');
+        const uploadsDir = getUploadDir();
+        const filePath = path.join(uploadsDir, ...pathSegments);
         const relative = path.relative(uploadsDir, filePath);
         
         if (relative.startsWith('..') || path.isAbsolute(relative)) {

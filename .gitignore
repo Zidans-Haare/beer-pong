@@ -47,5 +47,6 @@ dev.db
 dev.db.bak*
 .*.swp
 
-# Claude Code transcripts
+# Claude Code
+.claude/
 2026-*.txt

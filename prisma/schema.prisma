@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "library"
 }
 
@@ -7,160 +7,130 @@ datasource db {
   provider = "sqlite"
 }
 
-// Tournament Mode Enum (SQLite doesn't support enums, use String)
-// SOLO = 1v1 matches
-// TEAM = 2v2 matches
-
 model Player {
-  id        String   @id @default(uuid())
-  name      String
-  // Optional contact email for notifications (distinct from User email)
-  email     String?
-  nickname  String?
-  image     String? // URL to profile image
-  bio       String?
-  motto     String?
-  userId    String?  @unique // Link to Auth User
-  isGuest   Boolean  @default(false) // True for temporary guest players
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user             User?   @relation(fields: [userId], references: [id])
-  matchesAsPlayer1 Match[] @relation("Player1Matches")
-  matchesAsPlayer2 Match[] @relation("Player2Matches")
+  id               String                  @id @default(uuid())
+  name             String
+  email            String?
+  nickname         String?
+  image            String?
+  bio              String?
+  motto            String?
+  userId           String?                 @unique
+  isGuest          Boolean                 @default(false)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  matchesAsPlayer2 Match[]                 @relation("Player2Matches")
+  matchesAsPlayer1 Match[]                 @relation("Player1Matches")
+  user             User?                   @relation(fields: [userId], references: [id])
+  rsvps            RSVP[]
+  teamsAsPlayer2   Team[]                  @relation("TeamPlayer2")
+  teamsAsPlayer1   Team[]                  @relation("TeamPlayer1")
   tournaments      TournamentParticipant[]
   standings        TournamentStanding[]
-  rsvps            RSVP[]
-
-  // Team relations (for 2v2 mode)
-  teamsAsPlayer1   Team[]  @relation("TeamPlayer1")
-  teamsAsPlayer2   Team[]  @relation("TeamPlayer2")
 }
 
 model Tournament {
-  id        String   @id @default(uuid())
-  name      String
-  date      DateTime
-  location  String
-  status    String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
-  type      String   @default("ELIMINATION") // ELIMINATION, ROUND_ROBIN, GROUPS
-  hostId    String?  // Creator of the tournament
-  shortCode String?  @unique // 6-character join code (e.g., "ABC123")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hasReturnLeg Boolean @default(false)
-  matchDurationMin Int @default(15)
-  tableCount       Int @default(1)
-
-  // NEW: Tournament Mode & Ranking
-  mode      String  @default("SOLO")  // SOLO = 1v1, TEAM = 2v2
-  isRanked  Boolean @default(true)    // false = Spaß-Turnier (no stats impact)
-
-  // Relations
-  host         User?   @relation(fields: [hostId], references: [id])
-  matches      Match[]
-  participants TournamentParticipant[]
-  standings    TournamentStanding[]
-  rsvps        RSVP[]
-  tickerEvents TickerEvent[]
-  teams        Team[]
-  guests       GuestPlayer[]
+  id               String                  @id @default(uuid())
+  name             String
+  date             DateTime
+  location         String
+  status           String                  @default("PLANNED")
+  type             String                  @default("ELIMINATION")
+  hostId           String?
+  shortCode        String?                 @unique
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  hasReturnLeg     Boolean                 @default(false)
+  matchDurationMin Int                     @default(15)
+  tableCount       Int                     @default(1)
+  mode             String                  @default("SOLO")
+  isRanked         Boolean                 @default(true)
+  guests           GuestPlayer[]
+  matches          Match[]
+  rsvps            RSVP[]
+  teams            Team[]
+  tickerEvents     TickerEvent[]
+  host             User?                   @relation(fields: [hostId], references: [id])
+  participants     TournamentParticipant[]
+  standings        TournamentStanding[]
 }
 
-// Team for 2v2 matches
 model Team {
-  id           String      @id @default(uuid())
-  name         String?     // Optional custom name like "Die Biermeister"
-  tournamentId String
-  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-
-  // Team members (can mix registered players and guests)
-  player1Id    String?
-  player1      Player?     @relation("TeamPlayer1", fields: [player1Id], references: [id])
-  guest1Id     String?
-  guest1       GuestPlayer? @relation("TeamGuest1", fields: [guest1Id], references: [id])
-
-  player2Id    String?
-  player2      Player?     @relation("TeamPlayer2", fields: [player2Id], references: [id])
-  guest2Id     String?
-  guest2       GuestPlayer? @relation("TeamGuest2", fields: [guest2Id], references: [id])
-
-  createdAt    DateTime    @default(now())
-
-  // Match relations
-  matchesAsTeam1  Match[]   @relation("MatchTeam1")
-  matchesAsTeam2  Match[]   @relation("MatchTeam2")
-  matchesWon      Match[]   @relation("MatchWinnerTeam")
+  id             String       @id @default(uuid())
+  name           String?
+  tournamentId   String
+  player1Id      String?
+  guest1Id       String?
+  player2Id      String?
+  guest2Id       String?
+  createdAt      DateTime     @default(now())
+  matchesWon     Match[]      @relation("MatchWinnerTeam")
+  matchesAsTeam2 Match[]      @relation("MatchTeam2")
+  matchesAsTeam1 Match[]      @relation("MatchTeam1")
+  guest2         GuestPlayer? @relation("TeamGuest2", fields: [guest2Id], references: [id])
+  player2        Player?      @relation("TeamPlayer2", fields: [player2Id], references: [id])
+  guest1         GuestPlayer? @relation("TeamGuest1", fields: [guest1Id], references: [id])
+  player1        Player?      @relation("TeamPlayer1", fields: [player1Id], references: [id])
+  tournament     Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
-// Guest players for Spaß-Turniere (24h lifetime)
 model GuestPlayer {
-  id           String      @id @default(uuid())
-  name         String
-  sessionToken String      @unique  // For browser re-identification
-  tournamentId String
-  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  expiresAt    DateTime    // createdAt + 24h
-  createdAt    DateTime    @default(now())
-
-  // Team assignments
-  teamsAsGuest1 Team[]     @relation("TeamGuest1")
+  id            String     @id @default(uuid())
+  name          String
+  sessionToken  String     @unique
+  tournamentId  String
+  expiresAt     DateTime
+  createdAt     DateTime   @default(now())
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   teamsAsGuest2 Team[]     @relation("TeamGuest2")
+  teamsAsGuest1 Team[]     @relation("TeamGuest1")
 }
 
-// Auth Models
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?   // For Credentials provider
-  accounts      Account[]
-  sessions      Session[]
-  passkeys      Passkey[]
-
-  // App Relations
-  player        Player?
-  hostedTournaments Tournament[]
-  notifications    Notification[]
-  pushSubscriptions PushSubscription[]
-
-  // Notification Preferences
-  notifyNewTournaments Boolean @default(true)
-  notifyUpdates        Boolean @default(true)
-  notifyLiveTicker     Boolean @default(true)
+  id                   String             @id @default(cuid())
+  name                 String?
+  email                String?            @unique
+  emailVerified        DateTime?
+  image                String?
+  password             String?
+  notifyNewTournaments Boolean            @default(true)
+  notifyUpdates        Boolean            @default(true)
+  notifyLiveTicker     Boolean            @default(true)
+  accounts             Account[]
+  notifications        Notification[]
+  passkeys             Passkey[]
+  player               Player?
+  pushSubscriptions    PushSubscription[]
+  sessions             Session[]
+  hostedTournaments    Tournament[]
 }
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // "TOURNAMENT", "UPDATE", "SYSTEM", "GENERIC"
+  type      String
   title     String
   message   String
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -182,91 +152,81 @@ model VerificationToken {
 }
 
 model TournamentParticipant {
-  idString     String @id @default(uuid())
+  idString     String     @id @default(uuid())
   tournamentId String
   playerId     String
-  
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player       Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, playerId])
 }
 
 model TournamentStanding {
-  id           String @id @default(uuid())
-  tournamentId String
-  playerId     String // Using Player instead of Team
-  
-  points          Int @default(0)
-  goalsFor        Int @default(0)
-  goalsAgainst    Int @default(0)
-  goalDifference  Int @default(0)
-  played          Int @default(0)
-  won             Int @default(0)
-  drawn           Int @default(0)
-  lost            Int @default(0)
-  groupId         Int // 0, 1, 2 etc. for Group A, B, C...
-
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  id             String     @id @default(uuid())
+  tournamentId   String
+  playerId       String
+  points         Int        @default(0)
+  goalsFor       Int        @default(0)
+  goalsAgainst   Int        @default(0)
+  goalDifference Int        @default(0)
+  played         Int        @default(0)
+  won            Int        @default(0)
+  drawn          Int        @default(0)
+  lost           Int        @default(0)
+  groupId        Int
+  player         Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, playerId])
 }
 
 model Match {
-  id           String   @id @default(uuid())
-  tournamentId String
-  player1Id    String?  // Can be null if TBD (for SOLO mode)
-  player2Id    String?
-  score1       Int      @default(0)
-  score2       Int      @default(0)
-  winnerId     String?
-  isPlayed     Boolean  @default(false)
-  round        Int      // 1, 2, ...
-  position     Int      // Position in the bracket
-  stage        String   @default("BRACKET") // BRACKET, GROUP
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Duration tracking (passive slot method)
-  startedAt       DateTime? // When match became playable (previous match finished)
-  completedAt     DateTime? // When result was entered
-  durationSeconds Int?      // Computed duration for fast queries
-
-  // Team support (for TEAM mode - 2v2)
-  team1Id       String?
-  team1         Team?     @relation("MatchTeam1", fields: [team1Id], references: [id])
-  team2Id       String?
-  team2         Team?     @relation("MatchTeam2", fields: [team2Id], references: [id])
-  winnerTeamId  String?
-  winnerTeam    Team?     @relation("MatchWinnerTeam", fields: [winnerTeamId], references: [id])
-
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player1    Player?    @relation("Player1Matches", fields: [player1Id], references: [id])
-  player2    Player?    @relation("Player2Matches", fields: [player2Id], references: [id])
+  id              String     @id @default(uuid())
+  tournamentId    String
+  player1Id       String?
+  player2Id       String?
+  score1          Int        @default(0)
+  score2          Int        @default(0)
+  winnerId        String?
+  isPlayed        Boolean    @default(false)
+  round           Int
+  position        Int
+  stage           String     @default("BRACKET")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationSeconds Int?
+  team1Id         String?
+  team2Id         String?
+  winnerTeamId    String?
+  player2         Player?    @relation("Player2Matches", fields: [player2Id], references: [id])
+  player1         Player?    @relation("Player1Matches", fields: [player1Id], references: [id])
+  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  winnerTeam      Team?      @relation("MatchWinnerTeam", fields: [winnerTeamId], references: [id])
+  team2           Team?      @relation("MatchTeam2", fields: [team2Id], references: [id])
+  team1           Team?      @relation("MatchTeam1", fields: [team1Id], references: [id])
 }
 
 model RSVP {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   tournamentId String
   playerId     String
-  status       String   @default("NO_RESPONSE") // YES, NO, MAYBE, NO_RESPONSE
-  
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  status       String     @default("NO_RESPONSE")
+  player       Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, playerId])
 }
 
 model TickerEvent {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   tournamentId String
   matchId      String?
-  type         String   // MATCH_START, SCORE_UPDATE, MATCH_END, COMMENTARY
+  type         String
   content      String
-  createdAt    DateTime @default(now())
-
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
 model PushSubscription {
@@ -286,17 +246,16 @@ model SystemSettings {
 }
 
 model Passkey {
-  id                  String   @id @default(cuid())
-  userId              String
-  credentialId        String   @unique // Base64URL encoded
-  credentialPublicKey Bytes    // Raw public key bytes
-  counter             BigInt   @default(0)
-  credentialDeviceType String  @default("singleDevice") // singleDevice or multiDevice
-  credentialBackedUp  Boolean  @default(false)
-  transports          String?  // JSON array of transports
-  createdAt           DateTime @default(now())
-  lastUsedAt          DateTime?
-  friendlyName        String?  // e.g., "iPhone 15", "MacBook Pro"
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String    @id @default(cuid())
+  userId               String
+  credentialId         String    @unique
+  credentialPublicKey  Bytes
+  counter              BigInt    @default(0)
+  credentialDeviceType String    @default("singleDevice")
+  credentialBackedUp   Boolean   @default(false)
+  transports           String?
+  createdAt            DateTime  @default(now())
+  lastUsedAt           DateTime?
+  friendlyName         String?
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

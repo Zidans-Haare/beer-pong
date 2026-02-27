@@ -17,7 +17,7 @@ type Player = {
     id: string;
     name: string;
     nickname: string | null;
-    user: { id: string; email: string } | null;
+    user: { id: string; email: string | null } | null;
 };
 
 export function AdminTournamentManager({

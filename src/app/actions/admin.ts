@@ -136,6 +136,93 @@ export async function updateSystemSettings(formData: FormData) {
     }
 }
 
+export async function getPlannedTournaments() {
+    await checkAdmin();
+    try {
+        const tournaments = await prisma.tournament.findMany({
+            where: { status: 'PLANNED' },
+            orderBy: { date: 'asc' },
+            include: {
+                rsvps: {
+                    where: { status: 'YES' },
+                    include: { player: { select: { id: true, name: true } } }
+                }
+            }
+        });
+        return { success: true, tournaments };
+    } catch (error) {
+        console.error('Failed to fetch planned tournaments:', error);
+        return { success: false, error: 'Failed to fetch tournaments' };
+    }
+}
+
+export async function getRegisteredPlayers() {
+    await checkAdmin();
+    try {
+        const players = await prisma.player.findMany({
+            where: {
+                userId: { not: null },
+                isGuest: false
+            },
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                nickname: true,
+                user: { select: { id: true, email: true } }
+            }
+        });
+        return { success: true, players };
+    } catch (error) {
+        console.error('Failed to fetch players:', error);
+        return { success: false, error: 'Failed to fetch players' };
+    }
+}
+
+export async function adminAddPlayerToTournament(playerId: string, tournamentId: string) {
+    await checkAdmin();
+
+    try {
+        const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+        if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+        if (tournament.status !== 'PLANNED') return { success: false, error: 'Turnier ist nicht mehr in der Lobby-Phase' };
+
+        const player = await prisma.player.findUnique({
+            where: { id: playerId },
+            include: { user: true }
+        });
+        if (!player || !player.userId) return { success: false, error: 'Spieler nicht gefunden oder kein registrierter Nutzer' };
+
+        const existing = await prisma.rSVP.findUnique({
+            where: {
+                tournamentId_playerId: { tournamentId, playerId }
+            }
+        });
+
+        if (existing?.status === 'YES') {
+            return { success: false, error: `${player.name} ist bereits angemeldet` };
+        }
+
+        await prisma.rSVP.upsert({
+            where: {
+                tournamentId_playerId: { tournamentId, playerId }
+            },
+            update: { status: 'YES' },
+            create: { tournamentId, playerId, status: 'YES' }
+        });
+
+        const { emitPlayerJoined } = await import('@/lib/realtime');
+        emitPlayerJoined(tournamentId, { id: player.id, name: player.name });
+
+        revalidatePath(`/tournaments/${tournamentId}`);
+        revalidatePath('/admin/tournaments');
+        return { success: true, playerName: player.name };
+    } catch (error) {
+        console.error('Failed to add player to tournament:', error);
+        return { success: false, error: 'Fehler beim Hinzufügen' };
+    }
+}
+
 export async function getPublicGlobalDurationStats() {
     try {
         const { getGlobalDurationStats } = await import('@/lib/duration');

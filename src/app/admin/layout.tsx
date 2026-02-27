@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Users, Radio, LayoutDashboard, Settings } from 'lucide-react';
+import { Users, Radio, LayoutDashboard, Settings, Trophy } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 
@@ -16,6 +16,7 @@ export default async function AdminLayout({
     const navItems = [
         { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/users', label: 'Benutzer', icon: Users },
+        { href: '/admin/tournaments', label: 'Turniere', icon: Trophy },
         { href: '/admin/broadcast', label: 'Broadcast', icon: Radio },
         { href: '/admin/settings', label: 'Setup', icon: Settings },
     ];

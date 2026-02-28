@@ -6,26 +6,24 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const vv = window.visualViewport;
-        if (!vv) return;
+        // Android Chrome 108+ / Firefox 132+: handled by interactive-widget=resizes-content in viewport meta.
+        // iOS Safari does not support that meta, so we use the Visual Viewport API as fallback.
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (!isIOS || !window.visualViewport) return;
 
+        const vv = window.visualViewport!;
         const update = () => {
             if (!ref.current) return;
-            // Distance from top of our container to top of layout viewport
-            const top = ref.current.getBoundingClientRect().top + window.scrollY;
-            // Available height = visual viewport height (shrinks when keyboard opens) minus our offset
-            const available = vv.height + vv.offsetTop - top;
+            // Distance from top of visual viewport to top of our container
+            const top = ref.current.getBoundingClientRect().top;
+            // Set container height to exactly fill visible space below its top edge
+            const available = vv.height - top;
             ref.current.style.height = `${Math.max(200, available)}px`;
         };
 
         vv.addEventListener('resize', update);
-        vv.addEventListener('scroll', update);
-        update();
-
-        return () => {
-            vv.removeEventListener('resize', update);
-            vv.removeEventListener('scroll', update);
-        };
+        return () => vv.removeEventListener('resize', update);
     }, []);
 
     return (

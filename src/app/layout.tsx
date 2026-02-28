@@ -35,7 +35,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover', // Enables edge-to-edge display on notched devices
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content' as const, // keyboard shrinks layout viewport (Android Chrome 108+, Firefox 132+)
   themeColor: [
     { media: '(prefers-color-scheme: dark)', color: '#fafafa' },
     { media: '(prefers-color-scheme: light)', color: '#fafafa' },

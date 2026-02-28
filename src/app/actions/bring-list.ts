@@ -14,6 +14,7 @@ export async function getBringItems(tournamentId: string) {
                 category: true,
                 userId: true,
                 userName: true,
+                quantity: true,
             },
         });
         return items;
@@ -23,7 +24,7 @@ export async function getBringItems(tournamentId: string) {
     }
 }
 
-export async function toggleBringItem(tournamentId: string, category: string) {
+export async function setBringItem(tournamentId: string, category: string, quantity: number) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Nicht eingeloggt.' };
@@ -33,24 +34,22 @@ export async function toggleBringItem(tournamentId: string, category: string) {
     const userName = session.user.name ?? 'Unbekannt';
 
     try {
-        const existing = await prisma.bringItem.findUnique({
-            where: {
-                tournamentId_category_userId: { tournamentId, category, userId },
-            },
-        });
-
-        if (existing) {
-            await prisma.bringItem.delete({ where: { id: existing.id } });
+        if (quantity <= 0) {
+            await prisma.bringItem.deleteMany({
+                where: { tournamentId, category, userId },
+            });
         } else {
-            await prisma.bringItem.create({
-                data: { tournamentId, category, userId, userName },
+            await prisma.bringItem.upsert({
+                where: { tournamentId_category_userId: { tournamentId, category, userId } },
+                update: { quantity, userName },
+                create: { tournamentId, category, userId, userName, quantity },
             });
         }
 
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {
-        console.error('Toggle bring item failed:', error);
+        console.error('Set bring item failed:', error);
         return { success: false, error: 'Fehler beim Aktualisieren.' };
     }
 }

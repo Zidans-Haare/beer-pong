@@ -1,12 +1,12 @@
 'use client';
 
 import { useTransition, useState, useEffect } from 'react';
-import { toggleBringItem } from '@/app/actions/bring-list';
+import { setBringItem } from '@/app/actions/bring-list';
 import { BRING_CATEGORIES } from '@/lib/bring-categories';
 import { useRouter } from 'next/navigation';
-import { Droplets, Table2, CupSoda, CircleDot, ShoppingBag, Check, Plus } from 'lucide-react';
+import { Droplets, Table2, CupSoda, CircleDot, ShoppingBag, Minus, Plus, X } from 'lucide-react';
 
-type BringItemData = { id: string; category: string; userId: string; userName: string };
+type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
     BEER:   <Droplets  size={18} />,
@@ -28,30 +28,33 @@ export default function BringList({
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
-    // Sync with server data after router.refresh()
     useEffect(() => {
         setItems(initialItems);
     }, [initialItems]);
 
-    function handleToggle(category: string) {
+    function getMyItem(category: string) {
+        return items.find(i => i.category === category && i.userId === currentUserId);
+    }
+
+    function handleSet(category: string, quantity: number) {
         if (!currentUserId || isPending) return;
 
-        const existing = items.find(i => i.category === category && i.userId === currentUserId);
-
-        if (existing) {
-            setItems(prev => prev.filter(i => i.id !== existing.id));
-        } else {
-            const optimistic: BringItemData = {
-                id: `opt-${Date.now()}`,
+        // Optimistic update
+        setItems(prev => {
+            const without = prev.filter(i => !(i.category === category && i.userId === currentUserId));
+            if (quantity <= 0) return without;
+            const existing = prev.find(i => i.category === category && i.userId === currentUserId);
+            return [...without, {
+                id: existing?.id ?? `opt-${Date.now()}`,
                 category,
                 userId: currentUserId,
                 userName: 'Du',
-            };
-            setItems(prev => [...prev, optimistic]);
-        }
+                quantity,
+            }];
+        });
 
         startTransition(async () => {
-            await toggleBringItem(tournamentId, category);
+            await setBringItem(tournamentId, category, quantity);
             router.refresh();
         });
     }
@@ -66,67 +69,114 @@ export default function BringList({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                 {BRING_CATEGORIES.map(cat => {
                     const contributors = items.filter(i => i.category === cat.key);
-                    const isMine = contributors.some(i => i.userId === currentUserId);
+                    const myItem = getMyItem(cat.key);
+                    const totalQty = contributors.reduce((s, i) => s + i.quantity, 0);
 
                     return (
-                        <div
-                            key={cat.key}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--spacing-3)',
-                                padding: 'var(--spacing-3) var(--spacing-4)',
-                                borderRadius: 'var(--radius-sm)',
-                                background: isMine
-                                    ? 'rgba(var(--color-primary-rgb, 99,102,241), 0.12)'
-                                    : 'var(--color-surface)',
-                                border: `1px solid ${isMine ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                transition: 'all 0.15s',
-                            }}
-                        >
-                            <span style={{ color: isMine ? 'var(--color-primary)' : 'var(--color-text-dim)', flexShrink: 0 }}>
-                                {CATEGORY_ICONS[cat.key]}
-                            </span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{cat.label}</div>
-                                {contributors.length > 0 ? (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '2px' }}>
-                                        {contributors.map(c => c.userName).join(', ')}
+                        <div key={cat.key} style={{
+                            padding: 'var(--spacing-3) var(--spacing-4)',
+                            borderRadius: 'var(--radius-sm)',
+                            background: myItem ? 'rgba(var(--color-primary-rgb, 99,102,241), 0.08)' : 'var(--color-surface)',
+                            border: `1px solid ${myItem ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            transition: 'all 0.15s',
+                        }}>
+                            {/* Top row: icon + label + total + stepper */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+                                <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', flexShrink: 0 }}>
+                                    {CATEGORY_ICONS[cat.key]}
+                                </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{cat.label}</span>
+                                    {totalQty > 0 && (
+                                        <span style={{ marginLeft: '8px', fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 700 }}>
+                                            {totalQty}x
+                                        </span>
+                                    )}
+                                </div>
+
+                                {currentUserId ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                        {myItem ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleSet(cat.key, myItem.quantity - 1)}
+                                                    disabled={isPending}
+                                                    style={btnStyle}
+                                                    title="Weniger"
+                                                >
+                                                    <Minus size={12} />
+                                                </button>
+                                                <span style={{ minWidth: '24px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-primary)' }}>
+                                                    {myItem.quantity}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleSet(cat.key, myItem.quantity + 1)}
+                                                    disabled={isPending}
+                                                    style={btnStyle}
+                                                    title="Mehr"
+                                                >
+                                                    <Plus size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSet(cat.key, 0)}
+                                                    disabled={isPending}
+                                                    style={{ ...btnStyle, marginLeft: '4px', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
+                                                    title="Entfernen"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleSet(cat.key, 1)}
+                                                disabled={isPending}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    padding: '6px 12px',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    border: '1px solid var(--color-border)',
+                                                    background: 'transparent',
+                                                    color: 'var(--color-text-dim)',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 600,
+                                                    cursor: isPending ? 'not-allowed' : 'pointer',
+                                                    opacity: isPending ? 0.6 : 1,
+                                                }}
+                                            >
+                                                <Plus size={13} /> Ich
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '2px', fontStyle: 'italic' }}>
-                                        Noch niemand
-                                    </div>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic', flexShrink: 0 }}>
+                                        Login nötig
+                                    </span>
                                 )}
                             </div>
 
-                            {currentUserId ? (
-                                <button
-                                    onClick={() => handleToggle(cat.key)}
-                                    disabled={isPending}
-                                    style={{
-                                        flexShrink: 0,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        padding: '6px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: `1px solid ${isMine ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                        background: isMine ? 'var(--color-primary)' : 'transparent',
-                                        color: isMine ? '#fff' : 'var(--color-text-dim)',
-                                        fontSize: '0.8rem',
-                                        fontWeight: 600,
-                                        cursor: isPending ? 'not-allowed' : 'pointer',
-                                        opacity: isPending ? 0.6 : 1,
-                                        transition: 'all 0.15s',
-                                    }}
-                                >
-                                    {isMine ? <><Check size={13} /> Ich</> : <><Plus size={13} /> Ich</>}
-                                </button>
-                            ) : (
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic', flexShrink: 0 }}>
-                                    Login nötig
-                                </span>
+                            {/* Contributors */}
+                            {contributors.length > 0 && (
+                                <div style={{ marginTop: 'var(--spacing-2)', paddingLeft: '30px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {contributors.map(c => (
+                                        <span key={c.id} style={{
+                                            fontSize: '0.78rem',
+                                            color: c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-text-dim)',
+                                            background: c.userId === currentUserId ? 'rgba(var(--color-primary-rgb,99,102,241),0.1)' : 'rgba(255,255,255,0.04)',
+                                            border: '1px solid ' + (c.userId === currentUserId ? 'rgba(var(--color-primary-rgb,99,102,241),0.3)' : 'var(--color-border)'),
+                                            borderRadius: '100px',
+                                            padding: '2px 8px',
+                                        }}>
+                                            {c.userName} · {c.quantity}x
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {contributors.length === 0 && (
+                                <div style={{ marginTop: '4px', paddingLeft: '30px', fontSize: '0.8rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
+                                    Noch niemand
+                                </div>
                             )}
                         </div>
                     );
@@ -135,3 +185,17 @@ export default function BringList({
         </div>
     );
 }
+
+const btnStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '26px',
+    height: '26px',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--color-border)',
+    background: 'var(--color-surface)',
+    color: 'var(--color-text-dim)',
+    cursor: 'pointer',
+    padding: 0,
+};

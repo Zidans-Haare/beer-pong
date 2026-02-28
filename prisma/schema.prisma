@@ -123,6 +123,7 @@ model BringItem {
   category     String
   userId       String
   userName     String
+  quantity     Int        @default(1)
   createdAt    DateTime   @default(now())
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -428,3 +428,6 @@ input[type="checkbox"] {
   background: rgba(217, 70, 239, 0.2);
   color: var(--color-text);
 }
+
+/* Collapsible details arrow */
+details[open] summary svg { transform: rotate(90deg); }

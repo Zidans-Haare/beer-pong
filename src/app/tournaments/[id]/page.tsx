@@ -246,23 +246,6 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         isTeamMode={isTeamMode}
                     />
 
-                    <LobbyDurationWidget
-                        type={tournament.type}
-                        playerCount={totalParticipants}
-                        matchDurationMin={smartDuration}
-                        tableCount={tournament.tableCount || 1}
-                        hasReturnLeg={tournament.hasReturnLeg}
-                        startTime={tournament.date}
-                    />
-
-                    {!isInstantTournament && (
-                        <BringList
-                            tournamentId={tournament.id}
-                            initialItems={bringItems}
-                            currentUserId={session?.user?.id ?? null}
-                        />
-                    )}
-
                     {/* Guest Status */}
                     {currentGuest && (
                         <GuestStatusBadge
@@ -321,6 +304,32 @@ export default async function TournamentPage({ params, searchParams }: { params:
                             return <InstantTournamentInfo isJoined={userRsvp?.status === 'YES'} />;
                         })()
                     )}
+
+                    {!isInstantTournament && (
+                        <BringList
+                            tournamentId={tournament.id}
+                            initialItems={bringItems}
+                            currentUserId={session?.user?.id ?? null}
+                        />
+                    )}
+
+                    {/* Zusätzliche Infos – eingeklappt */}
+                    <details style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', overflow: 'hidden' }}>
+                        <summary style={{ padding: 'var(--spacing-3) var(--spacing-4)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-dim)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', userSelect: 'none' }}>
+                            <ChevronRight size={16} style={{ transition: 'transform 0.2s' }} />
+                            Zusätzliche Infos
+                        </summary>
+                        <div style={{ padding: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
+                            <LobbyDurationWidget
+                                type={tournament.type}
+                                playerCount={totalParticipants}
+                                matchDurationMin={smartDuration}
+                                tableCount={tournament.tableCount || 1}
+                                hasReturnLeg={tournament.hasReturnLeg}
+                                startTime={tournament.date}
+                            />
+                        </div>
+                    </details>
 
                     {/* Host Controls */}
                     {isHost && (

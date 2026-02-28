@@ -25,7 +25,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         return { cups: null, ot: true, otRounds: completedOtRounds, otLoserCups: otLC };
     };
     const init = getInitialState();
-    const [loserCups, setLoserCups] = useState<number | null>(init.cups);
+    const [loserCupsStr, setLoserCupsStr] = useState<string>(init.cups !== null ? init.cups.toString() : '');
     const [isOT, setIsOT] = useState(init.ot);
     const [otRounds, setOtRounds] = useState(init.otRounds);
     const [otLoserCups, setOtLoserCups] = useState<number | null>(init.otLoserCups);
@@ -39,7 +39,8 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!winnerId) return alert('Bitte Gewinner auswählen');
-        if (!isOT && loserCups === null) return alert('Bitte Becherzahl eingeben');
+        const loserCups = parseInt(loserCupsStr);
+        if (!isOT && (loserCupsStr === '' || isNaN(loserCups) || loserCups < 0 || loserCups > 9)) return alert('Bitte Becherzahl eingeben (0–9)');
         if (isOT && otLoserCups === null) return alert('Bitte OT-Becherzahl eingeben');
 
         const isTeam1Winner = isTeamMatch ? winnerId === match.team1Id : winnerId === match.player1Id;
@@ -48,7 +49,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         let loserScore: number;
         if (!isOT) {
             winnerScore = 10;
-            loserScore = loserCups!;
+            loserScore = loserCups;
         } else {
             // winner always clears all OT cups in the decisive round
             winnerScore = 10 + (otRounds + 1) * 3;
@@ -70,7 +71,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
 
     const handleWinnerClick = (id: string) => {
         setWinnerId(id);
-        setLoserCups(null);
+        setLoserCupsStr('');
         setIsOT(false);
         setOtRounds(0);
         setOtLoserCups(null);
@@ -135,53 +136,50 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                     {winnerId && !isOT && (
                         <div style={{ marginBottom: 'var(--spacing-6)' }}>
                             <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center' }}>
-                                Becher <strong>Verlierer</strong>
-                                {loserCups !== null && (
-                                    <span style={{ marginLeft: '8px', color: 'var(--color-primary)', fontWeight: 700 }}>→ {loserCups}</span>
-                                )}
+                                Becher <strong>Verlierer</strong> (0–9)
                             </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-                                {[0,1,2,3,4,5,6,7,8,9].map(n => (
-                                    <button
-                                        key={n}
-                                        type="button"
-                                        onClick={() => setLoserCups(n)}
-                                        style={{
-                                            aspectRatio: '1',
-                                            borderRadius: '50%',
-                                            border: loserCups === n ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                            background: loserCups === n ? 'var(--color-primary)' : 'var(--color-surface)',
-                                            color: loserCups === n ? '#fff' : 'var(--color-text)',
-                                            fontWeight: 700,
-                                            fontSize: '1rem',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.15s',
-                                        }}
-                                    >
-                                        {n}
-                                    </button>
-                                ))}
-                                {/* OT button spans full width of last row */}
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsOT(true); setLoserCups(null); }}
-                                    style={{
-                                        gridColumn: 'span 5',
-                                        padding: '10px',
-                                        borderRadius: '100px',
-                                        border: '1px solid var(--color-border)',
-                                        background: 'var(--color-surface)',
-                                        color: 'var(--color-text-dim)',
-                                        fontWeight: 700,
-                                        fontSize: '0.9rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s',
-                                        letterSpacing: '0.05em',
-                                    }}
-                                >
-                                    🍺 Verlängerung (beide 10)
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="z.B. 6"
+                                value={loserCupsStr}
+                                onChange={e => {
+                                    const v = e.target.value.replace(/[^0-9]/g, '');
+                                    if (v === '' || (parseInt(v) >= 0 && parseInt(v) <= 9)) setLoserCupsStr(v);
+                                }}
+                                autoFocus
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    padding: '14px',
+                                    fontSize: '2rem',
+                                    fontWeight: 700,
+                                    textAlign: 'center',
+                                    background: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    color: 'var(--color-text)',
+                                    marginBottom: 'var(--spacing-3)',
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => { setIsOT(true); setLoserCupsStr(''); }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    borderRadius: '100px',
+                                    border: '1px solid var(--color-border)',
+                                    background: 'var(--color-surface)',
+                                    color: 'var(--color-text-dim)',
+                                    fontWeight: 700,
+                                    fontSize: '0.9rem',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                🍺 Verlängerung (beide 10)
+                            </button>
                         </div>
                     )}
 
@@ -270,7 +268,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
                         <button type="button" onClick={onClose} className="btn" style={{ flex: 1, border: '1px solid var(--color-border)', color: 'var(--color-text-dim)' }}>Abbrechen</button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={!winnerId || (!isOT && loserCups === null) || (isOT && otLoserCups === null)}>Speichern</button>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={!winnerId || (!isOT && loserCupsStr === '') || (isOT && otLoserCups === null)}>Speichern</button>
                     </div>
                 </form>
             </div>

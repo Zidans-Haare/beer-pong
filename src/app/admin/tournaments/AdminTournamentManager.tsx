@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { adminAddPlayerToTournament } from '@/app/actions/admin';
-import { UserPlus, Check, Search, Calendar, Users, ChevronDown } from 'lucide-react';
+import { adminAddPlayerToTournament, adminRemovePlayerFromTournament } from '@/app/actions/admin';
+import { UserPlus, UserMinus, Check, Search, Calendar, Users, ChevronDown } from 'lucide-react';
 
 type Tournament = {
     id: string;
@@ -32,11 +32,13 @@ export function AdminTournamentManager({
     const [isPending, startTransition] = useTransition();
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [addedPlayerIds, setAddedPlayerIds] = useState<Set<string>>(new Set());
+    const [removedPlayerIds, setRemovedPlayerIds] = useState<Set<string>>(new Set());
 
     const selectedTournament = tournaments.find(t => t.id === selectedTournamentId);
     const registeredPlayerIds = new Set(selectedTournament?.rsvps.map(r => r.player.id) ?? []);
 
     const availablePlayers = players.filter(p => {
+        if (removedPlayerIds.has(p.id)) return true; // re-add after removal
         if (registeredPlayerIds.has(p.id) && !addedPlayerIds.has(p.id)) return false;
         if (addedPlayerIds.has(p.id)) return false;
         if (!search) return true;
@@ -46,7 +48,9 @@ export function AdminTournamentManager({
             (p.user?.email?.toLowerCase().includes(q));
     });
 
-    const alreadyRegistered = players.filter(p => registeredPlayerIds.has(p.id) || addedPlayerIds.has(p.id));
+    const alreadyRegistered = players.filter(p =>
+        (registeredPlayerIds.has(p.id) || addedPlayerIds.has(p.id)) && !removedPlayerIds.has(p.id)
+    );
 
     function handleAdd(playerId: string) {
         setFeedback(null);
@@ -54,7 +58,23 @@ export function AdminTournamentManager({
             const result = await adminAddPlayerToTournament(playerId, selectedTournamentId);
             if (result.success) {
                 setAddedPlayerIds(prev => new Set(prev).add(playerId));
+                setRemovedPlayerIds(prev => { const s = new Set(prev); s.delete(playerId); return s; });
                 setFeedback({ type: 'success', message: `${result.playerName} wurde angemeldet!` });
+                setTimeout(() => setFeedback(null), 3000);
+            } else {
+                setFeedback({ type: 'error', message: result.error ?? 'Fehler' });
+            }
+        });
+    }
+
+    function handleRemove(playerId: string) {
+        setFeedback(null);
+        startTransition(async () => {
+            const result = await adminRemovePlayerFromTournament(playerId, selectedTournamentId);
+            if (result.success) {
+                setRemovedPlayerIds(prev => new Set(prev).add(playerId));
+                setAddedPlayerIds(prev => { const s = new Set(prev); s.delete(playerId); return s; });
+                setFeedback({ type: 'success', message: `${result.playerName} wurde abgemeldet.` });
                 setTimeout(() => setFeedback(null), 3000);
             } else {
                 setFeedback({ type: 'error', message: result.error ?? 'Fehler' });
@@ -77,6 +97,7 @@ export function AdminTournamentManager({
                         onChange={(e) => {
                             setSelectedTournamentId(e.target.value);
                             setAddedPlayerIds(new Set());
+                            setRemovedPlayerIds(new Set());
                             setFeedback(null);
                         }}
                         style={{ paddingRight: '36px', appearance: 'none' }}
@@ -115,22 +136,48 @@ export function AdminTournamentManager({
                         <Users size={14} />
                         <span>Bereits angemeldet ({alreadyRegistered.length})</span>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {alreadyRegistered.map(p => (
-                            <span
+                            <div
                                 key={p.id}
                                 style={{
-                                    padding: '4px 12px',
-                                    borderRadius: '100px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: 'var(--spacing-2) var(--spacing-3)',
+                                    borderRadius: 'var(--radius-sm)',
                                     fontSize: '0.85rem',
-                                    background: 'rgba(78, 205, 196, 0.15)',
-                                    color: 'var(--color-secondary)',
-                                    border: '1px solid rgba(78, 205, 196, 0.3)'
+                                    background: 'rgba(78, 205, 196, 0.08)',
+                                    border: '1px solid rgba(78, 205, 196, 0.25)'
                                 }}
                             >
-                                <Check size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                                {p.name}
-                            </span>
+                                <span style={{ color: 'var(--color-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Check size={12} />
+                                    {p.name}
+                                    {p.nickname && <span style={{ color: 'var(--color-text-dim)' }}>({p.nickname})</span>}
+                                </span>
+                                <button
+                                    onClick={() => handleRemove(p.id)}
+                                    disabled={isPending}
+                                    title="Vom Turnier abmelden"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        padding: '3px 10px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid rgba(255,107,107,0.4)',
+                                        background: 'rgba(255,107,107,0.08)',
+                                        color: 'var(--color-accent)',
+                                        fontSize: '0.8rem',
+                                        cursor: isPending ? 'not-allowed' : 'pointer',
+                                        opacity: isPending ? 0.5 : 1,
+                                    }}
+                                >
+                                    <UserMinus size={12} />
+                                    Entfernen
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </div>

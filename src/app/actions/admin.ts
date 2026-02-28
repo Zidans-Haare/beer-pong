@@ -224,6 +224,26 @@ export async function adminAddPlayerToTournament(playerId: string, tournamentId:
     }
 }
 
+export async function adminRemovePlayerFromTournament(playerId: string, tournamentId: string) {
+    await checkAdmin();
+
+    try {
+        const player = await prisma.player.findUnique({ where: { id: playerId } });
+        if (!player) return { success: false, error: 'Spieler nicht gefunden' };
+
+        await prisma.rSVP.deleteMany({
+            where: { tournamentId, playerId }
+        });
+
+        revalidatePath(`/tournaments/${tournamentId}`);
+        revalidatePath('/admin/tournaments');
+        return { success: true, playerName: player.name };
+    } catch (error) {
+        console.error('Failed to remove player from tournament:', error);
+        return { success: false, error: 'Fehler beim Entfernen' };
+    }
+}
+
 export async function getPendingUsers() {
     await checkAdmin();
     try {

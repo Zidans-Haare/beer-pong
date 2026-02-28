@@ -4,7 +4,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![PWA](https://img.shields.io/badge/PWA-Ready-purple)
 
-A premium, modern web application for managing Beer Pong tournaments professionally. Built with Next.js 15 and designed with a "Neon Flow" aesthetic, this app provides real-time tournament tracking, comprehensive player statistics, and a seamless mobile-first user experience.
+A premium, modern web application for managing Beer Pong tournaments professionally. Built with Next.js 15 and designed with a "Neon Flow" aesthetic, this app provides real-time tournament tracking, comprehensive player statistics, live interactive chat, and a seamless mobile-first user experience.
 
 Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
 
@@ -12,22 +12,32 @@ Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
 
 ### 🏆 Tournament Management
 - **Versatile Formats**: Support for Single Elimination, Double Elimination, Round Robin, and Group Stages.
+- **Match Results & Overtime**: Advanced match scoring featuring tap-buttons (0-10) for cup count, mobile numeric keypads, and an **Overtime (OT)** mode for unlimited additional rounds. 
 - **Real-time Brackets**: Interactive, auto-updating tournament brackets powered by a robust match generation engine.
+- **Advanced Bring Lists**: Integrated lists for tournament supplies supporting item quantities and real-time synchronization across participants.
 - **Live Ticker**: Real-time event feed for ongoing matches and results.
 - **Location Integration**: Integrated Google Maps for tournament venues.
+
+### 💬 Social & Chat
+- **Live Interactive Chat**: Seamlessly integrated, PWA & iOS optimized chat experience with dynamic keyboard-friendly layouts.
 
 ### 📊 Advanced Statistics
 - **Player Profiles**: Detailed tracking of wins, losses, win rates, and tournament history.
 - **Performance Visualizations**: Interactive charts (Area, Bar, Radar) showing player performance trends over time.
 - **Global Leaderboards**: Automated ranking system based on Elo or win ratios.
 
+### 🛡️ Privacy & Security
+- **Protected Routes**: Full application locked behind NextAuth login to protect user data and privacy.
+- **Guest Access**: Carefully managed guest sessions extended up to 7 days for streamlined event onboarding.
+
 ### 📱 Progressive Web App (PWA)
 - **Installable**: Functions as a native app on iOS and Android.
 - **Offline Capable**: Core features work even with spotty internet connections.
 - **Push Notifications**: Real-time alerts for match calls, results, and tournament updates.
+- **Mobile-Optimized UI**: Animated bottom navigation bar for logged-in users and a floating "QR Pill" for fast access when logged out, built with sleek Lucide icons.
 
 ### 🛠 Admin Dashboard
-- **Comprehensive Control**: Full suite of tools to manage players, matches, and app settings.
+- **Comprehensive Control**: Full suite of tools to manage players, matches, app settings, and remove players directly from active tournaments.
 - **Mobile-First Admin**: Optimized admin interface for managing tournaments on the go.
 
 ## 📸 Screenshots

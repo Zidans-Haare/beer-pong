@@ -124,7 +124,7 @@ export default function ChatWindow({
     }
 
     return (
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '70vh', minHeight: '400px' }}>
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             {/* Messages */}
             <div style={{
                 flex: 1,

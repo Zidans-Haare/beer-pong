@@ -17,6 +17,7 @@ export async function getUsers() {
     await checkAdmin();
     try {
         const users = await prisma.user.findMany({
+            where: { status: 'ACTIVE' },
             orderBy: { name: 'asc' },
             select: {
                 id: true,

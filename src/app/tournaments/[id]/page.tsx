@@ -35,6 +35,8 @@ import GroupMatches from '@/components/GroupMatches';
 import TournamentSuccessModal from '@/components/tournament/TournamentSuccessModal';
 import LobbyDurationWidget from '@/components/tournament/LobbyDurationWidget';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
+import BringList from '@/components/tournament/BringList';
+import { getBringItems } from '@/app/actions/bring-list';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -85,9 +87,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
 
     if (!tournament) notFound();
 
-    const players = await getPlayers();
-    const systemSettings = await getPublicSystemSettings();
-
+    const [players, systemSettings, bringItems] = await Promise.all([
+        getPlayers(),
+        getPublicSystemSettings(),
+        getBringItems(id),
+    ]);
     const duration = tournament.matchDurationMin || systemSettings.matchDurationMin || 15;
     const tableCount = tournament.tableCount || systemSettings.tableCount || 1;
 
@@ -249,6 +253,12 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         tableCount={tournament.tableCount || 1}
                         hasReturnLeg={tournament.hasReturnLeg}
                         startTime={tournament.date}
+                    />
+
+                    <BringList
+                        tournamentId={tournament.id}
+                        initialItems={bringItems}
+                        currentUserId={session?.user?.id ?? null}
                     />
 
                     {/* Guest Status */}

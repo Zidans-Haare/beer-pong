@@ -223,6 +223,68 @@ export async function adminAddPlayerToTournament(playerId: string, tournamentId:
     }
 }
 
+export async function getPendingUsers() {
+    await checkAdmin();
+    try {
+        const users = await prisma.user.findMany({
+            where: { status: 'PENDING' },
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+                // createdAt not directly available but we can use emailVerified or skip
+            }
+        });
+        return { success: true, users };
+    } catch (error) {
+        console.error('Failed to fetch pending users:', error);
+        return { success: false, users: [], error: 'Failed to fetch pending users' };
+    }
+}
+
+export async function approveUser(userId: string) {
+    await checkAdmin();
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { status: 'ACTIVE' },
+        });
+
+        const { createNotificationForUser } = await import('@/app/actions/notifications');
+        await createNotificationForUser({
+            userId,
+            title: 'Account freigegeben!',
+            message: 'Dein Account wurde vom Admin freigegeben. Du kannst dich jetzt einloggen.',
+            link: '/login',
+            type: 'SYSTEM',
+        });
+
+        revalidatePath('/admin/approvals');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to approve user:', error);
+        return { success: false, error: 'Approve failed' };
+    }
+}
+
+export async function rejectUser(userId: string) {
+    await checkAdmin();
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { status: 'REJECTED' },
+        });
+
+        revalidatePath('/admin/approvals');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to reject user:', error);
+        return { success: false, error: 'Reject failed' };
+    }
+}
+
 export async function getPublicGlobalDurationStats() {
     try {
         const { getGlobalDurationStats } = await import('@/lib/duration');

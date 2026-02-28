@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { Users, Radio, LayoutDashboard, Settings, Trophy } from 'lucide-react';
+import { Users, Radio, LayoutDashboard, Settings, Trophy, UserCheck } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
 
 export default async function AdminLayout({
     children,
@@ -13,12 +14,15 @@ export default async function AdminLayout({
         redirect('/');
     }
 
+    const pendingCount = await prisma.user.count({ where: { status: 'PENDING' } });
+
     const navItems = [
-        { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/users', label: 'Benutzer', icon: Users },
-        { href: '/admin/tournaments', label: 'Turniere', icon: Trophy },
-        { href: '/admin/broadcast', label: 'Broadcast', icon: Radio },
-        { href: '/admin/settings', label: 'Setup', icon: Settings },
+        { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, badge: 0 },
+        { href: '/admin/approvals', label: 'Anfragen', icon: UserCheck, badge: pendingCount },
+        { href: '/admin/users', label: 'Benutzer', icon: Users, badge: 0 },
+        { href: '/admin/tournaments', label: 'Turniere', icon: Trophy, badge: 0 },
+        { href: '/admin/broadcast', label: 'Broadcast', icon: Radio, badge: 0 },
+        { href: '/admin/settings', label: 'Setup', icon: Settings, badge: 0 },
     ];
 
     return (
@@ -76,7 +80,21 @@ export default async function AdminLayout({
                             }}
                         >
                             <item.icon size={20} />
-                            <span style={{ fontWeight: 500 }}>{item.label}</span>
+                            <span style={{ fontWeight: 500, flex: 1 }}>{item.label}</span>
+                            {item.badge > 0 && (
+                                <span style={{
+                                    background: 'var(--color-primary)',
+                                    color: '#fff',
+                                    borderRadius: '100px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    padding: '1px 7px',
+                                    minWidth: '20px',
+                                    textAlign: 'center',
+                                }}>
+                                    {item.badge}
+                                </span>
+                            )}
                         </Link>
                     ))}
                 </nav>
@@ -126,10 +144,27 @@ export default async function AdminLayout({
                             gap: '4px',
                             color: 'var(--color-text-dim)',
                             textDecoration: 'none',
-                            padding: '4px'
+                            padding: '4px',
+                            position: 'relative',
                         }}
                     >
                         <item.icon size={20} />
+                        {item.badge > 0 && (
+                            <span style={{
+                                position: 'absolute',
+                                top: '-2px',
+                                right: '-2px',
+                                background: 'var(--color-primary)',
+                                color: '#fff',
+                                borderRadius: '100px',
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                padding: '1px 4px',
+                                lineHeight: 1.2,
+                            }}>
+                                {item.badge}
+                            </span>
+                        )}
                         <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>{item.label}</span>
                     </Link>
                 ))}

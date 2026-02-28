@@ -45,6 +45,7 @@ model Tournament {
   tableCount       Int                     @default(1)
   mode             String                  @default("SOLO")
   isRanked         Boolean                 @default(true)
+  bringItems       BringItem[]
   guests           GuestPlayer[]
   matches          Match[]
   rsvps            RSVP[]
@@ -93,16 +94,40 @@ model User {
   emailVerified        DateTime?
   image                String?
   password             String?
+  status               String             @default("PENDING")
   notifyNewTournaments Boolean            @default(true)
   notifyUpdates        Boolean            @default(true)
   notifyLiveTicker     Boolean            @default(true)
   accounts             Account[]
+  bringItems           BringItem[]
+  chatMessages         ChatMessage[]
   notifications        Notification[]
   passkeys             Passkey[]
   player               Player?
   pushSubscriptions    PushSubscription[]
   sessions             Session[]
   hostedTournaments    Tournament[]
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BringItem {
+  id           String     @id @default(uuid())
+  tournamentId String
+  category     String
+  userId       String
+  userName     String
+  createdAt    DateTime   @default(now())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, category, userId])
 }
 
 model Notification {

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import { createNotificationForUser } from '@/app/actions/notifications';
 
 export async function registerUser(formData: FormData) {
     const name = formData.get('name') as string;
@@ -16,12 +17,14 @@ export async function registerUser(formData: FormData) {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
+        const isAdmin = email === process.env.ADMIN_EMAIL;
 
         const newUser = await prisma.user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
+                status: isAdmin ? 'ACTIVE' : 'PENDING',
             },
         });
 
@@ -31,18 +34,34 @@ export async function registerUser(formData: FormData) {
                 name: newUser.name || 'Unknown',
                 email: newUser.email,
                 userId: newUser.id,
-                // Default image or other fields can remain null
             }
         });
 
-        // Auto Login after Registration
-        await signIn('credentials', {
-            email,
-            password,
-            redirect: false,
-        });
+        if (isAdmin) {
+            // Admin registers: auto-login
+            await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
+            });
+            return { success: true, pending: false };
+        }
 
-        return { success: true };
+        // Notify the admin about the new registration
+        const adminUser = await prisma.user.findUnique({
+            where: { email: process.env.ADMIN_EMAIL },
+        });
+        if (adminUser) {
+            await createNotificationForUser({
+                userId: adminUser.id,
+                title: 'Neue Registrierung',
+                message: `${name} (${email}) wartet auf Freigabe.`,
+                link: '/admin/approvals',
+                type: 'SYSTEM',
+            });
+        }
+
+        return { success: true, pending: true };
     } catch (error) {
         console.error('Registration error:', error);
         return { success: false, error: 'User konnte nicht erstellt werden (Email evtl. vergeben).' };
@@ -50,6 +69,25 @@ export async function registerUser(formData: FormData) {
 }
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
+    const email = formData.get('email') as string;
+
+    // Check user status before attempting sign-in
+    if (email) {
+        try {
+            const user = await prisma.user.findUnique({ where: { email } });
+            if (user) {
+                if (user.status === 'PENDING') {
+                    return 'Dein Account wartet noch auf Admin-Freigabe.';
+                }
+                if (user.status === 'REJECTED') {
+                    return 'Dein Account wurde abgelehnt.';
+                }
+            }
+        } catch {
+            // Fall through to signIn which will handle other errors
+        }
+    }
+
     try {
         await signIn('credentials', {
             ...Object.fromEntries(formData),
@@ -59,9 +97,9 @@ export async function authenticate(prevState: string | undefined, formData: Form
         if (error instanceof AuthError) {
             switch (error.type) {
                 case 'CredentialsSignin':
-                    return 'Invalid credentials.';
+                    return 'Ungültige Anmeldedaten.';
                 default:
-                    return 'Something went wrong.';
+                    return 'Etwas ist schiefgelaufen.';
             }
         }
         throw error;

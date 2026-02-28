@@ -7,16 +7,33 @@ import { useState } from 'react';
 export default function RegisterForm() {
     const router = useRouter();
     const [error, setError] = useState('');
+    const [pending, setPending] = useState(false);
 
     async function handleSubmit(formData: FormData) {
         const res = await registerUser(formData);
         if (res.success) {
-            // registerUser will sign in, so just refresh/push to home
-            router.refresh();
-            router.push('/');
+            if (res.pending) {
+                setPending(true);
+            } else {
+                router.refresh();
+                router.push('/');
+            }
         } else {
             setError(res.error || 'Fehler bei der Registrierung');
         }
+    }
+
+    if (pending) {
+        return (
+            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-4)' }}>⏳</div>
+                <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Account erstellt!</h2>
+                <p style={{ color: 'var(--color-text-dim)', lineHeight: 1.6 }}>
+                    Dein Account wurde erstellt und wartet auf Admin-Freigabe.
+                    Du wirst benachrichtigt, sobald dein Zugang aktiviert wurde.
+                </p>
+            </div>
+        );
     }
 
     return (

@@ -1,30 +1,38 @@
 import type { NextAuthConfig } from 'next-auth';
 
+// Routes that are accessible without a logged-in account
+const PUBLIC_PATHS = [
+    '/login',
+    '/register',
+    '/rules',
+    '/join',
+    '/offline',
+];
+
 export const authConfig = {
     pages: {
-        signIn: '/login', // Custom login page
+        signIn: '/login',
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            // Explicitly allow uploads
-            if (nextUrl.pathname.startsWith('/uploads')) {
+            const isLoggedIn = !!auth?.user;
+            const path = nextUrl.pathname;
+
+            // Always allow public paths and their sub-paths
+            if (PUBLIC_PATHS.some(p => path === p || path.startsWith(p + '/'))) {
                 return true;
             }
 
-            const isLoggedIn = !!auth?.user;
-            const isOnDashboard = nextUrl.pathname.startsWith('/dashboard'); // Example protected route
-            const isOnLogin = nextUrl.pathname.startsWith('/login');
-            const isOnRegister = nextUrl.pathname.startsWith('/register');
-
-            // Protect /tournaments/new and editing pages
-            if (nextUrl.pathname.startsWith('/tournaments/new') || nextUrl.pathname.startsWith('/admin')) {
-                if (isLoggedIn) return true;
-                return false; // Redirect to login
+            // Allow static assets and uploads
+            if (path.startsWith('/uploads') || path.startsWith('/_next')) {
+                return true;
             }
 
-            // Allow general access to everything else for now
+            // Everything else requires login
+            if (!isLoggedIn) return false;
+
             return true;
         },
     },
-    providers: [], // Add providers with an empty array for now
+    providers: [],
 } satisfies NextAuthConfig;

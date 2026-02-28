@@ -16,7 +16,7 @@ export default async function Navbar() {
                 <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Beitreten</Link>
                 <Link href="/players" className="nav-link" style={{ color: 'var(--color-text)' }}>Spieler</Link>
                 <Link href="/stats" className="nav-link" style={{ color: 'var(--color-text)' }}>Statistik</Link>
-                <Link href="/chat" className="nav-link" style={{ color: 'var(--color-text)' }}>Chat</Link>
+                {session?.user && <Link href="/chat" className="nav-link" style={{ color: 'var(--color-text)' }}>Chat</Link>}
                 {session?.user?.email === process.env.ADMIN_EMAIL && (
                     <Link href="/admin/broadcast" className="nav-link" style={{ color: 'var(--color-text)' }}>Admin</Link>
                 )}

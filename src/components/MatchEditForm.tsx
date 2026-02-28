@@ -149,6 +149,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                     if (v === '' || (parseInt(v) >= 0 && parseInt(v) <= 9)) setLoserCupsStr(v);
                                 }}
                                 autoFocus
+                                onFocus={e => e.target.select()}
                                 style={{
                                     display: 'block',
                                     width: '100%',

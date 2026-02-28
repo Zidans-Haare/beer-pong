@@ -58,6 +58,26 @@ export default function ChatWindow({
             : new Date(0).toISOString()
     );
 
+    // Lock page scroll while chat is mounted (prevents keyboard from jumping the app)
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = prev; };
+    }, []);
+
+    // When keyboard opens the visual viewport shrinks — scroll window back to 0
+    useEffect(() => {
+        const vv = window.visualViewport;
+        if (!vv) return;
+        const reset = () => window.scrollTo(0, 0);
+        vv.addEventListener('resize', reset);
+        vv.addEventListener('scroll', reset);
+        return () => {
+            vv.removeEventListener('resize', reset);
+            vv.removeEventListener('scroll', reset);
+        };
+    }, []);
+
     // Scroll to bottom on new messages
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

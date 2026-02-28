@@ -115,22 +115,23 @@ export default async function AdminLayout({
 
             {/* Mobile Admin Sub-Navigation */}
             <nav
-                className="glass-panel admin-mobile-nav"
+                className="admin-mobile-nav"
                 style={{
                     position: 'fixed',
-                    bottom: '90px', // Above the global bottom nav
+                    bottom: '90px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: '90%',
-                    maxWidth: '350px',
-                    borderRadius: '100px',
+                    width: '96%',
+                    maxWidth: '480px',
+                    borderRadius: '20px',
                     border: '1px solid var(--color-border)',
-                    zIndex: 60, // Higher z-index to ensure visibility
-                    display: 'none', // Hidden on desktop
-                    justifyContent: 'space-evenly',
-                    padding: '12px 20px',
+                    zIndex: 60,
+                    display: 'none',
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                    padding: '10px 8px',
                     background: 'var(--color-surface)',
-                    boxShadow: 'var(--shadow-xl)'
+                    boxShadow: 'var(--shadow-xl)',
                 }}
             >
                 {navItems.map(item => (
@@ -141,19 +142,21 @@ export default async function AdminLayout({
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '4px',
+                            gap: '3px',
                             color: 'var(--color-text-dim)',
                             textDecoration: 'none',
-                            padding: '4px',
+                            padding: '4px 6px',
                             position: 'relative',
+                            minWidth: 0,
+                            flex: 1,
                         }}
                     >
-                        <item.icon size={20} />
+                        <item.icon size={18} />
                         {item.badge > 0 && (
                             <span style={{
                                 position: 'absolute',
-                                top: '-2px',
-                                right: '-2px',
+                                top: '0px',
+                                right: '4px',
                                 background: 'var(--color-primary)',
                                 color: '#fff',
                                 borderRadius: '100px',
@@ -165,7 +168,7 @@ export default async function AdminLayout({
                                 {item.badge}
                             </span>
                         )}
-                        <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>{item.label}</span>
+                        <span style={{ fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, textAlign: 'center' }}>{item.label}</span>
                     </Link>
                 ))}
             </nav>

@@ -14,9 +14,9 @@ export const authConfig = {
         signIn: '/login',
     },
     callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
+        authorized({ auth, request }) {
             const isLoggedIn = !!auth?.user;
-            const path = nextUrl.pathname;
+            const path = request.nextUrl.pathname;
 
             // Always allow public paths and their sub-paths
             if (PUBLIC_PATHS.some(p => path === p || path.startsWith(p + '/'))) {
@@ -26,6 +26,12 @@ export const authConfig = {
             // Allow static assets and uploads
             if (path.startsWith('/uploads') || path.startsWith('/_next')) {
                 return true;
+            }
+
+            // Allow guests (with guest session cookie) to view tournament pages
+            if (path.startsWith('/tournaments/')) {
+                const guestCookie = request.cookies.get('bierpong_guest_session');
+                if (guestCookie?.value) return true;
             }
 
             // Everything else requires login

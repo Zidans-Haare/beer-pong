@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
 const GUEST_SESSION_COOKIE = 'bierpong_guest_session';
-const GUEST_LIFETIME_HOURS = 24;
+const GUEST_LIFETIME_HOURS = 24 * 7; // 7 Tage
 
 /**
  * Creates a guest player for a Spaß-Turnier
@@ -46,8 +46,9 @@ export async function createGuestPlayer(name: string, tournamentId: string) {
         const cookieStore = await cookies();
         cookieStore.set(GUEST_SESSION_COOKIE, sessionToken, {
             expires: expiresAt,
+            maxAge: GUEST_LIFETIME_HOURS * 60 * 60,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: false, // auch über http persistent (Entwicklung + lokales Netz)
             sameSite: 'lax',
             path: '/'
         });

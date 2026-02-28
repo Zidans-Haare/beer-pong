@@ -107,27 +107,41 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                     </div>
 
                     {winnerId && (
-                        <div style={{ marginBottom: 'var(--spacing-6)', textAlign: 'center' }}>
-                            <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', color: 'var(--color-text)' }}>
-                                Wie viele Becher hat der <strong>Verlierer</strong> getroffen?
+                        <div style={{ marginBottom: 'var(--spacing-6)' }}>
+                            <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center' }}>
+                                Becher <strong>Verlierer</strong>
+                                {loserCups !== '' && (
+                                    <span style={{ marginLeft: '8px', color: 'var(--color-primary)', fontWeight: 700 }}>→ {loserCups}</span>
+                                )}
                             </label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="10"
-                                value={loserCups}
-                                onChange={e => setLoserCups(e.target.value)}
-                                style={{
-                                    width: '80px',
-                                    padding: 'var(--spacing-3)',
-                                    fontSize: '1.5rem',
-                                    textAlign: 'center',
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border)',
-                                    color: 'var(--color-text)',
-                                    borderRadius: 'var(--radius-sm)'
-                                }}
-                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
+                                    <button
+                                        key={n}
+                                        type="button"
+                                        onClick={() => setLoserCups(n.toString())}
+                                        style={{
+                                            aspectRatio: '1',
+                                            borderRadius: '50%',
+                                            border: loserCups === n.toString()
+                                                ? '2px solid var(--color-primary)'
+                                                : '1px solid var(--color-border)',
+                                            background: loserCups === n.toString()
+                                                ? 'var(--color-primary)'
+                                                : 'var(--color-surface)',
+                                            color: loserCups === n.toString() ? '#fff' : 'var(--color-text)',
+                                            fontWeight: 700,
+                                            fontSize: '1rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s',
+                                            // "10" spans 2 columns to fill the 6-col grid evenly (5+1 → last row)
+                                            ...(n === 10 ? { gridColumn: 'span 2', borderRadius: '100px' } : {}),
+                                        }}
+                                    >
+                                        {n}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     )}
 

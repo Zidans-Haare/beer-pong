@@ -75,7 +75,7 @@ export default async function RootLayout({
               {children}
             </ClientLayout>
           </main>
-          <BottomNav isAdmin={isAdmin} />
+          <BottomNav isAdmin={isAdmin} isLoggedIn={!!session?.user} />
           <ServiceWorkerUpdate />
           <OfflineIndicator />
           <ServiceWorkerProvider />

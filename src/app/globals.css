@@ -431,3 +431,7 @@ input[type="checkbox"] {
 
 /* Collapsible details arrow */
 details[open] summary svg { transform: rotate(90deg); }
+
+/* Hide bottom nav on chat page */
+body.chat-open .bottom-nav { display: none !important; }
+body.chat-open .layout-shell { padding-bottom: 0; }

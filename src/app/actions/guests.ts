@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { auth } from '@/auth';
 
 const GUEST_SESSION_COOKIE = 'bierpong_guest_session';
 const GUEST_LIFETIME_HOURS = 24 * 7; // 7 Tage
@@ -173,7 +174,27 @@ export async function cleanupExpiredGuests() {
  * Remove guest from tournament (by host or self)
  */
 export async function removeGuest(guestId: string) {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+        return { success: false, error: 'Nicht eingeloggt' };
+    }
+
     try {
+        const guest = await prisma.guestPlayer.findUnique({
+            where: { id: guestId },
+            include: { tournament: true }
+        });
+
+        if (!guest) {
+            return { success: false, error: 'Gast nicht gefunden' };
+        }
+
+        // Only host or an admin (which we assume only host matters here for now as admin has different path)
+        if (guest.tournament.hostId !== session.user.id) {
+            return { success: false, error: 'Nur der Host kann Gäste entfernen' };
+        }
+
         await prisma.guestPlayer.delete({
             where: { id: guestId }
         });

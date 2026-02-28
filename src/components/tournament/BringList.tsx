@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { toggleBringItem } from '@/app/actions/bring-list';
 import { BRING_CATEGORIES } from '@/lib/bring-categories';
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,11 @@ export default function BringList({
     const [items, setItems] = useState<BringItemData[]>(initialItems);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+
+    // Sync with server data after router.refresh()
+    useEffect(() => {
+        setItems(initialItems);
+    }, [initialItems]);
 
     function handleToggle(category: string) {
         if (!currentUserId || isPending) return;

@@ -22,11 +22,11 @@ export class TickerService {
         });
 
         // Broadcast Notification based on type
-        let title = '🎙️ Live-Ticker';
-        if (type === 'SCORE_UPDATE') title = '🎯 Spielstand Update';
-        else if (type === 'MATCH_START') title = '🚀 Match gestartet';
-        else if (type === 'MATCH_END') title = '🏁 Match beendet';
-        else if (type === 'COMMENTARY') title = '🎙️ Live-Kommentar';
+        let title = 'Live-Ticker';
+        if (type === 'SCORE_UPDATE') title = 'Spielstand Update';
+        else if (type === 'MATCH_START') title = 'Match gestartet';
+        else if (type === 'MATCH_END') title = 'Match beendet';
+        else if (type === 'COMMENTARY') title = 'Live-Kommentar';
 
         await broadcastNotification({
             title,

@@ -6,8 +6,8 @@ import { de } from 'date-fns/locale';
 import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { isAdmin } from '@/lib/admin';
-import { getPlayerPaceStats, formatDuration, getPaceEmoji } from '@/lib/duration';
-import { Pencil } from 'lucide-react';
+import { getPlayerPaceStats, formatDuration } from '@/lib/duration';
+import { Pencil, Zap, Timer, Hourglass, Coffee } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 
 export const dynamic = 'force-dynamic';
@@ -79,13 +79,19 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {/* Pace Stats */}
             {paceStats.totalMatches > 0 && (
                 <div style={{ marginTop: 'var(--spacing-6)', width: '100%' }}>
+                    {(() => {
+                        const paceIconMap: Record<string, typeof Timer> = { Blitzschnell: Zap, Schnellspieler: Timer, Normal: Hourglass, Genießer: Coffee };
+                        const PaceIcon = paceIconMap[paceStats.paceLabel] ?? Timer;
+                        return (
                     <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                        <span>{getPaceEmoji(paceStats.paceLabel)}</span> Spieltempo
+                        <PaceIcon size={18} /> Spieltempo
                     </h3>
+                        );
+                    })()}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-4)' }}>
                         <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
                             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                                {getPaceEmoji(paceStats.paceLabel)} {paceStats.paceLabel}
+                                {paceStats.paceLabel}
                             </div>
                             <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
                                 Spielstil

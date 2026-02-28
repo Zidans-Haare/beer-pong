@@ -3,6 +3,7 @@
 import { registerUser } from '@/app/actions/auth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Clock } from 'lucide-react';
 
 export default function RegisterForm() {
     const router = useRouter();
@@ -26,7 +27,9 @@ export default function RegisterForm() {
     if (pending) {
         return (
             <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-4)' }}>⏳</div>
+                <div style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-text-dim)', display: 'flex', justifyContent: 'center' }}>
+                    <Clock size={40} strokeWidth={1.5} />
+                </div>
                 <h2 style={{ marginBottom: 'var(--spacing-4)' }}>Account erstellt!</h2>
                 <p style={{ color: 'var(--color-text-dim)', lineHeight: 1.6 }}>
                     Dein Account wurde erstellt und wartet auf Admin-Freigabe.

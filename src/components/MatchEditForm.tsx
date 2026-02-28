@@ -3,6 +3,7 @@
 import { updateMatchResult } from '@/app/actions/matches';
 import { useState } from 'react';
 import { getTeamDisplayName } from '@/lib/team-utils';
+import { ChevronLeft, RefreshCw } from 'lucide-react';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
     const isTeamMatch = !!match.team1Id && !!match.team2Id;
@@ -179,7 +180,8 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                     cursor: 'pointer',
                                 }}
                             >
-                                🍺 Verlängerung (beide 10)
+                                <RefreshCw size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                                Verlängerung (beide 10)
                             </button>
                         </div>
                     )}
@@ -262,7 +264,8 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                     cursor: 'pointer',
                                 }}
                             >
-                                ← Zurück (kein OT)
+                                <ChevronLeft size={14} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                                Zurück
                             </button>
                         </div>
                     )}

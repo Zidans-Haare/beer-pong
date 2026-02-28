@@ -368,20 +368,3 @@ export function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')} Min`;
 }
 
-/**
- * Get pace emoji based on duration
- */
-export function getPaceEmoji(paceLabel: PlayerPaceStats['paceLabel']): string {
-  switch (paceLabel) {
-    case 'Blitzschnell':
-      return '⚡';
-    case 'Schnellspieler':
-      return '🏃';
-    case 'Normal':
-      return '🚶';
-    case 'Genießer':
-      return '🐢';
-    default:
-      return '❓';
-  }
-}

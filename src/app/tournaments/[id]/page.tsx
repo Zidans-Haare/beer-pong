@@ -255,11 +255,13 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         startTime={tournament.date}
                     />
 
-                    <BringList
-                        tournamentId={tournament.id}
-                        initialItems={bringItems}
-                        currentUserId={session?.user?.id ?? null}
-                    />
+                    {!isInstantTournament && (
+                        <BringList
+                            tournamentId={tournament.id}
+                            initialItems={bringItems}
+                            currentUserId={session?.user?.id ?? null}
+                        />
+                    )}
 
                     {/* Guest Status */}
                     {currentGuest && (

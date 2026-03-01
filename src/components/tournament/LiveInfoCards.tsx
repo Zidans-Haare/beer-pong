@@ -5,6 +5,7 @@ import { Clock, Target, Sigma, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDuration } from '@/lib/duration';
+import FormulaRow from '@/components/FormulaRow';
 
 interface Forecast {
     estimatedEndTime: Date;
@@ -152,28 +153,14 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                     Ø pro Spiel: historischer Matchup → Spieler-Ø → globaler Fallback
                                 </div>
 
-                                {avgFormatted && <Row label="Ø pro Spiel" formula="basierend auf Spielerhistorie" result={avgFormatted} />}
-                                <Row label="Spiele übrig" formula="verbleibende Matches ohne Ergebnis" result={`${forecast.remainingMatches}`} />
-                                {totalMin !== null && <Row label="Summe brutto" formula={`${avgFormatted} × ${forecast.remainingMatches} Spiele`} result={`${totalMin} Min`} />}
-                                <Row
-                                    label="Parallelfaktor"
-                                    formula="× 0.8 (Matches überlappen sich)"
-                                    result="80%"
-                                />
+                                {avgFormatted && <FormulaRow label="Ø pro Spiel" formula="basierend auf Spielerhistorie" result={avgFormatted} />}
+                                <FormulaRow label="Spiele übrig" formula="verbleibende Matches ohne Ergebnis" result={`${forecast.remainingMatches}`} />
+                                {totalMin !== null && <FormulaRow label="Summe brutto" formula={`${avgFormatted} × ${forecast.remainingMatches} Spiele`} result={`${totalMin} Min`} />}
+                                <FormulaRow label="Parallelfaktor" formula="× 0.8 (Matches überlappen sich)" result="80%" />
                                 {adjustedMin !== null && (
-                                    <Row
-                                        label="Restzeit netto"
-                                        formula={`${totalMin} Min × 0.8`}
-                                        result={`${adjustedMin} Min`}
-                                        highlight
-                                    />
+                                    <FormulaRow label="Restzeit netto" formula={`${totalMin} Min × 0.8`} result={`${adjustedMin} Min`} highlight />
                                 )}
-                                <Row
-                                    label="Ende"
-                                    formula={`jetzt + ${adjustedMin ?? '?'} Min`}
-                                    result={format(forecast.estimatedEndTime, 'HH:mm') + ' Uhr'}
-                                    highlight
-                                />
+                                <FormulaRow label="Ende" formula={`jetzt + ${adjustedMin ?? '?'} Min`} result={format(forecast.estimatedEndTime, 'HH:mm') + ' Uhr'} highlight />
                             </div>
                         </div>
                     </motion.div>
@@ -183,28 +170,3 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
     );
 }
 
-function Row({ label, formula, result, highlight }: { label: string; formula: string; result: string; highlight?: boolean }) {
-    return (
-        <div style={{
-            padding: '5px 8px',
-            borderRadius: 'var(--radius-sm)',
-            background: highlight ? 'rgba(190,35,213,0.08)' : 'transparent',
-            borderTop: highlight ? '1px solid rgba(190,35,213,0.12)' : 'none',
-            marginTop: highlight ? '4px' : '0',
-        }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: highlight ? 700 : 500, color: highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
-                    {label}
-                </span>
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                    = {result}
-                </span>
-            </div>
-            {formula && (
-                <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-dim)', marginTop: '2px', wordBreak: 'break-word' }}>
-                    {formula}
-                </div>
-            )}
-        </div>
-    );
-}

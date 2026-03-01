@@ -2,6 +2,7 @@
 
 import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
 import { Clock, Hourglass, Sigma, X } from 'lucide-react';
+import FormulaRow from '@/components/FormulaRow';
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -224,45 +225,7 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                             {/* Steps */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {formula.steps.map((step, i) => (
-                                    <div key={i} style={{
-                                        padding: '5px 8px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        background: step.highlight ? 'rgba(190,35,213,0.08)' : 'transparent',
-                                        borderTop: step.highlight ? '1px solid rgba(190,35,213,0.15)' : 'none',
-                                        marginTop: step.highlight ? '4px' : '0',
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                                            <span style={{
-                                                fontSize: '0.75rem',
-                                                fontWeight: step.highlight ? 700 : 500,
-                                                color: step.highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.04em',
-                                                flexShrink: 0,
-                                            }}>
-                                                {step.label}
-                                            </span>
-                                            <span style={{
-                                                fontSize: '0.85rem',
-                                                fontWeight: 700,
-                                                color: step.highlight ? 'var(--color-primary)' : 'var(--color-text)',
-                                                whiteSpace: 'nowrap',
-                                            }}>
-                                                = {step.result}
-                                            </span>
-                                        </div>
-                                        {step.formula && (
-                                            <div style={{
-                                                fontSize: '0.75rem',
-                                                fontFamily: 'monospace',
-                                                color: 'var(--color-text-dim)',
-                                                marginTop: '2px',
-                                                wordBreak: 'break-word',
-                                            }}>
-                                                {step.formula}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <FormulaRow key={i} label={step.label} formula={step.formula} result={step.result} highlight={step.highlight} />
                                 ))}
                             </div>
                         </div>

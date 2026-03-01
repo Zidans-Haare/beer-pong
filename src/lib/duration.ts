@@ -7,7 +7,11 @@
  * 3. Global baseline fallback
  */
 
+import 'server-only';
 import { prisma } from './prisma';
+import type { PlayerPaceStats } from './duration-utils';
+export type { PlayerPaceStats } from './duration-utils';
+export { formatDuration } from './duration-utils';
 
 // Default baseline duration in seconds (12 minutes)
 const DEFAULT_DURATION_SECONDS = 12 * 60;
@@ -28,16 +32,6 @@ export interface DurationPrediction {
     player2Avg?: number;
     globalAvg?: number;
   };
-}
-
-export interface PlayerPaceStats {
-  totalMatches: number;
-  averageDuration: number;
-  fastestMatch: number;
-  slowestMatch: number;
-  paceLabel: 'Blitzschnell' | 'Schnellspieler' | 'Normal' | 'Genießer' | 'Unbekannt';
-  percentile?: number; // How fast compared to others (0-100, lower = faster)
-  globalAvgDuration?: number; // Global average for formula display
 }
 
 /**
@@ -354,21 +348,4 @@ export async function markMatchStarted(matchId: string): Promise<void> {
   });
 }
 
-/**
- * Format duration for display
- */
-export function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-
-  if (minutes === 0) {
-    return `${secs}s`;
-  }
-
-  if (secs === 0) {
-    return `${minutes} Min`;
-  }
-
-  return `${minutes}:${secs.toString().padStart(2, '0')} Min`;
-}
 

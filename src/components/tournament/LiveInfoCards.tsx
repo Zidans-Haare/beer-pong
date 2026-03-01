@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { Clock, Target, Sigma, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDuration } from '@/lib/duration';
+import { formatDuration } from '@/lib/duration-utils';
 import FormulaRow from '@/components/FormulaRow';
 
 interface Forecast {

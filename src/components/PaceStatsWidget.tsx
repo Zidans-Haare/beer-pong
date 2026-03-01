@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Timer, Hourglass, Coffee, Sigma, X } from 'lucide-react';
-import type { PlayerPaceStats } from '@/lib/duration';
-import { formatDuration } from '@/lib/duration';
+import type { PlayerPaceStats } from '@/lib/duration-utils';
+import { formatDuration } from '@/lib/duration-utils';
 import FormulaRow from '@/components/FormulaRow';
 
 const paceIconMap: Record<string, React.ElementType> = {

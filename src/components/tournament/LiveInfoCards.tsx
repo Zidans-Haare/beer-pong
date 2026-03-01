@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Clock, Target, Sigma, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatDuration } from '@/lib/duration';
 
 interface Forecast {
     estimatedEndTime: Date;
@@ -28,11 +29,7 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
 
     if (!forecast && !waitTime) return null;
 
-    const avgMin = forecast?.avgMatchDuration ? Math.round(forecast.avgMatchDuration / 60) : null;
-    const avgSec = forecast?.avgMatchDuration ? forecast.avgMatchDuration % 60 : null;
-    const avgFormatted = avgMin !== null
-        ? (avgSec ? `${avgMin}:${String(avgSec).padStart(2, '0')} Min` : `${avgMin} Min`)
-        : null;
+    const avgFormatted = forecast?.avgMatchDuration ? formatDuration(forecast.avgMatchDuration) : null;
     const totalRaw = forecast?.avgMatchDuration && forecast.remainingMatches
         ? Math.round(forecast.avgMatchDuration * forecast.remainingMatches)
         : null;

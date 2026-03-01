@@ -72,8 +72,10 @@ export async function getPrediction(
   }
 
   // Try player averages
-  const player1Avg = await getPlayerAverageDuration(player1Id);
-  const player2Avg = await getPlayerAverageDuration(player2Id);
+  const [player1Avg, player2Avg] = await Promise.all([
+    getPlayerAverageDuration(player1Id),
+    getPlayerAverageDuration(player2Id),
+  ]);
 
   if (player1Avg || player2Avg) {
     const combinedAvg = player1Avg && player2Avg

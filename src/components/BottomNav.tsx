@@ -54,15 +54,15 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                         gap: '5px',
                         padding: '14px 28px',
                         borderRadius: '100px',
-                        background: 'var(--color-surface)',
+                        background: 'rgba(255,255,255,0.95)',
                         border: '1px solid var(--color-border)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                        boxShadow: 'var(--shadow-xl)',
                         color: 'var(--color-primary)',
                         textDecoration: 'none',
                         backdropFilter: 'blur(12px)',
                     }}
                 >
-                    <QrCode size={28} strokeWidth={1.8} />
+                    <QrCode size={24} strokeWidth={1.8} />
                     <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.8 }}>
                         Beitreten
                     </span>
@@ -102,11 +102,24 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                             href={item.href}
                             className={`bottom-nav-item ${(item.href === '/' ? pathname === '/' : isActive(item.href)) ? 'active' : ''}`}
                             onClick={handleNavClick}
+                            style={{ position: 'relative' }}
                         >
+                            {(item.href === '/' ? pathname === '/' : isActive(item.href)) && (
+                                <motion.span
+                                    layoutId="bottom-nav-pill"
+                                    style={{
+                                        position: 'absolute', inset: 0,
+                                        borderRadius: 'var(--radius-md)',
+                                        background: 'var(--color-primary-light)',
+                                        zIndex: 0,
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                />
+                            )}
                             {item.href === '/notifications' ? (
-                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ position: 'relative', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
                                     <span className="nav-icon-glow" style={{ display: 'flex', position: 'relative', top: '-2px' }}>
-                                        <Bell size={24} />
+                                        <Bell size={20} />
                                     </span>
                                     <AnimatePresence>
                                         {unreadCount > 0 && (
@@ -131,7 +144,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     borderRadius: '9px',
-                                                    border: '2px solid var(--color-surface)',
+                                                    border: '2px solid rgba(255,255,255,0.92)',
                                                     zIndex: 10,
                                                 }}
                                             >
@@ -141,7 +154,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                     </AnimatePresence>
                                 </div>
                             ) : (
-                                <span className="nav-icon-glow"><item.icon size={24} /></span>
+                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={20} /></span>
                             )}
                         </Link>
                     </motion.div>

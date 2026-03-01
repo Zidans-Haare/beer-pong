@@ -30,8 +30,8 @@ export default async function TournamentsPage() {
             {/* Lobbies (PLANNED) */}
             {lobbyTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
-                    <h2 style={{ fontSize: '1.2rem', marginBottom: 'var(--spacing-6)', color: '#00ff9d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="live-dot" style={{ background: '#00ff9d' }} /> OFFENE LOBBYS
+                    <h2 className="section-header" style={{ color: 'var(--color-lobby)' }}>
+                        <span className="live-dot" style={{ background: 'var(--color-lobby)' }} /> OFFENE LOBBYS
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
                         {lobbyTournaments.map((t) => (
@@ -44,7 +44,7 @@ export default async function TournamentsPage() {
             {/* Active Tournaments */}
             {activeTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
-                    <h2 style={{ fontSize: '1.2rem', marginBottom: 'var(--spacing-6)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h2 className="section-header" style={{ color: 'var(--color-primary)' }}>
                         <span className="live-dot" style={{ background: 'var(--color-primary)' }} /> LIVE
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
@@ -58,7 +58,7 @@ export default async function TournamentsPage() {
             {/* Archive Grid */}
             {completedTournaments.length > 0 && (
                 <div>
-                    <h2 style={{ fontSize: '1.2rem', marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)', opacity: 0.8 }}>ARCHIV</h2>
+                    <h2 className="section-header">ARCHIV</h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.8 }}>
                         {completedTournaments.map((t) => (
                             <TournamentCard key={t.id} t={t} />
@@ -75,28 +75,28 @@ function TournamentCard({ t }: { t: any }) {
     const isLobby = t.status === 'PLANNED';
 
     return (
-        <Link href={`/tournaments/${t.id}`} className="glass-panel" style={{
+        <Link href={`/tournaments/${t.id}`} className="glass-panel card-interactive" style={{
             padding: 'var(--spacing-6)',
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--spacing-4)',
             textDecoration: 'none',
             color: 'inherit',
-            transition: 'all 0.2s',
-            border: isLobby ? '2px solid #00ff9d' : (isActive ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'),
-            boxShadow: isLobby ? '0 0 20px rgba(0, 255, 157, 0.3)' : (isActive ? '0 0 20px rgba(217, 70, 239, 0.2)' : 'none')
+            border: isLobby ? `2px solid var(--color-lobby-border)` : (isActive ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'),
+            boxShadow: isLobby ? `0 0 20px var(--color-lobby-light)` : (isActive ? '0 0 20px rgba(190, 35, 213, 0.15)' : 'none'),
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
                 <span style={{
                     padding: '4px 10px',
-                    borderRadius: '6px',
-                    background: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'var(--color-surface-hover)'),
-                    color: isLobby ? 'black' : (isActive ? 'white' : 'var(--color-text-dim)'),
+                    borderRadius: 'var(--radius-full)',
+                    background: isLobby ? 'var(--color-lobby-light)' : (isActive ? 'var(--color-primary)' : 'var(--color-surface-hover)'),
+                    color: isLobby ? 'var(--color-lobby)' : (isActive ? 'white' : 'var(--color-text-dim)'),
+                    border: isLobby ? '1px solid var(--color-lobby-border)' : 'none',
                     fontSize: '0.7rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
                 }}>
                     {isLobby ? 'LOBBY' : (isActive ? 'LIVE' : 'BEENDET')}
                 </span>
@@ -120,8 +120,8 @@ function TournamentCard({ t }: { t: any }) {
             <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
-                    color: isLobby ? '#00ff9d' : (isActive ? 'var(--color-primary)' : 'var(--color-text)'),
-                    fontSize: '0.85rem', fontWeight: 600
+                    color: isLobby ? 'var(--color-lobby)' : (isActive ? 'var(--color-primary)' : 'var(--color-text)'),
+                    fontSize: '0.85rem', fontWeight: 600,
                 }}>
                     Zum Turnier <ArrowRight size={16} />
                 </div>

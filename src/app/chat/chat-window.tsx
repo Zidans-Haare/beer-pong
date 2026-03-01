@@ -24,14 +24,15 @@ function AvatarInitial({ name }: { name: string | null }) {
             width: '36px',
             height: '36px',
             borderRadius: '50%',
-            background: 'var(--color-border)',
+            background: 'var(--gradient-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: 700,
             fontSize: '0.95rem',
-            color: 'var(--color-text-dim)',
+            color: '#ffffff',
             flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(190,35,213,0.20)',
         }}>
             {letter}
         </div>
@@ -167,14 +168,15 @@ export default function ChatWindow({
                                 <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt)}</span>
                             </div>
                             <div style={{
-                                background: msg.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-surface-2, var(--color-border))',
+                                background: msg.userId === currentUserId ? 'var(--gradient-primary)' : 'var(--color-surface-2)',
                                 color: msg.userId === currentUserId ? '#fff' : 'var(--color-text)',
                                 borderRadius: msg.userId === currentUserId ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                padding: '8px 14px',
+                                padding: '10px 16px',
                                 fontSize: '0.9rem',
                                 lineHeight: 1.5,
                                 wordBreak: 'break-word',
                                 opacity: msg.id.startsWith('optimistic-') ? 0.7 : 1,
+                                boxShadow: msg.userId === currentUserId ? '0 2px 12px rgba(190,35,213,0.20)' : 'none',
                             }}>
                                 {msg.text}
                             </div>
@@ -204,9 +206,9 @@ export default function ChatWindow({
                             style={{
                                 flex: 1,
                                 padding: 'var(--spacing-3)',
-                                background: 'var(--color-surface)',
+                                background: 'var(--color-surface-secondary)',
                                 border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-sm)',
+                                borderRadius: 'var(--radius-full)',
                                 color: 'var(--color-text)',
                                 fontSize: '0.9rem',
                             }}

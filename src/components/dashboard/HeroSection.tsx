@@ -12,15 +12,15 @@ export default function HeroSection({ userName }: Props) {
     return (
         <div className="glass-panel" style={{
             position: 'relative',
-            padding: 'var(--spacing-6) var(--spacing-4)',
+            padding: 'var(--spacing-8) var(--spacing-6)',
             textAlign: 'center',
             marginBottom: 'var(--spacing-6)',
             overflow: 'hidden',
             borderRadius: 'var(--radius-xl)',
-            background: 'linear-gradient(135deg, rgba(232, 121, 249, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%)', // Very subtle neon tint
-            border: '1px solid rgba(255, 255, 255, 0.1)'
+            background: 'linear-gradient(145deg, rgba(190,35,213,0.07) 0%, rgba(147,51,234,0.05) 50%, rgba(8,145,178,0.07) 100%)',
+            border: '1px solid rgba(190,35,213,0.10)',
         }}>
-            {/* Background Effects */}
+            {/* Background Effects - Primary Glow */}
             <div style={{
                 position: 'absolute',
                 top: '-50%',
@@ -28,9 +28,18 @@ export default function HeroSection({ userName }: Props) {
                 transform: 'translateX(-50%)',
                 width: '100%',
                 height: '200%',
-                background: 'radial-gradient(circle, rgba(232, 121, 249, 0.15) 0%, rgba(0,0,0,0) 60%)',
+                background: 'radial-gradient(ellipse at center, rgba(190,35,213,0.18) 0%, rgba(0,0,0,0) 60%)',
                 pointerEvents: 'none',
-                opacity: 0.6
+            }} />
+            {/* Background Effects - Cyan Glow */}
+            <div style={{
+                position: 'absolute',
+                bottom: '-30%',
+                right: '-10%',
+                width: '40%',
+                height: '80%',
+                background: 'radial-gradient(ellipse at center, rgba(8,145,178,0.12) 0%, transparent 65%)',
+                pointerEvents: 'none',
             }} />
 
             <motion.div
@@ -42,40 +51,42 @@ export default function HeroSection({ userName }: Props) {
                 {userName ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                         <span style={{
-                            fontSize: '0.9rem',
-                            color: 'var(--color-text-dim)',
+                            fontSize: '0.75rem',
+                            color: 'var(--color-text-subtle)',
                             textTransform: 'uppercase',
-                            letterSpacing: '2px',
-                            fontWeight: 600
+                            letterSpacing: '0.12em',
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-heading)',
                         }}>
                             Willkommen zurück
                         </span>
                         <h1 style={{
-                            fontSize: 'clamp(2rem, 5vw, 2.5rem)',
+                            fontSize: 'clamp(2.2rem, 5vw, 2.8rem)',
                             fontWeight: 800,
                             lineHeight: 1.2,
                             background: 'var(--gradient-primary)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             fontFamily: 'var(--font-heading)',
-                            filter: 'drop-shadow(0 2px 10px rgba(217, 70, 239, 0.2))'
+                            filter: 'drop-shadow(0 2px 12px rgba(190, 35, 213, 0.22))'
                         }}>
                             {userName}
                         </h1>
                     </div>
                 ) : (
                     <h1 style={{
-                        fontSize: 'clamp(2.5rem, 6vw, 3.5rem)',
+                        fontSize: 'clamp(2.8rem, 7vw, 4rem)',
                         fontWeight: 800,
                         lineHeight: 1.1,
-                        background: 'var(--gradient-primary)',
+                        background: 'var(--gradient-party)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         fontFamily: 'var(--font-heading)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 'var(--spacing-3)'
+                        gap: 'var(--spacing-3)',
+                        filter: 'drop-shadow(0 2px 16px rgba(190, 35, 213, 0.25))',
                     }}>
                         BIER PONG <Beer className="text-primary" size={40} style={{ stroke: 'url(#gradient-beer)' }} />
                     </h1>
@@ -83,7 +94,7 @@ export default function HeroSection({ userName }: Props) {
 
                 {!userName && (
                     <div style={{ marginTop: 'var(--spacing-6)' }}>
-                        <Link href="/login" className="btn btn-primary" style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}>
+                        <Link href="/login" className="btn btn-primary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem' }}>
                             Loslegen
                         </Link>
                     </div>

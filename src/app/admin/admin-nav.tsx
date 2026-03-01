@@ -82,22 +82,22 @@ export default function AdminNav({ pendingCount }: Props) {
                     top: 0,
                     zIndex: 50,
                     flexDirection: 'column',
-                    background: 'rgba(12, 12, 18, 0.98)',
-                    borderRight: '1px solid rgba(255,255,255,0.07)',
+                    background: 'var(--color-surface)',
+                    borderRight: '1px solid var(--color-border)',
                     backdropFilter: 'blur(12px)',
                 }}
             >
                 {/* Logo area */}
                 <div style={{
                     padding: '20px 16px 16px',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    borderBottom: '1px solid var(--color-border)',
                 }}>
                     <div style={{
                         fontSize: '0.6rem',
                         fontWeight: 700,
                         letterSpacing: '0.15em',
                         textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.25)',
+                        color: 'var(--color-text-subtle)',
                         marginBottom: '3px',
                         fontFamily: 'monospace',
                     }}>
@@ -133,7 +133,7 @@ export default function AdminNav({ pendingCount }: Props) {
                                 fontWeight: 700,
                                 letterSpacing: '0.12em',
                                 textTransform: 'uppercase',
-                                color: 'rgba(255,255,255,0.22)',
+                                color: 'var(--color-text-subtle)',
                                 fontFamily: 'monospace',
                                 padding: '0 12px',
                                 marginBottom: '4px',
@@ -175,9 +175,9 @@ export default function AdminNav({ pendingCount }: Props) {
                 {/* Bottom hint */}
                 <div style={{
                     padding: '12px 16px',
-                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    borderTop: '1px solid var(--color-border)',
                     fontSize: '0.7rem',
-                    color: 'rgba(255,255,255,0.18)',
+                    color: 'var(--color-text-subtle)',
                     fontFamily: 'monospace',
                 }}>
                     admin@bierpong
@@ -196,10 +196,10 @@ export default function AdminNav({ pendingCount }: Props) {
                     maxWidth: '500px',
                     zIndex: 60,
                     display: 'none',
-                    background: 'rgba(12,12,18,0.96)',
+                    background: 'var(--color-surface)',
                     backdropFilter: 'blur(16px)',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--color-border)',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                     overflowX: 'auto',
                     scrollbarWidth: 'none',

@@ -306,6 +306,91 @@ export async function rejectUser(userId: string) {
     }
 }
 
+export async function getDashboardStats() {
+    await checkAdmin();
+    const [matchCount, playerCount, chatCount] = await Promise.all([
+        prisma.match.count({ where: { isPlayed: true } }),
+        prisma.player.count({ where: { isGuest: false } }),
+        prisma.chatMessage.count(),
+    ]);
+    const topPlayers = await prisma.player.findMany({
+        where: { isGuest: false },
+        orderBy: { matchesAsPlayer1: { _count: 'desc' } },
+        take: 5,
+        select: {
+            id: true,
+            name: true,
+            _count: { select: { matchesAsPlayer1: true, matchesAsPlayer2: true } },
+        },
+    });
+    return { matchCount, playerCount, chatCount, topPlayers };
+}
+
+export async function getAdminPlayers() {
+    await checkAdmin();
+    try {
+        const players = await prisma.player.findMany({
+            where: { isGuest: false },
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                nickname: true,
+                bio: true,
+                image: true,
+                _count: { select: { matchesAsPlayer1: true, matchesAsPlayer2: true } },
+            },
+        });
+        return { success: true, players };
+    } catch (error) {
+        return { success: false, players: [] };
+    }
+}
+
+export async function adminUpdatePlayer(playerId: string, data: { name: string; nickname?: string; bio?: string }) {
+    await checkAdmin();
+    if (!data.name?.trim()) return { success: false, error: 'Name darf nicht leer sein.' };
+    try {
+        await prisma.player.update({
+            where: { id: playerId },
+            data: {
+                name: data.name.trim(),
+                nickname: data.nickname?.trim() || null,
+                bio: data.bio?.trim() || null,
+            },
+        });
+        revalidatePath('/admin/players');
+        revalidatePath(`/players/${playerId}`);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Fehler beim Speichern.' };
+    }
+}
+
+export async function getPasskeysForUser(userId: string) {
+    await checkAdmin();
+    try {
+        const passkeys = await prisma.passkey.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, friendlyName: true, createdAt: true, lastUsedAt: true, credentialDeviceType: true },
+        });
+        return { success: true, passkeys };
+    } catch (error) {
+        return { success: false, passkeys: [] };
+    }
+}
+
+export async function revokePasskey(passkeyId: string) {
+    await checkAdmin();
+    try {
+        await prisma.passkey.delete({ where: { id: passkeyId } });
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Passkey konnte nicht widerrufen werden.' };
+    }
+}
+
 export async function getAllTournaments() {
     await checkAdmin();
     try {

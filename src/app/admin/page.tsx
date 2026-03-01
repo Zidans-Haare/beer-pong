@@ -1,20 +1,31 @@
 import { prisma } from '@/lib/prisma';
-import { Users, Trophy, Radio } from 'lucide-react';
+import { getDashboardStats } from '@/app/actions/admin';
+import { Users, Trophy, Swords, MessageSquare, User } from 'lucide-react';
+import Link from 'next/link';
 
-async function getStats() {
-    const userCount = await prisma.user.count();
-    const tournamentCount = await prisma.tournament.count();
+async function getBaseStats() {
+    const [userCount, tournamentCount] = await Promise.all([
+        prisma.user.count({ where: { status: 'ACTIVE' } }),
+        prisma.tournament.count(),
+    ]);
     const recentNotifications = await prisma.notification.findMany({
         orderBy: { createdAt: 'desc' },
         take: 5,
-        include: { user: { select: { name: true } } }
+        include: { user: { select: { name: true } } },
     });
-
     return { userCount, tournamentCount, recentNotifications };
 }
 
 export default async function AdminDashboard() {
-    const stats = await getStats();
+    const [base, extra] = await Promise.all([getBaseStats(), getDashboardStats()]);
+
+    const statCards = [
+        { label: 'User', value: base.userCount, icon: Users, color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
+        { label: 'Turniere', value: base.tournamentCount, icon: Trophy, color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
+        { label: 'Spieler', value: extra.playerCount, icon: User, color: '#4ade80', bg: 'rgba(34,197,94,0.15)' },
+        { label: 'Spiele', value: extra.matchCount, icon: Swords, color: '#fb923c', bg: 'rgba(249,115,22,0.15)' },
+        { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: '#38bdf8', bg: 'rgba(56,189,248,0.15)' },
+    ];
 
     return (
         <div style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
@@ -23,38 +34,61 @@ export default async function AdminDashboard() {
                 <p style={{ color: 'var(--color-text-dim)' }}>Willkommen zurück, Boss.</p>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-4)' }}>
-                <div className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '50%', color: '#60a5fa', marginBottom: 'var(--spacing-3)' }}>
-                        <Users size={24} />
+            {/* Stats Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--spacing-3)' }}>
+                {statCards.map(card => (
+                    <div key={card.label} className="glass-panel" style={{ padding: 'var(--spacing-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 'var(--spacing-2)' }}>
+                        <div style={{ padding: '10px', background: card.bg, borderRadius: '50%', color: card.color }}>
+                            <card.icon size={20} />
+                        </div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1 }}>{card.value}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.userCount}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User</div>
-                </div>
-
-                <div className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    <div style={{ padding: '12px', background: 'rgba(168, 85, 247, 0.2)', borderRadius: '50%', color: '#c084fc', marginBottom: 'var(--spacing-3)' }}>
-                        <Trophy size={24} />
-                    </div>
-                    <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.tournamentCount}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Turniere</div>
-                </div>
+                ))}
             </div>
 
-            <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 'var(--spacing-4)' }}>Letzte Aktivitäten</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-                    {stats.recentNotifications.map(n => (
-                        <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-2) 0', borderBottom: '1px solid var(--color-border)' }}>
-                            <div>
-                                <div style={{ fontSize: '0.9rem', color: 'var(--color-text)' }}>{n.title}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>an {n.user?.name || 'Unknown'}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
+                {/* Top Spieler */}
+                <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Swords size={16} color="var(--color-primary)" /> Aktivste Spieler
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                        {extra.topPlayers.map((p, i) => {
+                            const total = p._count.matchesAsPlayer1 + p._count.matchesAsPlayer2;
+                            return (
+                                <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--spacing-2) 0', borderBottom: i < extra.topPlayers.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontWeight: 700, minWidth: '16px' }}>{i + 1}.</span>
+                                        <Link href={`/players/${p.id}`} style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text)', textDecoration: 'none' }}>
+                                            {p.name}
+                                        </Link>
+                                    </div>
+                                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)' }}>{total} Spiele</span>
+                                </div>
+                            );
+                        })}
+                        {extra.topPlayers.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>Noch keine Spieldaten.</p>}
+                    </div>
+                </div>
+
+                {/* Letzte Aktivitäten */}
+                <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)' }}>Letzte Aktivitäten</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                        {base.recentNotifications.map((n, i) => (
+                            <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-2) 0', borderBottom: i < base.recentNotifications.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{n.title}</div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)' }}>an {n.user?.name ?? 'Unbekannt'}</div>
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                                    {new Date(n.createdAt).toLocaleDateString('de-DE')}
+                                </div>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                {new Date(n.createdAt).toLocaleDateString()}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                        {base.recentNotifications.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>Keine Aktivitäten.</p>}
+                    </div>
                 </div>
             </div>
         </div>

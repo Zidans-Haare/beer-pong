@@ -38,8 +38,8 @@ export const viewport = {
   viewportFit: 'cover',
   interactiveWidget: 'resizes-content' as const, // keyboard shrinks layout viewport (Android Chrome 108+, Firefox 132+)
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#fafafa' },
-    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#f8f8fc' },
+    { media: '(prefers-color-scheme: light)', color: '#f8f8fc' },
   ],
 };
 

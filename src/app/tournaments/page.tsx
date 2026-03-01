@@ -10,8 +10,13 @@ export const dynamic = 'force-dynamic';
 export default async function TournamentsPage() {
     const allTournaments = await getTournaments();
 
-    // Sort: Lobbies (PLANNED) first, then Active, then Completed
-    const lobbyTournaments = allTournaments.filter(t => t.status === 'PLANNED');
+    // Lobby = PLANNED and date is today or in the past (happening now / imminent)
+    // Geplant = PLANNED and date is tomorrow or later
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const lobbyTournaments = allTournaments.filter(t => t.status === 'PLANNED' && new Date(t.date) <= todayEnd);
+    const plannedTournaments = allTournaments.filter(t => t.status === 'PLANNED' && new Date(t.date) > todayEnd);
     const activeTournaments = allTournaments.filter(t => t.status === 'ACTIVE');
     const completedTournaments = allTournaments.filter(t => t.status === 'COMPLETED');
 
@@ -27,7 +32,7 @@ export default async function TournamentsPage() {
                 </Link>
             </div>
 
-            {/* Lobbies (PLANNED) */}
+            {/* Lobbies — happening today */}
             {lobbyTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
                     <h2 className="section-header" style={{ color: 'var(--color-lobby)' }}>
@@ -36,6 +41,20 @@ export default async function TournamentsPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
                         {lobbyTournaments.map((t) => (
                             <TournamentCard key={t.id} t={t} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Planned — future date */}
+            {plannedTournaments.length > 0 && (
+                <div style={{ marginBottom: 'var(--spacing-12)' }}>
+                    <h2 className="section-header">
+                        GEPLANT
+                    </h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                        {plannedTournaments.map((t) => (
+                            <TournamentCard key={t.id} t={t} planned />
                         ))}
                     </div>
                 </div>
@@ -70,9 +89,53 @@ export default async function TournamentsPage() {
     );
 }
 
-function TournamentCard({ t }: { t: any }) {
+function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
     const isActive = t.status === 'ACTIVE';
-    const isLobby = t.status === 'PLANNED';
+    const isLobby = t.status === 'PLANNED' && !planned;
+
+    const borderStyle = isLobby
+        ? '2px solid var(--color-lobby-border)'
+        : isActive
+        ? '1px solid var(--color-primary)'
+        : '1px solid var(--color-border)';
+
+    const shadowStyle = isLobby
+        ? '0 0 20px var(--color-lobby-light)'
+        : isActive
+        ? '0 0 20px rgba(190, 35, 213, 0.15)'
+        : 'none';
+
+    const badgeBg = isLobby
+        ? 'var(--color-lobby-light)'
+        : isActive
+        ? 'var(--color-primary)'
+        : planned
+        ? 'rgba(8,145,178,0.09)'
+        : 'var(--color-surface-hover)';
+
+    const badgeColor = isLobby
+        ? 'var(--color-lobby)'
+        : isActive
+        ? 'white'
+        : planned
+        ? 'var(--color-secondary)'
+        : 'var(--color-text-dim)';
+
+    const badgeBorder = isLobby
+        ? '1px solid var(--color-lobby-border)'
+        : planned
+        ? '1px solid rgba(8,145,178,0.25)'
+        : 'none';
+
+    const badgeLabel = isLobby ? 'LOBBY' : isActive ? 'LIVE' : planned ? 'GEPLANT' : 'BEENDET';
+
+    const arrowColor = isLobby
+        ? 'var(--color-lobby)'
+        : isActive
+        ? 'var(--color-primary)'
+        : planned
+        ? 'var(--color-secondary)'
+        : 'var(--color-text)';
 
     return (
         <Link href={`/tournaments/${t.id}`} className="glass-panel card-interactive" style={{
@@ -82,23 +145,24 @@ function TournamentCard({ t }: { t: any }) {
             gap: 'var(--spacing-4)',
             textDecoration: 'none',
             color: 'inherit',
-            border: isLobby ? `2px solid var(--color-lobby-border)` : (isActive ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'),
-            boxShadow: isLobby ? `0 0 20px var(--color-lobby-light)` : (isActive ? '0 0 20px rgba(190, 35, 213, 0.15)' : 'none'),
+            border: borderStyle,
+            boxShadow: shadowStyle,
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
                 <span style={{
                     padding: '4px 10px',
                     borderRadius: 'var(--radius-full)',
-                    background: isLobby ? 'var(--color-lobby-light)' : (isActive ? 'var(--color-primary)' : 'var(--color-surface-hover)'),
-                    color: isLobby ? 'var(--color-lobby)' : (isActive ? 'white' : 'var(--color-text-dim)'),
-                    border: isLobby ? '1px solid var(--color-lobby-border)' : 'none',
+                    background: badgeBg,
+                    color: badgeColor,
+                    border: badgeBorder,
                     fontSize: '0.7rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
+                    whiteSpace: 'nowrap',
                 }}>
-                    {isLobby ? 'LOBBY' : (isActive ? 'LIVE' : 'BEENDET')}
+                    {badgeLabel}
                 </span>
             </div>
 
@@ -120,7 +184,7 @@ function TournamentCard({ t }: { t: any }) {
             <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
-                    color: isLobby ? 'var(--color-lobby)' : (isActive ? 'var(--color-primary)' : 'var(--color-text)'),
+                    color: arrowColor,
                     fontSize: '0.85rem', fontWeight: 600,
                 }}>
                     Zum Turnier <ArrowRight size={16} />

@@ -188,6 +188,7 @@ export default function JoinPage() {
               style={{
                 width: '48px',
                 height: '56px',
+                padding: '0',
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 textAlign: 'center',

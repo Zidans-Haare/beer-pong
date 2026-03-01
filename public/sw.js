@@ -3,7 +3,7 @@
  * Provides offline support, caching strategies, and push notifications
  */
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const STATIC_CACHE = `bierpong-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bierpong-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bierpong-images-${CACHE_VERSION}`;
@@ -99,9 +99,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy: Cache First for static assets (JS, CSS, fonts)
+  // Strategy: Network First for static assets (JS, CSS, fonts)
   if (isStaticAsset(url.pathname)) {
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
+    event.respondWith(networkFirst(request, STATIC_CACHE));
     return;
   }
 

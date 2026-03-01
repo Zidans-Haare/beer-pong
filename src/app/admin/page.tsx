@@ -54,7 +54,7 @@ export default async function AdminDashboard() {
                         <Swords size={16} color="var(--color-primary)" /> Aktivste Spieler
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-                        {extra.topPlayers.map((p, i) => {
+                        {extra.topPlayers.map((p: (typeof extra.topPlayers)[number], i: number) => {
                             const total = p._count.matchesAsPlayer1 + p._count.matchesAsPlayer2;
                             return (
                                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--spacing-2) 0', borderBottom: i < extra.topPlayers.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
@@ -76,7 +76,7 @@ export default async function AdminDashboard() {
                 <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)' }}>Letzte Aktivitäten</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-                        {base.recentNotifications.map((n, i) => (
+                        {base.recentNotifications.map((n: (typeof base.recentNotifications)[number], i: number) => (
                             <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-2) 0', borderBottom: i < base.recentNotifications.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                 <div>
                                     <div style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{n.title}</div>

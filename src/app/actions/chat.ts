@@ -79,3 +79,20 @@ export async function sendChatMessage(text: string) {
         return { success: false, error: 'Nachricht konnte nicht gesendet werden.' };
     }
 }
+
+export async function deleteChatMessage(messageId: string) {
+    const session = await auth();
+    if (session?.user?.email !== process.env.ADMIN_EMAIL) {
+        return { success: false, error: 'Kein Zugriff.' };
+    }
+
+    try {
+        await prisma.chatMessage.delete({ where: { id: messageId } });
+        revalidatePath('/admin/chat');
+        revalidatePath('/chat');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to delete chat message:', error);
+        return { success: false, error: 'Nachricht konnte nicht gelöscht werden.' };
+    }
+}

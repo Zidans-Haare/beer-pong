@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Users, Radio, LayoutDashboard, Settings, Trophy, UserCheck } from 'lucide-react';
+import { Users, Radio, LayoutDashboard, Settings, Trophy, UserCheck, MessageSquare } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
@@ -21,6 +21,7 @@ export default async function AdminLayout({
         { href: '/admin/approvals', label: 'Anfragen', icon: UserCheck, badge: pendingCount },
         { href: '/admin/users', label: 'Benutzer', icon: Users, badge: 0 },
         { href: '/admin/tournaments', label: 'Turniere', icon: Trophy, badge: 0 },
+        { href: '/admin/chat', label: 'Chat', icon: MessageSquare, badge: 0 },
         { href: '/admin/broadcast', label: 'Broadcast', icon: Radio, badge: 0 },
         { href: '/admin/settings', label: 'Setup', icon: Settings, badge: 0 },
     ];

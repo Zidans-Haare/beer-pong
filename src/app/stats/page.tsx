@@ -1,6 +1,7 @@
 import { getAllPlayerStats } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import { Trophy, Medal, Crown, Zap } from 'lucide-react';
+import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,9 +33,12 @@ export default async function StatsPage() {
             <StatsCharts stats={stats} />
 
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Trophy size={20} color="var(--color-primary)" />
-                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Ewige Tabelle</h2>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Trophy size={20} color="var(--color-primary)" />
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Ewige Tabelle</h2>
+                    </div>
+                    <RankingFormulaInfo />
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>

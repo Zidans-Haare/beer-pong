@@ -37,6 +37,7 @@ export interface PlayerPaceStats {
   slowestMatch: number;
   paceLabel: 'Blitzschnell' | 'Schnellspieler' | 'Normal' | 'Genießer' | 'Unbekannt';
   percentile?: number; // How fast compared to others (0-100, lower = faster)
+  globalAvgDuration?: number; // Global average for formula display
 }
 
 /**
@@ -252,6 +253,7 @@ export async function getPlayerPaceStats(playerId: string): Promise<PlayerPaceSt
     slowestMatch: durations[durations.length - 1],
     paceLabel,
     percentile: Math.min(100, Math.max(0, percentile)),
+    globalAvgDuration: globalAvg,
   };
 }
 

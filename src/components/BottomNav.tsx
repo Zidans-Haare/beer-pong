@@ -117,9 +117,9 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                 />
                             )}
                             {item.href === '/notifications' ? (
-                                <div style={{ position: 'relative', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
                                     <span className="nav-icon-glow" style={{ display: 'flex', position: 'relative', top: '-2px' }}>
-                                        <Bell size={20} />
+                                        <Bell size={24} />
                                     </span>
                                     <AnimatePresence>
                                         {unreadCount > 0 && (
@@ -154,7 +154,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                     </AnimatePresence>
                                 </div>
                             ) : (
-                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={20} /></span>
+                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={24} /></span>
                             )}
                         </Link>
                     </motion.div>

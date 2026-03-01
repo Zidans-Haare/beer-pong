@@ -77,19 +77,19 @@ export default function RankingFormulaInfo() {
                                     { rank: '3.', label: 'Becherdifferenz', formula: 'Σ cupsHit − Σ cupsReceived', note: 'Letzter Tiebreaker' },
                                 ].map(item => (
                                     <div key={item.rank} style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '20px 110px 1fr auto',
-                                        gap: '8px',
-                                        alignItems: 'center',
                                         padding: '6px 8px',
                                         borderRadius: 'var(--radius-sm)',
                                         background: 'rgba(190,35,213,0.04)',
                                         border: '1px solid rgba(190,35,213,0.08)',
                                     }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)' }}>{item.rank}</span>
-                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>{item.label}</span>
-                                        <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>{item.formula}</span>
-                                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>{item.note}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0 }}>{item.rank}</span>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>{item.label}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>{item.note}</span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-dim)', marginTop: '2px', wordBreak: 'break-word' }}>
+                                            {item.formula}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -100,27 +100,22 @@ export default function RankingFormulaInfo() {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {[
-                                    { col: 'WIN RATE', formula: 'Siege / Spiele × 100', unit: '%', note: 'nur Liga' },
-                                    { col: '+/−', formula: 'Σ cupsHit − Σ cupsReceived', unit: 'Becher', note: 'alle Matches' },
-                                    { col: 'POKALE', formula: 'COUNT(Platz 1 in Turnieren)', unit: 'Stück', note: 'Rang 1' },
+                                    { col: 'WIN RATE', formula: 'Siege / Spiele × 100', note: 'nur Liga' },
+                                    { col: '+/−', formula: 'Σ cupsHit − Σ cupsReceived', note: 'alle Matches' },
+                                    { col: 'POKALE', formula: 'COUNT(Platz 1 in Turnieren)', note: 'Rang 1' },
                                 ].map(item => (
-                                    <div key={item.col} style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '72px 1fr auto',
-                                        gap: '8px',
-                                        alignItems: 'center',
-                                        padding: '4px 8px',
-                                        borderRadius: 'var(--radius-sm)',
-                                    }}>
-                                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                            {item.col}
-                                        </span>
-                                        <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>
+                                    <div key={item.col} style={{ padding: '4px 8px', borderRadius: 'var(--radius-sm)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
+                                                {item.col}
+                                            </span>
+                                            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>
+                                                [{item.note}]
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-dim)', marginTop: '1px', wordBreak: 'break-word' }}>
                                             {item.formula}
-                                        </span>
-                                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>
-                                            [{item.note}]
-                                        </span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

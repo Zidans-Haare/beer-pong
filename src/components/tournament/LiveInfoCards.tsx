@@ -189,25 +189,25 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
 function Row({ label, formula, result, highlight }: { label: string; formula: string; result: string; highlight?: boolean }) {
     return (
         <div style={{
-            display: 'grid',
-            gridTemplateColumns: '90px 1fr auto',
-            gap: '8px',
-            alignItems: 'center',
             padding: '5px 8px',
             borderRadius: 'var(--radius-sm)',
             background: highlight ? 'rgba(190,35,213,0.08)' : 'transparent',
             borderTop: highlight ? '1px solid rgba(190,35,213,0.12)' : 'none',
             marginTop: highlight ? '4px' : '0',
         }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: highlight ? 700 : 500, color: highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {label}
-            </span>
-            <span style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>
-                {formula}
-            </span>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                = {result}
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: highlight ? 700 : 500, color: highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
+                    {label}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)', whiteSpace: 'nowrap' }}>
+                    = {result}
+                </span>
+            </div>
+            {formula && (
+                <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-dim)', marginTop: '2px', wordBreak: 'break-word' }}>
+                    {formula}
+                </div>
+            )}
         </div>
     );
 }

@@ -201,19 +201,21 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                             border: '1px solid rgba(190,35,213,0.15)',
                         }}>
                             {/* Header */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Sigma size={15} color="var(--color-primary)" />
-                                    <span style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
-                                        {formula.title}
-                                    </span>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', fontFamily: 'monospace' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-3)' }}>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Sigma size={15} color="var(--color-primary)" />
+                                        <span style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
+                                            {formula.title}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', fontFamily: 'monospace', marginTop: '2px', wordBreak: 'break-word' }}>
                                         {formula.params}
-                                    </span>
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => setShowFormula(false)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-subtle)', padding: '2px', display: 'flex' }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-subtle)', padding: '2px', display: 'flex', flexShrink: 0 }}
                                 >
                                     <X size={14} />
                                 </button>
@@ -223,41 +225,43 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {formula.steps.map((step, i) => (
                                     <div key={i} style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '120px 1fr auto',
-                                        gap: '8px',
-                                        alignItems: 'center',
                                         padding: '5px 8px',
                                         borderRadius: 'var(--radius-sm)',
                                         background: step.highlight ? 'rgba(190,35,213,0.08)' : 'transparent',
                                         borderTop: step.highlight ? '1px solid rgba(190,35,213,0.15)' : 'none',
                                         marginTop: step.highlight ? '4px' : '0',
                                     }}>
-                                        <span style={{
-                                            fontSize: '0.75rem',
-                                            fontWeight: step.highlight ? 700 : 500,
-                                            color: step.highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.04em',
-                                        }}>
-                                            {step.label}
-                                        </span>
-                                        <span style={{
-                                            fontSize: '0.82rem',
-                                            fontFamily: 'monospace',
-                                            color: 'var(--color-text-dim)',
-                                        }}>
-                                            {step.formula}
-                                        </span>
-                                        <span style={{
-                                            fontSize: '0.85rem',
-                                            fontWeight: 700,
-                                            color: step.highlight ? 'var(--color-primary)' : 'var(--color-text)',
-                                            textAlign: 'right',
-                                            whiteSpace: 'nowrap',
-                                        }}>
-                                            = {step.result}
-                                        </span>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                fontWeight: step.highlight ? 700 : 500,
+                                                color: step.highlight ? 'var(--color-primary)' : 'var(--color-text-subtle)',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.04em',
+                                                flexShrink: 0,
+                                            }}>
+                                                {step.label}
+                                            </span>
+                                            <span style={{
+                                                fontSize: '0.85rem',
+                                                fontWeight: 700,
+                                                color: step.highlight ? 'var(--color-primary)' : 'var(--color-text)',
+                                                whiteSpace: 'nowrap',
+                                            }}>
+                                                = {step.result}
+                                            </span>
+                                        </div>
+                                        {step.formula && (
+                                            <div style={{
+                                                fontSize: '0.75rem',
+                                                fontFamily: 'monospace',
+                                                color: 'var(--color-text-dim)',
+                                                marginTop: '2px',
+                                                wordBreak: 'break-word',
+                                            }}>
+                                                {step.formula}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

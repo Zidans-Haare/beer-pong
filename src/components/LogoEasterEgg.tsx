@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Beer } from 'lucide-react';
+import { Beer, Github, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -11,36 +11,23 @@ export default function LogoEasterEgg() {
     const [resetTimer, setResetTimer] = useState<NodeJS.Timeout | null>(null);
 
     const handleClick = (e: React.MouseEvent) => {
-        // We allow navigation, but we count the clicks.
-        // If the user reaches 5, we show the modal.
-        // In Next.js App Router, the Layout persists, so this component should persist if it's in the Layout.
-
-        // Clear existing timer
-        if (resetTimer) {
-            clearTimeout(resetTimer);
-        }
+        if (resetTimer) clearTimeout(resetTimer);
 
         const newCount = clickCount + 1;
         setClickCount(newCount);
 
-        if (newCount >= 5) {
-            e.preventDefault(); // Stop navigation on the 5th click to show modal
+        if (newCount >= 3) {
+            e.preventDefault();
             setShowModal(true);
             setClickCount(0);
         } else {
-            // Set new timer to reset count after 2 seconds of inactivity
-            const timer = setTimeout(() => {
-                setClickCount(0);
-            }, 2000);
+            const timer = setTimeout(() => setClickCount(0), 2000);
             setResetTimer(timer);
         }
     };
 
-    // Clean up timer
     useEffect(() => {
-        return () => {
-            if (resetTimer) clearTimeout(resetTimer);
-        };
+        return () => { if (resetTimer) clearTimeout(resetTimer); };
     }, [resetTimer]);
 
     return (
@@ -56,7 +43,7 @@ export default function LogoEasterEgg() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    userSelect: 'none'
+                    userSelect: 'none',
                 }}
             >
                 <Beer size={28} /> Bier Pong
@@ -68,67 +55,140 @@ export default function LogoEasterEgg() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
                         onClick={() => setShowModal(false)}
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 9999,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '16px',
+                            background: 'rgba(0,0,0,0.55)',
+                            backdropFilter: 'blur(10px)',
+                        }}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            initial={{ scale: 0.85, opacity: 0, y: 24 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="glass-panel p-8 max-w-sm w-full text-center relative overflow-hidden flex flex-col items-center gap-4"
-                            onClick={(e) => e.stopPropagation()}
+                            exit={{ scale: 0.85, opacity: 0, y: 24 }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 26 }}
+                            onClick={e => e.stopPropagation()}
                             style={{
-                                boxShadow: '0 0 50px -10px rgba(217, 70, 239, 0.3)', // Magenta glow
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderTop: '1px solid rgba(255, 255, 255, 0.25)',
+                                width: '100%',
+                                maxWidth: '340px',
+                                background: 'var(--color-surface)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-xl)',
+                                boxShadow: '0 24px 64px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.06)',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center',
                             }}
                         >
-                            {/* Decorative Glows */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-fuchsia-500/20 blur-[50px] rounded-full pointer-events-none" />
-                            <div className="absolute bottom-0 right-0 w-24 h-24 bg-cyan-500/20 blur-[40px] rounded-full pointer-events-none" />
-
-                            <motion.div
-                                initial={{ rotate: -10 }}
-                                animate={{ rotate: 10 }}
-                                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse", ease: 'easeInOut' }}
-                                className="relative z-10 w-20 h-20 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/20 mb-2 backdrop-blur-md shadow-lg"
-                            >
-                                <Beer size={40} className="text-transparent bg-clip-text bg-gradient-to-br from-fuchsia-400 to-cyan-400 drop-shadow-sm" style={{ stroke: 'url(#gradient-beer)' }} />
-                                {/* SVG Gradient Def for icon stroke */}
-                                <svg width="0" height="0">
-                                    <linearGradient id="gradient-beer" x1="100%" y1="100%" x2="0%" y2="0%">
-                                        <stop stopColor="#22d3ee" offset="0%" />
-                                        <stop stopColor="#e879f9" offset="100%" />
-                                    </linearGradient>
-                                </svg>
-                            </motion.div>
-
-                            <div className="relative z-10 space-y-1">
-                                <h2 className="text-3xl font-extrabold text-white font-heading tracking-tight">Credits</h2>
-                                <div className="h-1 w-12 bg-gradient-to-r from-fuchsia-500 to-cyan-500 rounded-full mx-auto opacity-80" />
+                            {/* Header gradient strip */}
+                            <div style={{
+                                width: '100%',
+                                padding: '28px 24px 20px',
+                                background: 'linear-gradient(160deg, rgba(190,35,213,0.12) 0%, rgba(8,145,178,0.08) 100%)',
+                                borderBottom: '1px solid var(--color-border)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '12px',
+                            }}>
+                                <motion.div
+                                    animate={{ rotate: [0, -8, 8, -8, 0] }}
+                                    transition={{ duration: 1.2, ease: 'easeInOut', repeat: Infinity, repeatDelay: 2 }}
+                                    style={{
+                                        width: '64px',
+                                        height: '64px',
+                                        borderRadius: '18px',
+                                        background: 'var(--gradient-primary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 8px 24px rgba(190,35,213,0.35)',
+                                    }}
+                                >
+                                    <Beer size={32} color="#fff" strokeWidth={1.8} />
+                                </motion.div>
+                                <div>
+                                    <div style={{
+                                        fontSize: '1.4rem',
+                                        fontWeight: 800,
+                                        fontFamily: 'var(--font-heading)',
+                                        background: 'var(--gradient-primary)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                        letterSpacing: '-0.02em',
+                                    }}>
+                                        Bier Pong
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+                                        Made with <Heart size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> in Österreich
+                                    </div>
+                                </div>
                             </div>
 
-                            <p className="text-white/70 relative z-10 font-medium">
-                                Designed & Built by <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 font-bold">Nick</span>
-                            </p>
+                            {/* Body */}
+                            <div style={{ padding: '20px 24px 24px', width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div style={{
+                                    padding: '14px 16px',
+                                    background: 'linear-gradient(135deg, rgba(190,35,213,0.06) 0%, rgba(8,145,178,0.04) 100%)',
+                                    border: '1px solid rgba(190,35,213,0.15)',
+                                    borderRadius: 'var(--radius-md)',
+                                }}>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '4px' }}>
+                                        Designed & Built by
+                                    </div>
+                                    <div style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
+                                        Nick
+                                    </div>
+                                </div>
 
-                            <div className="pt-2 w-full relative z-10">
                                 <a
                                     href="https://github.com/Zidans-Haare/beer-pong"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn btn-primary w-full shadow-[0_0_20px_-5px_rgba(217,70,239,0.5)] hover:shadow-[0_0_30px_-5px_rgba(217,70,239,0.7)] transition-all transform hover:-translate-y-1"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        padding: '11px',
+                                        background: 'var(--gradient-primary)',
+                                        color: '#fff',
+                                        borderRadius: 'var(--radius-md)',
+                                        textDecoration: 'none',
+                                        fontWeight: 700,
+                                        fontSize: '0.875rem',
+                                        boxShadow: '0 4px 16px rgba(190,35,213,0.3)',
+                                    }}
                                 >
-                                    View Source Code
+                                    <Github size={16} /> Source Code
                                 </a>
-                            </div>
 
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="mt-2 text-xs font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors relative z-10"
-                            >
-                                Close
-                            </button>
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.1em',
+                                        textTransform: 'uppercase',
+                                        color: 'var(--color-text-subtle)',
+                                        padding: '4px',
+                                    }}
+                                >
+                                    Schließen
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

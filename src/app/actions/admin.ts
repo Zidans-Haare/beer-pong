@@ -306,6 +306,83 @@ export async function rejectUser(userId: string) {
     }
 }
 
+export async function getAllTournaments() {
+    await checkAdmin();
+    try {
+        const tournaments = await prisma.tournament.findMany({
+            orderBy: { date: 'desc' },
+            include: {
+                _count: {
+                    select: { matches: true, participants: true, rsvps: true },
+                },
+                host: { select: { name: true } },
+            },
+        });
+        return { success: true, tournaments };
+    } catch (error) {
+        console.error('Failed to fetch tournaments:', error);
+        return { success: false, tournaments: [] };
+    }
+}
+
+export async function setTournamentStatus(tournamentId: string, status: 'PLANNED' | 'ACTIVE' | 'COMPLETED') {
+    await checkAdmin();
+    try {
+        await prisma.tournament.update({
+            where: { id: tournamentId },
+            data: { status },
+        });
+        revalidatePath('/admin/tournaments');
+        revalidatePath(`/tournaments/${tournamentId}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update tournament status:', error);
+        return { success: false, error: 'Status konnte nicht geändert werden.' };
+    }
+}
+
+export async function getGuestPlayers() {
+    await checkAdmin();
+    try {
+        const guests = await prisma.guestPlayer.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                tournament: { select: { id: true, name: true } },
+            },
+        });
+        return { success: true, guests };
+    } catch (error) {
+        console.error('Failed to fetch guest players:', error);
+        return { success: false, guests: [] };
+    }
+}
+
+export async function deleteGuestPlayer(guestId: string) {
+    await checkAdmin();
+    try {
+        await prisma.guestPlayer.delete({ where: { id: guestId } });
+        revalidatePath('/admin/guests');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to delete guest player:', error);
+        return { success: false, error: 'Gast konnte nicht gelöscht werden.' };
+    }
+}
+
+export async function deleteExpiredGuests() {
+    await checkAdmin();
+    try {
+        const { count } = await prisma.guestPlayer.deleteMany({
+            where: { expiresAt: { lt: new Date() } },
+        });
+        revalidatePath('/admin/guests');
+        return { success: true, count };
+    } catch (error) {
+        console.error('Failed to delete expired guests:', error);
+        return { success: false, error: 'Fehler beim Aufräumen.' };
+    }
+}
+
 export async function getPublicGlobalDurationStats() {
     try {
         const { getGlobalDurationStats } = await import('@/lib/duration');

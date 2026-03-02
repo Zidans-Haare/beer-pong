@@ -81,7 +81,7 @@ function PlayerCard({ player }: { player: any }) {
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', margin: 0, textAlign: 'center' }}>{player.name}</h3>
                 {player.nickname && (
-                    <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', marginTop: '4px' }}>"{player.nickname}"</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', marginTop: '4px' }}>&quot;{player.nickname}&quot;</span>
                 )}
             </div>
 
@@ -90,7 +90,7 @@ function PlayerCard({ player }: { player: any }) {
                 {player.motto ? (
                     <div style={{ display: 'flex', gap: '8px', color: 'var(--color-text-dim)', fontSize: '0.85rem', fontStyle: 'italic', marginBottom: 'var(--spacing-2)' }}>
                         <Sparkles size={16} style={{ minWidth: '16px', color: 'var(--color-secondary)' }} />
-                        "{player.motto}"
+                        &quot;{player.motto}&quot;
                     </div>
                 ) : (
                     <div style={{ height: '24px' }}></div> // Spacer

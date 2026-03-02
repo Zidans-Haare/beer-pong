@@ -3,11 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 
-// Use the VAPID keys you generated
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BM2vV...'; // We will assume user puts this in .env or we hardcode it for now if needed for demo
-// REAL KEYS from previous step (you should put these in .env in production)
-// Public: BPcE... (example)
-// Private: ...
+// VAPID public key must be set via NEXT_PUBLIC_VAPID_PUBLIC_KEY in .env
 
 export async function saveSubscription(subscription: PushSubscriptionJSON) {
     const session = await auth();
@@ -58,7 +54,8 @@ export async function sendTestPush() {
         const publicKey = process.env.VAPID_PUBLIC_KEY;
         const privateKey = process.env.VAPID_PRIVATE_KEY;
         if (publicKey && privateKey) {
-            webpush.setVapidDetails('mailto:admin@example.com', publicKey, privateKey);
+            const contact = process.env.VAPID_CONTACT;
+            webpush.setVapidDetails(contact!, publicKey, privateKey);
         }
 
         await Promise.all(subscriptions.map((sub: any) => {

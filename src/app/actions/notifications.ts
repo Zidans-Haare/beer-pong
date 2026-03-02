@@ -187,8 +187,10 @@ try {
     const privateKey = process.env.VAPID_PRIVATE_KEY;
 
     if (publicKey && privateKey && publicKey.length > 20 && privateKey.length > 20) {
+        const contact = process.env.VAPID_CONTACT;
+        if (!contact) console.warn('[Push] VAPID_CONTACT nicht gesetzt. Setze VAPID_CONTACT=mailto:deine@email.com in .env');
         webpush.setVapidDetails(
-            'mailto:admin@example.com',
+            contact ?? 'mailto:noreply@localhost',
             publicKey,
             privateKey
         );

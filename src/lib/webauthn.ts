@@ -20,7 +20,8 @@ import type {
 // Configuration - should match your domain
 const rpName = 'Bier Pong';
 const rpID = process.env.WEBAUTHN_RP_ID || 'localhost';
-const origin = process.env.WEBAUTHN_ORIGIN || `http://${rpID}:3000`;
+const origin = process.env.WEBAUTHN_ORIGIN ||
+  (process.env.NODE_ENV === 'production' ? `https://${rpID}` : `http://${rpID}:3000`);
 
 export interface StoredPasskey {
   credentialId: string;

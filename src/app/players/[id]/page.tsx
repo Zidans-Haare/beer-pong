@@ -57,7 +57,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                     />
                     <div>
                         <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>{player.name}</h1>
-                        {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>"{player.motto}"</p>}
+                        {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>&quot;{player.motto}&quot;</p>}
 
                         {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
                             <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>

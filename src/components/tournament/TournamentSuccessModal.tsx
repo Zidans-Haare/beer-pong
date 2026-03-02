@@ -108,7 +108,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                 <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)', textAlign: 'center' }}>Turnier erfolgreich erstellt!</h2>
 
                 <p style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)', textAlign: 'center' }}>
-                    "{tournament.name}" ist bereit. <br />
+                    &quot;{tournament.name}&quot; ist bereit. <br />
                     Lade jetzt deine Freunde ein!
                 </p>
 

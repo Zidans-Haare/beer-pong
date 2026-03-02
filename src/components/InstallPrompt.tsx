@@ -140,8 +140,8 @@ export default function InstallPrompt() {
                             <li>
                                 Tippe unten auf <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)' }}>Teilen <Share size={16} /></strong>
                             </li>
-                            <li>Wähle <strong>"Zum Home-Bildschirm"</strong></li>
-                            <li>Tippe oben rechts auf <strong>"Hinzufügen"</strong></li>
+                            <li>Wähle <strong>&quot;Zum Home-Bildschirm&quot;</strong></li>
+                            <li>Tippe oben rechts auf <strong>&quot;Hinzufügen&quot;</strong></li>
                         </ol>
                     </div>
                 </div>

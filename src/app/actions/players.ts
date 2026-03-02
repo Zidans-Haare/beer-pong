@@ -87,16 +87,41 @@ export async function updatePlayer(id: string, formData: FormData) {
                 const fs = require('fs');
                 const path = require('path');
 
+                // Validate MIME type — block SVG (can contain JavaScript)
+                const mimeMatch = imageData.match(/^data:(image\/[a-z]+);base64,/);
+                if (!mimeMatch) {
+                    return { success: false, error: 'Ungültiges Bildformat' };
+                }
+                const mimeType = mimeMatch[1];
+                const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                if (!allowedMimes.includes(mimeType)) {
+                    return { success: false, error: 'Nur JPEG, PNG, WebP und GIF erlaubt' };
+                }
+
                 // Extract base64 data
-                const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+                const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
                 const buffer = Buffer.from(base64Data, 'base64');
+
+                // Magic byte validation
+                const magicBytes: Record<string, number[]> = {
+                    'image/jpeg': [0xFF, 0xD8, 0xFF],
+                    'image/png':  [0x89, 0x50, 0x4E, 0x47],
+                    'image/webp': [0x52, 0x49, 0x46, 0x46],
+                    'image/gif':  [0x47, 0x49, 0x46, 0x38],
+                };
+                const expected = magicBytes[mimeType];
+                const actual = Array.from(buffer.slice(0, expected.length));
+                if (!expected.every((b, i) => b === actual[i])) {
+                    return { success: false, error: 'Bilddatei ist beschädigt oder gefälscht' };
+                }
 
                 // Validate size (max 2MB for base64)
                 if (buffer.length > 2 * 1024 * 1024) {
                     return { success: false, error: 'Bild zu groß (max 2MB)' };
                 }
 
-                const filename = `${player.id}-${Date.now()}.jpg`;
+                const ext = mimeType.split('/')[1].replace('jpeg', 'jpg');
+                const filename = `${player.id}-${Date.now()}.${ext}`;
                 const uploadDir = getUploadDir();
 
                 fs.writeFileSync(path.join(uploadDir, filename), buffer);
@@ -109,9 +134,10 @@ export async function updatePlayer(id: string, formData: FormData) {
     }
     // Handle File Upload (fallback for traditional file input)
     else if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-        // Basic validation
-        if (!imageFile.type.startsWith('image/')) {
-            return { success: false, error: 'Nur Bilder erlaubt' };
+        // Validate MIME type — block SVG
+        const allowedFileTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedFileTypes.includes(imageFile.type)) {
+            return { success: false, error: 'Nur JPEG, PNG, WebP und GIF erlaubt' };
         }
         if (imageFile.size > 5 * 1024 * 1024) {
             return { success: false, error: 'Bild zu groß (max 5MB)' };

@@ -5,8 +5,16 @@ import bcrypt from 'bcryptjs';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { createNotificationForUser } from '@/app/actions/notifications';
+import { headers } from 'next/headers';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function registerUser(formData: FormData) {
+    const headersList = await headers();
+    const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
+    if (!checkRateLimit(`register:${ip}`, 5, 10 * 60_000)) {
+        return { success: false, error: 'Zu viele Versuche. Bitte in 10 Minuten erneut versuchen.' };
+    }
+
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -73,6 +81,12 @@ export async function registerUser(formData: FormData) {
 }
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
+    const headersList = await headers();
+    const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
+    if (!checkRateLimit(`login:${ip}`, 10, 60_000)) {
+        return 'Zu viele Login-Versuche. Bitte warte eine Minute.';
+    }
+
     const email = formData.get('email') as string;
 
     // Check user status before attempting sign-in

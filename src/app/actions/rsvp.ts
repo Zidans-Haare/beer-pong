@@ -19,6 +19,11 @@ export async function submitRSVP(formData: FormData) {
         return { success: false, error: 'Missing required fields' };
     }
 
+    const VALID_STATUSES = ['YES', 'NO', 'MAYBE'];
+    if (!VALID_STATUSES.includes(status)) {
+        return { success: false, error: 'Ungültiger Status' };
+    }
+
     try {
         // Find player for current user
         const player = await prisma.player.findUnique({

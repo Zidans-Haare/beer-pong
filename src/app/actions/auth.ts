@@ -15,6 +15,10 @@ export async function registerUser(formData: FormData) {
         return { success: false, error: 'Alle Felder müssen ausgefüllt sein.' };
     }
 
+    if (password.length < 8) {
+        return { success: false, error: 'Passwort muss mindestens 8 Zeichen lang sein.' };
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const isAdmin = email === process.env.ADMIN_EMAIL;

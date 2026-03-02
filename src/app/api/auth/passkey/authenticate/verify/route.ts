@@ -34,6 +34,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify account is active
+    if (passkey.user.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: 'Account ist nicht aktiv oder wurde abgelehnt' },
+        { status: 403 }
+      );
+    }
+
     // Verify authentication
     const verification = await verifyPasskeyAuthentication(response, challenge, {
       credentialId: passkey.credentialId,

@@ -14,7 +14,7 @@ export const prisma =
         });
         return new PrismaClient({
             adapter,
-            log: ['query'],
+            log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
         });
     })();
 

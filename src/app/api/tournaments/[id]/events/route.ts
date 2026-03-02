@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
+import { cookies } from 'next/headers';
 
 // Store active connections per tournament
 const connections = new Map<string, Set<ReadableStreamDefaultController>>();
@@ -11,6 +13,14 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await auth();
+  const cookieStore = await cookies();
+  const guestCookie = cookieStore.get('bierpong_guest_session');
+
+  if (!session?.user?.id && !guestCookie?.value) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { id: tournamentId } = await params;
 
   // Verify tournament exists

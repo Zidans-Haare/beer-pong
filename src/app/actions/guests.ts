@@ -49,7 +49,7 @@ export async function createGuestPlayer(name: string, tournamentId: string) {
             expires: expiresAt,
             maxAge: GUEST_LIFETIME_HOURS * 60 * 60,
             httpOnly: true,
-            secure: false, // auch über http persistent (Entwicklung + lokales Netz)
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/'
         });
@@ -95,6 +95,14 @@ export async function getCurrentGuest() {
  * Get guest by ID
  */
 export async function getGuestById(guestId: string) {
+    const session = await auth();
+    const cookieStore = await cookies();
+    const guestToken = cookieStore.get('bierpong_guest_session')?.value;
+
+    if (!session?.user?.id && !guestToken) {
+        return null;
+    }
+
     return prisma.guestPlayer.findUnique({
         where: { id: guestId },
         include: {
@@ -113,6 +121,14 @@ export async function getGuestById(guestId: string) {
  * Get all guests for a tournament
  */
 export async function getTournamentGuests(tournamentId: string) {
+    const session = await auth();
+    const cookieStore = await cookies();
+    const guestToken = cookieStore.get('bierpong_guest_session')?.value;
+
+    if (!session?.user?.id && !guestToken) {
+        return [];
+    }
+
     return prisma.guestPlayer.findMany({
         where: {
             tournamentId,
@@ -153,10 +169,14 @@ export async function updateGuestName(guestId: string, name: string) {
 }
 
 /**
- * Clean up expired guest players
- * Call this periodically or on-demand
+ * Clean up expired guest players (admin only)
  */
 export async function cleanupExpiredGuests() {
+    const session = await auth();
+    if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
+        return { success: false, error: 'Nicht autorisiert' };
+    }
+
     try {
         const result = await prisma.guestPlayer.deleteMany({
             where: {

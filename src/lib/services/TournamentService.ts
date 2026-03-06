@@ -260,9 +260,42 @@ export class TournamentService {
     }
 
     /**
+     * Recalculates standings from scratch based on actual match results.
+     * Fixes double-counting when match results are corrected.
+     */
+    static async recalculateStandings(tournamentId: string) {
+        await prisma.tournamentStanding.updateMany({
+            where: { tournamentId },
+            data: { points: 0, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 }
+        });
+
+        const matches = await prisma.match.findMany({
+            where: { tournamentId, isPlayed: true, player1Id: { not: null }, player2Id: { not: null } }
+        });
+
+        for (const m of matches) {
+            const s1 = m.score1 ?? 0, s2 = m.score2 ?? 0;
+            const p1 = m.player1Id!, p2 = m.player2Id!;
+            if (s1 > s2) {
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p1 }, data: { played: { increment: 1 }, won: { increment: 1 }, points: { increment: 3 }, goalsFor: { increment: s1 }, goalsAgainst: { increment: s2 }, goalDifference: { increment: s1 - s2 } } });
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p2 }, data: { played: { increment: 1 }, lost: { increment: 1 }, goalsFor: { increment: s2 }, goalsAgainst: { increment: s1 }, goalDifference: { increment: s2 - s1 } } });
+            } else if (s2 > s1) {
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p1 }, data: { played: { increment: 1 }, lost: { increment: 1 }, goalsFor: { increment: s1 }, goalsAgainst: { increment: s2 }, goalDifference: { increment: s1 - s2 } } });
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p2 }, data: { played: { increment: 1 }, won: { increment: 1 }, points: { increment: 3 }, goalsFor: { increment: s2 }, goalsAgainst: { increment: s1 }, goalDifference: { increment: s2 - s1 } } });
+            } else {
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p1 }, data: { played: { increment: 1 }, drawn: { increment: 1 }, points: { increment: 1 }, goalsFor: { increment: s1 }, goalsAgainst: { increment: s2 } } });
+                await prisma.tournamentStanding.updateMany({ where: { tournamentId, playerId: p2 }, data: { played: { increment: 1 }, drawn: { increment: 1 }, points: { increment: 1 }, goalsFor: { increment: s2 }, goalsAgainst: { increment: s1 } } });
+            }
+        }
+    }
+
+    /**
      * Generates Knockout phase (Bracket) from Group standings.
      */
     static async generateKnockoutFromGroups(tournamentId: string) {
+        // Recalculate standings from actual match results before seeding
+        await TournamentService.recalculateStandings(tournamentId);
+
         const standings = await prisma.tournamentStanding.findMany({
             where: { tournamentId },
             orderBy: [

@@ -280,10 +280,21 @@ export class TournamentService {
         });
 
         const qualified: { playerId: string, rank: number, groupId: number }[] = [];
-        Object.values(groups).forEach(groupStandings => {
-            if (groupStandings[0]) qualified.push({ playerId: groupStandings[0].playerId, rank: 1, groupId: groupStandings[0].groupId });
-            if (groupStandings[1]) qualified.push({ playerId: groupStandings[1].playerId, rank: 2, groupId: groupStandings[1].groupId });
-        });
+        const groupIds = Object.keys(groups);
+        const isRoundRobin = groupIds.length === 1 && groupIds[0] === '0';
+
+        if (isRoundRobin) {
+            // Round Robin: take top 4 for proper semis → final + 3rd place
+            const group = groups[0];
+            for (let i = 0; i < Math.min(4, group.length); i++) {
+                qualified.push({ playerId: group[i].playerId, rank: i + 1, groupId: 0 });
+            }
+        } else {
+            Object.values(groups).forEach(groupStandings => {
+                if (groupStandings[0]) qualified.push({ playerId: groupStandings[0].playerId, rank: 1, groupId: groupStandings[0].groupId });
+                if (groupStandings[1]) qualified.push({ playerId: groupStandings[1].playerId, rank: 2, groupId: groupStandings[1].groupId });
+            });
+        }
 
         if (qualified.length === 4) {
             const semi1 = await prisma.match.create({

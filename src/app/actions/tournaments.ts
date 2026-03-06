@@ -186,7 +186,7 @@ export async function startPlayoffs(tournamentId: string) {
 
         // Check if groups are actually done
         const unplayed = tournament.matches.filter((m: any) =>
-            (m.stage === 'GROUP' || m.stage === 'GROUP_1' || m.stage === 'GROUP_2') && !m.isPlayed
+            (m.stage === 'GROUP' || m.stage === 'GROUP_1' || m.stage === 'GROUP_2' || m.stage === 'LEAGUE') && !m.isPlayed
         );
         if (unplayed.length > 0) throw new Error('Alle Gruppenspiele müssen beendet sein.');
 

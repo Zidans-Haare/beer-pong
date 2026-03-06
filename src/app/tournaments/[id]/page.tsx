@@ -194,7 +194,8 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     mode: tournament.mode,
                     isRanked: tournament.isRanked,
                     type: tournament.type,
-                    shortCode: tournament.shortCode
+                    shortCode: tournament.shortCode,
+                    hasReturnLeg: tournament.hasReturnLeg
                 }}
                 participantCount={totalParticipants}
                 isHost={isHost}

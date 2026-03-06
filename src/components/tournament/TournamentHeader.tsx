@@ -18,6 +18,7 @@ interface Props {
         isRanked: boolean;
         type: string;
         shortCode: string | null;
+        hasReturnLeg: boolean;
     };
     participantCount: number;
     isHost: boolean;
@@ -140,6 +141,24 @@ export default function TournamentHeader({
                     }}>
                         {getTournamentTypeLabel(tournament.type)}
                     </span>
+
+                    {/* Return Leg Badge */}
+                    {tournament.hasReturnLeg && (
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            background: 'rgba(34, 197, 94, 0.1)',
+                            border: '1px solid rgba(34, 197, 94, 0.3)',
+                            borderRadius: '99px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            color: '#22c55e'
+                        }}>
+                            Rückrunde
+                        </span>
+                    )}
                 </div>
 
 

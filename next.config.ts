@@ -6,11 +6,11 @@ const nextConfig: NextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js requires these
-      "style-src 'self' 'unsafe-inline'",                // Framer Motion inline styles
-      "img-src 'self' data: blob:",
-      "font-src 'self'",
-      "connect-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com", // Next.js + Google Maps
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",               // Framer Motion + Google Fonts
+      "img-src 'self' data: blob: https://maps.gstatic.com https://*.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com",
       "frame-ancestors 'none'",
     ].join('; ');
 

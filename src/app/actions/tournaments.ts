@@ -42,7 +42,7 @@ export async function createTournament(formData: FormData) {
     const userId = session.user.id;
 
     if (!name || (!startImmediately && !dateStr) || !location) {
-        throw new Error('Missing required fields');
+        return { success: false, error: 'Pflichtfelder fehlen (Name und Location erforderlich)' };
     }
 
     // If starting now, use current date

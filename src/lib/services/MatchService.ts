@@ -268,12 +268,10 @@ export class MatchService {
         });
 
         if (unplayed === 0) {
-            // All matches played. Complete tournament.
-            await prisma.tournament.update({
-                where: { id: tournamentId },
-                data: { status: "COMPLETED" }
-            });
-            // Optional: Broadcast "League Finished"?
+            // All league matches done!
+            // NOTE: Finals are NOT generated automatically.
+            // The tournament host must manually start the finals via the button.
+            console.log(`[League] All league matches completed for tournament ${tournamentId}. Ready for finals.`);
         }
     }
 

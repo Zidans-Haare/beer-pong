@@ -1,6 +1,5 @@
 import { TournamentStanding } from '@prisma/client';
-import TournamentTable from '@/components/TournamentTable';
-import { Trophy, Target, Shield, BarChart3 } from 'lucide-react';
+import { Trophy, Target, Shield } from 'lucide-react';
 
 interface TournamentSummaryProps {
     tournamentId: string;
@@ -239,23 +238,6 @@ export default function TournamentSummary({
                 )}
             </div>
 
-            {/* Final Standings */}
-            {effectiveStandings.length > 0 && (
-                <div style={{ marginTop: 'var(--spacing-8)' }}>
-                    <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <BarChart3 size={24} /> Endstand
-                    </h2>
-                    <TournamentTable standings={effectiveStandings.map(s => ({
-                        playerId: s.playerId,
-                        playerName: s.player?.name || 'Unbekannt',
-                        matchesPlayed: s.played || 0,
-                        wins: s.won || 0,
-                        losses: s.lost || 0,
-                        points: s.points || 0,
-                        cupDiff: s.goalDifference || 0
-                    }))} />
-                </div>
-            )}
         </div>
     );
 }

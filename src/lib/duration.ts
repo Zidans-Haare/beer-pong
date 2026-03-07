@@ -293,8 +293,13 @@ export async function getTournamentForecast(tournamentId: string): Promise<{
   const totalSeconds = predictions.reduce((sum, p) => sum + p.predictedSeconds, 0);
   const avgDuration = Math.round(totalSeconds / predictions.length);
 
-  // Estimate end time (assuming sequential play with some overlap)
-  const parallelFactor = 0.8; // Assume some matches can overlap
+  // Estimate end time based on number of tables (parallel matches)
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    select: { tableCount: true },
+  });
+  const tableCount = tournament?.tableCount ?? 1;
+  const parallelFactor = 1 / tableCount;
   const adjustedTotalSeconds = totalSeconds * parallelFactor;
 
   const estimatedEndTime = new Date(Date.now() + adjustedTotalSeconds * 1000);

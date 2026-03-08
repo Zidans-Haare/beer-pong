@@ -8,7 +8,7 @@ import { startOfMonth, startOfYear } from 'date-fns';
 type RangeType = 'ALL' | 'MONTH' | 'YEAR' | 'LAST_5';
 
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
-    const [range, setRange] = useState<RangeType>('ALL');
+    const [range, setRange] = useState<RangeType>('MONTH');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

@@ -125,16 +125,6 @@ export default function TournamentSummary({
 
     if (!podium[0]) {
         podium = effectiveStandings.slice(0, 3);
-    } else {
-        // Fill missing places (e.g. 3rd place not played) from standings
-        for (let i = 0; i < 3; i++) {
-            if (!podium[i]) {
-                const fallback = effectiveStandings.find(
-                    (s: any) => !podium.some((p: any) => p?.playerId === s.playerId)
-                );
-                if (fallback) podium[i] = fallback;
-            }
-        }
     }
 
     // Find winner (highest points in standings)

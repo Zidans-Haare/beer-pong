@@ -408,7 +408,10 @@ describe('MatchService', () => {
             });
         });
 
-        it('should complete league when all matches are played', async () => {
+        it('should NOT auto-complete tournament when all league matches are played', async () => {
+            // League completion must NOT set status=COMPLETED automatically.
+            // The host manually starts the finals; only checkBracketProgression
+            // sets COMPLETED after the final bracket match. (see GitHub issue #5)
             const leagueMatch = {
                 id: 'league-match',
                 tournamentId: 'tournament-1',
@@ -438,11 +441,8 @@ describe('MatchService', () => {
 
             await MatchService.updateMatch('league-match', 10, 5);
 
-            // Should complete tournament
-            expect(mockPrisma.tournament.update).toHaveBeenCalledWith({
-                where: { id: 'tournament-1' },
-                data: { status: 'COMPLETED' },
-            });
+            // tournament.update must NOT be called — status stays ACTIVE
+            expect(mockPrisma.tournament.update).not.toHaveBeenCalled();
         });
     });
 

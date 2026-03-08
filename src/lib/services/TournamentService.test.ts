@@ -22,6 +22,7 @@ vi.mock('@/lib/prisma', () => ({
         tournamentStanding: {
             upsert: vi.fn(),
             findMany: vi.fn(),
+            updateMany: vi.fn(),
         },
     },
 }));
@@ -76,6 +77,7 @@ const mockPrisma = prisma as unknown as {
     tournamentStanding: {
         upsert: Mock;
         findMany: Mock;
+        updateMany: Mock;
     };
 };
 

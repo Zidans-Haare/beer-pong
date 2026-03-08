@@ -199,7 +199,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                                     labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                                    formatter={(value: any) => [`${Number(value).toFixed(1)} min`, 'Dauer']}
+                                    formatter={(value: any, name: string) => [`${Number(value).toFixed(1)} min`, name]}
                                 />
                                 {processedData.topDuration.map((p, i) => (
                                     <Line

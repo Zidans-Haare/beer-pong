@@ -5,6 +5,21 @@ import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
+import UptimeGraph from '@/components/UptimeGraph';
+
+async function fetchUptimeData() {
+    try {
+        const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
+        const slug = process.env.UPTIME_KUMA_SLUG ?? 'bier';
+        const res = await fetch(`${url}/api/status-page/heartbeat/${slug}`, {
+            next: { revalidate: 60 },
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +29,10 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
     const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
 
-    const [allStats, allPlayers] = await Promise.all([
+    const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
         getPlayers(),
+        fetchUptimeData(),
     ]);
 
     let stats = selectedPlayerIds.length > 0
@@ -202,6 +218,17 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     </table>
                 </div>
             </div>
+            {/* Uptime Graph */}
+            {uptimeData && (() => {
+                const monitorId = Object.keys(uptimeData.heartbeatList)[0];
+                const heartbeats = uptimeData.heartbeatList[monitorId] ?? [];
+                const uptime24h = uptimeData.uptimeList[`${monitorId}_24`] ?? 1;
+                return (
+                    <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
+                        <UptimeGraph heartbeats={heartbeats} uptime24h={uptime24h} />
+                    </div>
+                );
+            })()}
         </div>
     );
 }

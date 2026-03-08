@@ -287,6 +287,13 @@ export class MatchService {
 
         console.log(`[Progression] Checking Match ${matchId} (R:${currentRound}, P:${currentPosition}, Winner:${winnerId})`);
 
+        // Get table number of the completed match to pass on to the next match
+        const completedMatchData = await prisma.match.findUnique({
+            where: { id: matchId },
+            select: { tableNumber: true }
+        });
+        const tableNumber = completedMatchData?.tableNumber ?? undefined;
+
         // 1. Check if this logic applies (Are we in a penultimate round?)
         const maxRoundMatch = await prisma.match.findFirst({
             where: { tournamentId, stage: "BRACKET" },
@@ -327,7 +334,7 @@ export class MatchService {
 
             // Mark match as started if both players are now set
             if (updated.player1Id && updated.player2Id) {
-                await markMatchStarted(nextMatch.id);
+                await markMatchStarted(nextMatch.id, tableNumber);
                 // Notify players that their match is ready
                 this.notifyMatchReady(nextMatch.id, tournamentId);
             }
@@ -356,7 +363,7 @@ export class MatchService {
 
                     // Mark 3rd place match as started if both players are now set
                     if (updated3rd.player1Id && updated3rd.player2Id) {
-                        await markMatchStarted(thirdPlaceMatch.id);
+                        await markMatchStarted(thirdPlaceMatch.id, tableNumber);
                         // Notify players that their match is ready
                         this.notifyMatchReady(thirdPlaceMatch.id, tournamentId);
                     }
@@ -378,6 +385,12 @@ export class MatchService {
         if (!winnerTeamId) return;
 
         console.log(`[Progression] Checking Team Match ${matchId} (R:${currentRound}, P:${currentPosition}, WinnerTeam:${winnerTeamId})`);
+
+        const completedTeamMatchData = await prisma.match.findUnique({
+            where: { id: matchId },
+            select: { tableNumber: true }
+        });
+        const tableNumber = completedTeamMatchData?.tableNumber ?? undefined;
 
         const maxRoundMatch = await prisma.match.findFirst({
             where: { tournamentId, stage: "BRACKET" },
@@ -414,7 +427,7 @@ export class MatchService {
             });
 
             if (updated.team1Id && updated.team2Id) {
-                await markMatchStarted(nextMatch.id);
+                await markMatchStarted(nextMatch.id, tableNumber);
                 // Notify team players that their match is ready
                 this.notifyMatchReady(nextMatch.id, tournamentId);
             }
@@ -440,7 +453,7 @@ export class MatchService {
                     });
 
                     if (updated3rd.team1Id && updated3rd.team2Id) {
-                        await markMatchStarted(thirdPlaceMatch.id);
+                        await markMatchStarted(thirdPlaceMatch.id, tableNumber);
                         // Notify team players that their match is ready
                         this.notifyMatchReady(thirdPlaceMatch.id, tournamentId);
                     }

@@ -90,8 +90,8 @@ export class TournamentService {
                 }
             });
 
-            for (const match of playableMatches) {
-                await markMatchStarted(match.id);
+            for (let i = 0; i < playableMatches.length; i++) {
+                await markMatchStarted(playableMatches[i].id, (i % tournament.tableCount) + 1);
             }
 
             return;
@@ -254,8 +254,8 @@ export class TournamentService {
             }
         });
 
-        for (const match of playableMatches) {
-            await markMatchStarted(match.id);
+        for (let i = 0; i < playableMatches.length; i++) {
+            await markMatchStarted(playableMatches[i].id, (i % tournament.tableCount) + 1);
         }
     }
 

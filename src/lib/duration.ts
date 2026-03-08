@@ -343,13 +343,25 @@ export async function recordMatchDuration(
 
 /**
  * Mark a match as started (when it becomes playable)
+ * If tableNumber is provided, uses the last completedAt on that table as startedAt
  */
-export async function markMatchStarted(matchId: string): Promise<void> {
+export async function markMatchStarted(matchId: string, tableNumber?: number): Promise<void> {
+  let startedAt = new Date();
+
+  if (tableNumber) {
+    const lastOnTable = await prisma.match.findFirst({
+      where: { tableNumber, completedAt: { not: null }, id: { not: matchId } },
+      orderBy: { completedAt: 'desc' },
+      select: { completedAt: true },
+    });
+    if (lastOnTable?.completedAt) {
+      startedAt = new Date(lastOnTable.completedAt);
+    }
+  }
+
   await prisma.match.update({
     where: { id: matchId },
-    data: {
-      startedAt: new Date(),
-    },
+    data: { startedAt, tableNumber: tableNumber ?? null },
   });
 }
 

@@ -223,6 +223,7 @@ model Match {
   startedAt       DateTime?
   completedAt     DateTime?
   durationSeconds Int?
+  tableNumber     Int?
   team1Id         String?
   team2Id         String?
   winnerTeamId    String?

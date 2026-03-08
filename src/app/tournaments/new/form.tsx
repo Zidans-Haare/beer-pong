@@ -20,6 +20,8 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [systemMatchDuration, setSystemMatchDuration] = useState(15);
     const [tableCount, setTableCount] = useState(1);
     const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));
+    const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+    const [playerSearch, setPlayerSearch] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -307,6 +309,66 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                     tableCount={tableCount}
                     startDate={startImmediately ? undefined : new Date(customDate)}
                 />
+
+                {/* Player Picker */}
+                <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>
+                        <Users size={16} color="var(--color-secondary)" />
+                        Spieler direkt hinzufügen
+                        {selectedPlayerIds.length > 0 && (
+                            <span style={{ marginLeft: 'auto', fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', padding: '2px 10px' }}>
+                                {selectedPlayerIds.length} ausgewählt
+                            </span>
+                        )}
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Spieler suchen..."
+                        value={playerSearch}
+                        onChange={(e) => setPlayerSearch(e.target.value)}
+                        style={{
+                            width: '100%', padding: '10px 12px', marginBottom: 'var(--spacing-3)',
+                            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-md)', color: 'var(--color-text)', fontSize: '0.9rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto' }}>
+                        {players
+                            .filter(p => p.name.toLowerCase().includes(playerSearch.toLowerCase()))
+                            .map(p => {
+                                const selected = selectedPlayerIds.includes(p.id);
+                                return (
+                                    <div
+                                        key={p.id}
+                                        onClick={() => setSelectedPlayerIds(prev =>
+                                            selected ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                                        )}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '10px',
+                                            padding: '8px 12px', borderRadius: 'var(--radius-md)',
+                                            cursor: 'pointer', transition: 'all 0.15s ease',
+                                            background: selected ? 'rgba(217, 70, 239, 0.12)' : 'var(--color-surface)',
+                                            border: selected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
+                                            background: selected ? 'var(--color-primary)' : 'transparent',
+                                            border: selected ? 'none' : '2px solid var(--color-border-strong)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            {selected && <span style={{ color: 'white', fontSize: '12px', lineHeight: 1 }}>✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '0.9rem', color: selected ? 'var(--color-primary)' : 'var(--color-text)', fontWeight: selected ? 600 : 400 }}>
+                                            {p.name}
+                                        </span>
+                                        {selected && <input type="hidden" name="participants" value={p.id} />}
+                                    </div>
+                                );
+                            })}
+                    </div>
+                </div>
 
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',

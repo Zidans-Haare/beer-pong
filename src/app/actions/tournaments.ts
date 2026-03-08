@@ -35,9 +35,7 @@ export async function createTournament(formData: FormData) {
     const mode = (formData.get('mode') as string) || 'SOLO';  // SOLO or TEAM
     const isRanked = formData.get('isRanked') !== 'false';    // Default true
 
-    // We no longer use manual participant selection in the form
-    // const participantIds = formData.getAll('participants') as string[];
-    const participantIds: string[] = [];
+    const participantIds = formData.getAll('participants') as string[];
 
     const userId = session.user.id;
 
@@ -100,6 +98,18 @@ export async function createTournament(formData: FormData) {
                     data: {
                         tournamentId: tournament.id,
                         playerId: hostPlayer.id,
+                        status: 'YES'
+                    }
+                });
+            }
+
+            // Add directly selected players as YES RSVP
+            for (const playerId of participantIds) {
+                if (playerId === hostPlayer?.id) continue; // Host already added
+                await tx.rSVP.create({
+                    data: {
+                        tournamentId: tournament.id,
+                        playerId,
                         status: 'YES'
                     }
                 });

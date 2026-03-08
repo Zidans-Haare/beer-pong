@@ -17,7 +17,7 @@ export default async function Home() {
 
       <HeroSection userName={session?.user?.name} />
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'calc(-1 * var(--spacing-4))', marginBottom: 'var(--spacing-6)' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--spacing-6)', marginBottom: 'var(--spacing-6)' }}>
         <OnlineIndicator />
       </div>
 

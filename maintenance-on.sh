@@ -1,4 +1,4 @@
 #!/bin/bash
 # Wartungsmodus aktivieren
-touch /var/www/beer-pong/maintenance.on
+touch /home/htw/beer-pong/public/maintenance.on
 echo "Wartungsmodus: AN"

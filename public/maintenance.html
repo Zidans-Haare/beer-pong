@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurz in der Pause — Bier Pong</title>
+    <title>Wartung — Bier Pong</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -12,115 +12,108 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #0a0a0f;
+            background: #f8f8fc;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #e2e8f0;
-            overflow: hidden;
-        }
-
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 60% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-            pointer-events: none;
+            color: #0f0f14;
         }
 
         .container {
             text-align: center;
             padding: 2rem;
-            max-width: 480px;
-            position: relative;
-            z-index: 1;
+            max-width: 440px;
+            width: 100%;
         }
 
-        .cup-animation {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            animation: bounce 2s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0) rotate(-5deg); }
-            50% { transform: translateY(-12px) rotate(5deg); }
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
-            backdrop-filter: blur(12px);
-        }
-
-        h1 {
-            font-size: 1.6rem;
+        .logo {
+            font-size: 1.5rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            background: linear-gradient(135deg, #be23d5 0%, #9333ea 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -0.03em;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.07);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(190, 35, 213, 0.08);
+            border: 1px solid rgba(190, 35, 213, 0.2);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #be23d5;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #be23d5;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f0f14;
             margin-bottom: 0.75rem;
             letter-spacing: -0.02em;
         }
 
-        p {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            line-height: 1.6;
+        .description {
+            color: #52525b;
+            font-size: 0.875rem;
+            line-height: 1.7;
             margin-bottom: 2rem;
         }
 
-        .dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
+        .divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.07);
+            margin-bottom: 1.5rem;
         }
 
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(99, 102, 241, 0.6);
-            animation: pulse 1.4s ease-in-out infinite;
-        }
-
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-
-        .eta {
-            margin-top: 1.5rem;
+        .footer {
             font-size: 0.78rem;
-            color: rgba(148, 163, 184, 0.5);
+            color: #a1a1aa;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="cup-animation">🏆</div>
+        <div class="logo">Bier Pong</div>
         <div class="card">
-            <h1>Kurz in der Pause</h1>
-            <p>
-                Wir spielen gerade ein Update ein.<br>
-                Gleich geht's weiter — versprochen.
-            </p>
-            <div class="dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                Wartung
             </div>
-            <p class="eta">Dauert nur ein paar Minuten</p>
+            <h1>Plattform vorübergehend nicht verfügbar</h1>
+            <p class="description">
+                Die Anwendung wird derzeit gewartet.<br>
+                Sie ist in Kürze wieder erreichbar.
+            </p>
+            <div class="divider"></div>
+            <p class="footer">Bitte versuchen Sie es in wenigen Minuten erneut.</p>
         </div>
     </div>
 </body>

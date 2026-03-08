@@ -1,4 +1,4 @@
 #!/bin/bash
 # Wartungsmodus deaktivieren
-rm -f /var/www/beer-pong/maintenance.on
+rm -f /home/htw/beer-pong/public/maintenance.on
 echo "Wartungsmodus: AUS"

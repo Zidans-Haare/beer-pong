@@ -87,6 +87,30 @@
             margin-bottom: 2rem;
         }
 
+        .info-box {
+            display: none;
+            background: rgba(190, 35, 213, 0.05);
+            border: 1px solid rgba(190, 35, 213, 0.15);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.82rem;
+            color: #52525b;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .info-box.visible { display: block; }
+
+        .info-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #be23d5;
+            margin-bottom: 4px;
+        }
+
         .divider {
             height: 1px;
             background: rgba(0, 0, 0, 0.07);
@@ -112,9 +136,24 @@
                 Die Anwendung wird derzeit gewartet.<br>
                 Sie ist in Kürze wieder erreichbar.
             </p>
+            <div class="info-box" id="infoBox">
+                <div class="info-label">Was passiert gerade?</div>
+                <div id="infoText"></div>
+            </div>
             <div class="divider"></div>
             <p class="footer">Bitte versuchen Sie es in wenigen Minuten erneut.</p>
         </div>
     </div>
+    <script>
+        fetch('/maintenance-msg.txt?t=' + Date.now())
+            .then(r => r.ok ? r.text() : null)
+            .then(msg => {
+                if (msg && msg.trim()) {
+                    document.getElementById('infoText').textContent = msg.trim();
+                    document.getElementById('infoBox').classList.add('visible');
+                }
+            })
+            .catch(() => {});
+    </script>
 </body>
 </html>

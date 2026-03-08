@@ -2,11 +2,14 @@ import { getAllPlayerStats } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
+import RankedToggle from '@/components/RankedToggle';
 
 export const dynamic = 'force-dynamic';
 
-export default async function StatsPage() {
-    const stats = await getAllPlayerStats();
+export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string }> }) {
+    const { ranked } = await searchParams;
+    const onlyRanked = ranked !== 'false';
+    const stats = await getAllPlayerStats(onlyRanked);
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
@@ -26,9 +29,11 @@ export default async function StatsPage() {
                     color: '#b45309'
                 }}>
                     <Trophy size={14} color="#b45309" />
-                    Nur Liga-Turniere (keine Spaß-Turniere)
+                    {onlyRanked ? 'Nur Liga-Turniere (keine Spaß-Turniere)' : 'Alle Turniere (inkl. Spaß-Turniere)'}
                 </div>
             </header>
+
+            <RankedToggle onlyRanked={onlyRanked} />
 
             <StatsCharts stats={stats} />
 

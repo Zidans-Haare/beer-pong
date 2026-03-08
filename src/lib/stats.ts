@@ -13,34 +13,36 @@ export interface PlayerStats {
     history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[];
 }
 
-export async function getAllPlayerStats(): Promise<PlayerStats[]> {
-    // Only include stats from RANKED tournaments (Liga-Turniere)
-    // Spaß-Turniere (isRanked: false) don't count towards overall stats
+export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[]> {
+    const tournamentFilter = onlyRanked
+        ? { status: 'COMPLETED', isRanked: true }
+        : { status: 'COMPLETED' };
+
     const players = await prisma.player.findMany({
         include: {
             matchesAsPlayer1: {
                 where: {
                     winnerId: { not: null },
-                    tournament: { status: 'COMPLETED', isRanked: true }
+                    tournament: tournamentFilter
                 },
                 include: { tournament: true }
             },
             matchesAsPlayer2: {
                 where: {
                     winnerId: { not: null },
-                    tournament: { status: 'COMPLETED', isRanked: true }
+                    tournament: tournamentFilter
                 },
                 include: { tournament: true }
             },
             tournaments: {
                 where: {
-                    tournament: { status: 'COMPLETED', isRanked: true }
+                    tournament: tournamentFilter
                 },
                 include: { tournament: true }
             },
             standings: {
                 where: {
-                    tournament: { status: 'COMPLETED', isRanked: true }
+                    tournament: tournamentFilter
                 },
                 include: {
                     tournament: {

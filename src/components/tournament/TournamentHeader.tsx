@@ -135,9 +135,11 @@ export default function TournamentHeader({
                         background: 'rgba(52, 152, 219, 0.1)',
                         border: '1px solid rgba(52, 152, 219, 0.3)',
                         borderRadius: '99px',
-                        fontSize: '0.75rem',
+                        fontSize: '0.7rem',
                         fontWeight: 600,
-                        color: '#3498db'
+                        color: '#3498db',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
                     }}>
                         {getTournamentTypeLabel(tournament.type)}
                     </span>

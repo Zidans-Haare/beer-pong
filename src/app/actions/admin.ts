@@ -468,6 +468,34 @@ export async function deleteExpiredGuests() {
     }
 }
 
+export async function adminDeleteTournament(tournamentId: string) {
+    await checkAdmin();
+    try {
+        const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+        if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+
+        // onDelete: Cascade handles related records; explicit deletes for safety with SQLite
+        await prisma.$transaction(async (tx: any) => {
+            await tx.match.deleteMany({ where: { tournamentId } });
+            await tx.rSVP.deleteMany({ where: { tournamentId } });
+            await tx.tournamentParticipant.deleteMany({ where: { tournamentId } });
+            await tx.tournamentStanding.deleteMany({ where: { tournamentId } });
+            await tx.tickerEvent.deleteMany({ where: { tournamentId } });
+            await tx.bringItem.deleteMany({ where: { tournamentId } });
+            await tx.guestPlayer.deleteMany({ where: { tournamentId } });
+            await tx.team.deleteMany({ where: { tournamentId } });
+            await tx.tournament.delete({ where: { id: tournamentId } });
+        });
+
+        revalidatePath('/admin/tournaments');
+        revalidatePath('/tournaments');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to delete tournament:', error);
+        return { success: false, error: 'Turnier konnte nicht gelöscht werden' };
+    }
+}
+
 export async function getPublicGlobalDurationStats() {
     try {
         const { getGlobalDurationStats } = await import('@/lib/duration');

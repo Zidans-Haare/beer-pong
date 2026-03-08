@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { setTournamentStatus } from '@/app/actions/admin';
+import { setTournamentStatus, adminDeleteTournament } from '@/app/actions/admin';
 
 const STATUS_LABELS: Record<string, string> = {
     PLANNED: 'Geplant',
@@ -38,6 +38,42 @@ export function StatusBadge({ status }: { status: string }) {
         }}>
             {STATUS_LABELS[status] ?? status}
         </span>
+    );
+}
+
+export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: string; tournamentName: string }) {
+    const [loading, setLoading] = useState(false);
+
+    async function handleDelete() {
+        if (!confirm(`Turnier "${tournamentName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+        setLoading(true);
+        const result = await adminDeleteTournament(tournamentId);
+        if (!result.success) {
+            alert(result.error ?? 'Fehler beim Löschen');
+        }
+        setLoading(false);
+    }
+
+    return (
+        <button
+            onClick={handleDelete}
+            disabled={loading}
+            title="Turnier löschen"
+            style={{
+                padding: '3px 10px',
+                borderRadius: '6px',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: '1px solid rgba(239,68,68,0.4)',
+                background: 'rgba(239,68,68,0.08)',
+                color: '#f87171',
+                opacity: loading ? 0.5 : 1,
+                transition: 'all 0.15s',
+            }}
+        >
+            {loading ? '...' : 'Löschen'}
+        </button>
     );
 }
 

@@ -1,7 +1,7 @@
 import { getAllTournaments, getPlannedTournaments, getRegisteredPlayers } from '@/app/actions/admin';
 import { Trophy, Calendar, Users } from 'lucide-react';
 import { AdminTournamentManager } from './AdminTournamentManager';
-import { StatusBadge, StatusButton } from './StatusButton';
+import { StatusBadge, StatusButton, DeleteButton } from './StatusButton';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -45,6 +45,7 @@ export default async function AdminTournamentsPage() {
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spieler</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status ändern</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aktion</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,6 +73,9 @@ export default async function AdminTournamentsPage() {
                                         </td>
                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
                                             <StatusButton tournamentId={t.id} currentStatus={t.status} />
+                                        </td>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                            <DeleteButton tournamentId={t.id} tournamentName={t.name} />
                                         </td>
                                     </tr>
                                 ))}

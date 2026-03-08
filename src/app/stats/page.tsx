@@ -19,9 +19,14 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
         getPlayers(),
     ]);
 
-    const stats = selectedPlayerIds.length > 0
+    let stats = selectedPlayerIds.length > 0
         ? allStats.filter(s => selectedPlayerIds.includes(s.id))
         : allStats;
+
+    // Hide players with no activity in the selected period
+    if (activePeriod !== 'all') {
+        stats = stats.filter(s => s.matchesPlayed > 0);
+    }
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>

@@ -40,11 +40,16 @@ export default function StatsFilterBar({
         return '/stats' + (qs ? '?' + qs : '');
     }
 
+    function navigate(url: string) {
+        router.push(url);
+        router.refresh();
+    }
+
     function togglePlayer(id: string) {
         const next = selectedPlayerIds.includes(id)
             ? selectedPlayerIds.filter(p => p !== id)
             : [...selectedPlayerIds, id];
-        router.push(buildUrl({ players: next }));
+        navigate(buildUrl({ players: next }));
     }
 
     const filteredPlayers = allPlayers.filter(p =>
@@ -63,7 +68,7 @@ export default function StatsFilterBar({
                 <Calendar size={14} color="var(--color-text-dim)" />
                 <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
                     {PERIODS.map(({ key, label }) => (
-                        <button key={key} onClick={() => router.push(buildUrl({ period: key }))}
+                        <button key={key} onClick={() => navigate(buildUrl({ period: key }))}
                             style={{
                                 padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
                                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
@@ -82,7 +87,7 @@ export default function StatsFilterBar({
 
             {/* Rangliste / Alles */}
             <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
-                <button onClick={() => router.push(buildUrl({ ranked: true }))}
+                <button onClick={() => navigate(buildUrl({ ranked: true }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
                         padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
@@ -93,7 +98,7 @@ export default function StatsFilterBar({
                     }}>
                     <Trophy size={12} /> Rangliste
                 </button>
-                <button onClick={() => router.push(buildUrl({ ranked: false }))}
+                <button onClick={() => navigate(buildUrl({ ranked: false }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
                         padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
@@ -126,7 +131,7 @@ export default function StatsFilterBar({
                 </button>
 
                 {selectedPlayerIds.length > 0 && (
-                    <button onClick={() => router.push(buildUrl({ players: [] }))}
+                    <button onClick={() => navigate(buildUrl({ players: [] }))}
                         style={{
                             position: 'absolute', top: '-6px', right: '-6px',
                             width: '16px', height: '16px', borderRadius: '50%',

@@ -1,15 +1,27 @@
 import { getAllPlayerStats } from '@/lib/stats';
+import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
-import RankedToggle from '@/components/RankedToggle';
+import StatsFilterBar from '@/components/StatsFilterBar';
+import { getPlayers } from '@/app/actions/players';
 
 export const dynamic = 'force-dynamic';
 
-export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string }> }) {
-    const { ranked } = await searchParams;
+export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string; period?: string; players?: string }> }) {
+    const { ranked, period, players: playersParam } = await searchParams;
     const onlyRanked = ranked !== 'false';
-    const stats = await getAllPlayerStats(onlyRanked);
+    const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
+    const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
+
+    const [allStats, allPlayers] = await Promise.all([
+        getAllPlayerStats(onlyRanked, activePeriod),
+        getPlayers(),
+    ]);
+
+    const stats = selectedPlayerIds.length > 0
+        ? allStats.filter(s => selectedPlayerIds.includes(s.id))
+        : allStats;
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
@@ -33,7 +45,12 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 </div>
             </header>
 
-            <RankedToggle onlyRanked={onlyRanked} />
+            <StatsFilterBar
+                onlyRanked={onlyRanked}
+                activePeriod={activePeriod}
+                selectedPlayerIds={selectedPlayerIds}
+                allPlayers={allPlayers}
+            />
 
             <StatsCharts stats={stats} />
 

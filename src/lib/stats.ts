@@ -13,10 +13,23 @@ export interface PlayerStats {
     history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[];
 }
 
-export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[]> {
-    const tournamentFilter = onlyRanked
-        ? { status: 'COMPLETED', isRanked: true }
-        : { status: 'COMPLETED' };
+export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';
+
+export function getPeriodStartDate(period: StatsPeriod): Date | undefined {
+    const now = new Date();
+    if (period === 'month') return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    if (period === 'year') return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    return undefined;
+}
+
+export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all'): Promise<PlayerStats[]> {
+    const since = getPeriodStartDate(period);
+    // For 'last5', fetch all and filter per-player afterwards
+    const tournamentFilter = {
+        status: 'COMPLETED',
+        ...(onlyRanked ? { isRanked: true } : {}),
+        ...(since ? { date: { gte: since } } : {}),
+    };
 
     const players = await prisma.player.findMany({
         include: {
@@ -62,10 +75,20 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
     });
 
     return players.map((p: any) => {
+        // For 'last5': limit to the player's last 5 tournaments by date
+        let last5TournamentIds: Set<string> | null = null;
+        if (period === 'last5') {
+            const sorted = [...p.tournaments]
+                .sort((a: any, b: any) => new Date(b.tournament.date).getTime() - new Date(a.tournament.date).getTime())
+                .slice(0, 5);
+            last5TournamentIds = new Set(sorted.map((t: any) => t.tournamentId));
+        }
+        const filterByLast5 = (m: any) => !last5TournamentIds || last5TournamentIds.has(m.tournamentId);
+
         // combine matches and sort by date
         const allMatches = [
-            ...p.matchesAsPlayer1.map((m: any) => ({ ...m, isP1: true })),
-            ...p.matchesAsPlayer2.map((m: any) => ({ ...m, isP1: false }))
+            ...p.matchesAsPlayer1.filter(filterByLast5).map((m: any) => ({ ...m, isP1: true })),
+            ...p.matchesAsPlayer2.filter(filterByLast5).map((m: any) => ({ ...m, isP1: false }))
         ].sort((a: any, b: any) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
 
         let matchesWon = 0;
@@ -112,8 +135,15 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
         // Count tournament wins (1st place finishes)
         let tournamentsWon = 0;
 
+        const relevantTournaments = last5TournamentIds
+            ? p.tournaments.filter((tp: any) => last5TournamentIds!.has(tp.tournamentId))
+            : p.tournaments;
+        const relevantStandings = last5TournamentIds
+            ? p.standings.filter((s: any) => last5TournamentIds!.has(s.tournamentId))
+            : p.standings;
+
         // Method 1: Check standings (for Round-Robin and Group tournaments)
-        p.standings.forEach((standing: any) => {
+        relevantStandings.forEach((standing: any) => {
             // Check if this player is first in their tournament's standings
             const tournamentStandings = standing.tournament.standings;
             if (tournamentStandings.length > 0 && tournamentStandings[0].playerId === p.id) {
@@ -124,7 +154,7 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
         // Method 2: Check completed tournaments where this player won the final match (for Elimination tournaments)
         // Get all completed tournaments this player participated in
         const completedTournamentIds = new Set<string>();
-        p.tournaments.forEach((tp: any) => {
+        relevantTournaments.forEach((tp: any) => {
             if (tp.tournament?.status === 'COMPLETED') {
                 completedTournamentIds.add(tp.tournament.id);
             }
@@ -133,12 +163,12 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
         // For each completed tournament, check if player won the final/highest round match
         for (const tournamentId of completedTournamentIds) {
             // Skip if we already counted this tournament via standings
-            const alreadyCounted = p.standings.some((s: any) => s.tournamentId === tournamentId);
+            const alreadyCounted = relevantStandings.some((s: any) => s.tournamentId === tournamentId);
             if (alreadyCounted) continue;
 
             // Find the highest round match in this tournament
             const tournamentMatches = [...p.matchesAsPlayer1, ...p.matchesAsPlayer2]
-                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed);
+                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed && filterByLast5(m));
 
             if (tournamentMatches.length === 0) continue;
 
@@ -158,7 +188,7 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
             name: p.name,
             matchesPlayed,
             matchesWon,
-            tournamentsPlayed: p.tournaments.length,
+            tournamentsPlayed: relevantTournaments.length,
             tournamentsWon,
             cupDiff: cupsHit - cupsReceived,
             winRate: matchesPlayed > 0 ? (matchesWon / matchesPlayed) : 0,

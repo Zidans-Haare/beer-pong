@@ -51,6 +51,7 @@ export default async function StatsPage() {
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>WIN RATE</th>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>+/-</th>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>POKALE</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>Ø / TURNIER</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,6 +92,11 @@ export default async function StatsPage() {
                                                     </>
                                                 ) : '-'}
                                             </div>
+                                        </td>
+                                        <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                                            {s.tournamentsPlayed > 0
+                                                ? (s.tournamentsWon / s.tournamentsPlayed).toFixed(2)
+                                                : '-'}
                                         </td>
                                     </tr>
                                 )

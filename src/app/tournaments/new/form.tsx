@@ -316,7 +316,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         <Users size={16} color="var(--color-secondary)" />
                         Spieler direkt hinzufügen
                         {selectedPlayerIds.length > 0 && (
-                            <span style={{ marginLeft: 'auto', fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', padding: '2px 10px' }}>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.7rem', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', padding: '2px 8px', whiteSpace: 'nowrap' }}>
                                 {selectedPlayerIds.length} ausgewählt
                             </span>
                         )}

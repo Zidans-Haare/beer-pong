@@ -23,6 +23,20 @@ interface Maintenance {
     timeslotList?: { startDate: string; endDate: string }[];
 }
 
+function findMaintenance(time: string, maintenanceList: Maintenance[]): Maintenance | null {
+    const t = new Date(time).getTime();
+    for (const m of maintenanceList) {
+        const slots = m.timeslotList?.length
+            ? m.timeslotList
+            : (m.startDate && m.endDate ? [{ startDate: m.startDate, endDate: m.endDate }] : []);
+        for (const slot of slots) {
+            if (!slot.startDate || !slot.endDate) continue;
+            if (t >= new Date(slot.startDate).getTime() && t <= new Date(slot.endDate).getTime()) return m;
+        }
+    }
+    return null;
+}
+
 interface UptimeGraphProps {
     heartbeats: Heartbeat[];
     uptime24h: number;
@@ -36,15 +50,20 @@ function statusColor(status: number) {
     return COLOR_UP;
 }
 
-function CustomTooltip({ active, payload, label, heartbeats }: any) {
+function CustomTooltip({ active, payload, label, heartbeats, maintenanceList }: any) {
     if (!active || !payload?.length) return null;
     const idx = heartbeats.findIndex((h: Heartbeat) => h.time.slice(11, 16) === label);
     const hb: Heartbeat | undefined = heartbeats[idx];
     if (!hb) return null;
 
+    const maint = findMaintenance(hb.time, maintenanceList ?? []);
+    const isMaint = hb.status === 3 || !!maint;
     const isUp = hb.status === 1;
-    const isMaint = hb.status === 3;
-    const isDown = hb.status === 0;
+    const isDown = !isUp && !isMaint;
+
+    const maintLabel = maint
+        ? [maint.title, maint.description].filter(Boolean).join(' – ')
+        : (hb.msg || null);
 
     return (
         <div style={{
@@ -53,7 +72,7 @@ function CustomTooltip({ active, payload, label, heartbeats }: any) {
             borderRadius: '8px',
             padding: '8px 12px',
             fontSize: '0.8rem',
-            maxWidth: '220px',
+            maxWidth: '240px',
         }}>
             <div style={{ fontWeight: 600, marginBottom: '4px', color: '#0f0f14' }}>
                 {hb.time.slice(11, 16)} Uhr
@@ -63,7 +82,7 @@ function CustomTooltip({ active, payload, label, heartbeats }: any) {
             )}
             {isMaint && (
                 <div style={{ color: COLOR_MAINTENANCE, fontWeight: 600 }}>
-                    🔧 Wartung{hb.msg ? `: ${hb.msg}` : ''}
+                    🔧 Wartung{maintLabel ? `: ${maintLabel}` : ''}
                 </div>
             )}
             {isDown && (
@@ -116,11 +135,15 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
 
     const uptimeColor = uptimePct >= 99 ? '#22c55e' : uptimePct >= 95 ? '#f59e0b' : '#ef4444';
 
-    const chartData = filteredHeartbeats.map((hb) => ({
-        time: hb.time.slice(11, 16),
-        ping: hb.status === 1 ? hb.ping : 0,
-        status: hb.status,
-    }));
+    const chartData = filteredHeartbeats.map((hb) => {
+        const maint = hb.status !== 1 ? findMaintenance(hb.time, maintenanceList) : null;
+        const effectiveStatus = maint && hb.status !== 1 ? 3 : hb.status;
+        return {
+            time: hb.time.slice(11, 16),
+            ping: hb.status === 1 ? hb.ping : 0,
+            status: effectiveStatus,
+        };
+    });
 
     const avgPing = filteredHeartbeats.filter(h => h.status === 1).reduce((sum, h, _, arr) => sum + h.ping / arr.length, 0);
 
@@ -281,7 +304,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                                 axisLine={false}
                                 unit="ms"
                             />
-                            <Tooltip content={<CustomTooltip heartbeats={filteredHeartbeats} />} />
+                            <Tooltip content={<CustomTooltip heartbeats={filteredHeartbeats} maintenanceList={maintenanceList} />} />
                             <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
                             <Area
                                 type="monotone"

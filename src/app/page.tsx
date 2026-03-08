@@ -4,6 +4,7 @@ import DashboardStatsWidget from '@/components/dashboard/DashboardStatsWidget';
 import InstallPrompt from '@/components/InstallPrompt';
 import HeroSection from '@/components/dashboard/HeroSection';
 import RecentMatchesWidget from '@/components/dashboard/RecentMatchesWidget';
+import OnlineIndicator from '@/components/OnlineIndicator';
 import { getAllPlayerStats } from '@/lib/stats';
 import { auth } from '@/auth';
 
@@ -15,6 +16,10 @@ export default async function Home() {
     <div className="container" style={{ paddingBottom: '80px' }}>
 
       <HeroSection userName={session?.user?.name} />
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'calc(-1 * var(--spacing-4))', marginBottom: 'var(--spacing-6)' }}>
+        <OnlineIndicator />
+      </div>
 
       <div style={{
         display: 'grid',

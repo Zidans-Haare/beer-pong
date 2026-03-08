@@ -10,7 +10,7 @@ import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocom
 import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
 
 
-export default function CreateTournamentForm({ players }: { players: Player[] }) {
+export default function CreateTournamentForm({ players, hostPlayerId }: { players: Player[], hostPlayerId: string | null }) {
     const router = useRouter();
     const [startImmediately, setStartImmediately] = useState(true);
     const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
@@ -20,7 +20,7 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
     const [systemMatchDuration, setSystemMatchDuration] = useState(15);
     const [tableCount, setTableCount] = useState(1);
     const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));
-    const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+    const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>(hostPlayerId ? [hostPlayerId] : []);
     const [playerSearch, setPlayerSearch] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -337,17 +337,21 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                         {players
                             .filter(p => p.name.toLowerCase().includes(playerSearch.toLowerCase()))
                             .map(p => {
+                                const isHost = p.id === hostPlayerId;
                                 const selected = selectedPlayerIds.includes(p.id);
                                 return (
                                     <div
                                         key={p.id}
-                                        onClick={() => setSelectedPlayerIds(prev =>
-                                            selected ? prev.filter(id => id !== p.id) : [...prev, p.id]
-                                        )}
+                                        onClick={() => {
+                                            if (isHost) return;
+                                            setSelectedPlayerIds(prev =>
+                                                selected ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                                            );
+                                        }}
                                         style={{
                                             display: 'flex', alignItems: 'center', gap: '10px',
                                             padding: '8px 12px', borderRadius: 'var(--radius-md)',
-                                            cursor: 'pointer', transition: 'all 0.15s ease',
+                                            cursor: isHost ? 'default' : 'pointer', transition: 'all 0.15s ease',
                                             background: selected ? 'rgba(217, 70, 239, 0.12)' : 'var(--color-surface)',
                                             border: selected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                         }}
@@ -363,6 +367,11 @@ export default function CreateTournamentForm({ players }: { players: Player[] })
                                         <span style={{ fontSize: '0.9rem', color: selected ? 'var(--color-primary)' : 'var(--color-text)', fontWeight: selected ? 600 : 400 }}>
                                             {p.name}
                                         </span>
+                                        {isHost && (
+                                            <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: 'rgba(217,70,239,0.12)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
+                                                Host
+                                            </span>
+                                        )}
                                         {selected && <input type="hidden" name="participants" value={p.id} />}
                                     </div>
                                 );

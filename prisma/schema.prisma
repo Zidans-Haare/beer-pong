@@ -272,6 +272,14 @@ model SystemSettings {
   tableCount       Int    @default(1)
 }
 
+model UptimeHeartbeat {
+  id     Int      @id @default(autoincrement())
+  time   DateTime @unique
+  status Int
+  ping   Int      @default(0)
+  msg    String   @default("")
+}
+
 model Passkey {
   id                   String    @id @default(cuid())
   userId               String

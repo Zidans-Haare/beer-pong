@@ -110,9 +110,14 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
 
     const avgPing = heartbeats.filter(h => h.status === 1).reduce((sum, h, _, arr) => sum + h.ping / arr.length, 0);
 
-    const timeRange = heartbeats.length >= 2
-        ? `letzte ~${Math.round((new Date(heartbeats[heartbeats.length - 1].time).getTime() - new Date(heartbeats[0].time).getTime()) / 60000)} Min.`
-        : `${heartbeats.length} Pings`;
+    const timeRange = (() => {
+        if (heartbeats.length < 2) return `${heartbeats.length} Pings`;
+        const diffMs = new Date(heartbeats[heartbeats.length - 1].time).getTime() - new Date(heartbeats[0].time).getTime();
+        const diffMin = diffMs / 60000;
+        if (diffMin < 120) return `letzte ~${Math.round(diffMin)} Min.`;
+        if (diffMin < 1440) return `letzte ~${Math.round(diffMin / 60)} Std.`;
+        return `letzte ~${Math.round(diffMin / 1440)} Tage`;
+    })();
 
     const currentStatusLabel = isMaint ? 'Wartung' : isUp ? 'Online' : 'Offline';
     const currentStatusColor = isMaint ? COLOR_MAINTENANCE : isUp ? '#22c55e' : COLOR_DOWN;

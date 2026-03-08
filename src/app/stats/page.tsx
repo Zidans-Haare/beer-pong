@@ -6,22 +6,59 @@ import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
 import UptimeGraph from '@/components/UptimeGraph';
+import { prisma } from '@/lib/prisma';
 
-async function fetchUptimeData() {
+async function syncAndGetUptimeData() {
+    const url = process.env.UPTIME_KUMA_URL ?? 'https://status.olomek.com';
+    const slug = process.env.UPTIME_KUMA_SLUG ?? 'bier';
+
+    // Live-Daten holen (inkl. aktuelle Status/Maintenance)
+    let liveHeartbeats: any[] = [];
+    let maintenanceList: any[] = [];
+    let uptime24h = 1;
     try {
-        const url = process.env.UPTIME_KUMA_URL ?? 'https://status.olomek.com';
-        const slug = process.env.UPTIME_KUMA_SLUG ?? 'bier';
         const [heartbeatRes, statusRes] = await Promise.all([
-            fetch(`${url}/api/status-page/heartbeat/${slug}`, { next: { revalidate: 60 } }),
-            fetch(`${url}/api/status-page/${slug}`, { next: { revalidate: 60 } }),
+            fetch(`${url}/api/status-page/heartbeat/${slug}`, { cache: 'no-store' }),
+            fetch(`${url}/api/status-page/${slug}`, { cache: 'no-store' }),
         ]);
-        if (!heartbeatRes.ok) return null;
-        const heartbeatData = await heartbeatRes.json();
-        const statusData = statusRes.ok ? await statusRes.json() : null;
-        return { ...heartbeatData, maintenanceList: statusData?.maintenanceList ?? [] };
-    } catch {
-        return null;
+        if (heartbeatRes.ok) {
+            const data = await heartbeatRes.json();
+            const monitorId = Object.keys(data.heartbeatList ?? {})[0];
+            liveHeartbeats = monitorId ? (data.heartbeatList[monitorId] ?? []) : [];
+            uptime24h = monitorId ? (data.uptimeList?.[`${monitorId}_24`] ?? 1) : 1;
+        }
+        if (statusRes.ok) {
+            const data = await statusRes.json();
+            maintenanceList = data.maintenanceList ?? [];
+        }
+    } catch { /* API nicht erreichbar */ }
+
+    // Neue Heartbeats in DB speichern (upsert by time)
+    if (liveHeartbeats.length > 0) {
+        await Promise.allSettled(liveHeartbeats.map((hb: any) =>
+            prisma.uptimeHeartbeat.upsert({
+                where: { time: new Date(hb.time) },
+                create: { time: new Date(hb.time), status: hb.status, ping: hb.ping ?? 0, msg: hb.msg ?? '' },
+                update: {},
+            })
+        ));
     }
+
+    // Alle gespeicherten Daten aus DB lesen (letzte 7 Tage)
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const stored = await prisma.uptimeHeartbeat.findMany({
+        where: { time: { gte: since } },
+        orderBy: { time: 'asc' },
+    });
+
+    const heartbeats = stored.map(h => ({
+        status: h.status,
+        time: h.time.toISOString().replace('T', ' ').slice(0, 23),
+        msg: h.msg,
+        ping: h.ping,
+    }));
+
+    return { heartbeats, uptime24h, maintenanceList };
 }
 
 export const dynamic = 'force-dynamic';
@@ -35,7 +72,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
         getPlayers(),
-        fetchUptimeData(),
+        syncAndGetUptimeData(),
     ]);
 
     let stats = selectedPlayerIds.length > 0
@@ -222,16 +259,15 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 </div>
             </div>
             {/* Uptime Graph */}
-            {uptimeData && (() => {
-                const monitorId = Object.keys(uptimeData.heartbeatList)[0];
-                const heartbeats = uptimeData.heartbeatList[monitorId] ?? [];
-                const uptime24h = uptimeData.uptimeList[`${monitorId}_24`] ?? 1;
-                return (
-                    <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
-                        <UptimeGraph heartbeats={heartbeats} uptime24h={uptime24h} maintenanceList={uptimeData.maintenanceList} />
-                    </div>
-                );
-            })()}
+            {uptimeData.heartbeats.length > 0 && (
+                <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
+                    <UptimeGraph
+                        heartbeats={uptimeData.heartbeats}
+                        uptime24h={uptimeData.uptime24h}
+                        maintenanceList={uptimeData.maintenanceList}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -94,21 +94,6 @@ function CustomTooltip({ active, payload, label, heartbeats, maintenanceList }: 
     );
 }
 
-// Zusammenhängende Blöcke mit gleichem nicht-Up-Status finden
-function getStatusBlocks(data: { time: string; status: number }[]) {
-    const blocks: { x1: string; x2: string; status: number }[] = [];
-    let start: string | null = null;
-    let cur: number | null = null;
-    for (const d of data) {
-        if (d.status !== 1) {
-            if (start === null) { start = d.time; cur = d.status; }
-        } else {
-            if (start !== null) { blocks.push({ x1: start, x2: d.time, status: cur! }); start = null; }
-        }
-    }
-    if (start !== null) blocks.push({ x1: start, x2: data[data.length - 1].time, status: cur! });
-    return blocks;
-}
 
 type Period = '3h' | '24h' | 'all';
 
@@ -306,16 +291,6 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                             />
                             <Tooltip content={<CustomTooltip heartbeats={filteredHeartbeats} maintenanceList={maintenanceList} />} />
                             <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
-                            {getStatusBlocks(chartData).map((b, i) => (
-                                <ReferenceArea
-                                    key={i}
-                                    x1={b.x1}
-                                    x2={b.x2}
-                                    fill={b.status === 3 ? COLOR_MAINTENANCE : COLOR_DOWN}
-                                    fillOpacity={0.25}
-                                    strokeOpacity={0}
-                                />
-                            ))}
                             <Area
                                 type="monotone"
                                 dataKey="ping"
@@ -328,6 +303,12 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                         </AreaChart>
                     </ResponsiveContainer>
                 )}
+                {/* Status-Leiste */}
+                <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '1px', marginTop: '4px' }}>
+                    {chartData.map((d, i) => (
+                        <div key={i} style={{ flex: 1, background: statusColor(d.status), opacity: d.status === 1 ? 0.35 : 1 }} />
+                    ))}
+                </div>
             </div>
         </div>
     );

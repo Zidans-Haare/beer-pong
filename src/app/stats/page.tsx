@@ -9,13 +9,16 @@ import UptimeGraph from '@/components/UptimeGraph';
 
 async function fetchUptimeData() {
     try {
-        const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
+        const url = process.env.UPTIME_KUMA_URL ?? 'https://status.olomek.com';
         const slug = process.env.UPTIME_KUMA_SLUG ?? 'bier';
-        const res = await fetch(`${url}/api/status-page/heartbeat/${slug}`, {
-            next: { revalidate: 60 },
-        });
-        if (!res.ok) return null;
-        return await res.json();
+        const [heartbeatRes, statusRes] = await Promise.all([
+            fetch(`${url}/api/status-page/heartbeat/${slug}`, { next: { revalidate: 60 } }),
+            fetch(`${url}/api/status-page/${slug}`, { next: { revalidate: 60 } }),
+        ]);
+        if (!heartbeatRes.ok) return null;
+        const heartbeatData = await heartbeatRes.json();
+        const statusData = statusRes.ok ? await statusRes.json() : null;
+        return { ...heartbeatData, maintenanceList: statusData?.maintenanceList ?? [] };
     } catch {
         return null;
     }
@@ -225,7 +228,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 const uptime24h = uptimeData.uptimeList[`${monitorId}_24`] ?? 1;
                 return (
                     <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
-                        <UptimeGraph heartbeats={heartbeats} uptime24h={uptime24h} />
+                        <UptimeGraph heartbeats={heartbeats} uptime24h={uptime24h} maintenanceList={uptimeData.maintenanceList} />
                     </div>
                 );
             })()}

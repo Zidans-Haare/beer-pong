@@ -90,8 +90,9 @@ export class TournamentService {
                 }
             });
 
+            const tc1 = tournament.tableCount || 1;
             for (let i = 0; i < playableMatches.length; i++) {
-                await markMatchStarted(playableMatches[i].id, (i % tournament.tableCount) + 1);
+                await markMatchStarted(playableMatches[i].id, (i % tc1) + 1);
             }
 
             return;
@@ -254,8 +255,9 @@ export class TournamentService {
             }
         });
 
+        const tc2 = tournament.tableCount || 1;
         for (let i = 0; i < playableMatches.length; i++) {
-            await markMatchStarted(playableMatches[i].id, (i % tournament.tableCount) + 1);
+            await markMatchStarted(playableMatches[i].id, (i % tc2) + 1);
         }
     }
 

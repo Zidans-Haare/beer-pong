@@ -98,6 +98,7 @@ describe('TournamentService', () => {
             mode: 'SOLO',
             type: 'SINGLE_ELIMINATION',
             hasReturnLeg: false,
+            tableCount: 1,
             rsvps: [
                 { playerId: 'player-1', player: { id: 'player-1', name: 'P1' } },
                 { playerId: 'player-2', player: { id: 'player-2', name: 'P2' } },
@@ -318,7 +319,7 @@ describe('TournamentService', () => {
 
             await TournamentService.startTournament('tournament-1');
 
-            expect(mockMarkMatchStarted).toHaveBeenCalledWith('match-1');
+            expect(mockMarkMatchStarted).toHaveBeenCalledWith('match-1', 1);
         });
     });
 

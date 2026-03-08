@@ -126,17 +126,17 @@ In der Nginx-Config für `bier.olomek.com` folgendes einfügen:
 
 ```nginx
 set $maintenance 0;
-if (-f /home/htw/beer-pong/public/maintenance.on) {
+if (-f /path/to/project/public/maintenance.on) {
     set $maintenance 1;
 }
 
 location = /maintenance.html {
-    root /home/htw/beer-pong/public;
+    root /path/to/project/public;
     internal;
 }
 
 location = /maintenance-msg.txt {
-    root /home/htw/beer-pong/public;
+    root /path/to/project/public;
     add_header Cache-Control "no-store";
 }
 
@@ -150,7 +150,7 @@ location / {
 error_page 503 /maintenance.html;
 ```
 
-Danach: `nginx -t && systemctl reload nginx`
+`/path/to/project` mit dem tatsächlichen Projektpfad auf dem Server ersetzen, dann: `nginx -t && systemctl reload nginx`
 
 ### Verwendung
 

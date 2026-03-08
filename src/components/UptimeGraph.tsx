@@ -140,7 +140,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
         const effectiveStatus = maint && hb.status !== 1 ? 3 : hb.status;
         return {
             time: hb.time.slice(11, 16),
-            ping: hb.status === 1 ? hb.ping : 0,
+            ping: hb.status === 1 ? hb.ping : null,
             status: effectiveStatus,
         };
     });

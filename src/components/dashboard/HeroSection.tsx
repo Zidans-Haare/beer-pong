@@ -14,6 +14,7 @@ export default function HeroSection({ userName }: Props) {
             position: 'relative',
             padding: 'var(--spacing-8) var(--spacing-6)',
             textAlign: 'center',
+            marginTop: 'var(--spacing-6)',
             marginBottom: 'var(--spacing-6)',
             overflow: 'hidden',
             borderRadius: 'var(--radius-xl)',

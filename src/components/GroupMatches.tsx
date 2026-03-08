@@ -14,16 +14,23 @@ type MatchWithPlayers = Match & {
 export default function GroupMatches({ matches, tableCount }: { matches: MatchWithPlayers[], tableCount: number }) {
     const [editingMatch, setEditingMatch] = useState<MatchWithPlayers | null>(null);
 
-    // Identify active matches (first unplayed match per table that has both players)
+    // Identify active matches (first unplayed match per table where no player is busy elsewhere)
     const activeMatchIds = new Set<string>();
+    const busyPlayerIds = new Set<string>();
     for (let t = 1; t <= tableCount; t++) {
         const nextMatch = matches.find(m =>
             !m.isPlayed &&
             (m as any).tableNumber === t &&
-            (m.player1Id || m.team1Id) &&
-            (m.player2Id || m.team2Id)
+            (m.player1Id || (m as any).team1Id) &&
+            (m.player2Id || (m as any).team2Id) &&
+            !(m.player1Id && busyPlayerIds.has(m.player1Id)) &&
+            !(m.player2Id && busyPlayerIds.has(m.player2Id))
         );
-        if (nextMatch) activeMatchIds.add(nextMatch.id);
+        if (nextMatch) {
+            activeMatchIds.add(nextMatch.id);
+            if (nextMatch.player1Id) busyPlayerIds.add(nextMatch.player1Id);
+            if (nextMatch.player2Id) busyPlayerIds.add(nextMatch.player2Id);
+        }
     }
 
     // Filter group matches

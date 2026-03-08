@@ -34,47 +34,54 @@ export function calculateSchedule(
         return a.position - b.position;
     });
 
-    const tableAvailableAt = new Array(tableCount).fill(new Date(baseStartTime));
+    const tableAvailableAt = new Array(tableCount).fill(null).map(() => new Date(baseStartTime));
+    const playerBusyUntil: Record<string, Date> = {};
     const scheduledMatches: ScheduledMatch[] = [];
 
     // Current time for reference
     const now = new Date();
 
-    // We start scheduling from the tournament start time or "now", whichever is later for future matches.
-    // For already played matches, we could use their updatedAt, but to keep the schedule consistent,
-    // we'll "fill" the tables with them first or just skip them.
-    // Let's schedule EVERYTHING but respect reality:
-
     for (const match of sortedMatches) {
-        // Find table that is available earliest
-        let earliestTableIdx = 0;
+        const p1 = match.player1Id as string | null;
+        const p2 = match.player2Id as string | null;
+
+        // Find the table where both players are free earliest
+        let bestTableIdx = 0;
+        let bestStart = new Date(Math.max(
+            tableAvailableAt[0].getTime(),
+            p1 ? (playerBusyUntil[p1]?.getTime() ?? 0) : 0,
+            p2 ? (playerBusyUntil[p2]?.getTime() ?? 0) : 0,
+        ));
+
         for (let i = 1; i < tableCount; i++) {
-            if (tableAvailableAt[i] < tableAvailableAt[earliestTableIdx]) {
-                earliestTableIdx = i;
+            const candidateStart = new Date(Math.max(
+                tableAvailableAt[i].getTime(),
+                p1 ? (playerBusyUntil[p1]?.getTime() ?? 0) : 0,
+                p2 ? (playerBusyUntil[p2]?.getTime() ?? 0) : 0,
+            ));
+            if (candidateStart < bestStart) {
+                bestStart = candidateStart;
+                bestTableIdx = i;
             }
         }
 
         let start: Date;
-
         if (match.isPlayed) {
-            // For played matches, we just place them at the earliest possible slot 
-            // but they don't necessarily reflect the exact past.
-            // This preserves the "queue" order.
-            start = new Date(tableAvailableAt[earliestTableIdx]);
+            start = new Date(bestStart);
         } else {
-            // For upcoming matches, ensure we don't schedule them in the past if tournament is active
-            const earliestPossible = tableAvailableAt[earliestTableIdx];
-            start = earliestPossible < now ? new Date(now) : new Date(earliestPossible);
+            start = bestStart < now ? new Date(now) : new Date(bestStart);
         }
 
         scheduledMatches.push({
             ...match,
             scheduledStart: start,
-            tableNumber: earliestTableIdx + 1,
+            tableNumber: bestTableIdx + 1,
         });
 
-        // Update table availability: Add duration
-        tableAvailableAt[earliestTableIdx] = new Date(start.getTime() + durationMin * 60000);
+        const endTime = new Date(start.getTime() + durationMin * 60000);
+        tableAvailableAt[bestTableIdx] = endTime;
+        if (p1) playerBusyUntil[p1] = endTime;
+        if (p2) playerBusyUntil[p2] = endTime;
     }
 
     return scheduledMatches;

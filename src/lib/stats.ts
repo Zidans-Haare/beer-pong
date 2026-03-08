@@ -75,21 +75,16 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
     });
 
     return players.map((p: any) => {
-        // For 'last5': limit to the player's last 5 tournaments by date
-        let last5TournamentIds: Set<string> | null = null;
-        if (period === 'last5') {
-            const sorted = [...p.tournaments]
-                .sort((a: any, b: any) => new Date(b.tournament.date).getTime() - new Date(a.tournament.date).getTime())
-                .slice(0, 5);
-            last5TournamentIds = new Set(sorted.map((t: any) => t.tournamentId));
-        }
-        const filterByLast5 = (m: any) => !last5TournamentIds || last5TournamentIds.has(m.tournamentId);
-
         // combine matches and sort by date
-        const allMatches = [
-            ...p.matchesAsPlayer1.filter(filterByLast5).map((m: any) => ({ ...m, isP1: true })),
-            ...p.matchesAsPlayer2.filter(filterByLast5).map((m: any) => ({ ...m, isP1: false }))
+        let allMatches = [
+            ...p.matchesAsPlayer1.map((m: any) => ({ ...m, isP1: true })),
+            ...p.matchesAsPlayer2.map((m: any) => ({ ...m, isP1: false }))
         ].sort((a: any, b: any) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+
+        // For 'last5': limit to the player's last 5 matches
+        if (period === 'last5') {
+            allMatches = allMatches.slice(-5);
+        }
 
         let matchesWon = 0;
         let cupsHit = 0;
@@ -135,11 +130,16 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
         // Count tournament wins (1st place finishes)
         let tournamentsWon = 0;
 
+        // For last5: derive which tournaments appear in the last 5 matches
+        const last5TournamentIds = period === 'last5'
+            ? new Set(allMatches.map((m: any) => m.tournamentId))
+            : null;
+
         const relevantTournaments = last5TournamentIds
-            ? p.tournaments.filter((tp: any) => last5TournamentIds!.has(tp.tournamentId))
+            ? p.tournaments.filter((tp: any) => last5TournamentIds.has(tp.tournamentId))
             : p.tournaments;
         const relevantStandings = last5TournamentIds
-            ? p.standings.filter((s: any) => last5TournamentIds!.has(s.tournamentId))
+            ? p.standings.filter((s: any) => last5TournamentIds.has(s.tournamentId))
             : p.standings;
 
         // Method 1: Check standings (for Round-Robin and Group tournaments)
@@ -168,7 +168,7 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
 
             // Find the highest round match in this tournament
             const tournamentMatches = [...p.matchesAsPlayer1, ...p.matchesAsPlayer2]
-                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed && filterByLast5(m));
+                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed);
 
             if (tournamentMatches.length === 0) continue;
 

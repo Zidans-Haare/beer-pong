@@ -155,7 +155,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                 required={!startImmediately}
                                 value={customDate}
                                 onChange={(e) => setCustomDate(e.target.value)}
-                                style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
+                                style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
                             />
                         </div>
                     )}

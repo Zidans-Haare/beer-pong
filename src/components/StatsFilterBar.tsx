@@ -86,7 +86,7 @@ export default function StatsFilterBar({
             <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
             {/* Zeile 2: Rangliste / Alles */}
-            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)', alignSelf: 'start' }}>
+            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)', justifySelf: 'start' }}>
                 <button onClick={() => navigate(buildUrl({ ranked: true }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',

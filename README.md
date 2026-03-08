@@ -116,6 +116,70 @@ The project is optimized for deployment on Vercel or any Node.js hosting environ
    ```
    Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
+## 🔧 Wartungsmodus
+
+Bei Deployments kann eine Wartungsseite per Nginx-Flagdatei aktiviert werden, ohne die App neu zu starten.
+
+### Setup (einmalig auf dem Server)
+
+In der Nginx-Config für `bier.olomek.com` folgendes einfügen:
+
+```nginx
+set $maintenance 0;
+if (-f /home/htw/beer-pong/public/maintenance.on) {
+    set $maintenance 1;
+}
+
+location = /maintenance.html {
+    root /home/htw/beer-pong/public;
+    internal;
+}
+
+location = /maintenance-msg.txt {
+    root /home/htw/beer-pong/public;
+    add_header Cache-Control "no-store";
+}
+
+location / {
+    if ($maintenance = 1) {
+        return 503;
+    }
+    # ... bestehende proxy-Einstellungen ...
+}
+
+error_page 503 /maintenance.html;
+```
+
+Danach: `nginx -t && systemctl reload nginx`
+
+### Verwendung
+
+Die Aliases `maint-on` und `maint-off` steuern den Modus:
+
+```bash
+maint-on
+# → Fragt nach: Was passiert gerade? (z.B. "Neuer Build – Commit abc123")
+# → Fragt nach: Geschätzte Dauer in Minuten
+# → Nginx zeigt sofort die Wartungsseite mit Startzeitpunkt, Ende und Countdown
+```
+
+```bash
+maint-off
+# → Wartungsmodus deaktiviert, Seite sofort wieder erreichbar
+```
+
+Die Wartungsseite (`public/maintenance.html`) ist rein statisch, leitet automatisch weiter sobald der Wartungsmodus beendet wird, und zeigt optional Nachricht + Live-Countdown.
+
+### Typischer Deploy-Ablauf
+
+```bash
+maint-on                    # Wartungsseite an
+git pull
+npm run build
+pm2 restart beer-pong
+maint-off                   # Zurück zur App
+```
+
 ---
 
 Made by Nick.

@@ -122,7 +122,7 @@ Bei Deployments kann eine Wartungsseite per Nginx-Flagdatei aktiviert werden, oh
 
 ### Setup (einmalig auf dem Server)
 
-In der Nginx-Config für `bier.olomek.com` folgendes einfügen:
+In der Nginx-Config für die Domain folgendes einfügen:
 
 ```nginx
 set $maintenance 0;

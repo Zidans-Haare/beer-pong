@@ -1,6 +1,6 @@
 'use client';
 
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Customized } from 'recharts';
 import { Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -95,6 +95,37 @@ function CustomTooltip({ active, payload, label, heartbeats, maintenanceList }: 
 }
 
 
+// Zeichnet farbige Hintergrundflächen für Ausfall/Wartung direkt im SVG-Koordinatensystem
+function StatusBackground(props: any) {
+    const { data, xAxisMap, yAxisMap } = props;
+    const xAxis = xAxisMap && (Object.values(xAxisMap)[0] as any);
+    const yAxis = yAxisMap && (Object.values(yAxisMap)[0] as any);
+    if (!xAxis?.scale || !yAxis) return null;
+    const top = yAxis.y;
+    const height = yAxis.height;
+    const bw = xAxis.scale.bandwidth?.() ?? 8;
+    return (
+        <g>
+            {(data as any[]).map((d: any, i: number) => {
+                if (d.status === 1) return null;
+                const x = xAxis.scale(d.time);
+                if (x == null) return null;
+                return (
+                    <rect
+                        key={i}
+                        x={x - bw / 2}
+                        y={top}
+                        width={bw + 1}
+                        height={height}
+                        fill={d.status === 3 ? COLOR_MAINTENANCE : COLOR_DOWN}
+                        fillOpacity={0.35}
+                    />
+                );
+            })}
+        </g>
+    );
+}
+
 type Period = '3h' | '24h' | 'all';
 
 const PERIODS: { label: string; value: Period; ms: number | null }[] = [
@@ -125,7 +156,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
         const effectiveStatus = maint && hb.status !== 1 ? 3 : hb.status;
         return {
             time: hb.time.slice(11, 16),
-            ping: hb.status === 1 ? hb.ping : null,
+            ping: hb.status === 1 ? hb.ping : 0,
             status: effectiveStatus,
         };
     });
@@ -290,6 +321,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                                 unit="ms"
                             />
                             <Tooltip content={<CustomTooltip heartbeats={filteredHeartbeats} maintenanceList={maintenanceList} />} />
+                            <Customized component={<StatusBackground data={chartData} />} />
                             <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
                             <Area
                                 type="monotone"
@@ -298,17 +330,11 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                                 strokeWidth={2}
                                 fill="url(#pingGradient)"
                                 dot={false}
-                                connectNulls={false}
+                                connectNulls={true}
                             />
                         </AreaChart>
                     </ResponsiveContainer>
                 )}
-                {/* Status-Leiste */}
-                <div style={{ display: 'flex', height: '6px', borderRadius: '3px', overflow: 'hidden', gap: '1px', marginTop: '4px' }}>
-                    {chartData.map((d, i) => (
-                        <div key={i} style={{ flex: 1, background: statusColor(d.status), opacity: d.status === 1 ? 0.35 : 1 }} />
-                    ))}
-                </div>
             </div>
         </div>
     );

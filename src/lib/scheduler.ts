@@ -42,8 +42,8 @@ export function calculateSchedule(
     const now = new Date();
 
     for (const match of sortedMatches) {
-        const p1 = match.player1Id as string | null;
-        const p2 = match.player2Id as string | null;
+        const p1 = (match.player1Id || match.team1Id) as string | null;
+        const p2 = (match.player2Id || match.team2Id) as string | null;
 
         // Find the table where both players are free earliest
         let bestTableIdx = 0;

@@ -2,6 +2,9 @@
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+const COLOR_SECONDARY = '#06b6d4';
 
 interface Heartbeat {
     status: number;
@@ -16,6 +19,9 @@ interface UptimeGraphProps {
 }
 
 export default function UptimeGraph({ heartbeats, uptime24h }: UptimeGraphProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
     const uptimePct = Math.round(uptime24h * 10000) / 100;
     const isUp = heartbeats.length > 0 && heartbeats[heartbeats.length - 1].status === 1;
 
@@ -93,49 +99,51 @@ export default function UptimeGraph({ heartbeats, uptime24h }: UptimeGraphProps)
                         Ø {Math.round(avgPing)} ms
                     </span>
                 </div>
-                <ResponsiveContainer width="100%" height={140}>
-                    <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id="pingGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-secondary)" stopOpacity={0.25} />
-                                <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0.02} />
-                            </linearGradient>
-                        </defs>
-                        <XAxis
-                            dataKey="time"
-                            tick={{ fontSize: 10, fill: 'var(--color-text-dim)' }}
-                            interval="preserveStartEnd"
-                            tickLine={false}
-                            axisLine={false}
-                        />
-                        <YAxis
-                            tick={{ fontSize: 10, fill: 'var(--color-text-dim)' }}
-                            tickLine={false}
-                            axisLine={false}
-                            unit="ms"
-                        />
-                        <Tooltip
-                            contentStyle={{
-                                background: 'var(--color-surface)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '8px',
-                                fontSize: '0.8rem',
-                            }}
-                            formatter={(value: number | undefined) => [value != null ? `${value} ms` : '-', 'Ping']}
-                            labelFormatter={(label) => `Zeit: ${label}`}
-                        />
-                        <ReferenceLine y={Math.round(avgPing)} stroke="var(--color-text-subtle)" strokeDasharray="3 3" />
-                        <Area
-                            type="monotone"
-                            dataKey="ping"
-                            stroke="var(--color-secondary)"
-                            strokeWidth={2}
-                            fill="url(#pingGradient)"
-                            dot={false}
-                            connectNulls={false}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                {mounted && (
+                    <ResponsiveContainer width="100%" height={140}>
+                        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="pingGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={COLOR_SECONDARY} stopOpacity={0.25} />
+                                    <stop offset="95%" stopColor={COLOR_SECONDARY} stopOpacity={0.02} />
+                                </linearGradient>
+                            </defs>
+                            <XAxis
+                                dataKey="time"
+                                tick={{ fontSize: 10, fill: '#a1a1aa' }}
+                                interval="preserveStartEnd"
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <YAxis
+                                tick={{ fontSize: 10, fill: '#a1a1aa' }}
+                                tickLine={false}
+                                axisLine={false}
+                                unit="ms"
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    background: '#ffffff',
+                                    border: '1px solid rgba(0,0,0,0.1)',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                }}
+                                formatter={(value: number | undefined) => [value != null ? `${value} ms` : '-', 'Ping']}
+                                labelFormatter={(label) => `Zeit: ${label}`}
+                            />
+                            <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
+                            <Area
+                                type="monotone"
+                                dataKey="ping"
+                                stroke={COLOR_SECONDARY}
+                                strokeWidth={2}
+                                fill="url(#pingGradient)"
+                                dot={false}
+                                connectNulls={false}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                )}
             </div>
         </div>
     );

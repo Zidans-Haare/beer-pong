@@ -96,9 +96,40 @@ export default function TournamentSummary({
     const totalMatches = matches.filter(m => m.isPlayed).length;
     const totalGoals = matches.reduce((sum, m) => sum + (m.score1 || 0) + (m.score2 || 0), 0);
 
+    // Determine podium from bracket if available
+    const bracketMatches = matches.filter((m: any) => m.stage === 'BRACKET' && m.isPlayed);
+    let podium: any[] = [];
+
+    if (bracketMatches.length > 0) {
+        const maxRound = Math.max(...bracketMatches.map((m: any) => m.round));
+        const finale = bracketMatches.find((m: any) => m.round === maxRound && m.position === 0);
+        const thirdPlace = bracketMatches.find((m: any) => m.round === maxRound && m.position === 1);
+
+        const allBracketPlayers = bracketMatches.flatMap((m: any) => [
+            { id: m.player1Id, data: m.player1 },
+            { id: m.player2Id, data: m.player2 },
+        ]);
+        const findStanding = (playerId: string) =>
+            effectiveStandings.find((s: any) => s.playerId === playerId) ||
+            { playerId, player: allBracketPlayers.find((p: any) => p.id === playerId)?.data, points: 0, won: 0, goalsFor: 0, goalsAgainst: 0 };
+
+        if (finale?.winnerId) {
+            const loserId = finale.player1Id === finale.winnerId ? finale.player2Id : finale.player1Id;
+            podium[0] = findStanding(finale.winnerId);
+            podium[1] = findStanding(loserId);
+        }
+        if (thirdPlace?.winnerId) {
+            podium[2] = findStanding(thirdPlace.winnerId);
+        }
+    }
+
+    if (podium.length < 3) {
+        podium = effectiveStandings.slice(0, 3);
+    }
+
     // Find winner (highest points in standings)
-    const winner = effectiveStandings.length > 0 ? effectiveStandings[0] : null;
-    const topThree = effectiveStandings.slice(0, 3);
+    const winner = podium[0] ?? (effectiveStandings.length > 0 ? effectiveStandings[0] : null);
+    const topThree = podium;
 
     // Best scorer (most goals for)
     const bestScorer = effectiveStandings.length > 0

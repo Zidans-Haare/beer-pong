@@ -91,9 +91,23 @@ function CustomDot(props: any) {
     );
 }
 
+type Period = '3h' | '24h' | 'all';
+
+const PERIODS: { label: string; value: Period; ms: number | null }[] = [
+    { label: 'Letzte 3h',  value: '3h',  ms: 3 * 60 * 60 * 1000 },
+    { label: 'Letzte 24h', value: '24h', ms: 24 * 60 * 60 * 1000 },
+    { label: 'Alles',      value: 'all', ms: null },
+];
+
 export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [] }: UptimeGraphProps) {
     const [mounted, setMounted] = useState(false);
+    const [period, setPeriod] = useState<Period>('24h');
     useEffect(() => { setMounted(true); }, []);
+
+    const filteredHeartbeats = period === 'all' ? heartbeats : (() => {
+        const cutoff = Date.now() - (PERIODS.find(p => p.value === period)!.ms!);
+        return heartbeats.filter(hb => new Date(hb.time).getTime() >= cutoff);
+    })();
 
     const uptimePct = Math.round(uptime24h * 10000) / 100;
     const lastHb = heartbeats[heartbeats.length - 1];
@@ -102,21 +116,21 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
 
     const uptimeColor = uptimePct >= 99 ? '#22c55e' : uptimePct >= 95 ? '#f59e0b' : '#ef4444';
 
-    const chartData = heartbeats.map((hb) => ({
+    const chartData = filteredHeartbeats.map((hb) => ({
         time: hb.time.slice(11, 16),
-        ping: hb.status === 1 ? hb.ping : hb.status === 3 ? 0 : 0,
+        ping: hb.status === 1 ? hb.ping : 0,
         status: hb.status,
     }));
 
-    const avgPing = heartbeats.filter(h => h.status === 1).reduce((sum, h, _, arr) => sum + h.ping / arr.length, 0);
+    const avgPing = filteredHeartbeats.filter(h => h.status === 1).reduce((sum, h, _, arr) => sum + h.ping / arr.length, 0);
 
     const timeRange = (() => {
-        if (heartbeats.length < 2) return `${heartbeats.length} Pings`;
-        const diffMs = new Date(heartbeats[heartbeats.length - 1].time).getTime() - new Date(heartbeats[0].time).getTime();
+        if (filteredHeartbeats.length < 2) return `${filteredHeartbeats.length} Pings`;
+        const diffMs = new Date(filteredHeartbeats[filteredHeartbeats.length - 1].time).getTime() - new Date(filteredHeartbeats[0].time).getTime();
         const diffMin = diffMs / 60000;
-        if (diffMin < 120) return `letzte ~${Math.round(diffMin)} Min.`;
-        if (diffMin < 1440) return `letzte ~${Math.round(diffMin / 60)} Std.`;
-        return `letzte ~${Math.round(diffMin / 1440)} Tage`;
+        if (diffMin < 120) return `~${Math.round(diffMin)} Min.`;
+        if (diffMin < 1440) return `~${Math.round(diffMin / 60)} Std.`;
+        return `~${Math.round(diffMin / 1440)} Tage`;
     })();
 
     const currentStatusLabel = isMaint ? 'Wartung' : isUp ? 'Online' : 'Offline';
@@ -143,7 +157,30 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                         </p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    {/* Period Filter */}
+                    <div style={{ display: 'flex', background: '#f2f2f7', borderRadius: '99px', padding: '3px', gap: '2px' }}>
+                        {PERIODS.map(p => (
+                            <button
+                                key={p.value}
+                                onClick={() => setPeriod(p.value)}
+                                style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '99px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    background: period === p.value ? '#ffffff' : 'transparent',
+                                    color: period === p.value ? '#0f0f14' : '#a1a1aa',
+                                    boxShadow: period === p.value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    transition: 'all 0.15s ease',
+                                }}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
                     <span style={{
                         padding: '4px 12px',
                         borderRadius: '99px',
@@ -244,7 +281,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                                 axisLine={false}
                                 unit="ms"
                             />
-                            <Tooltip content={<CustomTooltip heartbeats={heartbeats} />} />
+                            <Tooltip content={<CustomTooltip heartbeats={filteredHeartbeats} />} />
                             <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
                             <Area
                                 type="monotone"

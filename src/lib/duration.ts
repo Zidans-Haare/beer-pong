@@ -326,8 +326,8 @@ export async function recordMatchDuration(
   if (startedAt) {
     durationSeconds = Math.round((now.getTime() - startedAt.getTime()) / 1000);
 
-    // Sanity check: ignore unrealistic durations (< 60s or > 60 min)
-    if (durationSeconds < 60 || durationSeconds > 3600) {
+    // Sanity check: ignore unrealistic durations (< 60s or > 30 min)
+    if (durationSeconds < 60 || durationSeconds > 1800) {
       durationSeconds = undefined;
     }
   }

@@ -94,9 +94,8 @@ export async function getAllPlayerStats(onlyRanked = true): Promise<PlayerStats[
                 duration = Math.floor((end - start) / 1000);
             }
 
-            // Fallback: If duration is missing or unrealistic (< 1 min), assume 12 minutes (720s)
-            // This ensures the chart has data points even for old games
-            if (duration < 60) duration = 720;
+            // Fallback: If duration is missing or unrealistic (< 1 min or > 30 min), assume 12 minutes (720s)
+            if (duration < 60 || duration > 1800) duration = 720;
 
             history.push({
                 date: new Date(m.updatedAt).toLocaleDateString(),

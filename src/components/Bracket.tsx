@@ -36,10 +36,17 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
     const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
 
     const getDynamicRoundName = (round: number) => {
-        if (round === maxRound) return 'Finale / Platz 3';
+        if (round === maxRound) return 'Entscheidung';
         if (round === maxRound - 1) return 'Halbfinale';
         if (round === maxRound - 2) return 'Viertelfinale';
         return `Runde ${round}`;
+    };
+
+    const getMatchLabel = (match: any, round: number) => {
+        if (round !== maxRound) return null;
+        if (match.position === 0) return { text: 'Finale', color: '#b45309', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)' };
+        if (match.position === 1) return { text: 'Spiel um Platz 3', color: '#7c5c2e', bg: 'rgba(205,127,50,0.10)', border: 'rgba(205,127,50,0.35)' };
+        return null;
     };
 
     if (bracketMatches.length === 0) {
@@ -54,7 +61,7 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                         <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>
                             {getDynamicRoundName(round)}
                         </h3>
-                        {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any) => {
+                        {rounds[round].sort((a: any, b: any) => a.position - b.position).map((match: any, idx: number) => {
                             const isTeamMatch = !!match.team1Id && !!match.team2Id;
                             const name1 = isTeamMatch && match.team1
                                 ? getTeamDisplayName(match.team1)
@@ -64,10 +71,19 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                                 : (match.player2?.name || 'TBD');
 
                             const isActive = activeMatchIds.has(match.id);
+                            const matchLabel = getMatchLabel(match, round);
 
                             return (
+                                <div key={match.id} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                                    {matchLabel && (
+                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center', color: matchLabel.color }}>
+                                            {matchLabel.text}
+                                        </div>
+                                    )}
+                                    {idx > 0 && round === maxRound && (
+                                        <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }} />
+                                    )}
                                 <div
-                                    key={match.id}
                                     className="glass-panel"
                                     style={{
                                         padding: 'var(--spacing-3)',
@@ -76,7 +92,8 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
                                         position: 'relative',
-                                        border: isActive ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                        border: isActive ? '2px solid var(--color-primary)' : matchLabel ? `1px solid ${matchLabel.border}` : '1px solid var(--color-border)',
+                                        background: matchLabel ? matchLabel.bg : undefined,
                                         boxShadow: isActive ? '0 0 15px var(--color-primary-glow)' : 'none',
                                         transform: isActive ? 'scale(1.05)' : 'scale(1)',
                                         zIndex: isActive ? 10 : 1
@@ -110,6 +127,7 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name2}</span>
                                         <span>{match.score2}</span>
                                     </div>
+                                </div>
                                 </div>
                             );
                         })}

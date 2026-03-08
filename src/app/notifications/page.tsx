@@ -143,13 +143,13 @@ export default function NotificationsPage() {
                     </button>
 
                     <button
-                        onClick={handleDeleteAllRead}
+                        onClick={handleMarkAllRead}
                         className="glass-panel"
-                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-error)' }}
-                        title="Gelesene löschen"
+                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
+                        title="Alle als gelesen markieren"
                     >
-                        <Trash2 size={18} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Gelesene leeren</span>
+                        <CheckCircle size={18} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Alle als gelesen</span>
                     </button>
                 </div>
             </div>

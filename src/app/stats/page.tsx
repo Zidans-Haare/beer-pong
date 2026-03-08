@@ -7,33 +7,34 @@ import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
 import UptimeGraph from '@/components/UptimeGraph';
 import { prisma } from '@/lib/prisma';
+import fs from 'fs';
+import path from 'path';
 
 async function syncAndGetUptimeData() {
-    const url = process.env.UPTIME_KUMA_URL ?? 'https://status.olomek.com';
+    const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
     const slug = process.env.UPTIME_KUMA_SLUG ?? 'bier';
 
-    // Live-Daten holen (inkl. aktuelle Status/Maintenance)
+    // Lokale Wartungsdaten aus maintenance-msg.txt lesen (geschrieben von maintenance-on.sh)
+    let localMaintenance: { msg: string; start: string; end: string } | null = null;
+    try {
+        const raw = fs.readFileSync(path.join(process.cwd(), 'public', 'maintenance-msg.txt'), 'utf-8');
+        localMaintenance = JSON.parse(raw);
+    } catch { /* keine Wartung aktiv */ }
+
+    // Öffentliche API für aktuelle Heartbeats
     let liveHeartbeats: any[] = [];
-    let maintenanceList: any[] = [];
     let uptime24h = 1;
     try {
-        const [heartbeatRes, statusRes] = await Promise.all([
-            fetch(`${url}/api/status-page/heartbeat/${slug}`, { cache: 'no-store' }),
-            fetch(`${url}/api/status-page/${slug}`, { cache: 'no-store' }),
-        ]);
-        if (heartbeatRes.ok) {
-            const data = await heartbeatRes.json();
+        const res = await fetch(`${url}/api/status-page/heartbeat/${slug}`, { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
             const monitorId = Object.keys(data.heartbeatList ?? {})[0];
             liveHeartbeats = monitorId ? (data.heartbeatList[monitorId] ?? []) : [];
             uptime24h = monitorId ? (data.uptimeList?.[`${monitorId}_24`] ?? 1) : 1;
         }
-        if (statusRes.ok) {
-            const data = await statusRes.json();
-            maintenanceList = data.maintenanceList ?? [];
-        }
-    } catch { /* API nicht erreichbar */ }
+    } catch { /* ignorieren */ }
 
-    // Neue Heartbeats in DB speichern (upsert by time)
+    // Neue Heartbeats in DB speichern
     if (liveHeartbeats.length > 0) {
         await Promise.allSettled(liveHeartbeats.map((hb: any) =>
             prisma.uptimeHeartbeat.upsert({
@@ -42,25 +43,38 @@ async function syncAndGetUptimeData() {
                 update: {},
             })
         ));
-        // Einträge älter als 7 Tage löschen
         await prisma.uptimeHeartbeat.deleteMany({
             where: { time: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
         });
     }
 
-    // Alle gespeicherten Daten aus DB lesen (letzte 7 Tage)
+    // DB-Daten lesen
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const stored = await prisma.uptimeHeartbeat.findMany({
         where: { time: { gte: since } },
         orderBy: { time: 'asc' },
     });
 
-    const heartbeats = stored.map(h => ({
-        status: h.status,
-        time: h.time.toISOString().replace('T', ' ').slice(0, 23),
-        msg: h.msg,
-        ping: h.ping,
-    }));
+    // Wartungs-Zeitfenster anwenden
+    const maintStart = localMaintenance ? new Date(localMaintenance.start).getTime() : null;
+    const maintEnd = localMaintenance ? new Date(localMaintenance.end).getTime() : null;
+
+    const heartbeats = stored.map(h => {
+        const t = h.time.getTime();
+        const inMaint = maintStart !== null && maintEnd !== null && t >= maintStart && t <= maintEnd;
+        return {
+            status: inMaint ? 3 : h.status,
+            time: h.time.toISOString().replace('T', ' ').slice(0, 23),
+            msg: inMaint ? (localMaintenance!.msg || 'Wartung') : h.msg,
+            ping: h.ping,
+        };
+    });
+
+    const maintenanceList = localMaintenance ? [{
+        title: 'Wartung',
+        description: localMaintenance.msg || undefined,
+        timeslotList: [{ startDate: localMaintenance.start, endDate: localMaintenance.end }],
+    }] : [];
 
     return { heartbeats, uptime24h, maintenanceList };
 }

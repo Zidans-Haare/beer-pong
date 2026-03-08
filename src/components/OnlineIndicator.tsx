@@ -15,9 +15,9 @@ function getOrCreatePresenceId(): string {
 
 export default function OnlineIndicator() {
     const [count, setCount] = useState<number | null>(null);
+    const [alone, setAlone] = useState(false);
 
     useEffect(() => {
-        // Ensure cookie exists before first heartbeat
         getOrCreatePresenceId();
 
         async function beat() {
@@ -25,6 +25,7 @@ export default function OnlineIndicator() {
                 const res = await fetch('/api/presence', { method: 'POST' });
                 const data = await res.json();
                 setCount(data.count);
+                setAlone(data.alone ?? false);
             } catch {
                 // ignore
             }
@@ -36,6 +37,10 @@ export default function OnlineIndicator() {
     }, []);
 
     if (count === null) return null;
+
+    const label = alone
+        ? 'Nur du online'
+        : count === 1 ? '1 Person online' : `${count} Personen online`;
 
     return (
         <div style={{
@@ -49,7 +54,7 @@ export default function OnlineIndicator() {
                 background: count > 1 ? '#22c55e' : '#94a3b8',
                 boxShadow: count > 1 ? '0 0 6px #22c55e88' : 'none',
             }} />
-            {count === 1 ? '1 Person online' : `${count} Personen online`}
+            {label}
         </div>
     );
 }

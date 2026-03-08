@@ -19,3 +19,8 @@ export function getOnlineCount(): number {
     cleanup();
     return sessions.size;
 }
+
+export function isAlone(sessionId: string): boolean {
+    cleanup();
+    return sessions.size === 1 && sessions.has(sessionId);
+}

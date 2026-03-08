@@ -112,75 +112,105 @@ describe('Single Elimination Bracket', () => {
         });
     });
 
-    describe('Non-power of 2 players (byes required)', () => {
-        it('should handle 3 players with 1 bye', () => {
+    describe('Non-power of 2 players (qualification round, no byes)', () => {
+        it('should handle 3 players with qualification round', () => {
             const players = createPlayers(3);
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            // 3 players -> bracket size 4 (next power of 2)
-            // Round 1: 2 matches, 1 with bye
-            // Round 2: 2 matches (final + 3rd place)
-            expect(matches.length).toBe(4);
+            // 3 players: 1 qual match + 1 final (r2) + 1 3rd place (r2) = 3 total
+            expect(matches.length).toBe(3);
 
+            // Round 1: exactly 1 qualifying match (both players set, not played)
             const r1Matches = matches.filter(m => m.round === 1);
-            expect(r1Matches.length).toBe(2);
+            expect(r1Matches.length).toBe(1);
+            expect(r1Matches[0].player1Id).toBeTruthy();
+            expect(r1Matches[0].player2Id).toBeTruthy();
+            expect(r1Matches[0].isPlayed).toBe(false);
 
-            // One match should be a bye (player1 set, player2 null, isPlayed=true, winnerId set)
-            const byeMatches = r1Matches.filter(m => m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(1);
-            expect(byeMatches[0].player1Id).toBeTruthy();
-            expect(byeMatches[0].player2Id).toBeNull();
-            expect(byeMatches[0].winnerId).toBe(byeMatches[0].player1Id);
+            // No bye matches at all
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
+
+            // Round 2 final has the seed pre-filled in one slot
+            const final = matches.find(m => m.round === 2 && m.position === 0);
+            const filledSlots = [final?.player1Id, final?.player2Id].filter(Boolean);
+            expect(filledSlots.length).toBe(1);
         });
 
-        it('should handle 5 players with 3 byes', () => {
+        it('should handle 5 players with 1 qual match and seeds in round 2', () => {
             const players = createPlayers(5);
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            // 5 players -> bracket size 8
-            // Round 1: 4 matches, 3 with byes
-            const r1Matches = matches.filter(m => m.round === 1);
-            expect(r1Matches.length).toBe(4);
+            // No bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
 
-            const byeMatches = r1Matches.filter(m => m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(3);
+            // Round 1: 1 qualifying match
+            const r1Matches = matches.filter(m => m.round === 1);
+            expect(r1Matches.length).toBe(1);
+            expect(r1Matches[0].player1Id).toBeTruthy();
+            expect(r1Matches[0].player2Id).toBeTruthy();
+
+            // Round 2: 2 matches — seeds are pre-filled
+            const r2Matches = matches.filter(m => m.round === 2);
+            expect(r2Matches.length).toBe(2);
+            const r2WithSeeds = r2Matches.filter(m => m.player1Id || m.player2Id);
+            expect(r2WithSeeds.length).toBeGreaterThan(0);
         });
 
-        it('should handle 6 players with 2 byes', () => {
+        it('should handle 6 players with 2 qual matches', () => {
             const players = createPlayers(6);
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            // 6 players -> bracket size 8
+            // No bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
+
+            // Round 1: 2 qualifying matches (6 - 8/2 = 2)
             const r1Matches = matches.filter(m => m.round === 1);
-            const byeMatches = r1Matches.filter(m => m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(2);
+            expect(r1Matches.length).toBe(2);
+            r1Matches.forEach(m => {
+                expect(m.player1Id).toBeTruthy();
+                expect(m.player2Id).toBeTruthy();
+                expect(m.isPlayed).toBe(false);
+            });
+
+            // Round 2: 2 matches with seeds pre-filled
+            const r2Matches = matches.filter(m => m.round === 2);
+            expect(r2Matches.length).toBe(2);
+            r2Matches.forEach(m => {
+                // One slot covered by qual winner (null), other pre-filled with seed
+                const filledSlots = [m.player1Id, m.player2Id].filter(Boolean);
+                expect(filledSlots.length).toBe(1);
+            });
         });
 
-        it('should handle 7 players with 1 bye', () => {
+        it('should handle 7 players with 3 qual matches', () => {
             const players = createPlayers(7);
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            // 7 players -> bracket size 8
+            // No bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
+
+            // Round 1: 3 qualifying matches (7 - 8/2 = 3)
             const r1Matches = matches.filter(m => m.round === 1);
-            const byeMatches = r1Matches.filter(m => m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(1);
+            expect(r1Matches.length).toBe(3);
         });
 
-        it('should handle 9 players correctly', () => {
+        it('should handle 9 players with 1 qual match and seeds in round 2', () => {
             const players = createPlayers(9);
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
             // 9 players -> bracket size 16
-            // Round 1: 8 matches, 7 byes
+            // No bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
+
+            // Round 1: 1 qualifying match (9 - 16/2 = 1)
             const r1Matches = matches.filter(m => m.round === 1);
-            expect(r1Matches.length).toBe(8);
+            expect(r1Matches.length).toBe(1);
+            expect(r1Matches[0].player1Id).toBeTruthy();
+            expect(r1Matches[0].player2Id).toBeTruthy();
 
-            const byeMatches = r1Matches.filter(m => m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(7);
-
-            // Only 2 actual matches in first round
-            const realMatches = r1Matches.filter(m => !m.isPlayed);
-            expect(realMatches.length).toBe(1);
+            // Round 2: 4 matches with seeds pre-filled
+            const r2Matches = matches.filter(m => m.round === 2);
+            expect(r2Matches.length).toBe(4);
         });
     });
 
@@ -519,10 +549,11 @@ describe('Edge Cases', () => {
         const players = createPlayers(1);
         const matches = generateSingleEliminationBracket(tournamentId, players);
 
-        // 1 player -> bracket size 2, 1 bye match
+        // 1 player -> 1 match with player1 set, player2 null, not played
         expect(matches.length).toBe(1);
-        expect(matches[0].isPlayed).toBe(true);
-        expect(matches[0].winnerId).toBe(players[0].id);
+        expect(matches[0].player1Id).toBe(players[0].id);
+        expect(matches[0].player2Id).toBeNull();
+        expect(matches[0].isPlayed).toBe(false);
     });
 
     it('should handle empty player list gracefully', () => {

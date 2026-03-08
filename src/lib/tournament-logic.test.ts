@@ -308,35 +308,38 @@ describe('Single Elimination Match Progression', () => {
         });
     });
 
-    describe('Bye Match Handling', () => {
-        it('should auto-advance bye winners to next round', () => {
-            const players = createPlayers(3); // 3 players = 1 bye
+    describe('Qualification Round Handling (non-power-of-2)', () => {
+        it('should give seed a direct slot in round 2 for 3 players', () => {
+            const players = createPlayers(3); // 1 seed, 1 qual match
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            // Find bye match (isPlayed=true, winnerId set)
-            const byeMatch = matches.find(m => m.isPlayed && m.winnerId);
-            expect(byeMatch).toBeTruthy();
+            // No pre-played bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
 
-            // Bye winner should already be in next round
-            const nextRound = byeMatch!.round + 1;
-            const nextPosition = Math.floor(byeMatch!.position / 2);
-            const nextMatch = matches.find(m => m.round === nextRound && m.position === nextPosition);
+            // Exactly 1 qualifying match in round 1
+            const r1Matches = matches.filter(m => m.round === 1);
+            expect(r1Matches.length).toBe(1);
+            expect(r1Matches[0].player1Id).toBeTruthy();
+            expect(r1Matches[0].player2Id).toBeTruthy();
 
-            // One slot should be filled
-            const filledSlots = [nextMatch?.player1Id, nextMatch?.player2Id].filter(Boolean);
-            expect(filledSlots.length).toBeGreaterThanOrEqual(1);
+            // Round 2 (final) should have the seed pre-filled in one slot
+            const final = matches.find(m => m.round === 2 && m.position === 0);
+            const filledSlots = [final?.player1Id, final?.player2Id].filter(Boolean);
+            expect(filledSlots.length).toBe(1); // seed pre-filled, qual winner slot = null
         });
 
-        it('should handle multiple byes correctly (5 players)', () => {
-            const players = createPlayers(5); // 5 players = 3 byes in 8-bracket
+        it('should produce qual round and 0 byes for 5 players', () => {
+            const players = createPlayers(5); // 3 seeds, 1 qual match
             const matches = generateSingleEliminationBracket(tournamentId, players);
 
-            const byeMatches = matches.filter(m => m.round === 1 && m.isPlayed && m.winnerId);
-            expect(byeMatches.length).toBe(3);
+            // No bye matches
+            expect(matches.filter(m => m.isPlayed && m.winnerId)).toHaveLength(0);
 
-            // Real matches in R1
-            const realR1 = matches.filter(m => m.round === 1 && !m.isPlayed);
-            expect(realR1.length).toBe(1);
+            // Round 1 has exactly 1 qualifying match
+            const r1Matches = matches.filter(m => m.round === 1);
+            expect(r1Matches.length).toBe(1);
+            expect(r1Matches[0].player1Id).toBeTruthy();
+            expect(r1Matches[0].player2Id).toBeTruthy();
         });
     });
 });
@@ -684,15 +687,21 @@ describe('Complete Tournament Simulations', () => {
         expect(totalPoints).toBeGreaterThan(0);
     });
 
-    it('should handle 5-player elimination with byes', () => {
+    it('should handle 5-player elimination with qualification round (no byes)', () => {
         const players = createPlayers(5);
         let matches = generateSingleEliminationBracket(tournamentId, players);
 
-        // Count bye matches
+        // No bye matches (pre-played) — seeds go directly into round 2 slots
         const byeMatches = matches.filter(m => m.isPlayed && m.winnerId);
-        expect(byeMatches.length).toBe(3); // 8 slots - 5 players = 3 byes
+        expect(byeMatches.length).toBe(0);
 
-        // Play remaining matches
+        // Round 1 has exactly 1 qualifying match (5 - 8/2 = 1)
+        const r1Matches = matches.filter(m => m.round === 1);
+        expect(r1Matches.length).toBe(1);
+        expect(r1Matches[0].player1Id).not.toBeNull();
+        expect(r1Matches[0].player2Id).not.toBeNull();
+
+        // Play all matches to completion
         while (getPlayableMatches(matches).length > 0) {
             const playable = getPlayableMatches(matches);
             playable.forEach(m => {

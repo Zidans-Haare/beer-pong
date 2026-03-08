@@ -386,30 +386,69 @@ export class TournamentService {
         let size = 2;
         while (size < numTeams) size *= 2;
 
+        if (size === 2) {
+            return [{
+                tournamentId, round: 1, position: 0, stage: 'BRACKET',
+                team1Id: shuffled[0]?.id || null,
+                team2Id: shuffled[1]?.id || null,
+                isPlayed: false,
+            }];
+        }
+
         const matches: any[] = [];
         const rounds = Math.ceil(Math.log2(size));
 
-        // Round 1 matches
-        const r1MatchesCount = size / 2;
-        for (let m = 0; m < r1MatchesCount; m++) {
-            const t1 = shuffled[m * 2] || null;
-            const t2 = shuffled[m * 2 + 1] || null;
-            const isBye = t1 && !t2;
+        const byeCount = size - numTeams;
+        const qualMatchCount = numTeams - size / 2;
+        const r2Count = size / 4;
 
+        const seedTeams = shuffled.slice(0, byeCount);
+        const qualTeams = shuffled.slice(byeCount);
+
+        // Qual match r1 positions: interleave seeds and qual winners in r2
+        const qualR1Positions: number[] = [];
+        for (let q = 0; q < qualMatchCount; q++) {
+            qualR1Positions.push(q < r2Count ? 2 * q : 2 * (q - r2Count) + 1);
+        }
+
+        // Round 1: qualifying matches only (no byes)
+        for (let q = 0; q < qualMatchCount; q++) {
             matches.push({
                 tournamentId,
                 round: 1,
-                position: m,
+                position: qualR1Positions[q],
                 stage: 'BRACKET',
-                team1Id: t1?.id || null,
-                team2Id: t2?.id || null,
-                isPlayed: isBye ? true : false,
-                winnerTeamId: isBye ? t1.id : null
+                team1Id: qualTeams[q]?.id || null,
+                team2Id: qualTeams[2 * qualMatchCount - 1 - q]?.id || null,
+                isPlayed: false,
             });
         }
 
-        // Future Rounds (Placeholders)
-        for (let r = 2; r <= rounds; r++) {
+        // Mark which r2 slots will receive a qual winner
+        const coveredR2Slots = new Set<string>();
+        for (let q = 0; q < qualMatchCount; q++) {
+            const p = qualR1Positions[q];
+            coveredR2Slots.add(`${Math.floor(p / 2)}-${p % 2 === 0 ? 't1' : 't2'}`);
+        }
+
+        // Round 2: pre-fill seed teams into uncovered slots
+        let seedIdx = 0;
+        for (let m = 0; m < r2Count; m++) {
+            const t1Covered = coveredR2Slots.has(`${m}-t1`);
+            const t2Covered = coveredR2Slots.has(`${m}-t2`);
+            matches.push({
+                tournamentId,
+                round: 2,
+                position: m,
+                stage: 'BRACKET',
+                team1Id: t1Covered ? null : (seedTeams[seedIdx++]?.id || null),
+                team2Id: t2Covered ? null : (seedTeams[seedIdx++]?.id || null),
+                isPlayed: false,
+            });
+        }
+
+        // Rounds 3 and beyond: empty placeholders
+        for (let r = 3; r <= rounds; r++) {
             const matchesInRound = size / Math.pow(2, r);
             for (let m = 0; m < matchesInRound; m++) {
                 matches.push({
@@ -419,12 +458,12 @@ export class TournamentService {
                     stage: 'BRACKET',
                     team1Id: null,
                     team2Id: null,
-                    isPlayed: false
+                    isPlayed: false,
                 });
             }
         }
 
-        // Add Third Place Match
+        // Third place match
         if (rounds > 1) {
             matches.push({
                 tournamentId,
@@ -433,7 +472,7 @@ export class TournamentService {
                 stage: 'BRACKET',
                 team1Id: null,
                 team2Id: null,
-                isPlayed: false
+                isPlayed: false,
             });
         }
 

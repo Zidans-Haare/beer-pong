@@ -30,55 +30,85 @@ export function generateSingleEliminationBracket(tournamentId: string, players: 
     const shuffled = shuffleArray(players);
     const numPlayers = shuffled.length;
 
-    // Handle edge case: 0 or 1 player
-    if (numPlayers === 0) {
-        return [];
-    }
+    if (numPlayers === 0) return [];
 
     // Find next power of 2
     let size = 2;
     while (size < numPlayers) size *= 2;
 
+    // Edge case: exactly 2 players → one final match, no byes
+    if (size === 2) {
+        return [{
+            tournamentId, round: 1, position: 0, stage: 'BRACKET',
+            player1Id: shuffled[0]?.id || null,
+            player2Id: shuffled[1]?.id || null,
+            isPlayed: false
+        }];
+    }
+
     const matches: MatchInput[] = [];
     const rounds = Math.ceil(Math.log2(size));
 
-    // Round 1 matches - use proper bracket seeding with byes
-    // Standard tournament bracket: pair position i with position (size-1-i)
-    // This ensures byes are distributed correctly
-    const r1MatchesCount = size / 2;
+    // byeCount: how many top seeds skip round 1 entirely
+    // qualMatchCount: actual round-1 matches that need to be played
+    const byeCount = size - numPlayers;
+    const qualMatchCount = numPlayers - size / 2; // = (2*numPlayers - size) / 2
+    const r2Count = size / 4; // number of round-2 match slots
 
-    // Create slots array with players and nulls (for byes)
-    // Fill top seeds first, byes go to bottom positions
-    const slots: (typeof players[0] | null)[] = new Array(size).fill(null);
-    for (let i = 0; i < numPlayers; i++) {
-        slots[i] = shuffled[i];
+    // Seeds get a direct bye to round 2; qualifying players fill round 1
+    const seeds = shuffled.slice(0, byeCount);
+    const qualPlayers = shuffled.slice(byeCount); // length = 2 * qualMatchCount
+
+    // Determine r1 position for each qual match so seeds and qual-winners interleave
+    // in round 2 (each qual match advances to a different r2 position where possible).
+    // First r2Count qual matches → r1 even positions (→ r2 as player1).
+    // Remaining qual matches   → r1 odd positions  (→ r2 as player2, filling remaining slots).
+    const qualR1Positions: number[] = [];
+    for (let q = 0; q < qualMatchCount; q++) {
+        const r1Pos = q < r2Count
+            ? 2 * q                    // even → r2 pos q, player1
+            : 2 * (q - r2Count) + 1;   // odd  → r2 pos (q-r2Count), player2
+        qualR1Positions.push(r1Pos);
     }
 
-    for (let m = 0; m < r1MatchesCount; m++) {
-        // Standard bracket pairing: match m pairs slot m with slot (size - 1 - m)
-        // This distributes byes to face higher seeds
-        const slot1 = m;
-        const slot2 = size - 1 - m;
-        const p1 = slots[slot1];
-        const p2 = slots[slot2];
-
-        const isBye = (p1 && !p2) || (!p1 && p2);
-        const byeWinner = p1 || p2;
-
+    // Round 1: qualifying matches only (no byes)
+    for (let q = 0; q < qualMatchCount; q++) {
         matches.push({
             tournamentId,
             round: 1,
-            position: m,
+            position: qualR1Positions[q],
             stage: 'BRACKET',
-            player1Id: p1?.id || null,
-            player2Id: p2?.id || null,
-            isPlayed: isBye ? true : false,
-            winnerId: isBye ? byeWinner?.id || null : null
+            player1Id: qualPlayers[q]?.id || null,
+            player2Id: qualPlayers[2 * qualMatchCount - 1 - q]?.id || null,
+            isPlayed: false,
         });
     }
 
-    // Future Rounds (Placeholders)
-    for (let r = 2; r <= rounds; r++) {
+    // Mark which r2 slots will receive a qual winner via advanceWinner
+    const coveredR2Slots = new Set<string>();
+    for (let q = 0; q < qualMatchCount; q++) {
+        const p = qualR1Positions[q];
+        coveredR2Slots.add(`${Math.floor(p / 2)}-${p % 2 === 0 ? 'p1' : 'p2'}`);
+    }
+
+    // Round 2: pre-fill seeds into slots not covered by qual matches
+    let seedIdx = 0;
+    for (let m = 0; m < r2Count; m++) {
+        const p1Covered = coveredR2Slots.has(`${m}-p1`);
+        const p2Covered = coveredR2Slots.has(`${m}-p2`);
+        matches.push({
+            tournamentId,
+            round: 2,
+            position: m,
+            stage: 'BRACKET',
+            player1Id: p1Covered ? null : (seeds[seedIdx++]?.id || null),
+            player2Id: p2Covered ? null : (seeds[seedIdx++]?.id || null),
+            isPlayed: false,
+        });
+    }
+
+    // Rounds 3 and beyond: empty placeholders
+    for (let r = 3; r <= rounds; r++) {
         const matchesInRound = size / Math.pow(2, r);
         for (let m = 0; m < matchesInRound; m++) {
             matches.push({
@@ -88,100 +118,22 @@ export function generateSingleEliminationBracket(tournamentId: string, players: 
                 stage: 'BRACKET',
                 player1Id: null,
                 player2Id: null,
-                isPlayed: false
+                isPlayed: false,
             });
         }
     }
 
-    // Add Third Place Match
+    // Third place match (position 1 in the final round)
     if (rounds > 1) {
         matches.push({
             tournamentId,
             round: rounds,
-            position: 1,   // Final is 0, 3rd place 1
+            position: 1,
             stage: 'BRACKET',
             player1Id: null,
             player2Id: null,
-            isPlayed: false
+            isPlayed: false,
         });
-    }
-
-    // Auto-advance bye winners through the bracket
-    // Process bye matches and propagate winners to next rounds
-    let hasChanges = true;
-    while (hasChanges) {
-        hasChanges = false;
-
-        for (const match of matches) {
-            // Skip if not played or no winner
-            if (!match.isPlayed || !match.winnerId) continue;
-            // Skip 3rd place match (position 1 in final round)
-            if (match.round === rounds && match.position === 1) continue;
-            // Skip final (position 0 in final round) - no next match
-            if (match.round === rounds && match.position === 0) continue;
-
-            // Calculate next match
-            const nextRound = match.round + 1;
-            const nextPosition = Math.floor(match.position / 2);
-            const isPlayer1InNext = match.position % 2 === 0;
-
-            // Find next match
-            const nextMatch = matches.find(m =>
-                m.round === nextRound && m.position === nextPosition
-            );
-
-            if (!nextMatch) continue;
-
-            // Place winner in correct slot if not already there
-            const slot = isPlayer1InNext ? 'player1Id' : 'player2Id';
-            if (nextMatch[slot] !== match.winnerId) {
-                nextMatch[slot] = match.winnerId;
-
-                // Check if next match is now a bye (one player, other slot empty from another bye)
-                const otherSlot = isPlayer1InNext ? 'player2Id' : 'player1Id';
-                if (nextMatch[slot] && !nextMatch[otherSlot]) {
-                    // This is a bye - the opponent slot is permanently empty
-                    // Check if the opponent match is also a bye (all bye winners)
-                    const otherMatchPosition = isPlayer1InNext
-                        ? match.position + 1  // If we're player1, opponent comes from position+1
-                        : match.position - 1; // If we're player2, opponent comes from position-1
-                    const otherMatch = matches.find(m =>
-                        m.round === match.round && m.position === otherMatchPosition
-                    );
-
-                    // If opponent match is also a bye (already played), mark this as bye
-                    if (otherMatch && otherMatch.isPlayed && otherMatch.winnerId) {
-                        // Both feeder matches are byes, so fill the other slot
-                        nextMatch[otherSlot] = otherMatch.winnerId;
-                    }
-                }
-
-                // Check if next match is now complete (both slots filled from byes)
-                // or if it's a bye (one slot filled, other permanently null)
-                if (nextMatch.player1Id && nextMatch.player2Id) {
-                    // Both slots filled - match is ready to play (not a bye)
-                    // Don't mark as played
-                } else if (nextMatch.player1Id || nextMatch.player2Id) {
-                    // Check if the empty slot will ever be filled
-                    // If the feeder match for that slot is a bye with no winner, this becomes a bye
-                    const filledSlot = nextMatch.player1Id ? 'player1Id' : 'player2Id';
-                    const emptySlotIsPlayer1 = !nextMatch.player1Id;
-                    const feederPosition = emptySlotIsPlayer1
-                        ? nextPosition * 2      // player1 comes from even position
-                        : nextPosition * 2 + 1; // player2 comes from odd position
-                    const feederMatch = matches.find(m =>
-                        m.round === nextRound - 1 && m.position === feederPosition
-                    );
-
-                    // If feeder match has no players (impossible match), this is a bye
-                    if (feederMatch && !feederMatch.player1Id && !feederMatch.player2Id) {
-                        nextMatch.isPlayed = true;
-                        nextMatch.winnerId = nextMatch[filledSlot] || null;
-                        hasChanges = true;
-                    }
-                }
-            }
-        }
     }
 
     return matches;

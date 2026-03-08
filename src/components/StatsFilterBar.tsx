@@ -58,15 +58,15 @@ export default function StatsFilterBar({
 
     return (
         <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-3)',
-            alignItems: 'center', marginBottom: 'var(--spacing-6)',
+            display: 'grid', gap: 'var(--spacing-3)',
+            marginBottom: 'var(--spacing-6)',
             padding: 'var(--spacing-4)', background: 'var(--color-surface)',
             borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)'
         }}>
-            {/* Zeitraum */}
+            {/* Zeile 1: Zeitraum */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Calendar size={14} color="var(--color-text-dim)" />
-                <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
+                <Calendar size={14} color="var(--color-text-dim)" style={{ flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
                     {PERIODS.map(({ key, label }) => (
                         <button key={key} onClick={() => navigate(buildUrl({ period: key }))}
                             style={{
@@ -83,10 +83,10 @@ export default function StatsFilterBar({
             </div>
 
             {/* Divider */}
-            <div style={{ width: '1px', height: '28px', background: 'var(--color-border)' }} />
+            <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
-            {/* Rangliste / Alles */}
-            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
+            {/* Zeile 2: Rangliste / Alles */}
+            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)', alignSelf: 'start' }}>
                 <button onClick={() => navigate(buildUrl({ ranked: true }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
@@ -112,7 +112,7 @@ export default function StatsFilterBar({
             </div>
 
             {/* Divider */}
-            <div style={{ width: '1px', height: '28px', background: 'var(--color-border)' }} />
+            <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
             {/* Spieler-Filter */}
             <div style={{ position: 'relative' }}>
@@ -147,7 +147,8 @@ export default function StatsFilterBar({
                         position: 'absolute', top: '100%', left: 0, marginTop: '6px',
                         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)',
-                        zIndex: 50, minWidth: '200px', padding: 'var(--spacing-3)'
+                        zIndex: 50, width: 'min(260px, calc(100vw - 2 * var(--spacing-4)))',
+                        padding: 'var(--spacing-3)'
                     }}>
                         <input
                             type="text"

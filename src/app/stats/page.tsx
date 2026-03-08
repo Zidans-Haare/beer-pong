@@ -42,6 +42,10 @@ async function syncAndGetUptimeData() {
                 update: {},
             })
         ));
+        // Einträge älter als 7 Tage löschen
+        await prisma.uptimeHeartbeat.deleteMany({
+            where: { time: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+        });
     }
 
     // Alle gespeicherten Daten aus DB lesen (letzte 7 Tage)

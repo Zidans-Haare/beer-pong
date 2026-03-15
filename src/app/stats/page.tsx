@@ -1,6 +1,7 @@
 import { getAllPlayerStats } from '@/lib/stats';
 import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
+import StatsExportButton from '@/components/StatsExportButton';
 import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
@@ -105,8 +106,13 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
-                <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                    <div>
+                        <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
+                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>
+                    </div>
+                    <StatsExportButton stats={stats} />
+                </div>
                 <div style={{
                     marginTop: 'var(--spacing-3)',
                     display: 'inline-flex',

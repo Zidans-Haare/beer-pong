@@ -65,7 +65,7 @@ async function syncAndGetUptimeData() {
         const inMaint = maintStart !== null && maintEnd !== null && t >= maintStart && t <= maintEnd;
         return {
             status: inMaint ? 3 : h.status,
-            time: h.time.toISOString().replace('T', ' ').slice(0, 23),
+            time: h.time.toISOString(),
             msg: inMaint ? (localMaintenance!.msg || 'Wartung') : h.msg,
             ping: h.ping,
         };

@@ -35,6 +35,10 @@ async function syncAndGetUptimeData() {
         }
     } catch { /* ignorieren */ }
 
+    // Wartungs-Zeitfenster berechnen
+    const maintStart = localMaintenance ? new Date(localMaintenance.start).getTime() : null;
+    const maintEnd = localMaintenance ? new Date(localMaintenance.end).getTime() : null;
+
     // Neue Heartbeats in DB speichern (mit sofortigem Wartungsstatus)
     if (liveHeartbeats.length > 0) {
         await Promise.allSettled(liveHeartbeats.map((hb: any) => {
@@ -67,9 +71,6 @@ async function syncAndGetUptimeData() {
     });
 
     // Wartungs-Zeitfenster anwenden
-    const maintStart = localMaintenance ? new Date(localMaintenance.start).getTime() : null;
-    const maintEnd = localMaintenance ? new Date(localMaintenance.end).getTime() : null;
-
     const heartbeats = stored.map(h => {
         const t = h.time.getTime();
         const inMaint = maintStart !== null && maintEnd !== null && t >= maintStart && t <= maintEnd;

@@ -35,17 +35,27 @@ async function syncAndGetUptimeData() {
         }
     } catch { /* ignorieren */ }
 
-    // Neue Heartbeats in DB speichern
+    // Neue Heartbeats in DB speichern (mit sofortigem Wartungsstatus)
     if (liveHeartbeats.length > 0) {
-        await Promise.allSettled(liveHeartbeats.map((hb: any) =>
-            prisma.uptimeHeartbeat.upsert({
+        await Promise.allSettled(liveHeartbeats.map((hb: any) => {
+            const t = new Date(hb.time).getTime();
+            const inMaint = maintStart !== null && maintEnd !== null && t >= maintStart && t <= maintEnd;
+            return prisma.uptimeHeartbeat.upsert({
                 where: { time: new Date(hb.time) },
-                create: { time: new Date(hb.time), status: hb.status, ping: hb.ping ?? 0, msg: hb.msg ?? '' },
+                create: { time: new Date(hb.time), status: inMaint ? 3 : hb.status, ping: hb.ping ?? 0, msg: hb.msg ?? '' },
                 update: {},
-            })
-        ));
+            });
+        }));
         await prisma.uptimeHeartbeat.deleteMany({
             where: { time: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+        });
+    }
+
+    // Wenn Wartung aktiv: bestehende DB-Einträge im Wartungsfenster dauerhaft als Status 3 speichern
+    if (maintStart !== null && maintEnd !== null) {
+        await prisma.uptimeHeartbeat.updateMany({
+            where: { time: { gte: new Date(maintStart), lte: new Date(maintEnd) }, status: { not: 3 } },
+            data: { status: 3 },
         });
     }
 

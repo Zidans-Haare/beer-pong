@@ -86,7 +86,7 @@ export async function createTournament(formData: FormData) {
                     location,
                     type: type || 'ELIMINATION',
                     status: 'PLANNED', // Even "Now" starts as PLANNED (Lobby)
-                    hostId: userId,
+                    host: { connect: { id: userId } },
                     shortCode,
                     hasReturnLeg,
                     matchDurationMin,

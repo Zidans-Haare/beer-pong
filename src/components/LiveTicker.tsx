@@ -39,7 +39,7 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
         switch (type) {
             case 'COMMENTARY':
                 return {
-                    background: 'linear-gradient(135deg, rgba(217, 70, 239, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)',
+                    background: 'var(--color-primary-light)',
                     borderLeft: '3px solid var(--color-primary)'
                 };
             case 'SCORE_UPDATE':

@@ -378,10 +378,10 @@ export default function TeamAssignment({
                                     gap: 'var(--spacing-2)',
                                     padding: 'var(--spacing-2) var(--spacing-3)',
                                     background: selectedMember?.id === guest.id
-                                        ? 'rgba(155, 89, 182, 0.3)'
+                                        ? 'var(--color-primary-light)'
                                         : 'var(--color-surface)',
                                     border: selectedMember?.id === guest.id
-                                        ? '2px solid #9b59b6'
+                                        ? '2px solid var(--color-primary)'
                                         : '1px solid var(--color-border)',
                                     borderRadius: 'var(--radius-md)',
                                     color: 'var(--color-text)',
@@ -393,7 +393,7 @@ export default function TeamAssignment({
                                 {guest.name}
                                 <span style={{
                                     fontSize: '0.7rem',
-                                    color: '#9b59b6',
+                                    color: 'var(--color-primary)',
                                     marginLeft: 'var(--spacing-1)'
                                 }}>
                                     Gast
@@ -472,7 +472,7 @@ function TeamSlot({
                     {isGuest && (
                         <span style={{
                             fontSize: '0.7rem',
-                            color: '#9b59b6',
+                            color: 'var(--color-primary)',
                             marginLeft: 'auto'
                         }}>
                             Gast

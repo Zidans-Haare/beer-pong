@@ -65,7 +65,7 @@ export default async function JoinByCodePage({ params }: Props) {
   return (
     <div className="container" style={{ maxWidth: '500px', padding: 'var(--spacing-6)' }}>
       <div className="glass-panel" style={{ padding: 'var(--spacing-6)', textAlign: 'center' }}>
-        <div style={{ marginBottom: 'var(--spacing-4)', color: '#9b59b6' }}><PartyPopper size={48} /></div>
+        <div style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-primary)' }}><PartyPopper size={48} /></div>
         <h1 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-2)' }}>
           {tournament.name}
         </h1>
@@ -74,8 +74,8 @@ export default async function JoinByCodePage({ params }: Props) {
         </p>
 
         <div style={{
-          background: 'rgba(155, 89, 182, 0.1)',
-          border: '1px solid rgba(155, 89, 182, 0.3)',
+          background: 'var(--color-primary-light)',
+          border: '1px solid rgba(80, 72, 229, 0.2)',
           borderRadius: 'var(--radius-md)',
           padding: 'var(--spacing-4)',
           marginBottom: 'var(--spacing-6)'

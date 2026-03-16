@@ -21,7 +21,7 @@ export default async function AdminDashboard() {
 
     const statCards = [
         { label: 'User', value: base.userCount, icon: Users, color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
-        { label: 'Turniere', value: base.tournamentCount, icon: Trophy, color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
+        { label: 'Turniere', value: base.tournamentCount, icon: Trophy, color: '#5048e5', bg: 'rgba(80,72,229,0.12)' },
         { label: 'Spieler', value: extra.playerCount, icon: User, color: '#4ade80', bg: 'rgba(34,197,94,0.15)' },
         { label: 'Spiele', value: extra.matchCount, icon: Swords, color: '#fb923c', bg: 'rgba(249,115,22,0.15)' },
         { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: '#38bdf8', bg: 'rgba(56,189,248,0.15)' },

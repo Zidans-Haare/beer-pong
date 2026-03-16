@@ -48,8 +48,8 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
     return (
         <div className="glass-panel" style={{
             padding: 'var(--spacing-4)',
-            background: 'rgba(155, 89, 182, 0.1)',
-            border: '1px solid rgba(155, 89, 182, 0.3)',
+            background: 'var(--color-primary-light)',
+            border: '1px solid rgba(80, 72, 229, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

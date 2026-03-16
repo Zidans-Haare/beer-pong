@@ -87,8 +87,8 @@ function ParticipantCard({ name, image, isGuest }: { name: string; image?: strin
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-2) var(--spacing-3)',
-            background: isGuest ? 'rgba(155, 89, 182, 0.08)' : 'var(--color-surface-hover)',
-            border: `1px solid ${isGuest ? 'rgba(155, 89, 182, 0.3)' : 'var(--color-border)'}`,
+            background: isGuest ? 'var(--color-primary-light)' : 'var(--color-surface-hover)',
+            border: `1px solid ${isGuest ? 'rgba(80, 72, 229, 0.2)' : 'var(--color-border)'}`,
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem'
         }}>

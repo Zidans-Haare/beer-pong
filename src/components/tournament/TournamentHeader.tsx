@@ -115,12 +115,12 @@ export default function TournamentHeader({
                         alignItems: 'center',
                         gap: '4px',
                         padding: '4px 10px',
-                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : 'rgba(155, 89, 182, 0.15)',
-                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : 'rgba(155, 89, 182, 0.5)'}`,
+                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : 'var(--color-primary-light)',
+                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : 'rgba(80, 72, 229, 0.25)'}`,
                         borderRadius: '99px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: tournament.isRanked ? '#d97706' : '#9b59b6'
+                        color: tournament.isRanked ? '#d97706' : 'var(--color-primary)'
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
                         {tournament.isRanked ? 'Liga' : 'Spaß'}

@@ -110,7 +110,7 @@ export default function PasskeyRegisterButton({
           width: '100%',
           background: success
             ? 'var(--color-success)'
-            : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+            : 'var(--gradient-primary)',
           color: 'white',
           display: 'flex',
           alignItems: 'center',

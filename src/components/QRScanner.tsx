@@ -286,9 +286,9 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                     <motion.div
                       animate={{
                         boxShadow: [
-                          '0 0 0 4px rgba(217, 70, 239, 0.5)',
-                          '0 0 0 8px rgba(217, 70, 239, 0.2)',
-                          '0 0 0 4px rgba(217, 70, 239, 0.5)',
+                          '0 0 0 4px rgba(80, 72, 229, 0.5)',
+                          '0 0 0 8px rgba(80, 72, 229, 0.2)',
+                          '0 0 0 4px rgba(80, 72, 229, 0.5)',
                         ],
                       }}
                       transition={{

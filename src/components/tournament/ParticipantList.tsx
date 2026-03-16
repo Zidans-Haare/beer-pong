@@ -106,7 +106,7 @@ function ParticipantCard({ name, image, isGuest }: { name: string; image?: strin
                 <span style={{
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: '#9b59b6',
+                    color: 'var(--color-primary)',
                     marginLeft: 'auto'
                 }}>
                     GAST

@@ -135,10 +135,10 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'var(--spacing-8)' }}>
                         <div style={{
                             padding: 'var(--spacing-3)',
-                            background: 'rgba(217, 70, 239, 0.1)',
+                            background: 'rgba(80, 72, 229, 0.08)',
                             borderRadius: 'var(--radius-md)',
                             marginBottom: 'var(--spacing-3)',
-                            border: '1px solid rgba(217, 70, 239, 0.2)'
+                            border: '1px solid rgba(80, 72, 229, 0.2)'
                         }}>
                             <Settings size={28} style={{ color: 'var(--color-primary)' }} />
                         </div>

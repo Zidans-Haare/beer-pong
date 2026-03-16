@@ -86,7 +86,7 @@ function TeamMemberRow({ member, isGuest }: { member: { name: string; image?: st
                 size={20}
                 isGuest={isGuest}
             />
-            <span style={{ color: isGuest ? '#9b59b6' : 'var(--color-text)' }}>
+            <span style={{ color: isGuest ? 'var(--color-primary)' : 'var(--color-text)' }}>
                 {member.name} {isGuest && '(Gast)'}
             </span>
         </div>

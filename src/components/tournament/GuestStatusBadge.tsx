@@ -61,7 +61,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: '#9b59b6',
+                    background: 'var(--color-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

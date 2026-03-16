@@ -34,7 +34,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         return { topWinRate, topCupDiff, topDuration };
     }, [stats]);
 
-    const NEON_COLORS = ['#d946ef', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b']; // Exact match from design system
+    const NEON_COLORS = ['#5048e5', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b']; // Exact match from design system
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>

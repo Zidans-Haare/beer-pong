@@ -116,28 +116,19 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
-            <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                    <div>
-                        <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
-                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>
-                    </div>
+            <header style={{ padding: 'var(--spacing-6) 0 var(--spacing-4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text)' }}>Statistiken</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '4px 10px', borderRadius: 'var(--radius-full)',
+                        background: 'rgba(180,83,9,0.08)', border: '1px solid rgba(180,83,9,0.2)',
+                        fontSize: '0.75rem', fontWeight: 600, color: '#b45309'
+                    }}>
+                        <Trophy size={12} color="#b45309" />
+                        {onlyRanked ? 'Liga' : 'Alle'}
+                    </span>
                     <StatsExportButton stats={stats} />
-                </div>
-                <div style={{
-                    marginTop: 'var(--spacing-3)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 'var(--spacing-2)',
-                    padding: '4px 12px',
-                    background: 'rgba(255, 215, 0, 0.1)',
-                    border: '1px solid rgba(180, 83, 9, 0.3)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.8rem',
-                    color: '#b45309'
-                }}>
-                    <Trophy size={14} color="#b45309" />
-                    {onlyRanked ? 'Nur Liga-Turniere (keine Spaß-Turniere)' : 'Alle Turniere (inkl. Spaß-Turniere)'}
                 </div>
             </header>
 
@@ -150,11 +141,11 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
             <StatsCharts stats={stats} />
 
-            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-8)', padding: '0' }}>
+                <div style={{ padding: '16px var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Trophy size={20} color="var(--color-primary)" />
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Ewige Tabelle</h2>
+                        <Trophy size={18} color="var(--color-primary)" />
+                        <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Rangliste</h2>
                     </div>
                     <RankingFormulaInfo />
                 </div>

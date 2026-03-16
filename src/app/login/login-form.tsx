@@ -1,46 +1,95 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { authenticate } from '@/app/actions/auth';
 import BiometricLoginButton from '@/components/BiometricLoginButton';
+import { Mail, Lock, Beer } from 'lucide-react';
 
 export default function LoginForm() {
-    const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+    const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px' }}>
-            <h1 className="title-gradient" style={{ textAlign: 'center', marginBottom: 'var(--spacing-6)' }}>Login</h1>
-
-            {/* Biometric Login - Primary Option */}
-            <BiometricLoginButton />
-
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', margin: 'var(--spacing-6) 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-                <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>oder mit Email</span>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+        <div style={{ width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-8)' }}>
+            {/* Logo + Heading */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                <div style={{
+                    width: '72px', height: '72px', borderRadius: 'var(--radius-lg)',
+                    background: 'var(--gradient-primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: 'var(--shadow-glow-primary)',
+                }}>
+                    <Beer size={36} color="#fff" />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px' }}>
+                        Willkommen zurück
+                    </h1>
+                    <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                        Melde dich an, um fortzufahren
+                    </p>
+                </div>
             </div>
 
-            {/* Traditional Login Form */}
-            <form action={dispatch}>
-                <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Email</label>
-                    <input name="email" type="email" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+            {/* Form Card */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+                <form action={dispatch} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+                    {/* Email */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text)' }}>E-Mail</label>
+                        <div style={{ position: 'relative' }}>
+                            <Mail size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-subtle)', pointerEvents: 'none' }} />
+                            <input
+                                name="email"
+                                type="email"
+                                required
+                                placeholder="Deine E-Mail Adresse"
+                                style={{ paddingLeft: '42px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Password */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text)' }}>Passwort</label>
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                            <Lock size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-subtle)', pointerEvents: 'none' }} />
+                            <input
+                                name="password"
+                                type="password"
+                                required
+                                placeholder="Dein Passwort"
+                                style={{ paddingLeft: '42px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {errorMessage && (
+                        <p style={{ color: 'var(--color-error)', fontSize: '0.875rem', textAlign: 'center' }}>{errorMessage}</p>
+                    )}
+
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '4px', padding: '14px' }}>
+                        Anmelden
+                    </button>
+                </form>
+
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)' }}>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Oder</span>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
                 </div>
 
-                <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Passwort</label>
-                    <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
-                </div>
+                {/* Passkey */}
+                <BiometricLoginButton />
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Anmelden</button>
-
-                {errorMessage && <p style={{ color: 'var(--color-error)', marginTop: 'var(--spacing-4)', textAlign: 'center' }}>{errorMessage}</p>}
-            </form>
-
-            <p style={{ marginTop: 'var(--spacing-4)', textAlign: 'center', color: 'var(--color-text-dim)' }}>
-                Noch keinen Account? <a href="/register" style={{ color: 'var(--color-primary)' }}>Registrieren</a>
-            </p>
+                {/* Register Link */}
+                <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                    Noch kein Konto?{' '}
+                    <a href="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Jetzt registrieren</a>
+                </p>
+            </div>
         </div>
     );
 }

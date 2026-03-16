@@ -2,7 +2,7 @@ import { getTournaments } from '@/app/actions/tournaments';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Calendar, MapPin, Gamepad2, Plus, ArrowRight } from 'lucide-react';
+import { Calendar, Gamepad2, Plus, Users } from 'lucide-react';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 
 export const dynamic = 'force-dynamic';
@@ -92,102 +92,79 @@ export default async function TournamentsPage() {
 function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
     const isActive = t.status === 'ACTIVE';
     const isLobby = t.status === 'PLANNED' && !planned;
+    const isCompleted = t.status === 'COMPLETED';
 
-    const borderStyle = isLobby
-        ? '2px solid var(--color-lobby-border)'
-        : isActive
-        ? '1px solid var(--color-primary)'
-        : '1px solid var(--color-border)';
+    // Header gradient by status
+    const headerGradient = isActive
+        ? 'linear-gradient(135deg, #5048e5 0%, #818cf8 100%)'
+        : isLobby
+        ? 'linear-gradient(135deg, #16a34a 0%, #4ade80 100%)'
+        : isCompleted
+        ? 'linear-gradient(135deg, #64748b 0%, #94a3b8 100%)'
+        : 'linear-gradient(135deg, #0891b2 0%, #38bdf8 100%)';
 
-    const shadowStyle = isLobby
-        ? '0 0 20px var(--color-lobby-light)'
-        : isActive
-        ? '0 0 20px rgba(190, 35, 213, 0.15)'
-        : 'none';
+    const badgeLabel = isLobby ? '● LOBBY' : isActive ? '● LIVE' : planned ? 'GEPLANT' : 'BEENDET';
+    const badgeBg = isLobby ? '#16a34a' : isActive ? '#5048e5' : isCompleted ? '#64748b' : '#0891b2';
 
-    const badgeBg = isLobby
-        ? 'var(--color-lobby-light)'
-        : isActive
-        ? 'var(--color-primary)'
-        : planned
-        ? 'rgba(8,145,178,0.09)'
-        : 'var(--color-surface-hover)';
+    const ctaLabel = isActive ? 'Live Score ansehen' : isLobby ? 'Lobby beitreten' : isCompleted ? 'Ergebnisse ansehen' : 'Details & Anmeldung';
+    const ctaPrimary = isActive || isLobby;
 
-    const badgeColor = isLobby
-        ? 'var(--color-lobby)'
-        : isActive
-        ? 'white'
-        : planned
-        ? 'var(--color-secondary)'
-        : 'var(--color-text-dim)';
-
-    const badgeBorder = isLobby
-        ? '1px solid var(--color-lobby-border)'
-        : planned
-        ? '1px solid rgba(8,145,178,0.25)'
-        : 'none';
-
-    const badgeLabel = isLobby ? 'LOBBY' : isActive ? 'LIVE' : planned ? 'GEPLANT' : 'BEENDET';
-
-    const arrowColor = isLobby
-        ? 'var(--color-lobby)'
-        : isActive
-        ? 'var(--color-primary)'
-        : planned
-        ? 'var(--color-secondary)'
-        : 'var(--color-text)';
+    const participantCount = t._count?.participants ?? 0;
 
     return (
-        <Link href={`/tournaments/${t.id}`} className="glass-panel card-interactive" style={{
-            padding: 'var(--spacing-6)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--spacing-4)',
-            textDecoration: 'none',
-            color: 'inherit',
-            border: borderStyle,
-            boxShadow: shadowStyle,
-        }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
-                <span style={{
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-full)',
-                    background: badgeBg,
-                    color: badgeColor,
-                    border: badgeBorder,
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    whiteSpace: 'nowrap',
-                }}>
-                    {badgeLabel}
-                </span>
-            </div>
+        <Link href={`/tournaments/${t.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+            <div className="card-interactive" style={{
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                border: '1px solid rgba(0,0,0,0.06)',
+            }}>
+                {/* Gradient Header */}
+                <div style={{ position: 'relative', height: isActive ? '120px' : '80px', background: headerGradient }}>
+                    <span style={{
+                        position: 'absolute', top: '10px', right: '10px',
+                        background: 'rgba(255,255,255,0.95)', color: badgeBg,
+                        fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em',
+                        padding: '3px 8px', borderRadius: 'var(--radius-full)',
+                    }}>
+                        {badgeLabel}
+                    </span>
+                </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.9 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                    <Calendar size={16} />
-                    <span>{format(new Date(t.date), 'dd. MMM yyyy, HH:mm', { locale: de })}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                    <MapPin size={16} />
-                    <span>{t.location}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                    <Gamepad2 size={16} />
-                    <span>{getTournamentTypeLabel(t.type)}</span>
-                </div>
-            </div>
+                {/* Card Body */}
+                <div style={{ padding: '16px' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px', lineHeight: 1.3 }}>
+                        {t.name}
+                    </h3>
 
-            <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'flex-end' }}>
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    color: arrowColor,
-                    fontSize: '0.85rem', fontWeight: 600,
-                }}>
-                    Zum Turnier <ArrowRight size={16} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.8rem', color: 'var(--color-text-dim)', marginBottom: '14px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={13} />
+                            {format(new Date(t.date), 'dd. MMM', { locale: de })}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Gamepad2 size={13} />
+                            {t.mode === 'TEAM' ? 'Team 2v2' : 'Solo 1v1'}
+                        </span>
+                        {participantCount > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Users size={13} />
+                                {participantCount} Spieler
+                            </span>
+                        )}
+                    </div>
+
+                    {/* CTA Button */}
+                    <div style={{
+                        width: '100%', padding: '10px',
+                        textAlign: 'center', borderRadius: 'var(--radius-md)',
+                        fontSize: '0.85rem', fontWeight: 600,
+                        background: ctaPrimary ? 'var(--color-primary)' : 'var(--color-primary-light)',
+                        color: ctaPrimary ? '#fff' : 'var(--color-primary)',
+                    }}>
+                        {ctaLabel}
+                    </div>
                 </div>
             </div>
         </Link>

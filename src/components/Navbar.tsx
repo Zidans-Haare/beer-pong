@@ -11,7 +11,7 @@ export default async function Navbar() {
             position: 'sticky', top: 0, zIndex: 100,
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '0 var(--spacing-6)', height: '60px',
-            background: 'rgba(248, 248, 252, 0.88)',
+            background: 'rgba(246, 246, 248, 0.88)',
             backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             borderBottom: '1px solid rgba(0, 0, 0, 0.07)',
             marginBottom: 0,

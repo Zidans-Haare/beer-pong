@@ -37,70 +37,58 @@ export default async function RecentMatchesWidget() {
                 <span className="widget-title">Letzte Spiele</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-4)' }}>
-                {matches.map((match) => {
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'var(--spacing-3)' }}>
+                {matches.map((match, idx) => {
                     const isTeamMatch = !!match.team1Id;
                     const name1 = getDisplayName(match.player1, match.team1);
                     const name2 = getDisplayName(match.player2, match.team2);
+                    const initials1 = name1.slice(0, 2).toUpperCase();
 
-                    // Determine winner style
                     const p1Winner = isTeamMatch
                         ? match.winnerTeamId === match.team1Id
                         : match.winnerId === match.player1Id;
 
-                    const p2Winner = isTeamMatch
-                        ? match.winnerTeamId === match.team2Id
-                        : match.winnerId === match.player2Id;
+                    const isWin = p1Winner;
+                    const score = `${match.score1}:${match.score2}`;
+                    const timeAgo = formatDistanceToNow(new Date(match.updatedAt), { addSuffix: true, locale: de });
 
                     return (
                         <div key={match.id} style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr auto 1fr',
+                            display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
-                            padding: '12px',
-                            background: 'var(--color-surface-hover)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--color-border)',
-                            fontSize: '0.9rem'
+                            padding: '12px 0',
+                            borderBottom: idx < matches.length - 1 ? '1px solid var(--color-border)' : 'none',
                         }}>
+                            {/* Avatar */}
                             <div style={{
-                                textAlign: 'right',
-                                fontWeight: p1Winner ? 700 : 400,
-                                color: p1Winner ? 'var(--color-success)' : 'var(--color-text)',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+                                background: isWin ? 'rgba(80,72,229,0.1)' : 'var(--color-surface-hover)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.75rem', fontWeight: 700,
+                                color: isWin ? 'var(--color-primary)' : 'var(--color-text-dim)',
                             }}>
-                                {name1}
+                                {initials1}
                             </div>
 
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '2px'
-                            }}>
-                                <div style={{
-                                    fontWeight: 700,
-                                    fontSize: '1rem',
-                                    background: 'var(--color-surface)',
-                                    padding: '2px 8px',
-                                    borderRadius: '4px',
-                                    whiteSpace: 'nowrap'
+                            {/* Match Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    vs. {name2}
+                                </p>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', marginTop: '1px' }}>
+                                    {timeAgo}
+                                </p>
+                            </div>
+
+                            {/* Result */}
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <p style={{
+                                    fontSize: '0.8rem', fontWeight: 700,
+                                    color: isWin ? 'var(--color-success)' : 'var(--color-error)',
                                 }}>
-                                    {match.score1} : {match.score2}
-                                </div>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-dim)' }}>
-                                    {formatDistanceToNow(new Date(match.updatedAt), { addSuffix: true, locale: de })}
-                                </span>
-                            </div>
-
-                            <div style={{
-                                textAlign: 'left',
-                                fontWeight: p2Winner ? 700 : 400,
-                                color: p2Winner ? 'var(--color-success)' : 'var(--color-text)',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                            }}>
-                                {name2}
+                                    {isWin ? 'SIEG' : 'NIED.'} {score}
+                                </p>
                             </div>
                         </div>
                     );

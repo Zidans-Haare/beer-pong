@@ -12,10 +12,19 @@ export default async function Home() {
   const session = await auth();
   const stats = await getAllPlayerStats();
 
+  const userStats = session?.user?.name
+    ? stats.find(s => s.name === session.user!.name)
+    : undefined;
+
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
 
-      <HeroSection userName={session?.user?.name} />
+      <HeroSection
+        userName={session?.user?.name}
+        wins={userStats?.matchesWon}
+        losses={userStats ? userStats.matchesPlayed - userStats.matchesWon : undefined}
+        winRate={userStats?.winRate}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--spacing-6)', marginBottom: 'var(--spacing-6)' }}>
         <OnlineIndicator />

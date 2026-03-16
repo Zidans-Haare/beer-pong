@@ -1,106 +1,92 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Beer, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import { Beer } from 'lucide-react';
 
 interface Props {
     userName?: string | null;
+    wins?: number;
+    losses?: number;
+    winRate?: number;
 }
 
-export default function HeroSection({ userName }: Props) {
-    return (
-        <div className="glass-panel" style={{
-            position: 'relative',
-            padding: 'var(--spacing-8) var(--spacing-6)',
-            textAlign: 'center',
-            marginTop: 'var(--spacing-6)',
-            marginBottom: 'var(--spacing-6)',
-            overflow: 'hidden',
-            borderRadius: 'var(--radius-xl)',
-            background: 'linear-gradient(145deg, rgba(190,35,213,0.07) 0%, rgba(147,51,234,0.05) 50%, rgba(8,145,178,0.07) 100%)',
-            border: '1px solid rgba(190,35,213,0.10)',
-        }}>
-            {/* Background Effects - Primary Glow */}
-            <div style={{
-                position: 'absolute',
-                top: '-50%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%',
-                height: '200%',
-                background: 'radial-gradient(ellipse at center, rgba(190,35,213,0.18) 0%, rgba(0,0,0,0) 60%)',
-                pointerEvents: 'none',
-            }} />
-            {/* Background Effects - Cyan Glow */}
-            <div style={{
-                position: 'absolute',
-                bottom: '-30%',
-                right: '-10%',
-                width: '40%',
-                height: '80%',
-                background: 'radial-gradient(ellipse at center, rgba(8,145,178,0.12) 0%, transparent 65%)',
-                pointerEvents: 'none',
-            }} />
+export default function HeroSection({ userName, wins, losses, winRate }: Props) {
+    const initials = userName
+        ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : null;
 
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                style={{ position: 'relative', zIndex: 1 }}
-            >
-                {userName ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                        <span style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--color-text-subtle)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            fontWeight: 700,
-                            fontFamily: 'var(--font-heading)',
-                        }}>
-                            Willkommen zurück
-                        </span>
-                        <h1 style={{
-                            fontSize: 'clamp(2.2rem, 5vw, 2.8rem)',
-                            fontWeight: 800,
-                            lineHeight: 1.2,
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            style={{ padding: 'var(--spacing-6) 0 var(--spacing-4)' }}
+        >
+            {userName ? (
+                <>
+                    {/* Avatar + Name Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
+                        <div style={{
+                            width: '56px', height: '56px', borderRadius: '50%',
                             background: 'var(--gradient-primary)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            fontFamily: 'var(--font-heading)',
-                            filter: 'drop-shadow(0 2px 12px rgba(190, 35, 213, 0.22))'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0, fontSize: '1.2rem', fontWeight: 700, color: '#fff',
+                            boxShadow: 'var(--shadow-glow-primary)',
                         }}>
-                            {userName}
+                            {initials}
+                        </div>
+                        <div>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', marginBottom: '2px', fontWeight: 500 }}>
+                                Willkommen zurück
+                            </p>
+                            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
+                                {userName}!
+                            </h1>
+                        </div>
+                    </div>
+
+                    {/* Stats Row */}
+                    {(wins !== undefined || losses !== undefined || winRate !== undefined) && (
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gap: 'var(--spacing-3)',
+                        }}>
+                            <div className="glass-panel" style={{ padding: '12px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Siege</p>
+                                <p style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{wins ?? 0}</p>
+                            </div>
+                            <div className="glass-panel" style={{ padding: '12px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Niederlagen</p>
+                                <p style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{losses ?? 0}</p>
+                            </div>
+                            <div className="glass-panel" style={{ padding: '12px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Winrate</p>
+                                <p style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-primary)', lineHeight: 1 }}>
+                                    {winRate !== undefined ? `${(winRate * 100).toFixed(0)}%` : '–'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </>
+            ) : (
+                /* Logged-out state */
+                <div className="glass-panel" style={{ padding: 'var(--spacing-8) var(--spacing-6)', textAlign: 'center', borderRadius: 'var(--radius-xl)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: 'var(--spacing-4)' }}>
+                        <Beer size={36} color="var(--color-primary)" />
+                        <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-text)' }}>
+                            Bier Pong <span style={{ color: 'var(--color-primary)' }}>Pro</span>
                         </h1>
                     </div>
-                ) : (
-                    <h1 style={{
-                        fontSize: 'clamp(2.8rem, 7vw, 4rem)',
-                        fontWeight: 800,
-                        lineHeight: 1.1,
-                        background: 'var(--gradient-party)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        fontFamily: 'var(--font-heading)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 'var(--spacing-3)',
-                        filter: 'drop-shadow(0 2px 16px rgba(190, 35, 213, 0.25))',
-                    }}>
-                        BIER PONG <Beer className="text-primary" size={40} style={{ stroke: 'url(#gradient-beer)' }} />
-                    </h1>
-                )}
-
-                {!userName && (
-                    <div style={{ marginTop: 'var(--spacing-6)' }}>
-                        <Link href="/login" className="btn btn-primary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem' }}>
-                            Loslegen
-                        </Link>
-                    </div>
-                )}
-            </motion.div>
-        </div>
+                    <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-6)', fontSize: '0.95rem' }}>
+                        Verwalte Turniere, tracke Stats, tritt Lobbys bei.
+                    </p>
+                    <Link href="/login" className="btn btn-primary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem' }}>
+                        Loslegen
+                    </Link>
+                </div>
+            )}
+        </motion.div>
     );
 }

@@ -17,7 +17,7 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
         return stats.sort((a, b) => b.winRate - a.winRate).slice(0, 3);
     }, [stats]);
 
-    const NEON_COLORS = ['#d946ef', '#06b6d4', '#8b5cf6']; // Fuchsia, Cyan, Violet
+    const NEON_COLORS = ['#5048e5', '#0891b2', '#818cf8']; // Indigo, Cyan, Light Indigo
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-6)', gridRow: 'span 2' }}>

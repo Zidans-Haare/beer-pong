@@ -10,7 +10,7 @@ export default async function LoginPage() {
     }
 
     return (
-        <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: 'var(--spacing-8) var(--spacing-4)' }}>
             <LoginForm />
         </div>
     );

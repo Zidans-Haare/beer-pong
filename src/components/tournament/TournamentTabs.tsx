@@ -25,41 +25,33 @@ export default function TournamentTabs({ activeTab, onTabChange, tabs }: Props) 
     return (
         <div style={{
             display: 'flex',
-            gap: 'var(--spacing-1)',
-            background: 'var(--color-surface)',
-            padding: 'var(--spacing-1)',
-            borderRadius: 'var(--radius-md)',
+            borderBottom: '1px solid var(--color-border)',
             marginBottom: 'var(--spacing-6)',
             overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            gap: 'var(--spacing-6)',
         }}>
             {tabs.map(tab => (
                 <button
                     key={tab.id}
                     onClick={() => handleTabClick(tab.id)}
                     style={{
-                        flex: 1,
-                        minWidth: '80px',
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        gap: 'var(--spacing-1)',
-                        padding: 'var(--spacing-3) var(--spacing-2)',
-                        background: activeTab === tab.id
-                            ? 'rgba(255, 107, 107, 0.2)'
-                            : 'transparent',
+                        gap: '6px',
+                        padding: '12px 0',
+                        background: 'transparent',
                         border: 'none',
-                        borderRadius: 'var(--radius-sm)',
-                        color: activeTab === tab.id
-                            ? 'var(--color-primary)'
-                            : 'var(--color-text-dim)',
+                        borderBottom: activeTab === tab.id ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        marginBottom: '-1px',
+                        color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--color-text-dim)',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        fontSize: '0.85rem',
-                        fontWeight: activeTab === tab.id ? 'bold' : 'normal'
+                        fontSize: '0.875rem',
+                        fontWeight: activeTab === tab.id ? 700 : 600,
+                        whiteSpace: 'nowrap',
+                        transition: 'color 0.15s ease',
                     }}
                 >
-                    {tab.icon}
                     <span>{tab.label}</span>
                 </button>
             ))}

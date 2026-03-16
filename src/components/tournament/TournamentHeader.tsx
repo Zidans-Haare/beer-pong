@@ -46,9 +46,9 @@ export default function TournamentHeader({
     };
 
     const statusConfig = {
-        PLANNED: { label: 'Lobby', color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
-        ACTIVE: { label: 'Live', color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.15)' },
-        COMPLETED: { label: 'Beendet', color: '#27ae60', bg: 'rgba(39, 174, 96, 0.15)' }
+        PLANNED: { label: 'Lobby', color: '#5048e5', bg: 'rgba(80, 72, 229, 0.10)' },
+        ACTIVE: { label: '● Live', color: '#dc2626', bg: 'rgba(220, 38, 38, 0.10)' },
+        COMPLETED: { label: 'Beendet', color: '#64748b', bg: 'rgba(100, 116, 139, 0.10)' }
     };
 
     const status = statusConfig[tournament.status as keyof typeof statusConfig] || statusConfig.PLANNED;

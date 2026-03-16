@@ -12,6 +12,9 @@ export async function getTournaments() {
     try {
         const tournaments = await prisma.tournament.findMany({
             orderBy: { date: 'asc' },
+            include: {
+                _count: { select: { participants: true, rsvps: true } },
+            },
         });
         return tournaments;
     } catch (error) {

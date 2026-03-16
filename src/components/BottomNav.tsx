@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, MessageCircle } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
@@ -75,11 +75,9 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
     const navItems = [
         { href: '/',              icon: Home,          label: 'Home' },
         { href: '/tournaments',   icon: Trophy,        label: 'Turniere' },
-        { href: '/join',          icon: QrCode,        label: 'Join' },
-        { href: '/notifications', icon: Bell,          label: 'Glocke', badge: unreadCount },
         { href: '/players',       icon: Users,         label: 'Spieler' },
         { href: '/stats',         icon: BarChart2,     label: 'Stats' },
-        { href: '/chat',          icon: MessageCircle, label: 'Chat' },
+        { href: '/notifications', icon: Bell,          label: 'Mehr', badge: unreadCount },
         ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin', badge: 0 }] : []),
     ];
 
@@ -117,9 +115,10 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                 />
                             )}
                             {item.href === '/notifications' ? (
-                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                                <>
+                                <div style={{ position: 'relative', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
                                     <span className="nav-icon-glow" style={{ display: 'flex', position: 'relative', top: '-2px' }}>
-                                        <Bell size={24} />
+                                        <Bell size={22} />
                                     </span>
                                     <AnimatePresence>
                                         {unreadCount > 0 && (
@@ -153,8 +152,13 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                         )}
                                     </AnimatePresence>
                                 </div>
+                                <span className="nav-label" style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+                                </>
                             ) : (
-                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={24} /></span>
+                                <>
+                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={22} /></span>
+                                <span className="nav-label" style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+                                </>
                             )}
                         </Link>
                     </motion.div>

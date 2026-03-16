@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Player } from '@prisma/client';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Users, User, Trophy, PartyPopper, Play, Calendar, Search, MapPin } from 'lucide-react';
+import TournamentImageUpload from '@/components/TournamentImageUpload';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
@@ -22,6 +23,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
     const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));
     const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>(hostPlayerId ? [hostPlayerId] : []);
     const [playerSearch, setPlayerSearch] = useState('');
+    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -377,6 +379,18 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                 );
                             })}
                     </div>
+                </div>
+
+                {/* Image Upload */}
+                <div>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>
+                        Titelbild <span style={{ fontWeight: 400, color: 'var(--color-text-subtle)' }}>(optional)</span>
+                    </label>
+                    {uploadedImage && <input type="hidden" name="image" value={uploadedImage} />}
+                    <TournamentImageUpload
+                        onUpload={url => setUploadedImage(url)}
+                        onRemove={() => setUploadedImage(null)}
+                    />
                 </div>
 
                 <button type="submit" className="btn btn-primary" style={{

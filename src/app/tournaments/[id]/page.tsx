@@ -14,6 +14,7 @@ import TournamentSummary from '@/components/TournamentSummary';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
+import TournamentImageEditor from '@/components/tournament/TournamentImageEditor';
 import TeamAssignment from '@/components/TeamAssignment';
 import TeamList from '@/components/tournament/TeamList';
 import ParticipantList from '@/components/tournament/ParticipantList';
@@ -183,6 +184,12 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
                 Alle Turniere
             </Link>
+
+            <TournamentImageEditor
+                tournamentId={tournament.id}
+                currentImage={(tournament as any).image}
+                isHost={isHost}
+            />
 
             <TournamentHeader
                 tournament={{

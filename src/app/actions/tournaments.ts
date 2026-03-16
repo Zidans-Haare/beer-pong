@@ -39,6 +39,7 @@ export async function createTournament(formData: FormData) {
     const isRanked = formData.get('isRanked') !== 'false';    // Default true
 
     const participantIds = formData.getAll('participants') as string[];
+    const image = (formData.get('image') as string) || null;
 
     const userId = session.user.id;
 
@@ -91,7 +92,8 @@ export async function createTournament(formData: FormData) {
                     matchDurationMin,
                     tableCount,
                     mode,      // SOLO or TEAM
-                    isRanked   // false for Spaß-Turniere
+                    isRanked,  // false for Spaß-Turniere
+                    image
                 },
             });
 
@@ -269,4 +271,22 @@ export async function finishTournament(tournamentId: string) {
     } catch (error) {
         return { success: false, error: 'Fehler beim Abschließen' };
     }
+}
+
+export async function updateTournamentImage(tournamentId: string, imageUrl: string) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+    if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+    if (tournament.hostId !== session.user.id) return { success: false, error: 'Nur der Host kann das Bild ändern' };
+
+    await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: { image: imageUrl }
+    });
+
+    revalidatePath(`/tournaments/${tournamentId}`);
+    revalidatePath('/tournaments');
+    return { success: true };
 }

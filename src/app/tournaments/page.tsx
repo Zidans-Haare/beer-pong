@@ -120,11 +120,25 @@ function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
                 border: '1px solid rgba(0,0,0,0.06)',
             }}>
-                {/* Gradient Header */}
-                <div style={{ position: 'relative', height: isActive ? '120px' : '80px', background: headerGradient }}>
+                {/* Header — Bild wenn vorhanden, sonst Gradient */}
+                <div style={{ position: 'relative', height: t.image ? '140px' : (isActive ? '120px' : '80px') }}>
+                    {t.image ? (
+                        <>
+                            <img
+                                src={t.image}
+                                alt={t.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                            {/* Overlay für Lesbarkeit */}
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.4) 100%)' }} />
+                        </>
+                    ) : (
+                        <div style={{ width: '100%', height: '100%', background: headerGradient }} />
+                    )}
                     <span style={{
                         position: 'absolute', top: '10px', right: '10px',
-                        background: 'rgba(255,255,255,0.95)', color: badgeBg,
+                        background: t.image ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.95)',
+                        color: t.image ? '#fff' : badgeBg,
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em',
                         padding: '3px 8px', borderRadius: 'var(--radius-full)',
                     }}>

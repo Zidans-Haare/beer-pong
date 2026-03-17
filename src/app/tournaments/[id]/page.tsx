@@ -37,6 +37,7 @@ import LobbyDurationWidget from '@/components/tournament/LobbyDurationWidget';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import BringList from '@/components/tournament/BringList';
 import { getBringItems } from '@/app/actions/bring-list';
+import DrunkModeConditional from '@/components/DrunkModeConditional';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -295,42 +296,44 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {/* Sofort-Turnier: Info für eingeloggte User */}
-                    {isInstantTournament && session?.user?.id && (
-                        (() => {
-                            const player = players.find((p: any) => p.userId === session?.user?.id);
-                            if (!player) {
-                                return <PlayerProfilePrompt />;
-                            }
-                            const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
-                            return <InstantTournamentInfo isJoined={userRsvp?.status === 'YES'} />;
-                        })()
-                    )}
+                    <DrunkModeConditional show="sober">
+                        {isInstantTournament && session?.user?.id && (
+                            (() => {
+                                const player = players.find((p: any) => p.userId === session?.user?.id);
+                                if (!player) {
+                                    return <PlayerProfilePrompt />;
+                                }
+                                const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
+                                return <InstantTournamentInfo isJoined={userRsvp?.status === 'YES'} />;
+                            })()
+                        )}
 
-                    {!isInstantTournament && (
-                        <BringList
-                            tournamentId={tournament.id}
-                            initialItems={bringItems}
-                            currentUserId={session?.user?.id ?? null}
-                        />
-                    )}
-
-                    {/* Zusätzliche Infos – eingeklappt */}
-                    <details style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', overflow: 'hidden' }}>
-                        <summary style={{ padding: 'var(--spacing-3) var(--spacing-4)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-dim)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', userSelect: 'none' }}>
-                            <ChevronRight size={16} style={{ transition: 'transform 0.2s' }} />
-                            Zusätzliche Infos
-                        </summary>
-                        <div style={{ padding: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
-                            <LobbyDurationWidget
-                                type={tournament.type}
-                                playerCount={totalParticipants}
-                                matchDurationMin={smartDuration}
-                                tableCount={tournament.tableCount || 1}
-                                hasReturnLeg={tournament.hasReturnLeg}
-                                startTime={tournament.date}
+                        {!isInstantTournament && (
+                            <BringList
+                                tournamentId={tournament.id}
+                                initialItems={bringItems}
+                                currentUserId={session?.user?.id ?? null}
                             />
-                        </div>
-                    </details>
+                        )}
+
+                        {/* Zusätzliche Infos – eingeklappt */}
+                        <details style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', overflow: 'hidden' }}>
+                            <summary style={{ padding: 'var(--spacing-3) var(--spacing-4)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-dim)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', userSelect: 'none' }}>
+                                <ChevronRight size={16} style={{ transition: 'transform 0.2s' }} />
+                                Zusätzliche Infos
+                            </summary>
+                            <div style={{ padding: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
+                                <LobbyDurationWidget
+                                    type={tournament.type}
+                                    playerCount={totalParticipants}
+                                    matchDurationMin={smartDuration}
+                                    tableCount={tournament.tableCount || 1}
+                                    hasReturnLeg={tournament.hasReturnLeg}
+                                    startTime={tournament.date}
+                                />
+                            </div>
+                        </details>
+                    </DrunkModeConditional>
 
                     {/* Host Controls */}
                     {isHost && (
@@ -367,10 +370,14 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {/* Live Info Cards */}
-                    {isActive && <LiveInfoCards forecast={forecast} waitTime={waitTime} />}
+                    <DrunkModeConditional show="sober">
+                        {isActive && <LiveInfoCards forecast={forecast} waitTime={waitTime} />}
+                    </DrunkModeConditional>
 
                     {/* Live Ticker */}
-                    {isActive && <LiveTicker tournamentId={tournament.id} />}
+                    <DrunkModeConditional show="sober">
+                        {isActive && <LiveTicker tournamentId={tournament.id} />}
+                    </DrunkModeConditional>
 
                     {/* Tables */}
                     {tournament.type === 'ROUND_ROBIN' && (

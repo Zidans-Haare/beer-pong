@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Calendar, MapPin, Gamepad2, Plus, ArrowRight } from 'lucide-react';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
+import DrunkModeConditional from '@/components/DrunkModeConditional';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,24 +75,39 @@ export default async function TournamentsPage() {
                 </div>
             )}
 
-            {/* Archive — Link to dedicated archive page */}
+            {/* Archive — normal: full grid, drunk: only link */}
             {completedTournaments.length > 0 && (
-                <div style={{ textAlign: 'center', marginTop: 'var(--spacing-6)' }}>
-                    <Link
-                        href="/tournaments/archive"
-                        style={{
-                            fontSize: '0.85rem',
-                            color: 'var(--color-text-dim)',
-                            textDecoration: 'none',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                        }}
-                    >
-                        {completedTournaments.length} beendete Turniere im Archiv
-                        <ArrowRight size={14} />
-                    </Link>
-                </div>
+                <>
+                    <DrunkModeConditional show="sober">
+                        <div>
+                            <h2 className="section-header">ARCHIV</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.8 }}>
+                                {completedTournaments.map((t) => (
+                                    <TournamentCard key={t.id} t={t} />
+                                ))}
+                            </div>
+                        </div>
+                    </DrunkModeConditional>
+
+                    <DrunkModeConditional show="drunk">
+                        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-6)' }}>
+                            <Link
+                                href="/tournaments/archive"
+                                style={{
+                                    fontSize: '0.85rem',
+                                    color: 'var(--color-text-dim)',
+                                    textDecoration: 'none',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                }}
+                            >
+                                {completedTournaments.length} beendete Turniere im Archiv
+                                <ArrowRight size={14} />
+                            </Link>
+                        </div>
+                    </DrunkModeConditional>
+                </>
             )}
         </div>
     );

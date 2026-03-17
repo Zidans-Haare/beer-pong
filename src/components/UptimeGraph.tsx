@@ -330,7 +330,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                                 unit="ms"
                             />
                             <Tooltip content={<CustomTooltip maintenanceList={maintenanceList} />} />
-                            <Customized component={<StatusBackground data={chartData} />} />
+                            <Customized component={(props: any) => <StatusBackground {...props} data={chartData} />} />
                             <ReferenceLine y={Math.round(avgPing)} stroke="#a1a1aa" strokeDasharray="3 3" />
                             <Area
                                 type="monotone"

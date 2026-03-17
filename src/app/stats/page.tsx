@@ -117,7 +117,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                     <div>
                         <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
                         <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>

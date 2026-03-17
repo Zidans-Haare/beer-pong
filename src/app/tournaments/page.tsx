@@ -74,15 +74,23 @@ export default async function TournamentsPage() {
                 </div>
             )}
 
-            {/* Archive Grid */}
+            {/* Archive — Link to dedicated archive page */}
             {completedTournaments.length > 0 && (
-                <div>
-                    <h2 className="section-header">ARCHIV</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.8 }}>
-                        {completedTournaments.map((t) => (
-                            <TournamentCard key={t.id} t={t} />
-                        ))}
-                    </div>
+                <div style={{ textAlign: 'center', marginTop: 'var(--spacing-6)' }}>
+                    <Link
+                        href="/tournaments/archive"
+                        style={{
+                            fontSize: '0.85rem',
+                            color: 'var(--color-text-dim)',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                        }}
+                    >
+                        {completedTournaments.length} beendete Turniere im Archiv
+                        <ArrowRight size={14} />
+                    </Link>
                 </div>
             )}
         </div>

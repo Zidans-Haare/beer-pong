@@ -7,11 +7,13 @@ import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDrunkMode } from '@/context/DrunkModeContext';
 
 export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; isLoggedIn?: boolean }) {
     const pathname = usePathname();
     const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
     const [unreadCount, setUnreadCount] = useState(0);
+    const { isDrunk } = useDrunkMode();
 
     useEffect(() => {
         if (!isLoggedIn) return;
@@ -72,16 +74,17 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
     }
 
     // ── Logged-in: full bar expanding from center ─────────────────────────
-    const navItems = [
-        { href: '/',              icon: Home,          label: 'Home' },
-        { href: '/tournaments',   icon: Trophy,        label: 'Turniere' },
-        { href: '/join',          icon: QrCode,        label: 'Join' },
-        { href: '/notifications', icon: Bell,          label: 'Glocke', badge: unreadCount },
-        { href: '/players',       icon: Users,         label: 'Spieler' },
-        { href: '/stats',         icon: BarChart2,     label: 'Stats' },
-        { href: '/chat',          icon: MessageCircle, label: 'Chat' },
-        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin', badge: 0 }] : []),
+    const allNavItems = [
+        { href: '/',              icon: Home,          label: 'Home',    drunkVisible: true  },
+        { href: '/tournaments',   icon: Trophy,        label: 'Turniere',drunkVisible: true  },
+        { href: '/join',          icon: QrCode,        label: 'Join',    drunkVisible: true  },
+        { href: '/notifications', icon: Bell,          label: 'Glocke',  drunkVisible: false, badge: unreadCount },
+        { href: '/players',       icon: Users,         label: 'Spieler', drunkVisible: false },
+        { href: '/stats',         icon: BarChart2,     label: 'Stats',   drunkVisible: false },
+        { href: '/chat',          icon: MessageCircle, label: 'Chat',    drunkVisible: false },
+        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',  drunkVisible: false, badge: 0 }] : []),
     ];
+    const navItems = isDrunk ? allNavItems.filter(i => i.drunkVisible) : allNavItems;
 
     return (
         <AnimatePresence>

@@ -44,8 +44,7 @@ export const viewport = {
 };
 
 import { auth } from '@/auth';
-
-// ... (Metadata and Viewport exports remain unchanged - handled by Next.js imports)
+import { DrunkModeProvider } from '@/context/DrunkModeContext';
 
 export default async function RootLayout({
   children,
@@ -68,6 +67,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
+        <DrunkModeProvider>
         <div className="layout-shell">
           <Navbar />
           {/* Sidebar/Nav will go here later */}
@@ -81,6 +81,7 @@ export default async function RootLayout({
           <OfflineIndicator />
           <ServiceWorkerProvider />
         </div>
+        </DrunkModeProvider>
       </body>
     </html>
   );

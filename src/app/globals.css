@@ -479,3 +479,22 @@ body.chat-open .layout-shell { padding-bottom: 0; }
   color: var(--color-text-subtle);
   margin-bottom: var(--spacing-6);
 }
+
+/* ── Drunk Mode ─────────────────────────────────────────────────────────── */
+body.drunk-mode .btn,
+body.drunk-mode button[type="submit"],
+body.drunk-mode button[type="button"] {
+    min-height: 52px;
+    font-size: 1.05rem;
+}
+
+body.drunk-mode input,
+body.drunk-mode select,
+body.drunk-mode textarea {
+    font-size: 1.1rem;
+    padding: 14px;
+}
+
+body.drunk-mode .bottom-nav-item {
+    padding: 10px 14px;
+}

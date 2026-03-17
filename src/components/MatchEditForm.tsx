@@ -2,10 +2,12 @@
 
 import { updateMatchResult } from '@/app/actions/matches';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getTeamDisplayName } from '@/lib/team-utils';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
+    const router = useRouter();
     const isTeamMatch = !!match.team1Id && !!match.team2Id;
 
     // For team matches: use winnerTeamId, for solo: use winnerId
@@ -68,6 +70,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         }
 
         onClose();
+        router.refresh();
     }
 
     const handleWinnerClick = (id: string) => {

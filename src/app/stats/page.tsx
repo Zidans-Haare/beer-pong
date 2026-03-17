@@ -36,8 +36,10 @@ async function syncAndGetUptimeData() {
     } catch { /* ignorieren */ }
 
     // Wartungs-Zeitfenster berechnen
-    const maintStart = localMaintenance ? new Date(localMaintenance.start).getTime() : null;
-    const maintEnd = localMaintenance ? new Date(localMaintenance.end).getTime() : null;
+    const maintStartMs = localMaintenance ? new Date(localMaintenance.start).getTime() : NaN;
+    const maintEndMs = localMaintenance ? new Date(localMaintenance.end).getTime() : NaN;
+    const maintStart = isNaN(maintStartMs) ? null : maintStartMs;
+    const maintEnd = isNaN(maintEndMs) ? null : maintEndMs;
 
     // Neue Heartbeats in DB speichern (mit sofortigem Wartungsstatus)
     if (liveHeartbeats.length > 0) {

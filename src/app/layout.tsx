@@ -57,6 +57,9 @@ export default async function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
+        {/* SW-Reload vor React-Hydration registrieren — verhindert verpasste controllerchange-Events
+            Kein XSS-Risiko: statischer Literal-String, keine User-Daten */}
+        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload();})}` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet" />

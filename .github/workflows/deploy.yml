@@ -73,6 +73,8 @@ jobs:
             # Standalone: public/ und static/ müssen manuell kopiert werden
             cp -r public .next/standalone/public
             cp -r .next/static .next/standalone/.next/static
+            # maintenance.on darf nicht im standalone landen — sonst bleibt Maintenance ewig an
+            rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
 
             # App starten
             pm2 start beer-pong

@@ -56,7 +56,7 @@ jobs:
 
             # Maintenance-Modus aktivieren
             # maintenance-msg.txt: JSON-Info für die Maintenance-Seite
-            echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
+            echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
             # maintenance.on: nginx-Flag → gibt 503 zurück, zeigt maintenance.html
             touch public/maintenance.on
 

@@ -267,3 +267,43 @@ export async function finishTournament(tournamentId: string) {
         return { success: false, error: 'Fehler beim Abschließen' };
     }
 }
+
+export async function sendTournamentInviteEmails(tournamentId: string) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Nicht eingeloggt' };
+
+    try {
+        const tournament = await prisma.tournament.findUnique({
+            where: { id: tournamentId },
+            include: {
+                participants: {
+                    include: { player: { select: { email: true, name: true } } }
+                }
+            }
+        });
+
+        if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+
+        const { sendTournamentInviteEmail } = await import('@/lib/email');
+
+        const results = await Promise.allSettled(
+            tournament.participants
+                .filter(p => p.player?.email)
+                .map(p => sendTournamentInviteEmail(p.player!.email!, p.player!.name ?? 'Spieler', {
+                    id: tournament.id,
+                    name: tournament.name,
+                    date: tournament.date,
+                    location: tournament.location,
+                    type: tournament.type,
+                }))
+        );
+
+        const sent = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+
+        return { success: true, sent, failed };
+    } catch (error) {
+        console.error('sendTournamentInviteEmails error:', error);
+        return { success: false, error: 'Fehler beim Senden' };
+    }
+}

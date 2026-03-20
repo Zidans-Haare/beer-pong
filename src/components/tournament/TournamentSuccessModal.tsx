@@ -3,6 +3,7 @@
 import { X, Mail, Megaphone, CalendarPlus } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { sendTournamentInviteEmails } from '@/app/actions/tournaments';
 
 type Participant = {
     email: string | null;
@@ -24,6 +25,8 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(searchParams.get('newlyCreated') === 'true');
+    const [emailSending, setEmailSending] = useState(false);
+    const [emailResult, setEmailResult] = useState<{ sent: number; failed: number } | null>(null);
 
     if (!isOpen) return null;
 
@@ -31,13 +34,17 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
         .map(p => p.email)
         .filter((email): email is string => !!email);
 
-    // Generate Mailto Link
-    const mailtoLink = (() => {
-        const subject = encodeURIComponent(`Bierpong Turnier: ${tournament.name}`);
-        const body = encodeURIComponent(`Hallo Leute,\n\nes steht ein neues Bierpong-Turnier an!\n\nWann: ${new Date(tournament.date).toLocaleString()}\nWo: ${tournament.location || 'TBA'}\nModus: ${tournament.type}\n\nBitte gebt Bescheid ob ihr dabei seid!\n\nViele Grüße,\nDer Host`);
-        const recipients = participantEmails.join(',');
-        return `mailto:${recipients}?subject=${subject}&body=${body}`;
-    })();
+    const handleSendEmails = async () => {
+        if (!confirm(`Einladungs-Email an ${participantEmails.length} Teilnehmer senden?`)) return;
+        setEmailSending(true);
+        const result = await sendTournamentInviteEmails(tournament.id);
+        setEmailSending(false);
+        if (result.success) {
+            setEmailResult({ sent: result.sent ?? 0, failed: result.failed ?? 0 });
+        } else {
+            alert('Fehler beim Senden der Emails.');
+        }
+    };
 
     // Generate ICS Download
     const downloadICS = async () => {
@@ -115,12 +122,18 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                 <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--spacing-4)' }}>
                     <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Teilnehmer informieren</h3>
                     <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
-                        <a href={mailtoLink} target="_blank" className="btn" style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)', textDecoration: 'none',
-                            background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)'
+                        <button onClick={handleSendEmails} disabled={emailSending || !!emailResult} className="btn" style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
+                            background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)',
+                            opacity: emailSending || !!emailResult ? 0.7 : 1, cursor: emailSending || !!emailResult ? 'default' : 'pointer'
                         }}>
-                            <Mail size={18} /> Email senden ({participantEmails.length})
-                        </a>
+                            <Mail size={18} />
+                            {emailResult
+                                ? `✓ ${emailResult.sent} Email${emailResult.sent !== 1 ? 's' : ''} gesendet`
+                                : emailSending
+                                    ? 'Sende...'
+                                    : `Email senden (${participantEmails.length})`}
+                        </button>
 
                         <button
                             onClick={async () => {

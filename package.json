@@ -44,6 +44,9 @@
     "web-push": "^3.6.7",
     "zod": "^4.3.5"
   },
+  "overrides": {
+    "magicast": "^0.5.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/bcryptjs": "^2.4.6",

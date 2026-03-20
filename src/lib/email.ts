@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const adminCc = process.env.ADMIN_EMAIL ?? undefined;
 
 export async function sendTournamentInviteEmail(to: string, name: string, tournament: {
     name: string;
@@ -15,6 +16,7 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
 
     return resend.emails.send({
         from: 'noreply@bier.olomek.com',
+        cc: adminCc,
         to,
         subject: `Turnier-Einladung: ${tournament.name}`,
         html: `
@@ -117,6 +119,7 @@ export async function sendAccountApprovedEmail(to: string, name: string) {
 
     return resend.emails.send({
         from: 'noreply@bier.olomek.com',
+        cc: adminCc,
         to,
         subject: 'Dein Account wurde freigegeben',
         html: `

@@ -30,7 +30,7 @@ Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
 
 ### Authentication & Privacy
 - **Protected Routes**: Full app locked behind NextAuth.js authentication
-- **User Approval Flow**: New users require admin approval before gaining access
+- **User Approval Flow**: New users require admin approval before gaining access. Upon approval, the user receives an automatic email notification.
 - **Passkey Support**: WebAuthn passkey login in addition to credentials
 - **Guest Access**: Managed guest sessions (24h) for fun/unranked tournaments
 
@@ -103,6 +103,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | VAPID public key for push notifications |
 | `VAPID_PRIVATE_KEY` | VAPID private key for push notifications |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key |
+| `RESEND_API_KEY` | API key for [Resend](https://resend.com) — required for email notifications |
+| `APP_URL` | Public base URL of the app (e.g. `https://bier.olomek.com`) — used to build links in emails |
 
 4. Deploy
 
@@ -112,6 +114,31 @@ Open [http://localhost:3000](http://localhost:3000).
 npm run build
 npm start
 ```
+
+---
+
+## Email Notifications
+
+Transactional emails are sent via [Resend](https://resend.com). Requires a verified sending domain in the Resend dashboard.
+
+### Triggered events
+
+| Event | Recipient | Sender |
+|---|---|---|
+| Account approved by admin | Registered user | `noreply@bier.olomek.com` |
+
+### Setup
+
+1. Create an account at [resend.com](https://resend.com) and add your domain.
+2. Generate an API key with **Sending access**.
+3. Set the following environment variables:
+
+```
+RESEND_API_KEY=re_...
+APP_URL=https://your-domain.com
+```
+
+Email sending is non-blocking — a failure to deliver an email will not interrupt the admin approval action, but will be logged to the server console.
 
 ---
 

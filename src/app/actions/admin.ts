@@ -268,9 +268,10 @@ export async function getPendingUsers() {
 export async function approveUser(userId: string) {
     await checkAdmin();
     try {
-        await prisma.user.update({
+        const user = await prisma.user.update({
             where: { id: userId },
             data: { status: 'ACTIVE' },
+            select: { email: true, name: true },
         });
 
         const { createNotificationForUser } = await import('@/app/actions/notifications');
@@ -281,6 +282,15 @@ export async function approveUser(userId: string) {
             link: '/login',
             type: 'SYSTEM',
         });
+
+        if (user.email) {
+            try {
+                const { sendAccountApprovedEmail } = await import('@/lib/email');
+                await sendAccountApprovedEmail(user.email, user.name ?? 'Spieler');
+            } catch (emailError) {
+                console.error('Failed to send approval email (non-blocking):', emailError);
+            }
+        }
 
         revalidatePath('/admin/approvals');
         return { success: true };

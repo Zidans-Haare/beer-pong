@@ -6,9 +6,42 @@ on:
       - main
 
 jobs:
+  test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Playwright Browser installieren
+        run: npx playwright install chromium --with-deps
+
+      - name: E2E Tests gegen Produktionsserver
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: npx playwright test
+        # Wenn E2E_BASE_URL nicht gesetzt ist, startet playwright.config.ts einen lokalen Dev-Server
+
+      - name: Test-Report hochladen (bei Fehler)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   deploy:
     name: SSH Deploy
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Deploy via SSH
@@ -21,10 +54,8 @@ jobs:
             set -e
             cd ~/beer-pong
 
-            # Maintenance-Modus aktivieren (wird von public/maintenance.html gelesen)
-            cat > public/maintenance-msg.txt << EOF
-            {"msg":"Update wird eingespielt…","start":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
-            EOF
+            # Maintenance-Modus aktivieren (public/maintenance.html zeigt Status)
+            echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
 
             # App stoppen (nginx zeigt maintenance.html als 503 error_page)
             pm2 stop beer-pong || true
@@ -36,14 +67,14 @@ jobs:
             # Build
             npm run build
 
-            # Standalone: public/ und static/ verknüpfen (Next.js standalone braucht das)
+            # Standalone: public/ und static/ müssen manuell kopiert werden
             cp -r public .next/standalone/public
             cp -r .next/static .next/standalone/.next/static
 
             # App starten
             pm2 start beer-pong
 
-            # Maintenance-Modus deaktivieren (App ist oben, Nutzer werden automatisch weitergeleitet)
+            # Maintenance-Modus deaktivieren — Nutzer werden automatisch weitergeleitet
             rm -f public/maintenance-msg.txt
 
             echo "Deploy erfolgreich!"

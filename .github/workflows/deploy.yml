@@ -54,10 +54,13 @@ jobs:
             set -e
             cd ~/beer-pong
 
-            # Maintenance-Modus aktivieren (public/maintenance.html zeigt Status)
+            # Maintenance-Modus aktivieren
+            # maintenance-msg.txt: JSON-Info für die Maintenance-Seite
             echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
+            # maintenance.on: nginx-Flag → gibt 503 zurück, zeigt maintenance.html
+            touch public/maintenance.on
 
-            # App stoppen (nginx zeigt maintenance.html als 503 error_page)
+            # App stoppen
             pm2 stop beer-pong || true
 
             # Code + Deps aktualisieren
@@ -74,7 +77,8 @@ jobs:
             # App starten
             pm2 start beer-pong
 
-            # Maintenance-Modus deaktivieren — Nutzer werden automatisch weitergeleitet
-            rm -f public/maintenance-msg.txt
+            # Maintenance-Modus deaktivieren — nginx proxied wieder normal
+            # maintenance.html pollt '/' und leitet Nutzer automatisch weiter
+            rm -f public/maintenance.on public/maintenance-msg.txt
 
             echo "Deploy erfolgreich!"

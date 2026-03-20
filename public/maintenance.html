@@ -249,8 +249,9 @@
             });
 
         // Automatisch weiterleiten wenn Wartung beendet
+        // Pollt '/' — nginx gibt 503 solange maintenance.on existiert
         function checkOnline() {
-            fetch('/maintenance-msg.txt?t=' + Date.now(), { method: 'HEAD' })
+            fetch('/?_mcheck=' + Date.now(), { method: 'HEAD' })
                 .then(r => {
                     if (r.status !== 503) window.location.href = '/';
                 })

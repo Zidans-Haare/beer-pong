@@ -52,3 +52,6 @@ dev.db.bak*
 # Claude Code
 .claude/
 2026-*.txt
+
+# Sentry Config File
+.env.sentry-build-plugin

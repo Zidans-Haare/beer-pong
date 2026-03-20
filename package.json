@@ -28,7 +28,7 @@
     "idb-keyval": "^6.2.2",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.562.0",
-    "next": "^15.5.12",
+    "next": "^15.5.14",
     "next-auth": "^5.0.0-beta.30",
     "qrcode": "^1.5.4",
     "react": "19.2.3",

@@ -7,11 +7,12 @@ import { AuthError } from 'next-auth';
 import { createNotificationForUser } from '@/app/actions/notifications';
 import { headers } from 'next/headers';
 import { checkRateLimit } from '@/lib/rate-limit';
+import logger from '@/lib/logger';
 
 export async function registerUser(formData: FormData) {
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
-    if (!checkRateLimit(`register:${ip}`, 5, 10 * 60_000)) {
+    if (!await checkRateLimit(`register:${ip}`, 5, 10 * 60_000)) {
         return { success: false, error: 'Zu viele Versuche. Bitte in 10 Minuten erneut versuchen.' };
     }
 
@@ -75,7 +76,7 @@ export async function registerUser(formData: FormData) {
 
         return { success: true, pending: true };
     } catch (error) {
-        console.error('Registration error:', error);
+        logger.error({ err: error }, 'Registration error');
         return { success: false, error: 'User konnte nicht erstellt werden (Email evtl. vergeben).' };
     }
 }
@@ -83,7 +84,7 @@ export async function registerUser(formData: FormData) {
 export async function authenticate(prevState: string | undefined, formData: FormData) {
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
-    if (!checkRateLimit(`login:${ip}`, 10, 60_000)) {
+    if (!await checkRateLimit(`login:${ip}`, 10, 60_000)) {
         return 'Zu viele Login-Versuche. Bitte warte eine Minute.';
     }
 

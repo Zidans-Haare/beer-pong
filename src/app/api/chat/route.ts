@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
+import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
     const session = await auth();
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(messages);
     } catch (error) {
-        console.error('Chat API error:', error);
+        logger.error({ err: error }, 'Chat API error');
         return NextResponse.json([], { status: 500 });
     }
 }

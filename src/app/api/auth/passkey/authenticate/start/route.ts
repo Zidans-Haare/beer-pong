@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generatePasskeyAuthenticationOptions } from '@/lib/webauthn';
 import { cookies } from 'next/headers';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
+  const { allowed, retryAfter } = await rateLimit(`passkey-start:${ip}`, 10, 60_000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Zu viele Versuche. Bitte warte kurz.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+    );
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const { email } = body as { email?: string };

@@ -4,8 +4,19 @@ import { verifyPasskeyAuthentication } from '@/lib/webauthn';
 import { cookies } from 'next/headers';
 import { encode } from 'next-auth/jwt';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
+import { rateLimit } from '@/lib/rate-limit';
+import logger from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
+  const { allowed, retryAfter } = await rateLimit(`passkey-verify:${ip}`, 5, 60_000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Zu viele Versuche. Bitte warte kurz.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+    );
+  }
+
   try {
     const body = await request.json();
     const response = body as AuthenticationResponseJSON;
@@ -99,7 +110,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Passkey auth verify error:', error);
+    logger.error({ err: error }, 'Passkey auth verify error');
     return NextResponse.json(
       { error: 'Fehler bei der Authentifizierung' },
       { status: 500 }

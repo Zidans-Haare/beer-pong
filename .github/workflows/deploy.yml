@@ -1,0 +1,49 @@
+name: Deploy auf Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: SSH Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/beer-pong
+
+            # Maintenance-Modus aktivieren (wird von public/maintenance.html gelesen)
+            cat > public/maintenance-msg.txt << EOF
+            {"msg":"Update wird eingespielt…","start":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+            EOF
+
+            # App stoppen (nginx zeigt maintenance.html als 503 error_page)
+            pm2 stop beer-pong || true
+
+            # Code + Deps aktualisieren
+            git pull origin main
+            npm ci --omit=dev
+
+            # Build
+            npm run build
+
+            # Standalone: public/ und static/ verknüpfen (Next.js standalone braucht das)
+            cp -r public .next/standalone/public
+            cp -r .next/static .next/standalone/.next/static
+
+            # App starten
+            pm2 start beer-pong
+
+            # Maintenance-Modus deaktivieren (App ist oben, Nutzer werden automatisch weitergeleitet)
+            rm -f public/maintenance-msg.txt
+
+            echo "Deploy erfolgreich!"

@@ -1,26 +1,55 @@
-const store = new Map<string, { count: number; resetAt: number }>();
+import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
+
+// Separate Limiter für verschiedene Use Cases
+const limiters = new Map<string, RateLimiterMemory>();
+
+function getLimiter(maxAttempts: number, windowMs: number): RateLimiterMemory {
+  const key = `${maxAttempts}:${windowMs}`;
+  if (!limiters.has(key)) {
+    limiters.set(key, new RateLimiterMemory({
+      points: maxAttempts,
+      duration: Math.ceil(windowMs / 1000),
+    }));
+  }
+  return limiters.get(key)!;
+}
 
 /**
- * Simple in-memory rate limiter.
- * Returns true if the request is allowed, false if it should be blocked.
+ * Prüft Rate Limit für einen Key.
+ * Gibt true zurück wenn erlaubt, false wenn blockiert.
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   key: string,
   maxAttempts = 5,
   windowMs = 60_000
-): boolean {
-  const now = Date.now();
-  const entry = store.get(key);
-
-  if (!entry || now > entry.resetAt) {
-    store.set(key, { count: 1, resetAt: now + windowMs });
+): Promise<boolean> {
+  const limiter = getLimiter(maxAttempts, windowMs);
+  try {
+    await limiter.consume(key);
     return true;
-  }
-
-  if (entry.count >= maxAttempts) {
+  } catch {
     return false;
   }
+}
 
-  entry.count++;
-  return true;
+/**
+ * Prüft Rate Limit und gibt ein NextResponse-ready Ergebnis zurück.
+ * Enthält retry-after Header-Wert.
+ */
+export async function rateLimit(
+  key: string,
+  maxAttempts = 5,
+  windowMs = 60_000
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const limiter = getLimiter(maxAttempts, windowMs);
+  try {
+    await limiter.consume(key);
+    return { allowed: true };
+  } catch (err) {
+    const res = err as RateLimiterRes;
+    return {
+      allowed: false,
+      retryAfter: Math.ceil(res.msBeforeNext / 1000),
+    };
+  }
 }

@@ -12,7 +12,11 @@ async function askQuestions(mode) {
     const user = os.userInfo().username;
     const home = os.homedir();
 
-    answers.appPath = process.cwd();
+    // Local: run from within the repo → use cwd
+    // Server: wizard bootstraps before clone → install to ~/beer-pong
+    answers.appPath = mode === 'local'
+        ? process.cwd()
+        : path.join(home, 'beer-pong');
 
     console.log('');
 

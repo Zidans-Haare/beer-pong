@@ -6,6 +6,7 @@ async function main() {
     const { default: ora } = await import('ora');
     const { select, confirm } = require('@inquirer/prompts');
     const { askQuestions } = require('./questions');
+    const { cloneOrPull } = require('./installers/clone');
     const { generateEnv } = require('./generators/env');
     const { generateNginx } = require('./generators/nginx');
     const { setupCronBackup } = require('./generators/cron');
@@ -30,11 +31,11 @@ async function main() {
             message: 'Where are you deploying?',
             choices: [
                 {
-                    name: 'Local development  (generates .env, skips nginx/PM2/cron)',
+                    name: 'Local development  — generates .env, initializes DB',
                     value: 'local',
                 },
                 {
-                    name: 'Production server  (full setup: nginx, SSL, PM2, cron)',
+                    name: 'Production server  — git clone, nginx, SSL, PM2, cron',
                     value: 'server',
                 },
             ],
@@ -65,9 +66,9 @@ async function main() {
     console.log(chalk.bold('Summary:'));
     console.log(`  Mode:      ${chalk.cyan(mode === 'local' ? 'Local development' : 'Production server')}`);
     if (mode === 'server') {
+        console.log(`  Repo:      ${chalk.cyan(answers.repoUrl)}`);
         console.log(`  Domain:    ${chalk.cyan(answers.domain)}`);
     }
-    console.log(`  App path:  ${chalk.cyan(answers.appPath)}`);
     console.log(`  Port:      ${chalk.cyan(answers.port)}`);
     console.log(`  Admin:     ${chalk.cyan(answers.adminEmail)}`);
     console.log(`  Email:     ${answers.resendApiKey ? chalk.green('✓ Resend configured') : chalk.dim('skipped')}`);
@@ -100,7 +101,53 @@ async function main() {
 
     const spinner = ora({ color: 'magenta' });
 
-    // ── 1. Generate .env ─────────────────────────────────────────────────
+    // ── LOCAL mode ────────────────────────────────────────────────────────
+    if (mode === 'local') {
+        // 1. Generate .env
+        spinner.start('Generating .env…');
+        try {
+            const envPath = await generateEnv(answers, spinner);
+            spinner.succeed(chalk.green('.env generated') + chalk.dim(' → ' + envPath));
+        } catch (err) {
+            spinner.fail(chalk.red('.env error: ' + err.message));
+            process.exit(1);
+        }
+
+        // 2. Initialize database
+        spinner.start('Initializing database…');
+        try {
+            setupDatabase(answers, spinner);
+            spinner.succeed(chalk.green('Database initialized'));
+        } catch (err) {
+            spinner.fail(chalk.red('Database error: ' + err.message));
+            console.log(chalk.dim('  Run manually: npx prisma generate && npx prisma migrate deploy'));
+        }
+
+        console.log('');
+        console.log(chalk.bold.green('✓ Local setup complete!'));
+        console.log('');
+        console.log(chalk.bold('Next steps:'));
+        console.log(`  1. Review ${chalk.cyan('.env')} and fill in any missing values`);
+        console.log(`  2. Start the dev server: ${chalk.cyan('npm run dev')}`);
+        console.log(`  3. Open ${chalk.cyan('http://localhost:' + answers.port + '/register')} and create your admin account`);
+        console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
+        console.log('');
+        return;
+    }
+
+    // ── SERVER mode ───────────────────────────────────────────────────────
+
+    // 1. Clone repo
+    spinner.start('Cloning repository…');
+    try {
+        cloneOrPull(answers, spinner);
+        spinner.succeed(chalk.green('Repository ready') + chalk.dim(' → ' + answers.appPath));
+    } catch (err) {
+        spinner.fail(chalk.red('Git error: ' + err.message));
+        process.exit(1);
+    }
+
+    // 2. Generate .env
     spinner.start('Generating .env…');
     try {
         const envPath = await generateEnv(answers, spinner);
@@ -110,32 +157,7 @@ async function main() {
         process.exit(1);
     }
 
-    if (mode === 'local') {
-        // Local: just initialize the database
-        spinner.start('Initializing database…');
-        try {
-            setupDatabase(answers, spinner);
-            spinner.succeed(chalk.green('Database initialized'));
-        } catch (err) {
-            spinner.fail(chalk.red('Database error: ' + err.message));
-            console.log(chalk.dim('  You can run manually: npx prisma generate && npx prisma migrate deploy'));
-        }
-
-        console.log('');
-        console.log(chalk.bold.green('✓ Local setup complete!'));
-        console.log('');
-        console.log(chalk.bold('Next steps:'));
-        console.log(`  1. Review ${chalk.cyan(answers.appPath + '/.env')} and fill in any missing values`);
-        console.log(`  2. Start the dev server: ${chalk.cyan('npm run dev')}`);
-        console.log(`  3. Open ${chalk.cyan('http://localhost:' + answers.port + '/register')} and create your admin account`);
-        console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
-        console.log('');
-        return;
-    }
-
-    // ── Server-only steps ────────────────────────────────────────────────
-
-    // 2. Nginx + SSL
+    // 3. Nginx + SSL
     spinner.start('Configuring nginx…');
     try {
         await generateNginx(answers, spinner);
@@ -145,7 +167,7 @@ async function main() {
         console.log(chalk.dim('  Continuing without nginx…'));
     }
 
-    // 3. Database
+    // 4. Database
     spinner.start('Initializing database…');
     try {
         setupDatabase(answers, spinner);
@@ -155,7 +177,7 @@ async function main() {
         process.exit(1);
     }
 
-    // 4. Build + PM2
+    // 5. Build + PM2
     spinner.start('Building app and setting up PM2…');
     try {
         setupPm2(answers, spinner);
@@ -165,7 +187,7 @@ async function main() {
         process.exit(1);
     }
 
-    // 5. Cron backup
+    // 6. Cron backup
     if (answers.dbBackup) {
         spinner.start('Setting up cron backup…');
         try {
@@ -176,7 +198,7 @@ async function main() {
         }
     }
 
-    // 6. GitHub secrets
+    // 7. GitHub secrets
     if (answers.setupGithub) {
         spinner.start('Setting GitHub secrets…');
         try {
@@ -194,7 +216,6 @@ async function main() {
     console.log(chalk.bold('Next steps:'));
     console.log(`  1. Open ${chalk.cyan(`https://${answers.domain}/register`)} and create your admin account`);
     console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
-    console.log('');
     console.log(`  2. For CI/CD: push to the main branch on GitHub`);
     console.log(`     ${chalk.dim('→ Tests run automatically, deploy starts on success')}`);
     console.log('');

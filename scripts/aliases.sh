@@ -12,3 +12,17 @@ alias bp-restart='set -a; . ~/beer-pong/.env; set +a && pm2 restart beer-pong --
 alias bp-status='pm2 status'
 alias bp-maint-on='touch ~/beer-pong/public/maintenance.on && echo "Maintenance mode ON"'
 alias bp-maint-off='rm -f ~/beer-pong/public/maintenance.on && echo "Maintenance mode OFF"'
+
+# Welcome message on SSH login
+echo ""
+echo "  \e[1m\e[35m🍺  Beer Pong\e[0m"
+echo "  \e[2m────────────────────────────────\e[0m"
+echo "  \e[36mbp-update\e[0m      update to latest version"
+echo "  \e[36mbp-doctor\e[0m      check for issues"
+echo "  \e[36mbp-logs\e[0m        view live logs"
+echo "  \e[36mbp-status\e[0m      PM2 process status"
+echo "  \e[36mbp-restart\e[0m     restart app"
+echo "  \e[36mbp-maint-on\e[0m    enable maintenance mode"
+echo "  \e[36mbp-maint-off\e[0m   disable maintenance mode"
+echo "  \e[2m────────────────────────────────\e[0m"
+echo ""

@@ -7,10 +7,15 @@ const fs = require('fs');
  * Falls back to git remote origin if available.
  */
 function getRepoUrl() {
-    try {
-        // Walk up from cwd to find package.json (wizard may run from a temp npx dir)
-        let dir = process.cwd();
-        for (let i = 0; i < 5; i++) {
+    // __dirname = .../beer-pong/scripts/setup/installers/ — works whether run via npx or directly
+    const dirs = [
+        path.resolve(__dirname, '../../..'),  // npx cache: node_modules/beer-pong/
+        path.resolve(__dirname, '../../../..'), // local dev: repo root
+        process.cwd(),
+    ];
+
+    for (const dir of dirs) {
+        try {
             const pkgPath = path.join(dir, 'package.json');
             if (fs.existsSync(pkgPath)) {
                 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
@@ -18,9 +23,8 @@ function getRepoUrl() {
                 if (typeof repo === 'string') return repo.endsWith('.git') ? repo : repo + '.git';
                 if (repo?.url) return repo.url.replace(/^git\+/, '');
             }
-            dir = path.dirname(dir);
-        }
-    } catch { /* ignore */ }
+        } catch { /* ignore */ }
+    }
 
     // Fallback: git remote
     try {

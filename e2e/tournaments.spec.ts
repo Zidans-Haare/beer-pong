@@ -44,8 +44,8 @@ test.describe('Turniere (eingeloggt)', () => {
   test('Join-Seite mit falschem Code zeigt Fehler oder 404', async ({ page }) => {
     await page.goto('/join/XXXXXX');
     await page.waitForLoadState('load');
-    const hasError = await page.getByText(/nicht gefunden|ungültig|fehler|not found/i).count() > 0;
-    const redirected = !page.url().includes('/join/XXXXXX');
-    expect(hasError || redirected).toBe(true);
+    // notFound() wird aufgerufen → 404-Überschrift erscheint
+    const shows404 = await page.getByRole('heading', { name: /404/i }).count() > 0;
+    expect(shows404).toBe(true);
   });
 });

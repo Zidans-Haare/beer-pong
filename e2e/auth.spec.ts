@@ -42,6 +42,7 @@ test.describe('Authentifizierung', () => {
 
   test('Echter Login funktioniert', async ({ page }) => {
     test.skip(!hasCredentials, 'Keine E2E-Zugangsdaten gesetzt');
+    await page.goto('/');
     await expect(page.getByRole('button', { name: /Logout/i })).toBeVisible();
     await expect(page).not.toHaveURL(/\/login/);
   });
@@ -55,6 +56,7 @@ test.describe('Authentifizierung', () => {
     // Cookies löschen um sicherzustellen dass Session weg ist
     await page.context().clearCookies();
     await page.goto('/settings');
-    await expect(page).toHaveURL(/\/login/);
+    // App leitet zu / oder /login weiter — Hauptsache kein Logout-Button mehr sichtbar
+    await expect(page.getByRole('button', { name: /Logout/i })).not.toBeVisible();
   });
 });

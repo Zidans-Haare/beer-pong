@@ -36,10 +36,11 @@ function setupPm2(answers, spinner) {
         pm2Running = true;
     } catch { /* process doesn't exist yet */ }
 
+    // Source .env so AUTH_URL and all other vars are available to the running process
     if (pm2Running) {
-        runShell(`${nvm}DATABASE_URL="file:${dbPath}" PORT=${port} pm2 restart ${pm2Name} --update-env`);
+        runShell(`${nvm}${envExport}pm2 restart ${pm2Name} --update-env`);
     } else {
-        runShell(`${nvm}DATABASE_URL="file:${dbPath}" PORT=${port} pm2 start "${serverScript}" --name ${pm2Name}`);
+        runShell(`${nvm}${envExport}pm2 start "${serverScript}" --name ${pm2Name}`);
     }
 
     runShell(`${nvm}pm2 save`);

@@ -1,8 +1,10 @@
-const { runShell } = require('../utils/shell');
+const { runShell, isDryRun } = require('../utils/shell');
 const { nvmPrefix } = require('../utils/nvm');
 const path = require('path');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
+
+function dryLog(cmd) { process.stdout.write('\x1b[2m    $ ' + cmd + '\x1b[0m\n'); }
 
 /**
  * Initializes the database: prisma generate + migrate deploy.
@@ -25,10 +27,12 @@ function setupDatabase(answers, spinner) {
         const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
         spinner.text = 'Running prisma generate…';
-        execFileSync(npx, ['prisma', 'generate'], { cwd: appPath, env, stdio: 'pipe' });
+        if (isDryRun()) { dryLog(`npx prisma generate  (cwd: ${appPath})`); }
+        else { execFileSync(npx, ['prisma', 'generate'], { cwd: appPath, env, stdio: 'pipe' }); }
 
         spinner.text = 'Running prisma migrate deploy…';
-        execFileSync(npx, ['prisma', 'migrate', 'deploy'], { cwd: appPath, env, stdio: 'pipe' });
+        if (isDryRun()) { dryLog(`npx prisma migrate deploy  (cwd: ${appPath})`); }
+        else { execFileSync(npx, ['prisma', 'migrate', 'deploy'], { cwd: appPath, env, stdio: 'pipe' }); }
     } else {
         // Server mode: use bash + NVM + source .env
         const nvm = nvmPrefix();

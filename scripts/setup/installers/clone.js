@@ -1,4 +1,4 @@
-const { runShell, commandExists } = require('../utils/shell');
+const { runShell, commandExists, isDryRun } = require('../utils/shell');
 const path = require('path');
 const fs = require('fs');
 
@@ -43,6 +43,11 @@ function cloneOrPull(answers, spinner) {
 
     const repoUrl = getRepoUrl();
     const { appPath } = answers;
+
+    if (isDryRun()) {
+        process.stdout.write(`\x1b[2m    $ git clone "${repoUrl}" "${appPath}"\x1b[0m\n`);
+        return;
+    }
 
     if (fs.existsSync(path.join(appPath, '.git'))) {
         spinner.text = 'Repository already exists — pulling latest changes…';

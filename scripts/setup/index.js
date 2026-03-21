@@ -5,7 +5,14 @@ async function main() {
     const { default: chalk } = await import('chalk');
     const { default: ora } = await import('ora');
     const { select, confirm } = require('@inquirer/prompts');
+    const { setDryRun } = require('./utils/shell');
     const { askQuestions } = require('./questions');
+
+    const DRY_RUN = process.argv.includes('--dry-run');
+    if (DRY_RUN) {
+        setDryRun(true);
+        console.log(chalk.yellow('\n  ⚠  DRY RUN — no changes will be made\n'));
+    }
     const { cloneOrPull } = require('./installers/clone');
     const { generateEnv } = require('./generators/env');
     const { generateNginx } = require('./generators/nginx');
@@ -103,7 +110,7 @@ async function main() {
     }
 
     // ── Already-deployed guard (server mode only) ─────────────────────────
-    if (mode === 'server') {
+    if (mode === 'server' && !DRY_RUN) {
         const { commandExists } = require('./utils/shell');
         const { nvmPrefix } = require('./utils/nvm');
         const { runShell } = require('./utils/shell');

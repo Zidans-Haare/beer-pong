@@ -352,7 +352,7 @@ async function main() {
     console.log(row(chalk.dim('Next steps:')));
     console.log(row('  ' + chalk.white('1.') + '  ' + chalk.cyan(`https://${answers.domain}/register`)));
     console.log(row('     ' + chalk.dim('Create your admin account (email = ADMIN_EMAIL)')));
-    console.log(row('  ' + chalk.white('2.') + chalk.dim('  Push to main → CI/CD runs automatically')));
+    console.log(row('  ' + chalk.white('2.') + '  ' + chalk.cyan(`bash ~/beer-pong/scripts/update.sh`) + chalk.dim('  # update')));
     console.log(row(''));
     console.log(mid);
     console.log(row(chalk.dim('  pm2 logs beer-pong      # view logs')));

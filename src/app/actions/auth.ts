@@ -76,6 +76,10 @@ export async function registerUser(formData: FormData) {
 
         return { success: true, pending: true };
     } catch (error) {
+        // Next.js redirect() throws internally — must not be swallowed
+        if (error instanceof Error && (error as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
         logger.error({ err: error }, 'Registration error');
         return { success: false, error: 'User konnte nicht erstellt werden (Email evtl. vergeben).' };
     }

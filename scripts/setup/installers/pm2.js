@@ -23,9 +23,6 @@ function setupPm2(answers, spinner) {
         ? `set -a; . "${envPath}"; set +a; `
         : '';
 
-    spinner.text = 'Installing dependencies (npm ci)…';
-    runShell(`cd "${appPath}"; ${nvm}npm ci`);
-
     spinner.text = 'Building app (npm run build)…';
     runShell(`cd "${appPath}"; ${nvm}${envExport}npm run build`);
 

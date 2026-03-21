@@ -41,6 +41,10 @@ function setupDatabase(answers, spinner) {
             ? `set -a; . "${envPath}"; set +a; `
             : '';
 
+        // Install deps first — prisma.config.ts requires dotenv and other packages
+        spinner.text = 'Installing dependencies (npm ci)…';
+        runShell(`cd "${appPath}"; ${nvm}npm ci`);
+
         spinner.text = 'Running prisma generate…';
         runShell(`cd "${appPath}"; ${nvm}${envExport}npx prisma generate`);
 

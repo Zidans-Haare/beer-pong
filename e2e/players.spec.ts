@@ -25,7 +25,7 @@ test.describe('Spieler-Seite', () => {
   test('Neuer-Spieler-Seite erreichbar', async ({ page }) => {
     await page.goto('/players/new');
     await expect(page).toHaveURL('/players/new');
-    await expect(page.getByRole('button', { name: /Speichern|Erstellen|Hinzufügen/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Speichern|Erstellen|Hinzufügen|Anlegen/i })).toBeVisible();
   });
 
   test('Ungültige Spieler-ID gibt 404', async ({ page }) => {

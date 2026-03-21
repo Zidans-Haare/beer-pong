@@ -32,7 +32,7 @@ test.describe('Turniere (eingeloggt)', () => {
   test('Neues Turnier erstellen — Seite erreichbar', async ({ page }) => {
     await page.goto('/tournaments/new');
     await expect(page).toHaveURL('/tournaments/new');
-    await expect(page.getByRole('button', { name: /Erstellen|Speichern/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Erstellen|Speichern|starten/i })).toBeVisible();
   });
 
   test('Ungültige Turnier-ID gibt 404', async ({ page }) => {

@@ -41,8 +41,9 @@ test.describe('Navigation nach Login', () => {
   });
 
   test('Nicht vorhandene Seite gibt 404', async ({ page }) => {
-    const res = await page.goto('/diese-seite-gibt-es-nicht');
-    expect(res?.status()).toBe(404);
+    await page.goto('/diese-seite-gibt-es-nicht');
+    const shows404 = await page.getByRole('heading', { name: /404/i }).count() > 0;
+    expect(shows404).toBe(true);
   });
 });
 

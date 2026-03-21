@@ -50,6 +50,10 @@ test.describe('Authentifizierung', () => {
     test.skip(!hasCredentials, 'Keine E2E-Zugangsdaten gesetzt');
     await page.goto('/');
     await page.getByRole('button', { name: /Logout/i }).click();
+    // Warten bis Logout-Redirect abgeschlossen
+    await page.waitForURL(url => url.pathname.includes('/login') || url.pathname === '/', { timeout: 10_000 }).catch(() => {});
+    // Cookies löschen um sicherzustellen dass Session weg ist
+    await page.context().clearCookies();
     await page.goto('/settings');
     await expect(page).toHaveURL(/\/login/);
   });

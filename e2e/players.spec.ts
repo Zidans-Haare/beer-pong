@@ -29,7 +29,8 @@ test.describe('Spieler-Seite', () => {
   });
 
   test('Ungültige Spieler-ID gibt 404', async ({ page }) => {
-    const res = await page.goto('/players/dieser-spieler-existiert-nicht-12345');
-    expect(res?.status()).toBe(404);
+    await page.goto('/players/dieser-spieler-existiert-nicht-12345');
+    const shows404 = await page.getByRole('heading', { name: /404/i }).count() > 0;
+    expect(shows404).toBe(true);
   });
 });

@@ -20,14 +20,14 @@ function setupPm2(answers, spinner) {
     // Source .env so NEXT_PUBLIC_* vars are available during build
     const envPath = path.join(appPath, '.env');
     const envExport = fs.existsSync(envPath)
-        ? `set -a && . "${envPath}" && set +a && `
+        ? `set -a; . "${envPath}"; set +a; `
         : '';
 
     spinner.text = 'Installing dependencies (npm ci)…';
-    runShell(`cd "${appPath}" && ${nvm}npm ci`);
+    runShell(`cd "${appPath}"; ${nvm}npm ci`);
 
     spinner.text = 'Building app (npm run build)…';
-    runShell(`cd "${appPath}" && ${nvm}${envExport}npm run build`);
+    runShell(`cd "${appPath}"; ${nvm}${envExport}npm run build`);
 
     // Remove maintenance files that may have been copied into standalone
     runShell(`rm -f "${appPath}/.next/standalone/public/maintenance.on" "${appPath}/.next/standalone/public/maintenance-msg.txt" 2>/dev/null || true`);

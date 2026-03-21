@@ -2,31 +2,47 @@ const { runShell } = require('../utils/shell');
 const { nvmPrefix } = require('../utils/nvm');
 const path = require('path');
 const fs = require('fs');
+const { execFileSync } = require('child_process');
 
 /**
  * Initializes the database: prisma generate + migrate deploy.
- * Loads DATABASE_URL from the generated .env before running migrations.
+ *
+ * Local mode: runs prisma directly via the current node process (no bash/NVM needed).
+ * Server mode: runs via bash with NVM + sourced .env.
  */
 function setupDatabase(answers, spinner) {
-    const { appPath } = answers;
-    const nvm = nvmPrefix();
-
+    const { appPath, mode } = answers;
+    const dbPath = path.join(appPath, 'prisma', 'dev.db');
     const backupsDir = path.join(appPath, 'prisma', 'backups');
+
     if (!fs.existsSync(backupsDir)) {
         fs.mkdirSync(backupsDir, { recursive: true });
     }
 
-    // Load DATABASE_URL from .env so prisma can find the db
-    const envPath = path.join(appPath, '.env');
-    const envExport = fs.existsSync(envPath)
-        ? `set -a && . "${envPath}" && set +a && `
-        : '';
+    if (mode === 'local') {
+        // Use the current node process directly — no bash or NVM needed
+        const env = { ...process.env, DATABASE_URL: `file:${dbPath}` };
+        const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
-    spinner.text = 'Running prisma generate…';
-    runShell(`cd "${appPath}" && ${nvm}${envExport}npx prisma generate`);
+        spinner.text = 'Running prisma generate…';
+        execFileSync(npx, ['prisma', 'generate'], { cwd: appPath, env, stdio: 'pipe' });
 
-    spinner.text = 'Running prisma migrate deploy…';
-    runShell(`cd "${appPath}" && ${nvm}${envExport}npx prisma migrate deploy`);
+        spinner.text = 'Running prisma migrate deploy…';
+        execFileSync(npx, ['prisma', 'migrate', 'deploy'], { cwd: appPath, env, stdio: 'pipe' });
+    } else {
+        // Server mode: use bash + NVM + source .env
+        const nvm = nvmPrefix();
+        const envPath = path.join(appPath, '.env');
+        const envExport = fs.existsSync(envPath)
+            ? `set -a; . "${envPath}"; set +a; `
+            : '';
+
+        spinner.text = 'Running prisma generate…';
+        runShell(`cd "${appPath}"; ${nvm}${envExport}npx prisma generate`);
+
+        spinner.text = 'Running prisma migrate deploy…';
+        runShell(`cd "${appPath}"; ${nvm}${envExport}npx prisma migrate deploy`);
+    }
 }
 
 module.exports = { setupDatabase };

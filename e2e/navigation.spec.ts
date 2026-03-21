@@ -1,13 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers';
+
+const hasCredentials = !!(process.env.E2E_USER_EMAIL && process.env.E2E_USER_PASSWORD);
 
 test.describe('Navigation nach Login', () => {
-  test.beforeEach(async ({ page }) => {
-    const email = process.env.E2E_USER_EMAIL;
-    const password = process.env.E2E_USER_PASSWORD;
-    if (!email || !password) { test.skip(); return; }
-    await login(page, email, password);
-  });
+  test.skip(!hasCredentials, 'Keine E2E-Zugangsdaten gesetzt');
 
   test('Home-Seite nach Login erreichbar', async ({ page }) => {
     await page.goto('/');
@@ -58,6 +54,7 @@ test.describe('Navigation ohne Login', () => {
   });
 
   test('Admin-Bereich leitet zu Login', async ({ page }) => {
+    await page.context().clearCookies();
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/login/);
   });

@@ -51,6 +51,9 @@ dev.db.bak*
 /prisma/*.db
 .*.swp
 
+# Playwright auth state
+e2e/.auth/
+
 # Claude Code
 .claude/
 2026-*.txt

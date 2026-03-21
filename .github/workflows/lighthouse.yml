@@ -16,7 +16,7 @@ jobs:
 
       - name: Warten bis Deploy abgeschlossen ist
         if: github.event_name == 'push'
-        run: sleep 300
+        run: sleep 600
 
       - name: Lighthouse auf Produktion ausführen
         uses: treosh/lighthouse-ci-action@v12

@@ -25,6 +25,20 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong
 npm run setup
 ```
 
+## Updating
+
+Run on your server to pull the latest version, rebuild, and restart:
+```bash
+bash ~/beer-pong/scripts/update.sh
+```
+
+Or use the shorthand if you're already in the app directory:
+```bash
+npm run update
+```
+
+The Admin Dashboard shows a banner automatically when a new version is available on GitHub.
+
 ---
 
 ## Features

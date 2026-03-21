@@ -156,5 +156,7 @@ if [ "$ISSUES" -eq 0 ]; then
     printf "  \e[32m✔  Everything looks good!\e[0m\n"
 else
     printf "  \e[33m⚠  %d issue(s) found — see fixes above.\e[0m\n" "$ISSUES"
+    echo ""
+    printf "  \e[2mStill stuck? Write to \e[0m\e[36mn@olomek.com\e[0m\n"
 fi
 echo ""

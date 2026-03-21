@@ -445,13 +445,25 @@ function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: stri
 
     if (!apiKey) {
         return (
-            <input
-                name="location"
-                className="input-field"
-                placeholder="z.B. Musterstraße 1, Wien"
-                defaultValue={defaultValue}
-                style={{ width: '100%', boxSizing: 'border-box' }}
-            />
+            <div style={{ position: 'relative' }}>
+                <MapPin size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-dim)', pointerEvents: 'none' }} />
+                <input
+                    name="location"
+                    className="input-field"
+                    placeholder="z.B. Musterstraße 1, Wien"
+                    defaultValue={defaultValue}
+                    style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '16px 16px 16px 48px',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border-strong)',
+                        color: 'var(--color-text)',
+                        borderRadius: 'var(--radius-lg)',
+                        fontSize: '1rem',
+                    }}
+                />
+            </div>
         );
     }
 

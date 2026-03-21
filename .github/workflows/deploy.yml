@@ -62,10 +62,15 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd ~/beer-pong
 
+            # Maintenance immer deaktivieren — auch bei Fehler
+            cleanup() {
+              rm -f public/maintenance.on public/maintenance-msg.txt
+              pm2 start beer-pong || true
+            }
+            trap cleanup EXIT
+
             # Maintenance-Modus aktivieren
-            # maintenance-msg.txt: JSON-Info für die Maintenance-Seite
             echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
-            # maintenance.on: nginx-Flag → gibt 503 zurück, zeigt maintenance.html
             touch public/maintenance.on
 
             # App stoppen
@@ -83,12 +88,5 @@ jobs:
             cp -r .next/static .next/standalone/.next/static
             # maintenance.on darf nicht im standalone landen — sonst bleibt Maintenance ewig an
             rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
-
-            # App starten
-            pm2 start beer-pong
-
-            # Maintenance-Modus deaktivieren — nginx proxied wieder normal
-            # maintenance.html pollt '/' und leitet Nutzer automatisch weiter
-            rm -f public/maintenance.on public/maintenance-msg.txt
 
             echo "Deploy erfolgreich!"

@@ -40,6 +40,7 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 - **Guest Access** — 24h sessions for fun/unranked tournaments
 - **Admin Dashboard** — approve players, override scores, manage tournaments
 - **Maintenance Mode** — zero-downtime via nginx flag file
+- **Multilingual** — English and German, selected during setup (changeable via `NEXT_PUBLIC_LOCALE` in `.env`)
 
 ---
 

@@ -2,6 +2,7 @@
 
 import { Users, User } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import { useTranslations } from 'next-intl';
 
 interface Player {
     id: string;
@@ -22,6 +23,7 @@ interface Props {
 
 export default function ParticipantList({ players, guests, isTeamMode }: Props) {
     const totalCount = players.length + guests.length;
+    const t = useTranslations('participants');
 
     return (
         <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
@@ -34,7 +36,7 @@ export default function ParticipantList({ players, guests, isTeamMode }: Props) 
                 fontWeight: 600
             }}>
                 {isTeamMode ? <Users size={18} /> : <User size={18} />}
-                {isTeamMode ? 'Verfügbare Spieler' : 'Teilnehmer'}
+                {isTeamMode ? t('available') : t('participants')}
                 <span style={{
                     marginLeft: 'auto',
                     fontSize: '0.8rem',
@@ -50,7 +52,7 @@ export default function ParticipantList({ players, guests, isTeamMode }: Props) 
 
             {totalCount === 0 ? (
                 <p style={{ color: 'var(--color-text-dim)', textAlign: 'center', padding: 'var(--spacing-4)' }}>
-                    Noch keine Teilnehmer. Teile den Link!
+                    {t('none')}
                 </p>
             ) : (
                 <div style={{

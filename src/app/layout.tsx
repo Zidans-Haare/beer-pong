@@ -6,6 +6,8 @@ import ServiceWorkerUpdate from '@/components/ServiceWorkerUpdate';
 import ClientLayout from '@/components/ClientLayout';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Bier Pong',
@@ -53,9 +55,11 @@ export default async function RootLayout({
 }) {
   const session = await auth();
   const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* SW-Reload vor React-Hydration registrieren — verhindert verpasste controllerchange-Events
             Kein XSS-Risiko: statischer Literal-String, keine User-Daten */}
@@ -70,6 +74,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
+        <NextIntlClientProvider messages={messages}>
         <DrunkModeProvider>
         <div className="layout-shell">
           <Navbar />
@@ -85,6 +90,7 @@ export default async function RootLayout({
           <ServiceWorkerProvider />
         </div>
         </DrunkModeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

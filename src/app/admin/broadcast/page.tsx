@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { sendManualBroadcast } from '@/app/actions/notifications';
 import { Send, Bell, Megaphone, Trophy, AlertTriangle, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 export default function BroadcastPage() {
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [linkChoice, setLinkChoice] = useState('/tournaments');
     const [customLink, setCustomLink] = useState('');
+    const t = useTranslations('admin.broadcast');
 
     const handleSubmit = async (formData: FormData) => {
         setStatus('sending');
@@ -18,7 +20,7 @@ export default function BroadcastPage() {
         if (res.success) {
             setStatus('success');
             const count = 'count' in res ? res.count : 0;
-            setMessage(`Nachricht gesendet! (${count} Empfänger)`);
+            setMessage(`${t('sent')} (${count})`);
         } else {
             setStatus('error');
             setMessage(res.error || 'Fehler beim Senden');
@@ -45,15 +47,15 @@ export default function BroadcastPage() {
                     </div>
                     <div>
                         <h1 className="text-gradient" style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>
-                            Broadcast Senden
+                            {t('title')}
                         </h1>
-                        <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>Nachricht an alle Nutzer senden</p>
+                        <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{t('subtitle')}</p>
                     </div>
                 </div>
 
                 <form action={handleSubmit} style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
                     <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Titel</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>{t('messageTitle')}</label>
                         <input
                             name="title"
                             required
@@ -72,7 +74,7 @@ export default function BroadcastPage() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Nachricht</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>{t('message')}</label>
                         <textarea
                             name="message"
                             required

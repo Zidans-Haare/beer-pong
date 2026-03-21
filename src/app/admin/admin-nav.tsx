@@ -6,6 +6,7 @@ import {
     Users, Radio, LayoutDashboard, Settings, Trophy,
     UserCheck, MessageSquare, UserX, User, KeyRound,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import './admin-nav.css';
 
 interface NavItem {
@@ -24,41 +25,6 @@ interface Props {
     pendingCount: number;
 }
 
-function buildSections(pendingCount: number): NavSection[] {
-    return [
-        {
-            title: 'Übersicht',
-            items: [
-                { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-            ],
-        },
-        {
-            title: 'Personen',
-            items: [
-                { href: '/admin/approvals', label: 'Anfragen', icon: UserCheck, badge: pendingCount },
-                { href: '/admin/users', label: 'Benutzer', icon: Users },
-                { href: '/admin/players', label: 'Spieler', icon: User },
-                { href: '/admin/passkeys', label: 'Passkeys', icon: KeyRound },
-            ],
-        },
-        {
-            title: 'Turnier',
-            items: [
-                { href: '/admin/tournaments', label: 'Turniere', icon: Trophy },
-                { href: '/admin/guests', label: 'Gäste', icon: UserX },
-            ],
-        },
-        {
-            title: 'Tools',
-            items: [
-                { href: '/admin/chat', label: 'Chat', icon: MessageSquare },
-                { href: '/admin/broadcast', label: 'Broadcast', icon: Radio },
-                { href: '/admin/settings', label: 'Setup', icon: Settings },
-            ],
-        },
-    ];
-}
-
 function isActive(pathname: string, href: string): boolean {
     if (href === '/admin') return pathname === '/admin';
     return pathname.startsWith(href);
@@ -66,7 +32,40 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function AdminNav({ pendingCount }: Props) {
     const pathname = usePathname();
-    const sections = buildSections(pendingCount);
+    const t = useTranslations('admin.nav');
+
+    const sections: NavSection[] = [
+        {
+            title: t('overview'),
+            items: [
+                { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+            ],
+        },
+        {
+            title: t('people'),
+            items: [
+                { href: '/admin/approvals', label: t('approvals'), icon: UserCheck, badge: pendingCount },
+                { href: '/admin/users', label: t('users'), icon: Users },
+                { href: '/admin/players', label: t('players'), icon: User },
+                { href: '/admin/passkeys', label: t('passkeys'), icon: KeyRound },
+            ],
+        },
+        {
+            title: t('tournament'),
+            items: [
+                { href: '/admin/tournaments', label: t('tournaments'), icon: Trophy },
+                { href: '/admin/guests', label: t('guests'), icon: UserX },
+            ],
+        },
+        {
+            title: t('tools'),
+            items: [
+                { href: '/admin/chat', label: t('chat'), icon: MessageSquare },
+                { href: '/admin/broadcast', label: t('broadcast'), icon: Radio },
+                { href: '/admin/settings', label: t('setup'), icon: Settings },
+            ],
+        },
+    ];
     const allItems = sections.flatMap(s => s.items);
 
     return (

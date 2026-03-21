@@ -2,6 +2,7 @@
 
 import { createTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Player } from '@prisma/client';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Users, User, Trophy, PartyPopper, Play, Calendar, Search, MapPin } from 'lucide-react';
@@ -11,6 +12,7 @@ import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from
 
 
 export default function CreateTournamentForm({ players, hostPlayerId }: { players: Player[], hostPlayerId: string | null }) {
+    const t = useTranslations('tournaments');
     const router = useRouter();
     const [startImmediately, setStartImmediately] = useState(true);
     const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
@@ -45,7 +47,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
             // New behavior: Redirect to detailed page with success flag
             router.push(`/tournaments/${res.tournament.id}?newlyCreated=true`);
         } else {
-            alert('Fehler: ' + res.error);
+            alert(t('error') + ' ' + res.error);
         }
     }
 
@@ -66,8 +68,8 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 }}>
                     <Trophy size={32} color="var(--color-primary)" />
                 </div>
-                <h1 className="title-gradient" style={{ fontSize: '1.8rem', marginBottom: 'var(--spacing-2)' }}>Neues Turnier</h1>
-                <p className="subtitle">Erstelle dein Bierpong-Event in Sekunden</p>
+                <h1 className="title-gradient" style={{ fontSize: '1.8rem', marginBottom: 'var(--spacing-2)' }}>{t('newTitle')}</h1>
+                <p className="subtitle">{t('newSubtitle')}</p>
             </div>
 
             <form ref={formRef} action={clientAction} style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
@@ -79,7 +81,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         padding: '0 8px', fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600,
                         borderRadius: '4px'
                     }}>
-                        Turnier Name
+                        {t('name')}
                     </label>
                     <input
                         type="text"
@@ -102,6 +104,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                     <div style={{ width: '100%', boxSizing: 'border-box' }}>
                         <LocationPicker
                             defaultValue=""
+                            placeholder={t('locationPlaceholder')}
                             onLocationSelect={(address, lat, lng) => {
                                 const form = formRef.current;
                                 if (form) {
@@ -440,7 +443,7 @@ function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, start
 
 const libraries: ("places")[] = ["places"];
 
-function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
+function LocationPicker({ defaultValue, placeholder, onLocationSelect }: { defaultValue: string, placeholder?: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
@@ -450,7 +453,7 @@ function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: stri
                 <input
                     name="location"
                     className="input-field"
-                    placeholder="z.B. Musterstraße 1, Wien"
+                    placeholder={placeholder}
                     defaultValue={defaultValue}
                     style={{
                         width: '100%',
@@ -467,10 +470,10 @@ function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: stri
         );
     }
 
-    return <LocationPickerWithMaps apiKey={apiKey} defaultValue={defaultValue} onLocationSelect={onLocationSelect} />;
+    return <LocationPickerWithMaps apiKey={apiKey} defaultValue={defaultValue} placeholder={placeholder} onLocationSelect={onLocationSelect} />;
 }
 
-function LocationPickerWithMaps({ apiKey, defaultValue, onLocationSelect }: { apiKey: string, defaultValue: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
+function LocationPickerWithMaps({ apiKey, defaultValue, placeholder, onLocationSelect }: { apiKey: string, defaultValue: string, placeholder?: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
     const { isLoaded } = useLoadScript({
         googleMapsApiKey: apiKey,
         libraries,

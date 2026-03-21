@@ -5,6 +5,7 @@ import { setBringItem } from '@/app/actions/bring-list';
 import { BRING_CATEGORIES } from '@/lib/bring-categories';
 import { useRouter } from 'next/navigation';
 import { Droplets, Table2, CupSoda, CircleDot, ShoppingBag, Minus, Plus, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number };
 
@@ -24,6 +25,7 @@ export default function BringList({
     initialItems: BringItemData[];
     currentUserId: string | null;
 }) {
+    const t = useTranslations('bringList');
     const [items, setItems] = useState<BringItemData[]>(initialItems);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -63,7 +65,7 @@ export default function BringList({
         <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
             <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                 <ShoppingBag size={18} />
-                Mitbringliste
+                {t('title')}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>

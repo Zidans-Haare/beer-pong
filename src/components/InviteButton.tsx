@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Share2, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function InviteButton() {
+    const t = useTranslations('invite');
     const [copied, setCopied] = useState(false);
 
     const handleInvite = async () => {
@@ -33,7 +35,7 @@ export default function InviteButton() {
             }}
         >
             {copied ? <Check size={20} /> : <Share2 size={20} />}
-            <span>{copied ? 'Link kopiert!' : 'Spieler einladen'}</span>
+            <span>{copied ? t('copied') : t('invite')}</span>
         </button>
     );
 }

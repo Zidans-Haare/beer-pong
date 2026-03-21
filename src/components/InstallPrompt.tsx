@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Share } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -9,6 +10,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function InstallPrompt() {
+    const t = useTranslations('install');
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [isIOS, setIsIOS] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
@@ -91,10 +93,10 @@ export default function InstallPrompt() {
                     fontWeight: 600,
                     color: 'var(--color-text)'
                 }}>
-                    Du nutzt die App noch nicht?
+                    {t('prompt')}
                 </span>
                 <span style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                    Installiere sie jetzt für das beste Erlebnis
+                    {t('subtitle')}
                 </span>
             </div>
 
@@ -109,7 +111,7 @@ export default function InstallPrompt() {
                     width: 'fit-content'
                 }}
             >
-                Jetzt installieren
+                {t('install')}
             </button>
 
             {showIOSInstructions && (
@@ -123,7 +125,7 @@ export default function InstallPrompt() {
                     animation: 'fadeIn 0.3s ease-in-out'
                 }}>
                     <p style={{ marginBottom: 'var(--spacing-3)', fontWeight: 600, textAlign: 'center' }}>
-                        Installation auf iOS:
+                        {t('ios')}
                     </p>
                     <div style={{
                         background: 'rgba(0,0,0,0.2)',
@@ -138,10 +140,10 @@ export default function InstallPrompt() {
                             margin: 0
                         }}>
                             <li>
-                                Tippe unten auf <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)' }}>Teilen <Share size={16} /></strong>
+                                {t('step1Prefix')} <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary)' }}>{t('share')} <Share size={16} /></strong>
                             </li>
-                            <li>Wähle <strong>&quot;Zum Home-Bildschirm&quot;</strong></li>
-                            <li>Tippe oben rechts auf <strong>&quot;Hinzufügen&quot;</strong></li>
+                            <li>{t('step2Prefix')} <strong>&quot;{t('addToHome')}&quot;</strong></li>
+                            <li>{t('step3Prefix')} <strong>&quot;{t('add')}&quot;</strong></li>
                         </ol>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-const { input, confirm } = require('@inquirer/prompts');
+const { input, confirm, select } = require('@inquirer/prompts');
 const os = require('os');
 const path = require('path');
 const { validateDomain, validateEmail, validatePort } = require('./utils/validate');
@@ -12,6 +12,15 @@ async function askQuestions(mode, section) {
     answers.appPath = mode === 'local'
         ? process.cwd()
         : path.join(home, 'beer-pong');
+
+    answers.locale = await select({
+        message: 'Language / Sprache',
+        choices: [
+            { name: 'English', value: 'en' },
+            { name: 'Deutsch', value: 'de' },
+        ],
+        default: 'en',
+    });
 
     // ── Basic configuration ──────────────────────────────────────────────
     section('⚙', 'Basic configuration');

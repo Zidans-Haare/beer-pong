@@ -7,9 +7,11 @@ import { Hash, ArrowRight, Loader2 } from 'lucide-react';
 import QRScanner from '@/components/QRScanner';
 import { haptic } from '@/lib/haptics';
 import { isValidShortCode } from '@/lib/qrcode';
+import { useTranslations } from 'next-intl';
 
 export default function JoinPage() {
   const router = useRouter();
+  const t = useTranslations('join');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +68,7 @@ export default function JoinPage() {
     const fullCode = submitCode || code.join('');
 
     if (!isValidShortCode(fullCode)) {
-      setError('Bitte gib einen gültigen 6-stelligen Code ein');
+      setError(t('invalidCode'));
       haptic.error();
       return;
     }
@@ -82,12 +84,12 @@ export default function JoinPage() {
         haptic.success();
         router.push(`/join/${fullCode}`);
       } else {
-        setError('Turnier nicht gefunden. Prüfe den Code.');
+        setError(t('notFound'));
         haptic.error();
         setIsLoading(false);
       }
     } catch (err) {
-      setError('Verbindungsfehler. Bitte versuche es erneut.');
+      setError(t('connectionError'));
       haptic.error();
       setIsLoading(false);
     }
@@ -152,7 +154,7 @@ export default function JoinPage() {
             marginBottom: 'var(--spacing-2)',
           }}
         >
-          Turnier beitreten
+          {t('title')}
         </h1>
 
         <p
@@ -161,7 +163,7 @@ export default function JoinPage() {
             marginBottom: 'var(--spacing-6)',
           }}
         >
-          Gib den 6-stelligen Code ein oder scanne den QR-Code
+          {t('subtitle')}
         </p>
 
         {/* Code Input */}
@@ -242,11 +244,11 @@ export default function JoinPage() {
           {isLoading ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Wird gesucht...
+              {t('searching')}
             </>
           ) : (
             <>
-              Beitreten
+              {t('join')}
               <ArrowRight size={18} />
             </>
           )}
@@ -262,7 +264,7 @@ export default function JoinPage() {
           }}
         >
           <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-          <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>oder</span>
+          <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('or')}</span>
           <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
         </div>
 

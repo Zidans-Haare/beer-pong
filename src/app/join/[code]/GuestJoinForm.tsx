@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createGuestPlayer } from '@/app/actions/guests';
 import { haptic } from '@/lib/haptics';
 import { UserPlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   tournamentId: string;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function GuestJoinForm({ tournamentId }: Props) {
   const router = useRouter();
+  const t = useTranslations('join');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export default function GuestJoinForm({ tournamentId }: Props) {
     setError(null);
 
     if (name.trim().length < 2) {
-      setError('Bitte gib deinen Namen ein (min. 2 Zeichen)');
+      setError(t('nameError'));
       haptic.error();
       return;
     }
@@ -37,7 +39,7 @@ export default function GuestJoinForm({ tournamentId }: Props) {
         router.push(`/tournaments/${tournamentId}`);
         router.refresh();
       } else {
-        setError(result.error || 'Fehler beim Beitreten');
+        setError(result.error || t('joinError'));
         haptic.error();
       }
     } catch (err) {
@@ -59,14 +61,14 @@ export default function GuestJoinForm({ tournamentId }: Props) {
           color: 'var(--color-text)'
         }}
       >
-        Wie heißt du?
+        {t('yourName')}
       </label>
       <input
         id="guestName"
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Dein Name"
+        placeholder={t('namePlaceholder')}
         maxLength={30}
         autoFocus
         autoComplete="name"

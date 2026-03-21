@@ -10,6 +10,7 @@ import { getPlayerPaceStats, formatDuration } from '@/lib/duration';
 import { Pencil } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import PaceStatsWidget from '@/components/PaceStatsWidget';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     // Awaiting params is required in newer Next.js versions for dynamic routes
     const { id } = await params;
     const session = await auth();
+    const t = await getTranslations('players');
 
     const player = await prisma.player.findUnique({
         where: { id },
@@ -45,7 +47,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     return (
         <div className="container">
             <Link href="/players" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>
-                &larr; Zurück zur Übersicht
+                &larr; {t('back')}
             </Link>
 
             <div className="glass-panel" style={{ padding: 'var(--spacing-8)', marginBottom: 'var(--spacing-8)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -61,7 +63,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
                         {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
                             <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <Pencil size={14} /> Profil bearbeiten
+                                <Pencil size={14} /> {t('editProfile')}
                             </Link>
                         )}
                     </div>
@@ -72,9 +74,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
             {/* Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-4)', width: '100%', marginTop: 'var(--spacing-4)' }}>
-                <StatBox label="Siege" value={matchesWon} />
-                <StatBox label="Spiele" value={matchesPlayed} />
-                <StatBox label="Win Rate" value={`${winRate}%`} />
+                <StatBox label={t('wins')} value={matchesWon} />
+                <StatBox label={t('games')} value={matchesPlayed} />
+                <StatBox label={t('winRate')} value={`${winRate}%`} />
             </div>
 
             {/* Pace Stats */}

@@ -1,0 +1,177 @@
+{
+  "auth": {
+    "loginWithEmail": "oder mit Email",
+    "password": "Passwort",
+    "signIn": "Anmelden",
+    "noAccount": "Noch keinen Account?",
+    "register": "Registrieren",
+    "name": "Name",
+    "email": "Email",
+    "acceptRules": "Ich habe die",
+    "rules": "Regeln",
+    "createAccount": "Account erstellen",
+    "accountCreated": "Account wurde erstellt und wartet auf Admin-Freigabe",
+    "notified": "Du wirst benachrichtigt, sobald dein Zugang aktiviert wurde",
+    "registrationError": "Fehler bei der Registrierung"
+  },
+  "nav": {
+    "join": "Join",
+    "tournaments": "Turniere",
+    "players": "Spieler",
+    "notifications": "Glocke",
+    "stats": "Stats",
+    "chat": "Chat"
+  },
+  "tournaments": {
+    "title": "Turniere",
+    "subtitle": "Alle Events auf einen Blick",
+    "new": "Neues Turnier",
+    "openLobbies": "OFFENE LOBBYS",
+    "planned": "GEPLANT",
+    "live": "LIVE",
+    "archive": "ARCHIV",
+    "archivedTournaments": "beendete Turniere im Archiv",
+    "goTo": "Zum Turnier",
+    "lobby": "LOBBY",
+    "ended": "BEENDET",
+    "newTitle": "Neues Turnier",
+    "newSubtitle": "Erstelle dein Bierpong-Event in Sekunden",
+    "name": "Turnier Name",
+    "error": "Fehler:",
+    "location": "Location",
+    "locationPlaceholder": "z.B. Musterstraße 1, Wien"
+  },
+  "rsvp": {
+    "question": "Bist du dabei?",
+    "yes": "Dabei",
+    "maybe": "Vielleicht",
+    "no": "Absage",
+    "acceptRules": "Ich akzeptiere die",
+    "rules": "Regeln"
+  },
+  "players": {
+    "title": "Spieler",
+    "noPlayers": "Noch keine Spieler registriert",
+    "namePlaceholder": "Name (Pflicht)",
+    "nickname": "Spitzname",
+    "motto": "Motto",
+    "cancel": "Abbrechen",
+    "create": "Spieler Anlegen",
+    "back": "Zurück zur Übersicht",
+    "editProfile": "Profil bearbeiten",
+    "wins": "Siege",
+    "games": "Spiele",
+    "winRate": "Win Rate"
+  },
+  "join": {
+    "title": "Turnier beitreten",
+    "subtitle": "Gib den 6-stelligen Code ein oder scanne den QR-Code",
+    "invalidCode": "Bitte gib einen gültigen 6-stelligen Code ein",
+    "notFound": "Turnier nicht gefunden. Prüfe den Code",
+    "connectionError": "Verbindungsfehler. Bitte versuche es erneut",
+    "searching": "Wird gesucht...",
+    "join": "Beitreten",
+    "or": "oder",
+    "yourName": "Wie heißt du?",
+    "namePlaceholder": "Dein Name",
+    "nameError": "Bitte gib deinen Namen ein (min. 2 Zeichen)",
+    "joinError": "Fehler beim Beitreten"
+  },
+  "admin": {
+    "nav": {
+      "overview": "Übersicht",
+      "people": "Personen",
+      "approvals": "Anfragen",
+      "users": "Benutzer",
+      "players": "Spieler",
+      "passkeys": "Passkeys",
+      "tournament": "Turnier",
+      "tournaments": "Turniere",
+      "guests": "Gäste",
+      "tools": "Tools",
+      "chat": "Chat",
+      "broadcast": "Broadcast",
+      "setup": "Setup"
+    },
+    "tournaments": {
+      "title": "Turniere",
+      "total": "Turniere gesamt",
+      "overview": "Übersicht",
+      "none": "Keine Turniere vorhanden",
+      "players": "Spieler",
+      "changeStatus": "Status ändern",
+      "action": "Aktion",
+      "addPlayer": "Spieler anmelden",
+      "addPlayerHint": "Vergessliche Spieler manuell zu einem geplanten Turnier hinzufügen",
+      "noPlanned": "Keine geplanten Turniere vorhanden"
+    },
+    "approvals": {
+      "title": "Account-Anfragen",
+      "none": "Keine offenen Anfragen"
+    },
+    "players": {
+      "title": "Spieler",
+      "count": "registrierte Spieler"
+    },
+    "broadcast": {
+      "title": "Broadcast Senden",
+      "subtitle": "Nachricht an alle Nutzer senden",
+      "messageTitle": "Titel",
+      "message": "Nachricht",
+      "sent": "Nachricht gesendet!"
+    }
+  },
+  "participants": {
+    "available": "Verfügbare Spieler",
+    "participants": "Teilnehmer",
+    "none": "Noch keine Teilnehmer. Teile den Link!"
+  },
+  "install": {
+    "prompt": "Du nutzt die App noch nicht?",
+    "subtitle": "Installiere sie jetzt für das beste Erlebnis",
+    "install": "Jetzt installieren",
+    "ios": "Installation auf iOS",
+    "step1Prefix": "Tippe unten auf",
+    "share": "Teilen",
+    "step2Prefix": "Wähle",
+    "addToHome": "Zum Home-Bildschirm",
+    "step3Prefix": "Tippe oben rechts auf",
+    "add": "Hinzufügen"
+  },
+  "drunk": {
+    "on": "Ich bin betrunken",
+    "off": "Ich bin nüchtern"
+  },
+  "invite": {
+    "copied": "Link kopiert!",
+    "invite": "Spieler einladen"
+  },
+  "host": {
+    "title": "Host-Aktionen",
+    "deleting": "Löscht...",
+    "delete": "Turnier löschen",
+    "confirm": "Möchtest du dieses Turnier wirklich löschen?"
+  },
+  "bringList": {
+    "title": "Mitbringliste"
+  },
+  "offline": {
+    "title": "Du bist offline",
+    "subtitle": "Keine Internetverbindung. Sobald du wieder online bist, wird die App automatisch aktualisiert",
+    "retry": "Erneut versuchen",
+    "tip": "Tipp: Bereits besuchte Turniere sind auch offline verfügbar"
+  },
+  "notFound": {
+    "title": "Diese Seite existiert nicht",
+    "home": "Zur Startseite"
+  },
+  "settings": {
+    "back": "Zurück",
+    "title": "Einstellungen",
+    "security": "Sicherheit"
+  },
+  "notifications": {
+    "enabled": "Push-Benachrichtigungen aktiviert!",
+    "error": "Fehler beim Aktivieren der Benachrichtigungen"
+  }
+}

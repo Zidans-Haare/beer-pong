@@ -3,16 +3,18 @@
 import { submitRSVP } from '@/app/actions/rsvp';
 import { useState } from 'react';
 import { Check, HelpCircle, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function RSVPForm({
     tournamentId,
     currentStatus,
-    title = "Bist du dabei?"
+    title,
 }: {
     tournamentId: string;
     currentStatus?: string;
     title?: string;
 }) {
+    const t = useTranslations('rsvp');
     const [rulesAccepted, setRulesAccepted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,7 +39,7 @@ export default function RSVPForm({
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1rem', fontWeight: 600 }}>{title}</h3>
+            <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1rem', fontWeight: 600 }}>{title ?? t('question')}</h3>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
                 <button
@@ -67,7 +69,7 @@ export default function RSVPForm({
                     }}
                 >
                     <Check size={16} strokeWidth={currentStatus === 'YES' ? 3 : 2} />
-                    {currentStatus === 'YES' ? 'Dabei' : 'Dabei'}
+                    {t('yes')}
                 </button>
 
                 <button
@@ -92,7 +94,7 @@ export default function RSVPForm({
                     }}
                 >
                     <HelpCircle size={16} />
-                    Vielleicht
+                    {t('maybe')}
                 </button>
 
                 <button
@@ -117,7 +119,7 @@ export default function RSVPForm({
                     }}
                 >
                     <X size={16} />
-                    Absage
+                    {t('no')}
                 </button>
             </div>
 
@@ -142,13 +144,13 @@ export default function RSVPForm({
                             cursor: 'pointer'
                         }}
                     />
-                    Ich akzeptiere die{' '}
+                    {t('acceptRules')}{' '}
                     <a
                         href="/rules"
                         target="_blank"
                         style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}
                     >
-                        Regeln
+                        {t('rules')}
                     </a>
                 </label>
             )}

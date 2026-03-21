@@ -1,0 +1,177 @@
+{
+  "auth": {
+    "loginWithEmail": "or with email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "noAccount": "No account yet?",
+    "register": "Register",
+    "name": "Name",
+    "email": "Email",
+    "acceptRules": "I have read and accepted the",
+    "rules": "Rules",
+    "createAccount": "Create account",
+    "accountCreated": "Account created and waiting for admin approval",
+    "notified": "You will be notified once your account is activated",
+    "registrationError": "Registration error"
+  },
+  "nav": {
+    "join": "Join",
+    "tournaments": "Tournaments",
+    "players": "Players",
+    "notifications": "Notifications",
+    "stats": "Stats",
+    "chat": "Chat"
+  },
+  "tournaments": {
+    "title": "Tournaments",
+    "subtitle": "All events at a glance",
+    "new": "New Tournament",
+    "openLobbies": "OPEN LOBBIES",
+    "planned": "PLANNED",
+    "live": "LIVE",
+    "archive": "ARCHIVE",
+    "archivedTournaments": "completed tournaments in the archive",
+    "goTo": "Go to Tournament",
+    "lobby": "LOBBY",
+    "ended": "ENDED",
+    "newTitle": "New Tournament",
+    "newSubtitle": "Create your Beer Pong event in seconds",
+    "name": "Tournament Name",
+    "error": "Error:",
+    "location": "Location",
+    "locationPlaceholder": "e.g. 123 Main St, New York"
+  },
+  "rsvp": {
+    "question": "Are you in?",
+    "yes": "In",
+    "maybe": "Maybe",
+    "no": "Can't make it",
+    "acceptRules": "I accept the",
+    "rules": "Rules"
+  },
+  "players": {
+    "title": "Players",
+    "noPlayers": "No players registered yet",
+    "namePlaceholder": "Name (required)",
+    "nickname": "Nickname",
+    "motto": "Motto",
+    "cancel": "Cancel",
+    "create": "Create Player",
+    "back": "Back to overview",
+    "editProfile": "Edit profile",
+    "wins": "Wins",
+    "games": "Games",
+    "winRate": "Win Rate"
+  },
+  "join": {
+    "title": "Join Tournament",
+    "subtitle": "Enter the 6-digit code or scan the QR code",
+    "invalidCode": "Please enter a valid 6-digit code",
+    "notFound": "Tournament not found. Check the code",
+    "connectionError": "Connection error. Please try again",
+    "searching": "Searching...",
+    "join": "Join",
+    "or": "or",
+    "yourName": "What's your name?",
+    "namePlaceholder": "Your name",
+    "nameError": "Please enter your name (min. 2 characters)",
+    "joinError": "Error joining tournament"
+  },
+  "admin": {
+    "nav": {
+      "overview": "Overview",
+      "people": "People",
+      "approvals": "Approvals",
+      "users": "Users",
+      "players": "Players",
+      "passkeys": "Passkeys",
+      "tournament": "Tournament",
+      "tournaments": "Tournaments",
+      "guests": "Guests",
+      "tools": "Tools",
+      "chat": "Chat",
+      "broadcast": "Broadcast",
+      "setup": "Setup"
+    },
+    "tournaments": {
+      "title": "Tournaments",
+      "total": "Tournaments total",
+      "overview": "Overview",
+      "none": "No tournaments available",
+      "players": "Players",
+      "changeStatus": "Change Status",
+      "action": "Action",
+      "addPlayer": "Add Player",
+      "addPlayerHint": "Manually add players to a planned tournament",
+      "noPlanned": "No planned tournaments available"
+    },
+    "approvals": {
+      "title": "Account Requests",
+      "none": "No pending requests"
+    },
+    "players": {
+      "title": "Players",
+      "count": "registered players"
+    },
+    "broadcast": {
+      "title": "Send Broadcast",
+      "subtitle": "Send a message to all users",
+      "messageTitle": "Title",
+      "message": "Message",
+      "sent": "Message sent!"
+    }
+  },
+  "participants": {
+    "available": "Available Players",
+    "participants": "Participants",
+    "none": "No participants yet. Share the link!"
+  },
+  "install": {
+    "prompt": "Not using the app yet?",
+    "subtitle": "Install it now for the best experience",
+    "install": "Install now",
+    "ios": "Installation on iOS",
+    "step1Prefix": "Tap",
+    "share": "Share",
+    "step2Prefix": "Select",
+    "addToHome": "Add to Home Screen",
+    "step3Prefix": "Tap",
+    "add": "Add"
+  },
+  "drunk": {
+    "on": "I'm drunk",
+    "off": "I'm sober"
+  },
+  "invite": {
+    "copied": "Link copied!",
+    "invite": "Invite Players"
+  },
+  "host": {
+    "title": "Host Actions",
+    "deleting": "Deleting...",
+    "delete": "Delete Tournament",
+    "confirm": "Do you really want to delete this tournament?"
+  },
+  "bringList": {
+    "title": "Bring List"
+  },
+  "offline": {
+    "title": "You're offline",
+    "subtitle": "No internet connection. The app will update automatically once you're back online.",
+    "retry": "Try again",
+    "tip": "Tip: Previously visited tournaments are available offline too"
+  },
+  "notFound": {
+    "title": "This page doesn't exist",
+    "home": "Go to home"
+  },
+  "settings": {
+    "back": "Back",
+    "title": "Settings",
+    "security": "Security"
+  },
+  "notifications": {
+    "enabled": "Push notifications enabled!",
+    "error": "Error enabling notifications"
+  }
+}

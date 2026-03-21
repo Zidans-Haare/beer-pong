@@ -7,6 +7,7 @@ import { deleteTournament } from '@/app/actions/tournaments';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     tournamentId: string;
@@ -23,13 +24,14 @@ export default function HostControls({
     isPlanned,
     isActive
 }: Props) {
+    const t = useTranslations('host');
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
 
     if (!isPlanned && !isActive) return null;
 
     async function handleDelete() {
-        if (!confirm('Möchtest du dieses Turnier wirklich löschen?')) return;
+        if (!confirm(t('confirm'))) return;
         setIsDeleting(true);
         const res = await deleteTournament(tournamentId);
         if (res.success) {
@@ -43,7 +45,7 @@ export default function HostControls({
 
     return (
         <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>Host-Aktionen</h3>
+            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>{t('title')}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-3)' }}>
                 {isPlanned && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
@@ -73,7 +75,7 @@ export default function HostControls({
                             }}
                         >
                             <Trash2 size={20} />
-                            {isDeleting ? 'Löscht...' : 'Turnier löschen'}
+                            {isDeleting ? t('deleting') : t('delete')}
                         </button>
                     </div>
                 )}

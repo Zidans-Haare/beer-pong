@@ -83,6 +83,7 @@ async function generateEnv(answers, spinner) {
         `APP_URL="${appUrl}"`,
         `NEXT_PUBLIC_APP_URL="${appUrl}"`,
         `PORT=${port}`,
+        `NEXT_PUBLIC_LOCALE="${answers.locale || 'en'}"`,
         '',
         '# WebAuthn (Passkeys)',
         `WEBAUTHN_RP_ID="${mode === 'local' ? 'localhost' : domain}"`,

@@ -1,19 +1,22 @@
 import { getPendingUsers } from '@/app/actions/admin';
 import ApprovalsClient from './approvals-client';
+import { getTranslations } from 'next-intl/server';
 
 export default async function ApprovalsPage() {
     const result = await getPendingUsers();
     const users = result.success ? result.users : [];
 
+    const t = await getTranslations('admin.approvals');
+
     return (
         <div>
             <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>
-                Account-Anfragen
+                {t('title')}
             </h1>
 
             {users.length === 0 ? (
                 <div className="glass-panel" style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-text-dim)' }}>
-                    Keine offenen Anfragen.
+                    {t('none')}
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>

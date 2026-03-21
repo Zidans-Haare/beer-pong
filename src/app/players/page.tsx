@@ -3,17 +3,19 @@ import InviteButton from '@/components/InviteButton';
 import Link from 'next/link';
 import { User, Trophy, TrendingUp, Sparkles, UserPlus } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PlayersPage() {
     const players = await getPlayers();
+    const t = await getTranslations('players');
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
                 <div>
-                    <h1 className="title-display" style={{ fontSize: '2rem' }}>Spieler</h1>
+                    <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
 
                 </div>
                 <InviteButton />
@@ -23,7 +25,7 @@ export default async function PlayersPage() {
                 {players.length === 0 ? (
                     <div className="glass-panel" style={{ gridColumn: '1/-1', padding: 'var(--spacing-12)', textAlign: 'center', color: 'var(--color-text-dim)' }}>
                         <div style={{ marginBottom: 'var(--spacing-4)' }}><User size={48} style={{ opacity: 0.2 }} /></div>
-                        Noch keine Spieler registriert.
+                        {t('noPlayers')}
                     </div>
                 ) : (
                     players.map((player: any) => (

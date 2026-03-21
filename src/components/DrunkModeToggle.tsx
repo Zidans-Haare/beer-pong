@@ -1,8 +1,10 @@
 'use client';
 
 import { useDrunkMode } from '@/context/DrunkModeContext';
+import { useTranslations } from 'next-intl';
 
 export default function DrunkModeToggle() {
+    const t = useTranslations('drunk');
     const { isDrunk, toggle } = useDrunkMode();
 
     return (
@@ -54,7 +56,7 @@ export default function DrunkModeToggle() {
                 fontWeight: isDrunk ? 700 : 500,
                 color: isDrunk ? '#ea580c' : 'var(--color-text-dim)',
             }}>
-                {isDrunk ? 'Ich bin betrunken' : 'Ich bin nüchtern'}
+                {isDrunk ? t('on') : t('off')}
             </span>
         </button>
     );

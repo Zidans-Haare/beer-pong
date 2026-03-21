@@ -4,10 +4,12 @@ import { createPlayer } from '@/app/actions/players';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { User, Sparkles, type LucideIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function CreatePlayerForm() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const t = useTranslations('players');
 
     async function clientAction(formData: FormData) {
         setIsSubmitting(true);
@@ -28,7 +30,7 @@ export default function CreatePlayerForm() {
                 {/* Name */}
                 <div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>
-                        <User size={16} /> Name (Pflicht)
+                        <User size={16} /> {t('namePlaceholder')}
                     </label>
                     <input
                         type="text"
@@ -41,7 +43,7 @@ export default function CreatePlayerForm() {
 
                 {/* Nickname */}
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>Spitzname</label>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>{t('nickname')}</label>
                     <input
                         type="text"
                         name="nickname"
@@ -53,7 +55,7 @@ export default function CreatePlayerForm() {
                 {/* Motto */}
                 <div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)', fontWeight: 'bold', color: 'var(--color-text)' }}>
-                        <Sparkles size={16} /> Motto
+                        <Sparkles size={16} /> {t('motto')}
                     </label>
                     <input
                         type="text"
@@ -70,7 +72,7 @@ export default function CreatePlayerForm() {
                         className="btn"
                         style={{ flex: 1, border: '1px solid var(--color-border)' }}
                     >
-                        Abbrechen
+                        {t('cancel')}
                     </button>
                     <button
                         type="submit"
@@ -78,7 +80,7 @@ export default function CreatePlayerForm() {
                         disabled={isSubmitting}
                         style={{ flex: 1, opacity: isSubmitting ? 0.7 : 1 }}
                     >
-                        {isSubmitting ? 'Speichere...' : 'Spieler Anlegen'}
+                        {isSubmitting ? '...' : t('create')}
                     </button>
                 </div>
             </form>

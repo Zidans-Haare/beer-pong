@@ -1,8 +1,10 @@
 'use client';
 
 import { WifiOff, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function OfflinePage() {
+  const t = useTranslations('offline');
   return (
     <div className="container" style={{
       display: 'flex',
@@ -35,7 +37,7 @@ export default function OfflinePage() {
           fontSize: '1.5rem',
           marginBottom: 'var(--spacing-4)'
         }}>
-          Du bist offline
+          {t('title')}
         </h1>
 
         <p style={{
@@ -43,8 +45,7 @@ export default function OfflinePage() {
           marginBottom: 'var(--spacing-6)',
           lineHeight: 1.6
         }}>
-          Keine Internetverbindung. Sobald du wieder online bist,
-          wird die App automatisch aktualisiert.
+          {t('subtitle')}
         </p>
 
         <button
@@ -59,7 +60,7 @@ export default function OfflinePage() {
           }}
         >
           <RefreshCw size={18} />
-          Erneut versuchen
+          {t('retry')}
         </button>
       </div>
 
@@ -68,7 +69,7 @@ export default function OfflinePage() {
         color: 'var(--color-text-dim)',
         maxWidth: '300px'
       }}>
-        Tipp: Bereits besuchte Turniere sind auch offline verfügbar.
+        {t('tip')}
       </p>
     </div>
   );

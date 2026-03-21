@@ -5,10 +5,12 @@ import { de } from 'date-fns/locale';
 import { Calendar, MapPin, Gamepad2, Plus, ArrowRight } from 'lucide-react';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TournamentsPage() {
+    const t = await getTranslations('tournaments');
     const allTournaments = await getTournaments();
 
     // Lobby = PLANNED and date is today or in the past (happening now / imminent)
@@ -16,20 +18,20 @@ export default async function TournamentsPage() {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const lobbyTournaments = allTournaments.filter(t => t.status === 'PLANNED' && new Date(t.date) <= todayEnd);
-    const plannedTournaments = allTournaments.filter(t => t.status === 'PLANNED' && new Date(t.date) > todayEnd);
-    const activeTournaments = allTournaments.filter(t => t.status === 'ACTIVE');
-    const completedTournaments = allTournaments.filter(t => t.status === 'COMPLETED');
+    const lobbyTournaments = allTournaments.filter(tr => tr.status === 'PLANNED' && new Date(tr.date) <= todayEnd);
+    const plannedTournaments = allTournaments.filter(tr => tr.status === 'PLANNED' && new Date(tr.date) > todayEnd);
+    const activeTournaments = allTournaments.filter(tr => tr.status === 'ACTIVE');
+    const completedTournaments = allTournaments.filter(tr => tr.status === 'COMPLETED');
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
                 <div>
-                    <h1 className="title-display" style={{ fontSize: '2rem' }}>Turniere</h1>
-                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>Alle Events auf einen Blick</p>
+                    <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
+                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
                 </div>
                 <Link href="/tournaments/new" className="btn btn-primary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Plus size={20} /> <span>Neues Turnier</span>
+                    <Plus size={20} /> <span>{t('new')}</span>
                 </Link>
             </div>
 
@@ -37,11 +39,11 @@ export default async function TournamentsPage() {
             {lobbyTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
                     <h2 className="section-header" style={{ color: 'var(--color-lobby)' }}>
-                        <span className="live-dot" style={{ background: 'var(--color-lobby)' }} /> OFFENE LOBBYS
+                        <span className="live-dot" style={{ background: 'var(--color-lobby)' }} /> {t('openLobbies')}
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
-                        {lobbyTournaments.map((t) => (
-                            <TournamentCard key={t.id} t={t} />
+                        {lobbyTournaments.map((tournament) => (
+                            <TournamentCard key={tournament.id} t={tournament} translations={t} />
                         ))}
                     </div>
                 </div>
@@ -51,11 +53,11 @@ export default async function TournamentsPage() {
             {plannedTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
                     <h2 className="section-header">
-                        GEPLANT
+                        {t('planned')}
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
-                        {plannedTournaments.map((t) => (
-                            <TournamentCard key={t.id} t={t} planned />
+                        {plannedTournaments.map((tournament) => (
+                            <TournamentCard key={tournament.id} t={tournament} planned translations={t} />
                         ))}
                     </div>
                 </div>
@@ -65,11 +67,11 @@ export default async function TournamentsPage() {
             {activeTournaments.length > 0 && (
                 <div style={{ marginBottom: 'var(--spacing-12)' }}>
                     <h2 className="section-header" style={{ color: 'var(--color-primary)' }}>
-                        <span className="live-dot" style={{ background: 'var(--color-primary)' }} /> LIVE
+                        <span className="live-dot" style={{ background: 'var(--color-primary)' }} /> {t('live')}
                     </h2>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
-                        {activeTournaments.map((t) => (
-                            <TournamentCard key={t.id} t={t} />
+                        {activeTournaments.map((tournament) => (
+                            <TournamentCard key={tournament.id} t={tournament} translations={t} />
                         ))}
                     </div>
                 </div>
@@ -80,10 +82,10 @@ export default async function TournamentsPage() {
                 <>
                     <DrunkModeConditional show="sober">
                         <div>
-                            <h2 className="section-header">ARCHIV</h2>
+                            <h2 className="section-header">{t('archive')}</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.8 }}>
-                                {completedTournaments.map((t) => (
-                                    <TournamentCard key={t.id} t={t} />
+                                {completedTournaments.map((tournament) => (
+                                    <TournamentCard key={tournament.id} t={tournament} translations={t} />
                                 ))}
                             </div>
                         </div>
@@ -102,7 +104,7 @@ export default async function TournamentsPage() {
                                     gap: '6px',
                                 }}
                             >
-                                {completedTournaments.length} beendete Turniere im Archiv
+                                {completedTournaments.length} {t('archivedTournaments')}
                                 <ArrowRight size={14} />
                             </Link>
                         </div>
@@ -113,7 +115,7 @@ export default async function TournamentsPage() {
     );
 }
 
-function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
+function TournamentCard({ t, planned, translations }: { t: any; planned?: boolean; translations: (key: string) => string }) {
     const isActive = t.status === 'ACTIVE';
     const isLobby = t.status === 'PLANNED' && !planned;
 
@@ -151,7 +153,7 @@ function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
         ? '1px solid rgba(8,145,178,0.25)'
         : 'none';
 
-    const badgeLabel = isLobby ? 'LOBBY' : isActive ? 'LIVE' : planned ? 'GEPLANT' : 'BEENDET';
+    const badgeLabel = isLobby ? translations('lobby') : isActive ? translations('live') : planned ? translations('planned') : translations('ended');
 
     const arrowColor = isLobby
         ? 'var(--color-lobby)'
@@ -211,7 +213,7 @@ function TournamentCard({ t, planned }: { t: any; planned?: boolean }) {
                     color: arrowColor,
                     fontSize: '0.85rem', fontWeight: 600,
                 }}>
-                    Zum Turnier <ArrowRight size={16} />
+                    {translations('goTo')} <ArrowRight size={16} />
                 </div>
             </div>
         </Link>

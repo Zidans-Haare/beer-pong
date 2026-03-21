@@ -8,8 +8,10 @@ import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDrunkMode } from '@/context/DrunkModeContext';
+import { useTranslations } from 'next-intl';
 
 export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; isLoggedIn?: boolean }) {
+    const t = useTranslations('nav');
     const pathname = usePathname();
     const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
     const [unreadCount, setUnreadCount] = useState(0);
@@ -66,7 +68,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                 >
                     <QrCode size={24} strokeWidth={1.8} />
                     <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.8 }}>
-                        Beitreten
+                        {t('join')}
                     </span>
                 </Link>
             </motion.div>
@@ -75,14 +77,14 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
 
     // ── Logged-in: full bar expanding from center ─────────────────────────
     const allNavItems = [
-        { href: '/',              icon: Home,          label: 'Home',    drunkVisible: true  },
-        { href: '/tournaments',   icon: Trophy,        label: 'Turniere',drunkVisible: true  },
-        { href: '/join',          icon: QrCode,        label: 'Join',    drunkVisible: true  },
-        { href: '/notifications', icon: Bell,          label: 'Glocke',  drunkVisible: false, badge: unreadCount },
-        { href: '/players',       icon: Users,         label: 'Spieler', drunkVisible: false },
-        { href: '/stats',         icon: BarChart2,     label: 'Stats',   drunkVisible: false },
-        { href: '/chat',          icon: MessageCircle, label: 'Chat',    drunkVisible: false },
-        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',  drunkVisible: false, badge: 0 }] : []),
+        { href: '/',              icon: Home,          label: 'Home',              drunkVisible: true  },
+        { href: '/tournaments',   icon: Trophy,        label: t('tournaments'),    drunkVisible: true  },
+        { href: '/join',          icon: QrCode,        label: t('join'),           drunkVisible: true  },
+        { href: '/notifications', icon: Bell,          label: t('notifications'),  drunkVisible: false, badge: unreadCount },
+        { href: '/players',       icon: Users,         label: t('players'),        drunkVisible: false },
+        { href: '/stats',         icon: BarChart2,     label: t('stats'),          drunkVisible: false },
+        { href: '/chat',          icon: MessageCircle, label: t('chat'),           drunkVisible: false },
+        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',           drunkVisible: false, badge: 0 }] : []),
     ];
     const navItems = isDrunk ? allNavItems.filter(i => i.drunkVisible) : allNavItems;
 

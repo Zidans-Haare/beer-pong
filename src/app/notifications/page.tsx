@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, Send, Trophy, Mic, Megaphone } from 'lucide-react';
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 type Notification = {
     id: string;
@@ -25,6 +26,7 @@ type Notification = {
 };
 
 export default function NotificationsPage() {
+    const t = useTranslations('notifications');
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
@@ -80,10 +82,10 @@ export default function NotificationsPage() {
 
             await saveSubscription(subscription.toJSON());
             setPushStatus('granted');
-            alert("Push-Benachrichtigungen aktiviert!");
+            alert(t('enabled'));
         } catch (error) {
             console.error("Push Error", error);
-            alert("Fehler beim Aktivieren der Benachrichtigungen.");
+            alert(t('error'));
         }
     };
 

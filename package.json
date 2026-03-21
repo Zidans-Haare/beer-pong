@@ -2,6 +2,13 @@
   "name": "beer-pong",
   "version": "0.9.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/beer-pong.git"
+  },
+  "bin": {
+    "beer-pong-setup": "scripts/setup/index.js"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build && cp -r public .next/standalone/ && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/",

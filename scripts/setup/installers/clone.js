@@ -3,30 +3,38 @@ const path = require('path');
 const fs = require('fs');
 
 /**
- * Determines the repo URL from:
- *   1. package.json "repository" field
- *   2. git remote origin (if already inside a git repo)
+ * Reads the repo URL from package.json "repository" field.
+ * Falls back to git remote origin if available.
  */
 function getRepoUrl() {
-    // Try package.json first
     try {
-        const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'));
-        const repo = pkg.repository;
-        if (typeof repo === 'string') return repo.endsWith('.git') ? repo : repo + '.git';
-        if (repo?.url) return repo.url.replace(/^git\+/, '');
+        // Walk up from cwd to find package.json (wizard may run from a temp npx dir)
+        let dir = process.cwd();
+        for (let i = 0; i < 5; i++) {
+            const pkgPath = path.join(dir, 'package.json');
+            if (fs.existsSync(pkgPath)) {
+                const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+                const repo = pkg.repository;
+                if (typeof repo === 'string') return repo.endsWith('.git') ? repo : repo + '.git';
+                if (repo?.url) return repo.url.replace(/^git\+/, '');
+            }
+            dir = path.dirname(dir);
+        }
     } catch { /* ignore */ }
 
-    // Fallback: read from git remote
+    // Fallback: git remote
     try {
         return runShell('git remote get-url origin');
     } catch { /* ignore */ }
 
-    throw new Error('Could not determine repository URL. Add a "repository" field to package.json.');
+    throw new Error(
+        'Could not determine repository URL.\n' +
+        'Add a "repository" field to package.json or run from within the git repo.'
+    );
 }
 
 /**
- * Clones the repo to ~/beer-pong (or pulls if it already exists).
- * Returns the resolved appPath.
+ * Clones the repo to appPath, or pulls if it already exists.
  */
 function cloneOrPull(answers, spinner) {
     if (!commandExists('git')) {
@@ -43,8 +51,6 @@ function cloneOrPull(answers, spinner) {
         spinner.text = `Cloning ${repoUrl}…`;
         runShell(`git clone "${repoUrl}" "${appPath}"`);
     }
-
-    spinner.text = `Repository ready → ${appPath}`;
 }
 
-module.exports = { cloneOrPull, getRepoUrl };
+module.exports = { cloneOrPull };

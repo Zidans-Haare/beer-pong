@@ -75,6 +75,7 @@ async function generateEnv(answers, spinner) {
         `DATABASE_URL="file:${dbPath}"`,
         '',
         '# Auth',
+        `AUTH_URL="${appUrl}"`,
         `AUTH_SECRET="${authSecret}"`,
         `ADMIN_EMAIL="${adminEmail}"`,
         '',

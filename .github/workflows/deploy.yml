@@ -94,8 +94,7 @@ jobs:
             }
             trap cleanup EXIT
 
-            # Maintenance-Modus aktivieren
-            echo '{"msg":"Automatisches Update via GitHub Actions","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
+            # Maintenance-Modus aktivieren (erst Flag, dann Msg nach git pull)
             touch public/maintenance.on
 
             # App stoppen (sicher während npm ci läuft)
@@ -103,6 +102,12 @@ jobs:
 
             # Code + Deps aktualisieren
             git pull origin main
+
+            # Maintenance-Msg mit aktuellem Commit-Namen schreiben
+            COMMIT_MSG=$(git log -1 --pretty=%s)
+            DEPLOY_START=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            DEPLOY_END=$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)
+            echo '{"msg":"Automatisches Update: '"$COMMIT_MSG"'","start":"'"$DEPLOY_START"'","end":"'"$DEPLOY_END"'"}' > public/maintenance-msg.txt
             npm ci
             npx prisma generate
             npx prisma migrate deploy

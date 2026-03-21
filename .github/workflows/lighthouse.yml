@@ -22,9 +22,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: |
-            https://bier.olomek.com
-            https://bier.olomek.com/players
-            https://bier.olomek.com/tournaments
+            https://bier.olomek.com/login
           budgetPath: .github/lighthouse-budget.json
           uploadArtifacts: true
           temporaryPublicStorage: true

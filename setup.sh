@@ -9,6 +9,15 @@
 #
 set -e
 
+# When run via "curl | bash", stdin is the pipe — interactive prompts won't work.
+# Re-download to a temp file and re-execute with terminal stdin.
+if [ ! -t 0 ]; then
+    TMP=$(mktemp /tmp/beer-pong-setup.XXXXXX.sh)
+    trap "rm -f $TMP" EXIT
+    curl -fsSL "https://raw.githubusercontent.com/Zidans-Haare/beer-pong/main/setup.sh" -o "$TMP"
+    exec bash "$TMP" </dev/tty
+fi
+
 export NVM_DIR="$HOME/.nvm"
 
 # ── Install NVM + Node if missing ─────────────────────────────────────────────
@@ -26,6 +35,4 @@ if ! command -v node &>/dev/null; then
 fi
 
 # ── Run wizard directly from GitHub via npx ───────────────────────────────────
-# Restore terminal stdin — curl|bash pipes stdin away, but the wizard needs it
-exec </dev/tty
 npx --yes github:Zidans-Haare/beer-pong -- --mode server

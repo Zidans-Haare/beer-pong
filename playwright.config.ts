@@ -21,6 +21,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: '**/e2e/global-setup.ts',
+      use: { actionTimeout: 30_000, navigationTimeout: 30_000 },
     },
     {
       name: 'chromium',

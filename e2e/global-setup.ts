@@ -14,6 +14,7 @@ setup('Login-State speichern', async ({ page }) => {
   }
 
   await page.goto('/login');
+  await page.waitForLoadState('load');
   await page.getByRole('textbox').first().fill(email);
   await page.getByRole('textbox').nth(1).fill(password);
   await Promise.all([

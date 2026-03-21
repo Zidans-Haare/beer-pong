@@ -13,6 +13,7 @@ async function main() {
         setDryRun(true);
         console.log(chalk.yellow('\n  ⚠  DRY RUN — no changes will be made\n'));
     }
+    const { checkSystemDeps } = require('./installers/system');
     const { cloneOrPull } = require('./installers/clone');
     const { generateEnv } = require('./generators/env');
     const { generateNginx } = require('./generators/nginx');
@@ -212,7 +213,7 @@ async function main() {
     // ── Progress helper ───────────────────────────────────────────────────
     const steps = mode === 'local'
         ? ['.env', 'Database']
-        : ['.env', 'Nginx + SSL', 'Database', 'Build + PM2',
+        : ['System deps', 'Clone repo', '.env', 'Nginx + SSL', 'Database', 'Build + PM2',
            ...(answers.dbBackup ? ['Cron backup'] : []),
            ...(answers.setupGithub ? ['GitHub secrets'] : [])];
     let stepIdx = 0;
@@ -278,6 +279,15 @@ async function main() {
 
     // ── SERVER mode ───────────────────────────────────────────────────────
     let sp;
+
+    sp = makeSpinner('Checking system dependencies…');
+    try {
+        await checkSystemDeps(answers, sp);
+        ok(sp, 'System dependencies ready');
+    } catch (err) {
+        fail(sp, 'Dependency install failed', err.message);
+        process.exit(1);
+    }
 
     sp = makeSpinner('Cloning repository…');
     try {

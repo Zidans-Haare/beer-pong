@@ -106,7 +106,7 @@ export async function GET() {
             success: true,
             message: "Simulation Completed!",
             tournamentId: tournament.id,
-            link: `http://localhost:3000/tournaments/${tournament.id}`
+            link: `${process.env.APP_URL || 'http://localhost:3000'}/tournaments/${tournament.id}`
         });
 
     } catch (error: any) {

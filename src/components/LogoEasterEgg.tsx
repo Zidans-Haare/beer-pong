@@ -151,7 +151,7 @@ export default function LogoEasterEgg() {
                                 </div>
 
                                 <a
-                                    href="https://github.com/Zidans-Haare/beer-pong"
+                                    href={process.env.NEXT_PUBLIC_GITHUB_REPO || "https://github.com/Zidans-Haare/beer-pong"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{

@@ -382,6 +382,7 @@ async function main() {
     console.log(mid);
     console.log(row(chalk.dim('  bp-update               # update to latest version')));
     console.log(row(chalk.dim('  bp-doctor               # check for issues')));
+    console.log(row(chalk.dim('  bp-doctor-fix           # check + auto-fix issues')));
     console.log(row(chalk.dim('  bp-logs                 # view logs')));
     console.log(row(chalk.dim('  bp-maint-on / off       # maintenance mode')));
     console.log(row(chalk.dim('  bp-restart              # restart app')));

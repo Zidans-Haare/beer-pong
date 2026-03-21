@@ -36,10 +36,8 @@ test.describe('Turniere (eingeloggt)', () => {
   });
 
   test('Ungültige Turnier-ID gibt 404 oder Fehler', async ({ page }) => {
-    const res = await page.goto('/tournaments/dieses-turnier-gibt-es-nicht-99999');
-    const status = res?.status() ?? 0;
-    // Entweder 404 (notFound) oder 500 (DB-Fehler bei ungültigem ID-Format)
-    expect(status).toBeGreaterThanOrEqual(400);
+    await page.goto('/tournaments/dieses-turnier-gibt-es-nicht-99999');
+    await expect(page.getByRole('heading', { name: '404' })).toBeVisible({ timeout: 10_000 });
   });
 
   test('Join-Seite mit falschem Code zeigt Fehler oder 404', async ({ page }) => {

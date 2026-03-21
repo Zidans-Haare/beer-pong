@@ -143,15 +143,15 @@ export default function LogoEasterEgg() {
                                     borderRadius: 'var(--radius-md)',
                                 }}>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '4px' }}>
-                                        Designed & Built by
+                                        Open Source
                                     </div>
                                     <div style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
-                                        Nick
+                                        Bier Pong App
                                     </div>
                                 </div>
 
                                 <a
-                                    href="https://github.com/Zidans-Haare/beer-pong"
+                                    href={process.env.NEXT_PUBLIC_GITHUB_REPO || "#"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{

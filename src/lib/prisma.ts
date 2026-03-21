@@ -7,7 +7,7 @@ export const prisma =
     globalForPrisma.prisma ||
     (() => {
         // Use DATABASE_URL env var (strip "file:" prefix if present)
-        const dbPath = (process.env.DATABASE_URL || 'file:/home/htw/beer-pong/prisma/dev.db')
+        const dbPath = (process.env.DATABASE_URL || 'file:./prisma/dev.db')
             .replace(/^file:/, '');
         const adapter = new PrismaBetterSqlite3({ url: dbPath });
         return new PrismaClient({

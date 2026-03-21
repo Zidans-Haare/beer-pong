@@ -201,7 +201,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                     <div>
                         <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Server-Uptime</h2>
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: '2px 0 0 0' }}>
-                            bier.olomek.com · {timeRange}
+                            {process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname : 'localhost'} · {timeRange}
                         </p>
                     </div>
                 </div>

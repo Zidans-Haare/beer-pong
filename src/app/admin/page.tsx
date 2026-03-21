@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getDashboardStats } from '@/app/actions/admin';
-import { Users, Trophy, Swords, MessageSquare, User } from 'lucide-react';
+import { checkForUpdate } from '@/lib/update-check';
+import { Users, Trophy, Swords, MessageSquare, User, ArrowUpCircle } from 'lucide-react';
 import Link from 'next/link';
 
 async function getBaseStats() {
@@ -17,7 +18,7 @@ async function getBaseStats() {
 }
 
 export default async function AdminDashboard() {
-    const [base, extra] = await Promise.all([getBaseStats(), getDashboardStats()]);
+    const [base, extra, updateInfo] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate()]);
 
     const statCards = [
         { label: 'User', value: base.userCount, icon: Users, color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
@@ -33,6 +34,42 @@ export default async function AdminDashboard() {
                 <h1 className="title-display" style={{ fontSize: '2rem', marginBottom: 'var(--spacing-2)' }}>Dashboard</h1>
                 <p style={{ color: 'var(--color-text-dim)' }}>Willkommen zurück, Boss.</p>
             </header>
+
+            {/* Update Banner */}
+            {updateInfo?.hasUpdate && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-3)',
+                    padding: 'var(--spacing-4) var(--spacing-5)',
+                    background: 'rgba(96,165,250,0.1)',
+                    border: '1px solid rgba(96,165,250,0.3)',
+                    borderRadius: '10px',
+                    color: '#60a5fa',
+                }}>
+                    <ArrowUpCircle size={20} style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                        <span style={{ fontWeight: 600 }}>Update verfügbar: v{updateInfo.latestVersion}</span>
+                        <span style={{ color: 'var(--color-text-dim)', marginLeft: '8px', fontSize: '0.85rem' }}>
+                            (aktuell: v{updateInfo.currentVersion})
+                        </span>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>
+                            {process.env.DEPLOY_SECRET
+                                ? <>GitHub Webhook aktiv — pushe auf <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>main</code> zum Deployen.</>
+                                : <>Manuell: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>bash ~/beer-pong/scripts/update.sh</code></>
+                            }
+                        </div>
+                    </div>
+                    <Link
+                        href={updateInfo.releaseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '0.82rem', color: '#60a5fa', textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                    >
+                        Release Notes
+                    </Link>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--spacing-3)' }}>

@@ -3,6 +3,17 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const adminCc = process.env.ADMIN_EMAIL ?? undefined;
 
+function getEmailFrom(): string {
+    if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+    try { return `noreply@${new URL(appUrl).hostname}`; } catch { return 'noreply@localhost'; }
+}
+
+function getAppDomain(): string {
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+    try { return new URL(appUrl).hostname; } catch { return 'localhost'; }
+}
+
 export async function sendTournamentInviteEmail(to: string, name: string, tournament: {
     name: string;
     date: Date;
@@ -10,12 +21,12 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
     type: string;
     id: string;
 }) {
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     const tournamentUrl = `${appUrl}/tournaments/${tournament.id}`;
     const dateStr = new Date(tournament.date).toLocaleString('de-DE', { dateStyle: 'full', timeStyle: 'short' });
 
     return resend.emails.send({
-        from: 'noreply@bier.olomek.com',
+        from: getEmailFrom(),
         cc: adminCc,
         to,
         subject: `Turnier-Einladung: ${tournament.name}`,
@@ -99,7 +110,7 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
           <!-- Bottom -->
           <tr>
             <td style="padding:20px 0 0;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#a1a1aa;">Bierpong App &middot; bier.olomek.com</p>
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">Bierpong App &middot; ${getAppDomain()}</p>
             </td>
           </tr>
 
@@ -114,11 +125,11 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
 }
 
 export async function sendAccountApprovedEmail(to: string, name: string) {
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     const loginUrl = `${appUrl}/login`;
 
     return resend.emails.send({
-        from: 'noreply@bier.olomek.com',
+        from: getEmailFrom(),
         cc: adminCc,
         to,
         subject: 'Dein Account wurde freigegeben',
@@ -191,7 +202,7 @@ export async function sendAccountApprovedEmail(to: string, name: string) {
           <!-- Bottom -->
           <tr>
             <td style="padding:20px 0 0;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#a1a1aa;">Bierpong App &middot; bier.olomek.com</p>
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">Bierpong App &middot; ${getAppDomain()}</p>
             </td>
           </tr>
 

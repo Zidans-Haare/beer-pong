@@ -45,10 +45,19 @@ async function askQuestions(mode, section) {
         validate: validatePort,
     });
 
-    answers.adminEmail = await input({
-        message: 'Admin email:',
-        validate: validateEmail,
-    });
+    while (true) {
+        answers.adminEmail = await input({
+            message: 'Admin email:',
+            validate: validateEmail,
+        });
+        const adminEmailConfirm = await input({
+            message: 'Confirm admin email:',
+            validate: validateEmail,
+        });
+        if (answers.adminEmail === adminEmailConfirm) break;
+        console.log(chalk.red('  ✖  Emails do not match — please try again.'));
+        console.log('');
+    }
 
     // ── Database ─────────────────────────────────────────────────────────
     if (mode === 'server') {

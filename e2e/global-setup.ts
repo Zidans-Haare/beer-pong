@@ -4,6 +4,7 @@ import path from 'path';
 const authFile = path.join(__dirname, '.auth/user.json');
 
 setup('Login-State speichern', async ({ page }) => {
+  setup.setTimeout(60_000);
   const email = process.env.E2E_USER_EMAIL;
   const password = process.env.E2E_USER_PASSWORD;
 

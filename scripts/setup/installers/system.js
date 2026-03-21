@@ -42,6 +42,12 @@ async function checkSystemDeps(answers, spinner) {
         toInstallApt.push('git');
     }
 
+    // ── sqlite3 CLI ───────────────────────────────────────────────────────
+    if (!commandExists('sqlite3')) {
+        missing.push('sqlite3');
+        toInstallApt.push('sqlite3');
+    }
+
     // ── nginx ─────────────────────────────────────────────────────────────
     if (!commandExists('nginx')) {
         missing.push('nginx');

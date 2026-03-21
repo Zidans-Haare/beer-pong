@@ -1,20 +1,22 @@
 name: Lighthouse CI
 
 on:
-  workflow_run:
-    workflows: ["Deploy auf Server"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   lighthouse:
     name: Lighthouse Performance-Check
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Warten bis Deploy abgeschlossen ist
+        if: github.event_name == 'push'
+        run: sleep 300
 
       - name: Lighthouse auf Produktion ausführen
         uses: treosh/lighthouse-ci-action@v12

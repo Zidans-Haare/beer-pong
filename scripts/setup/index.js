@@ -373,6 +373,6 @@ async function main() {
 }
 
 main().catch(err => {
-    console.error('\n  ' + chalk.red('✖  ' + (err.message || err)));
+    console.error('\n  ✖  ' + (err.message || err));
     process.exit(1);
 });

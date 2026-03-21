@@ -29,7 +29,7 @@ jobs:
 
       - name: E2E Tests
         env:
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          E2E_BASE_URL: https://bier.olomek.com
           E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
         # rate-limit.spec.ts ausgeschlossen — testet neuen Code der erst nach Deploy verfügbar ist

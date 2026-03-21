@@ -5,12 +5,12 @@ const adminCc = process.env.ADMIN_EMAIL ?? undefined;
 
 function getEmailFrom(): string {
     if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     try { return `noreply@${new URL(appUrl).hostname}`; } catch { return 'noreply@localhost'; }
 }
 
 function getAppDomain(): string {
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     try { return new URL(appUrl).hostname; } catch { return 'localhost'; }
 }
 
@@ -21,7 +21,7 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
     type: string;
     id: string;
 }) {
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     const tournamentUrl = `${appUrl}/tournaments/${tournament.id}`;
     const dateStr = new Date(tournament.date).toLocaleString('de-DE', { dateStyle: 'full', timeStyle: 'short' });
 
@@ -125,7 +125,7 @@ export async function sendTournamentInviteEmail(to: string, name: string, tourna
 }
 
 export async function sendAccountApprovedEmail(to: string, name: string) {
-    const appUrl = process.env.APP_URL ?? 'https://bier.olomek.com';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     const loginUrl = `${appUrl}/login`;
 
     return resend.emails.send({

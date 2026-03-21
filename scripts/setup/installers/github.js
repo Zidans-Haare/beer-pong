@@ -2,27 +2,24 @@ const { runShell, commandExists } = require('../utils/shell');
 const fs = require('fs');
 
 /**
- * Setzt GitHub Actions Secrets via gh CLI.
+ * Sets GitHub Actions secrets via the gh CLI.
  */
 function setupGithubSecrets(answers, spinner) {
-    const { appPath, repoOwner, sshHost, sshUser, sshKeyPath, e2eEmail, e2ePassword } = answers;
+    const { repoOwner, sshHost, sshUser, sshKeyPath, e2eEmail, e2ePassword } = answers;
 
-    // gh CLI prüfen
     if (!commandExists('gh')) {
-        throw new Error('gh CLI nicht gefunden. Installiere mit: https://cli.github.com');
+        throw new Error('gh CLI not found. Install from: https://cli.github.com');
     }
 
-    // Auth-Status prüfen
-    spinner.text = 'Prüfe gh CLI Authentifizierung…';
+    spinner.text = 'Checking gh CLI authentication…';
     try {
         runShell('gh auth status');
     } catch {
-        throw new Error('gh CLI ist nicht eingeloggt. Führe zuerst "gh auth login" aus.');
+        throw new Error('gh CLI is not logged in. Run "gh auth login" first.');
     }
 
-    // SSH Private Key lesen
     if (!fs.existsSync(sshKeyPath)) {
-        throw new Error(`SSH Private Key nicht gefunden: ${sshKeyPath}`);
+        throw new Error(`SSH private key not found: ${sshKeyPath}`);
     }
     const sshPrivateKey = fs.readFileSync(sshKeyPath, 'utf-8');
 
@@ -34,15 +31,13 @@ function setupGithubSecrets(answers, spinner) {
         E2E_USER_PASSWORD: e2ePassword,
     };
 
-    spinner.text = 'Setze GitHub Secrets…';
+    spinner.text = 'Setting GitHub secrets…';
     for (const [name, value] of Object.entries(secrets)) {
         if (!value) continue;
-        // Wert via stdin übergeben um Shell-Injection zu vermeiden
+        // Pass value via stdin to avoid shell injection
         runShell(`echo ${JSON.stringify(value)} | gh secret set ${name} --repo "${repoOwner}"`);
-        spinner.text = `Secret gesetzt: ${name}`;
+        spinner.text = `Secret set: ${name}`;
     }
-
-    spinner.text = `${Object.keys(secrets).length} GitHub Secrets erfolgreich gesetzt`;
 }
 
 module.exports = { setupGithubSecrets };

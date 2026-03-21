@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
-// chalk v5 ist ESM-only — dynamischer Import nötig
 async function main() {
     const { default: chalk } = await import('chalk');
     const { default: ora } = await import('ora');
+    const { select, confirm } = require('@inquirer/prompts');
     const { askQuestions } = require('./questions');
     const { generateEnv } = require('./generators/env');
     const { generateNginx } = require('./generators/nginx');
@@ -13,132 +13,195 @@ async function main() {
     const { setupPm2 } = require('./installers/pm2');
     const { setupGithubSecrets } = require('./installers/github');
 
-    // ─── Banner ────────────────────────────────────────────────────────────
+    // ── Banner ────────────────────────────────────────────────────────────
     console.log('');
     console.log(chalk.bold.magenta('╔══════════════════════════════════════════════════════╗'));
-    console.log(chalk.bold.magenta('║') + chalk.bold('       Bier Pong — Setup Wizard v1.0                ') + chalk.bold.magenta('║'));
+    console.log(chalk.bold.magenta('║') + chalk.bold('        Beer Pong — Setup Wizard v1.0               ') + chalk.bold.magenta('║'));
     console.log(chalk.bold.magenta('╚══════════════════════════════════════════════════════╝'));
     console.log('');
-    console.log(chalk.dim('Dieser Wizard richtet die Bier Pong App auf deinem Server ein.'));
-    console.log(chalk.dim('Alle Fragen können mit Enter übersprungen werden (Standardwert).'));
+    console.log(chalk.dim('This wizard configures the Beer Pong app for your environment.'));
+    console.log(chalk.dim('Press Enter to accept defaults. Ctrl+C to abort at any time.'));
     console.log('');
 
-    // ─── Fragen stellen ────────────────────────────────────────────────────
-    let answers;
+    // ── Mode selection ────────────────────────────────────────────────────
+    let mode;
     try {
-        answers = await askQuestions();
+        mode = await select({
+            message: 'Where are you deploying?',
+            choices: [
+                {
+                    name: 'Local development  (generates .env, skips nginx/PM2/cron)',
+                    value: 'local',
+                },
+                {
+                    name: 'Production server  (full setup: nginx, SSL, PM2, cron)',
+                    value: 'server',
+                },
+            ],
+        });
     } catch (err) {
         if (err.name === 'ExitPromptError') {
-            console.log('\n' + chalk.yellow('Setup abgebrochen.'));
+            console.log('\n' + chalk.yellow('Setup cancelled.'));
             process.exit(0);
         }
         throw err;
     }
 
-    // ─── Zusammenfassung ──────────────────────────────────────────────────
+    // ── Questions ─────────────────────────────────────────────────────────
+    let answers;
+    try {
+        answers = await askQuestions(mode);
+    } catch (err) {
+        if (err.name === 'ExitPromptError') {
+            console.log('\n' + chalk.yellow('Setup cancelled.'));
+            process.exit(0);
+        }
+        throw err;
+    }
+
+    // ── Summary ───────────────────────────────────────────────────────────
     console.log('');
     console.log(chalk.bold('══════════════════════════════════════════════════════'));
-    console.log(chalk.bold('Zusammenfassung:'));
-    console.log(`  Domain:    ${chalk.cyan(answers.domain)}`);
-    console.log(`  App-Pfad:  ${chalk.cyan(answers.appPath)}`);
+    console.log(chalk.bold('Summary:'));
+    console.log(`  Mode:      ${chalk.cyan(mode === 'local' ? 'Local development' : 'Production server')}`);
+    if (mode === 'server') {
+        console.log(`  Domain:    ${chalk.cyan(answers.domain)}`);
+    }
+    console.log(`  App path:  ${chalk.cyan(answers.appPath)}`);
     console.log(`  Port:      ${chalk.cyan(answers.port)}`);
     console.log(`  Admin:     ${chalk.cyan(answers.adminEmail)}`);
-    console.log(`  Email:     ${answers.resendApiKey ? chalk.green('✓ Resend konfiguriert') : chalk.dim('übersprungen')}`);
-    console.log(`  VAPID:     ${answers.generateVapid ? chalk.green('✓ wird generiert') : chalk.dim('übersprungen')}`);
-    console.log(`  Sentry:    ${answers.sentryDsn ? chalk.green('✓ konfiguriert') : chalk.dim('übersprungen')}`);
-    console.log(`  GitHub:    ${answers.setupGithub ? chalk.green('✓ ' + answers.repoOwner) : chalk.dim('übersprungen')}`);
+    console.log(`  Email:     ${answers.resendApiKey ? chalk.green('✓ Resend configured') : chalk.dim('skipped')}`);
+    console.log(`  VAPID:     ${answers.generateVapid ? chalk.green('✓ will be generated') : chalk.dim('skipped')}`);
+    console.log(`  Sentry:    ${answers.sentryDsn ? chalk.green('✓ configured') : chalk.dim('skipped')}`);
+    if (mode === 'server') {
+        console.log(`  DB backup: ${answers.dbBackup ? chalk.green('✓ weekly cron') : chalk.dim('skipped')}`);
+        console.log(`  GitHub:    ${answers.setupGithub ? chalk.green('✓ ' + answers.repoOwner) : chalk.dim('skipped')}`);
+    }
     console.log(chalk.bold('══════════════════════════════════════════════════════'));
     console.log('');
 
-    const { confirm } = require('@inquirer/prompts');
-    const proceed = await confirm({ message: 'Setup starten?', default: true });
+    let proceed;
+    try {
+        proceed = await confirm({ message: 'Start setup?', default: true });
+    } catch (err) {
+        if (err.name === 'ExitPromptError') {
+            console.log('\n' + chalk.yellow('Setup cancelled.'));
+            process.exit(0);
+        }
+        throw err;
+    }
+
     if (!proceed) {
-        console.log(chalk.yellow('Setup abgebrochen.'));
+        console.log(chalk.yellow('Setup cancelled.'));
         process.exit(0);
     }
 
     console.log('');
 
-    // ─── Setup ausführen ──────────────────────────────────────────────────
     const spinner = ora({ color: 'magenta' });
 
-    // 1. .env generieren
-    spinner.start('.env generieren…');
+    // ── 1. Generate .env ─────────────────────────────────────────────────
+    spinner.start('Generating .env…');
     try {
         const envPath = await generateEnv(answers, spinner);
-        spinner.succeed(chalk.green('.env generiert') + chalk.dim(' → ' + envPath));
+        spinner.succeed(chalk.green('.env generated') + chalk.dim(' → ' + envPath));
     } catch (err) {
-        spinner.fail(chalk.red('.env Fehler: ' + err.message));
+        spinner.fail(chalk.red('.env error: ' + err.message));
         process.exit(1);
     }
 
-    // 2. Nginx + SSL
-    spinner.start('Nginx konfigurieren…');
-    try {
-        await generateNginx(answers, spinner);
-        spinner.succeed(chalk.green('Nginx konfiguriert') + chalk.dim(` → https://${answers.domain}`));
-    } catch (err) {
-        spinner.fail(chalk.red('Nginx Fehler: ' + err.message));
-        console.log(chalk.dim('  Weiter ohne Nginx…'));
+    if (mode === 'local') {
+        // Local: just initialize the database
+        spinner.start('Initializing database…');
+        try {
+            setupDatabase(answers, spinner);
+            spinner.succeed(chalk.green('Database initialized'));
+        } catch (err) {
+            spinner.fail(chalk.red('Database error: ' + err.message));
+            console.log(chalk.dim('  You can run manually: npx prisma generate && npx prisma migrate deploy'));
+        }
+
+        console.log('');
+        console.log(chalk.bold.green('✓ Local setup complete!'));
+        console.log('');
+        console.log(chalk.bold('Next steps:'));
+        console.log(`  1. Review ${chalk.cyan(answers.appPath + '/.env')} and fill in any missing values`);
+        console.log(`  2. Start the dev server: ${chalk.cyan('npm run dev')}`);
+        console.log(`  3. Open ${chalk.cyan('http://localhost:' + answers.port + '/register')} and create your admin account`);
+        console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
+        console.log('');
+        return;
     }
 
-    // 3. Datenbank
-    spinner.start('Datenbank initialisieren…');
+    // ── Server-only steps ────────────────────────────────────────────────
+
+    // 2. Nginx + SSL
+    spinner.start('Configuring nginx…');
+    try {
+        await generateNginx(answers, spinner);
+        spinner.succeed(chalk.green('Nginx configured') + chalk.dim(` → https://${answers.domain}`));
+    } catch (err) {
+        spinner.fail(chalk.red('Nginx error: ' + err.message));
+        console.log(chalk.dim('  Continuing without nginx…'));
+    }
+
+    // 3. Database
+    spinner.start('Initializing database…');
     try {
         setupDatabase(answers, spinner);
-        spinner.succeed(chalk.green('Datenbank initialisiert'));
+        spinner.succeed(chalk.green('Database initialized'));
     } catch (err) {
-        spinner.fail(chalk.red('Datenbank Fehler: ' + err.message));
+        spinner.fail(chalk.red('Database error: ' + err.message));
         process.exit(1);
     }
 
     // 4. Build + PM2
-    spinner.start('App bauen und PM2 einrichten…');
+    spinner.start('Building app and setting up PM2…');
     try {
         setupPm2(answers, spinner);
-        spinner.succeed(chalk.green('App läuft') + chalk.dim(` → Port ${answers.port}`));
+        spinner.succeed(chalk.green('App running') + chalk.dim(` → port ${answers.port}`));
     } catch (err) {
-        spinner.fail(chalk.red('PM2 Fehler: ' + err.message));
+        spinner.fail(chalk.red('PM2 error: ' + err.message));
         process.exit(1);
     }
 
-    // 5. Cron-Backup
+    // 5. Cron backup
     if (answers.dbBackup) {
-        spinner.start('Cron-Backup einrichten…');
+        spinner.start('Setting up cron backup…');
         try {
             setupCronBackup(answers, spinner);
-            spinner.succeed(chalk.green('Cron-Backup eingerichtet'));
+            spinner.succeed(chalk.green('Cron backup configured'));
         } catch (err) {
-            spinner.fail(chalk.red('Cron Fehler: ' + err.message));
+            spinner.fail(chalk.red('Cron error: ' + err.message));
         }
     }
 
-    // 6. GitHub Secrets
+    // 6. GitHub secrets
     if (answers.setupGithub) {
-        spinner.start('GitHub Secrets setzen…');
+        spinner.start('Setting GitHub secrets…');
         try {
             setupGithubSecrets(answers, spinner);
-            spinner.succeed(chalk.green('GitHub Secrets gesetzt'));
+            spinner.succeed(chalk.green('GitHub secrets set'));
         } catch (err) {
-            spinner.fail(chalk.red('GitHub Fehler: ' + err.message));
+            spinner.fail(chalk.red('GitHub error: ' + err.message));
         }
     }
 
-    // ─── Fertig ───────────────────────────────────────────────────────────
+    // ── Done ──────────────────────────────────────────────────────────────
     console.log('');
-    console.log(chalk.bold.green('✓ Setup abgeschlossen!'));
+    console.log(chalk.bold.green('✓ Setup complete!'));
     console.log('');
-    console.log(chalk.bold('Nächste Schritte:'));
-    console.log(`  1. Öffne ${chalk.cyan(`https://${answers.domain}/register`)} und registriere deinen Admin-Account`);
-    console.log(`     ${chalk.dim('(Email muss mit ADMIN_EMAIL übereinstimmen: ' + answers.adminEmail + ')')}`);
+    console.log(chalk.bold('Next steps:'));
+    console.log(`  1. Open ${chalk.cyan(`https://${answers.domain}/register`)} and create your admin account`);
+    console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
     console.log('');
-    console.log(`  2. Für CI/CD: Pushe auf den main-Branch in GitHub`);
-    console.log(`     ${chalk.dim('→ Tests laufen automatisch, Deploy startet bei Erfolg')}`);
+    console.log(`  2. For CI/CD: push to the main branch on GitHub`);
+    console.log(`     ${chalk.dim('→ Tests run automatically, deploy starts on success')}`);
     console.log('');
-    console.log(chalk.dim('Nützliche Befehle:'));
-    console.log(chalk.dim(`  pm2 logs beer-pong          # Logs anschauen`));
-    console.log(chalk.dim(`  pm2 restart beer-pong       # App neustarten`));
-    console.log(chalk.dim(`  pm2 status                  # Status aller Prozesse`));
+    console.log(chalk.dim('Useful commands:'));
+    console.log(chalk.dim('  pm2 logs beer-pong       # view logs'));
+    console.log(chalk.dim('  pm2 restart beer-pong    # restart app'));
+    console.log(chalk.dim('  pm2 status               # process overview'));
     console.log('');
 }
 

@@ -1,10 +1,6 @@
 const fs = require('fs');
-const path = require('path');
 const { runShell, commandExists } = require('../utils/shell');
 
-/**
- * Generiert den Nginx-Konfigurationsinhalt.
- */
 function buildNginxConfig({ domain, appPath, port }) {
     return `server {
     server_name ${domain};
@@ -44,14 +40,11 @@ function buildNginxConfig({ domain, appPath, port }) {
 `;
 }
 
-/**
- * Schreibt Nginx-Config und richtet SSL mit Certbot ein.
- */
 async function generateNginx(answers, spinner) {
     const { domain, appPath, port, adminEmail } = answers;
 
     if (!commandExists('nginx')) {
-        throw new Error('nginx ist nicht installiert. Bitte zuerst: sudo apt install nginx');
+        throw new Error('nginx is not installed. Run: sudo apt install nginx');
     }
 
     const config = buildNginxConfig({ domain, appPath, port });
@@ -59,46 +52,43 @@ async function generateNginx(answers, spinner) {
     const sitePath = `/etc/nginx/sites-available/${domain}`;
     const enabledPath = `/etc/nginx/sites-enabled/${domain}`;
 
-    // Config in /tmp schreiben, dann mit sudo verschieben
     fs.writeFileSync(tmpPath, config, 'utf-8');
 
-    spinner.text = 'Schreibe Nginx-Konfiguration…';
+    spinner.text = 'Writing nginx config…';
     runShell(`sudo mv "${tmpPath}" "${sitePath}"`);
     runShell(`sudo ln -sf "${sitePath}" "${enabledPath}"`);
 
-    spinner.text = 'Prüfe Nginx-Konfiguration…';
+    spinner.text = 'Testing nginx config…';
     runShell('sudo nginx -t');
 
-    spinner.text = 'Lade Nginx neu…';
+    spinner.text = 'Reloading nginx…';
     runShell('sudo nginx -s reload');
 
-    // DNS-Prüfung
-    spinner.text = 'Prüfe DNS-Auflösung…';
+    // DNS check
+    spinner.text = 'Checking DNS resolution…';
     let dnsOk = false;
     for (let i = 0; i < 3; i++) {
         try {
             const result = runShell(`dig +short "${domain}" 2>/dev/null || host "${domain}" 2>/dev/null | head -1`);
             if (result.trim()) { dnsOk = true; break; }
-        } catch { /* ignorieren */ }
+        } catch { /* ignore */ }
         if (i < 2) await new Promise(r => setTimeout(r, 2000));
     }
 
     if (!dnsOk) {
-        spinner.warn(`DNS für ${domain} noch nicht aufgelöst. SSL wird übersprungen.`);
-        spinner.warn('Führe nach DNS-Propagation manuell aus: sudo certbot --nginx -d ' + domain);
+        spinner.warn(`DNS for ${domain} not yet resolved — skipping SSL.`);
+        spinner.warn(`After DNS propagates, run: sudo certbot --nginx -d ${domain}`);
         return;
     }
 
-    // SSL mit Certbot
     if (!commandExists('certbot')) {
-        spinner.warn('certbot nicht gefunden — SSL wird übersprungen.');
-        spinner.warn('Installiere mit: sudo apt install certbot python3-certbot-nginx');
+        spinner.warn('certbot not found — skipping SSL.');
+        spinner.warn('Install with: sudo apt install certbot python3-certbot-nginx');
         return;
     }
 
-    spinner.text = 'Richte SSL ein (Certbot)…';
+    spinner.text = 'Setting up SSL (Certbot)…';
     runShell(`sudo certbot --nginx -d "${domain}" --non-interactive --agree-tos -m "${adminEmail}" --redirect`);
-    spinner.text = `SSL eingerichtet für ${domain}`;
 }
 
 module.exports = { generateNginx };

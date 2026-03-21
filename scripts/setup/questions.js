@@ -4,126 +4,140 @@ const path = require('path');
 const { validateDomain, validateEmail, validatePort, validatePath } = require('./utils/validate');
 
 /**
- * Stellt alle Wizard-Fragen und gibt ein Antworten-Objekt zurück.
+ * Asks all wizard questions and returns an answers object.
  */
-async function askQuestions() {
-    const answers = {};
+async function askQuestions(mode) {
+    const answers = { mode };
     const user = os.userInfo().username;
     const home = os.homedir();
+    // Default app path: current working directory for local, ~/beer-pong for server
+    const defaultAppPath = mode === 'local' ? process.cwd() : path.join(home, 'beer-pong');
 
     console.log('');
 
-    // ── [1/7] Grundkonfiguration ─────────────────────────────────────
+    // ── [1] Basic configuration ──────────────────────────────────────────
     answers.appName = await input({
-        message: 'App-Name:',
-        default: 'Bier Pong',
+        message: 'App name:',
+        default: 'Beer Pong',
     });
 
-    answers.domain = await input({
-        message: 'Domain (z.B. bier.olomek.com):',
-        validate: validateDomain,
-    });
+    if (mode === 'server') {
+        answers.domain = await input({
+            message: 'Domain (e.g. beerping.example.com):',
+            validate: validateDomain,
+        });
+    } else {
+        answers.domain = 'localhost';
+    }
 
     answers.appPath = await input({
-        message: 'App-Pfad (absoluter Pfad auf dem Server):',
-        default: path.join(home, 'beer-pong'),
+        message: 'App path (absolute path):',
+        default: defaultAppPath,
         validate: validatePath,
     });
 
     answers.port = await input({
-        message: 'App-Port:',
+        message: 'App port:',
         default: '3000',
         validate: validatePort,
     });
 
     answers.adminEmail = await input({
-        message: 'Admin-Email:',
+        message: 'Admin email:',
         validate: validateEmail,
     });
 
-    // ── [2/7] Datenbank ──────────────────────────────────────────────
-    console.log('');
-    answers.dbBackup = await confirm({
-        message: 'Wöchentliches DB-Backup per Cron einrichten?',
-        default: true,
-    });
+    // ── [2] Database ─────────────────────────────────────────────────────
+    if (mode === 'server') {
+        console.log('');
+        answers.dbBackup = await confirm({
+            message: 'Set up weekly DB backup via cron?',
+            default: true,
+        });
+    } else {
+        answers.dbBackup = false;
+    }
 
-    // ── [3/7] Email (Resend) ─────────────────────────────────────────
+    // ── [3] Email (Resend) ───────────────────────────────────────────────
     console.log('');
     answers.resendApiKey = await input({
-        message: 'Resend API-Key (leer lassen zum Überspringen):',
+        message: 'Resend API key (leave empty to skip):',
         default: '',
     });
 
     if (answers.resendApiKey) {
         answers.emailFrom = await input({
-            message: 'Absender-Email:',
-            default: `noreply@${answers.domain}`,
+            message: 'Sender email:',
+            default: mode === 'server' ? `noreply@${answers.domain}` : `noreply@localhost`,
             validate: validateEmail,
         });
     } else {
-        answers.emailFrom = `noreply@${answers.domain}`;
+        answers.emailFrom = mode === 'server' ? `noreply@${answers.domain}` : `noreply@localhost`;
     }
 
-    // ── [4/7] Push Notifications ─────────────────────────────────────
+    // ── [4] Push Notifications ───────────────────────────────────────────
     console.log('');
     answers.generateVapid = await confirm({
-        message: 'VAPID-Keys für Push-Benachrichtigungen generieren?',
+        message: 'Generate VAPID keys for push notifications?',
         default: true,
     });
 
-    // ── [5/7] Sentry ─────────────────────────────────────────────────
+    // ── [5] Sentry ───────────────────────────────────────────────────────
     console.log('');
     answers.sentryDsn = await input({
-        message: 'Sentry DSN (leer lassen zum Überspringen):',
+        message: 'Sentry DSN (leave empty to skip):',
         default: '',
     });
 
-    // ── [6/7] Google Maps ────────────────────────────────────────────
+    // ── [6] Google Maps ──────────────────────────────────────────────────
     console.log('');
     answers.googleMapsKey = await input({
-        message: 'Google Maps API-Key (leer lassen zum Überspringen):',
+        message: 'Google Maps API key (leave empty to skip):',
         default: '',
     });
 
-    // ── [7/7] Optionale Module ───────────────────────────────────────
-    console.log('');
-    answers.setupGithub = await confirm({
-        message: 'GitHub Actions CI/CD einrichten? (gh CLI muss vorhanden sein)',
-        default: false,
-    });
-
-    if (answers.setupGithub) {
-        answers.repoOwner = await input({
-            message: 'GitHub Repository (owner/repo):',
-            default: `${user}/beer-pong`,
+    // ── [7] Server-only: GitHub Actions ─────────────────────────────────
+    if (mode === 'server') {
+        console.log('');
+        answers.setupGithub = await confirm({
+            message: 'Set up GitHub Actions CI/CD? (requires gh CLI)',
+            default: false,
         });
 
-        answers.sshHost = await input({
-            message: 'Server-IP oder Hostname für SSH:',
-            validate: (v) => v.trim() ? true : 'Pflichtfeld',
-        });
+        if (answers.setupGithub) {
+            answers.repoOwner = await input({
+                message: 'GitHub repository (owner/repo):',
+                validate: (v) => v.trim() ? true : 'Required',
+            });
 
-        answers.sshUser = await input({
-            message: 'SSH-Benutzer:',
-            default: user,
-        });
+            answers.sshHost = await input({
+                message: 'Server IP or hostname for SSH:',
+                validate: (v) => v.trim() ? true : 'Required',
+            });
 
-        answers.sshKeyPath = await input({
-            message: 'Pfad zum SSH Private Key:',
-            default: path.join(home, '.ssh', 'id_rsa'),
-        });
+            answers.sshUser = await input({
+                message: 'SSH user:',
+                default: user,
+            });
 
-        answers.e2eEmail = await input({
-            message: 'E2E-Test-Email (existierender Benutzer):',
-            default: answers.adminEmail,
-            validate: validateEmail,
-        });
+            answers.sshKeyPath = await input({
+                message: 'SSH private key path:',
+                default: path.join(home, '.ssh', 'id_rsa'),
+            });
 
-        answers.e2ePassword = await password({
-            message: 'E2E-Test-Passwort:',
-            mask: '*',
-        });
+            answers.e2eEmail = await input({
+                message: 'E2E test user email:',
+                default: answers.adminEmail,
+                validate: validateEmail,
+            });
+
+            answers.e2ePassword = await password({
+                message: 'E2E test user password:',
+                mask: '*',
+            });
+        }
+    } else {
+        answers.setupGithub = false;
     }
 
     return answers;

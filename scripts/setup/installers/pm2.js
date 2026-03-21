@@ -5,7 +5,7 @@ const os = require('os');
 const NVM_INIT = `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"`;
 
 /**
- * Baut die App und richtet PM2 ein.
+ * Builds the app and sets up the PM2 process.
  */
 function setupPm2(answers, spinner) {
     const { appPath, port } = answers;
@@ -15,28 +15,23 @@ function setupPm2(answers, spinner) {
     const user = os.userInfo().username;
     const home = os.homedir();
 
-    // Build
-    spinner.text = 'Installiere Abhängigkeiten (npm ci)…';
+    spinner.text = 'Installing dependencies (npm ci)…';
     runShell(`cd "${appPath}" && ${NVM_INIT} && npm ci`);
 
-    spinner.text = 'Baue App (npm run build)…';
+    spinner.text = 'Building app (npm run build)…';
     runShell(`cd "${appPath}" && ${NVM_INIT} && npm run build`);
 
-    // Maintenance-Files entfernen falls vorhanden
+    // Remove maintenance files that may have been copied into standalone
     runShell(`rm -f "${appPath}/.next/standalone/public/maintenance.on" "${appPath}/.next/standalone/public/maintenance-msg.txt" 2>/dev/null || true`);
 
-    // PM2 einrichten
-    spinner.text = 'Richte PM2 ein…';
-
-    // Prüfen ob Prozess bereits läuft
+    spinner.text = 'Setting up PM2…';
     let pm2Running = false;
     try {
         runShell(`${NVM_INIT} && pm2 show ${pm2Name}`);
         pm2Running = true;
-    } catch { /* Prozess existiert nicht */ }
+    } catch { /* process doesn't exist yet */ }
 
     if (pm2Running) {
-        spinner.text = `PM2-Prozess "${pm2Name}" bereits vorhanden — starte neu…`;
         runShell(`${NVM_INIT} && DATABASE_URL="file:${dbPath}" PORT=${port} pm2 restart ${pm2Name} --update-env`);
     } else {
         runShell(
@@ -47,25 +42,21 @@ function setupPm2(answers, spinner) {
 
     runShell(`${NVM_INIT} && pm2 save`);
 
-    // Systemd-Integration (einmalig)
-    spinner.text = 'Richte PM2-Autostart ein…';
+    spinner.text = 'Setting up PM2 autostart…';
     try {
-        const startupCmd = runShell(`${NVM_INIT} && pm2 startup systemd -u ${user} --hp ${home}`);
-        // PM2 gibt den sudo-Befehl aus — wenn wir sudo haben, direkt ausführen
-        const sudoLine = startupCmd.split('\n').find(l => l.trim().startsWith('sudo'));
+        const startupOutput = runShell(`${NVM_INIT} && pm2 startup systemd -u ${user} --hp ${home}`);
+        const sudoLine = startupOutput.split('\n').find(l => l.trim().startsWith('sudo'));
         if (sudoLine) {
             try {
                 runShell(sudoLine.trim());
             } catch {
-                spinner.warn('PM2 Startup-Befehl konnte nicht automatisch ausgeführt werden.');
-                spinner.warn('Führe manuell aus: ' + sudoLine.trim());
+                spinner.warn('Could not run PM2 startup command automatically.');
+                spinner.warn('Run manually: ' + sudoLine.trim());
             }
         }
     } catch {
-        spinner.warn('PM2-Autostart konnte nicht eingerichtet werden — bitte manuell konfigurieren.');
+        spinner.warn('PM2 autostart could not be configured — please set up manually.');
     }
-
-    spinner.text = `PM2-Prozess "${pm2Name}" läuft auf Port ${port}`;
 }
 
 module.exports = { setupPm2 };

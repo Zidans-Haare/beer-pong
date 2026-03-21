@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const appDir = path.resolve(process.cwd());
+    // APP_DIR muss explizit gesetzt sein — process.cwd() zeigt in standalone auf
+    // .next/standalone/ und nicht auf das Projektverzeichnis
+    const appDir = process.env.APP_DIR || path.resolve(process.cwd(), '../../..');
     const updateScript = path.join(appDir, 'scripts', 'update.sh');
 
     // Spawn detached — response is sent before pm2 restarts the process

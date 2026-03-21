@@ -32,13 +32,20 @@ echo "⬇   Pulling latest changes..."
 git pull
 
 echo "📦  Installing dependencies..."
-npm ci --omit=dev
+npm ci
+
+echo "🔄  Generating Prisma client..."
+npx prisma generate
+
+echo "🗄️   Running migrations..."
+npx prisma migrate deploy
 
 echo "🔨  Building app..."
 npm run build
 
 echo "♻️   Restarting PM2..."
-pm2 restart beer-pong
+set -a; [ -f .env ] && . .env; set +a
+pm2 restart beer-pong --update-env
 
 echo ""
 echo "✅  Update complete!"

@@ -59,6 +59,9 @@ Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
 | UI | React 19, Framer Motion, Lucide Icons |
 | Charts | [Recharts](https://recharts.org/) |
 | Maps | Google Maps Platform |
+| Email | [Resend](https://resend.com) |
+| Error Tracking | [Sentry](https://sentry.io) |
+| Performance | [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) (self-hosted) |
 
 ---
 
@@ -194,6 +197,72 @@ maint-off
 ```
 
 The maintenance page (`public/maintenance.html`) is fully static, auto-redirects when maintenance ends, and shows a live countdown with optional message.
+
+---
+
+## Error Monitoring (Sentry)
+
+Errors are tracked via [Sentry](https://sentry.io). Both client-side and server-side errors are captured in production.
+
+- Client-side DSN is hardcoded in `instrumentation-client.ts`
+- Server-side DSN is configured via environment variable
+
+### Setup
+
+Add to `.env` on the server:
+
+```
+SENTRY_DSN=https://...@sentry.io/...
+```
+
+Then restart the app: `pm2 restart beer-pong --update-env`
+
+Alerts are sent by email for every new issue (configurable in the Sentry dashboard under **Alerts**).
+
+---
+
+## CI/CD (GitHub Actions)
+
+Three automated workflows run on every push to `main`:
+
+### 1. Deploy (`deploy.yml`)
+
+Triggered on every push to `main`. Runs tests first, then deploys via SSH.
+
+**Test job:**
+- Unit tests (`npm test`)
+- E2E tests via Playwright against production (non-blocking)
+
+**Deploy job (SSH):**
+- Activates maintenance page via Nginx flag file
+- Creates a rollback backup of `.next/standalone`
+- Runs `npm ci`, `prisma generate`, `prisma migrate deploy`
+- Builds the app (`npm run build`)
+- Restarts PM2 with updated env vars
+- On failure: automatically restores previous build from backup
+
+Parallel deploys are prevented via `concurrency: cancel-in-progress: false`.
+
+**Required GitHub Secrets:**
+
+| Secret | Description |
+|---|---|
+| `SSH_HOST` | Server IP or hostname |
+| `SSH_USER` | SSH username |
+| `SSH_PRIVATE_KEY` | Private SSH key |
+| `E2E_USER_EMAIL` | Playwright test account email |
+| `E2E_USER_PASSWORD` | Playwright test account password |
+| `LHCI_TOKEN` | Lighthouse CI project token |
+
+### 2. Nightly Smoke-Test (`smoke-test.yml`)
+
+Runs every night at 3:00 UTC against production. Uploads a Playwright report as artifact on failure. Can also be triggered manually via `workflow_dispatch`.
+
+### 3. Lighthouse CI (`lighthouse.yml`)
+
+Runs after every deploy (5 minute delay to allow the deploy to finish). Tests the login page for performance, accessibility, best practices, and PWA score. Reports are uploaded to the self-hosted Lighthouse dashboard at [lighthouse.olomek.com](https://lighthouse.olomek.com).
+
+Performance budgets are defined in `.github/lighthouse-budget.json`.
 
 ---
 

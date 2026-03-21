@@ -25,4 +25,5 @@ jobs:
             https://bier.olomek.com/login
           budgetPath: .github/lighthouse-budget.json
           uploadArtifacts: true
-          temporaryPublicStorage: true
+          serverBaseUrl: https://lighthouse.olomek.com
+          serverToken: ${{ secrets.LHCI_TOKEN }}

@@ -375,9 +375,9 @@ async function main() {
     console.log(mid);
     console.log(row(''));
     console.log(row(chalk.dim('Next steps:')));
-    console.log(row('  ' + chalk.white('1.') + '  ' + chalk.cyan(`https://${answers.domain}/register`)));
+    console.log(row('  ' + chalk.white('1.') + '  ' + chalk.cyan('source ~/.bashrc') + chalk.dim('  # activate bp-* commands')));
+    console.log(row('  ' + chalk.white('2.') + '  ' + chalk.cyan(`https://${answers.domain}/register`)));
     console.log(row('     ' + chalk.dim('Create your admin account (email = ADMIN_EMAIL)')));
-    console.log(row('  ' + chalk.white('2.') + '  ' + chalk.cyan(`bash ~/beer-pong/scripts/update.sh`) + chalk.dim('  # update')));
     console.log(row(''));
     console.log(mid);
     console.log(row(chalk.dim('  bp-update               # update to latest version')));

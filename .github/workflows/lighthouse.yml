@@ -20,10 +20,10 @@ jobs:
 
       - name: Lighthouse auf Produktion ausführen
         uses: treosh/lighthouse-ci-action@v12
+        env:
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          LHCI_TOKEN: ${{ secrets.LHCI_TOKEN }}
         with:
-          urls: |
-            https://bier.olomek.com/login
-          budgetPath: .github/lighthouse-budget.json
+          configPath: .lighthouserc.js
           uploadArtifacts: true
-          serverBaseUrl: https://lighthouse.olomek.com
-          serverToken: ${{ secrets.LHCI_TOKEN }}

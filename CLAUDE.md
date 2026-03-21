@@ -16,7 +16,7 @@
 - **UI:** React 19, Lucide Icons, Framer Motion, Recharts
 - **Auth:** NextAuth.js 5 (beta) mit Credentials + Passkey-Support
 - **DB:** SQLite + Prisma ORM + better-sqlite3 Adapter
-- **Sprache:** TypeScript, UI-Texte auf Deutsch
+- **Sprache:** TypeScript, i18n via `next-intl` (EN/DE), Strings in `messages/en.json` + `messages/de.json`, Locale via `NEXT_PUBLIC_LOCALE` env var
 
 ## Projektstruktur
 

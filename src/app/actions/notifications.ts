@@ -225,7 +225,7 @@ export async function broadcastNotification({
 
         console.log('[broadcastNotification] whereClause:', JSON.stringify(whereClause));
 
-        const users = await prisma.user.findMany({
+        const users: { id: string }[] = await prisma.user.findMany({
             where: whereClause,
             select: { id: true },
         });

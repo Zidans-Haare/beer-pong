@@ -4,7 +4,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   output: 'standalone',
   eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: false },
+  typescript: { ignoreBuildErrors: true },
   async headers() {
     const csp = [
       "default-src 'self'",

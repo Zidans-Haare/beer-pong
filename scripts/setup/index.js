@@ -152,8 +152,16 @@ async function main() {
             }
 
             if (!continueAnyway) {
-                console.log('\n' + chalk.green('  Smart choice. Use the CI/CD pipeline for updates.'));
+                console.log('\n' + chalk.green('  Smart choice. Use the update script instead:'));
+                console.log(chalk.cyan('  bash ~/beer-pong/scripts/update.sh'));
                 process.exit(0);
+            }
+
+            // Clean up existing installation before re-setup
+            const nvm2 = nvmPrefix();
+            if (pm2Running) {
+                try { runShell(`${nvm2}pm2 delete beer-pong`); } catch { /* ignore */ }
+                try { runShell(`${nvm2}pm2 save`); } catch { /* ignore */ }
             }
             console.log('');
         }

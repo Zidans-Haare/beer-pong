@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: deploy-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -69,6 +69,9 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd ~/beer-pong
+
+            # Aufräumen falls vorheriger Deploy abgebrochen wurde
+            rm -f public/maintenance.on public/maintenance-msg.txt
 
             # Backup des laufenden Standalone-Builds (Rollback bei Fehler)
             if [ -d ".next/standalone" ]; then

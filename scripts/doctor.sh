@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# Beer Pong — Doctor
+# Checks the installation and reports issues with fix hints.
+
+set -e
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+APP_DIR="${APP_DIR:-$HOME/beer-pong}"
+PASS="✔"
+FAIL="✖"
+WARN="⚠"
+OK=0
+ISSUES=0
+
+check() {
+    local label="$1"
+    local result="$2"  # "ok", "warn", "fail"
+    local detail="$3"
+    local fix="$4"
+
+    if [ "$result" = "ok" ]; then
+        printf "  \e[32m%s\e[0m  %s\n" "$PASS" "$label"
+    elif [ "$result" = "warn" ]; then
+        printf "  \e[33m%s\e[0m  %s\n" "$WARN" "$label"
+        [ -n "$detail" ] && printf "        \e[2m%s\e[0m\n" "$detail"
+        [ -n "$fix" ]    && printf "        \e[36mFix: %s\e[0m\n" "$fix"
+        ISSUES=$((ISSUES+1))
+    else
+        printf "  \e[31m%s\e[0m  %s\n" "$FAIL" "$label"
+        [ -n "$detail" ] && printf "        \e[2m%s\e[0m\n" "$detail"
+        [ -n "$fix" ]    && printf "        \e[36mFix: %s\e[0m\n" "$fix"
+        ISSUES=$((ISSUES+1))
+    fi
+}
+
+echo ""
+echo "  \e[1mBeer Pong — Doctor\e[0m"
+echo "  ──────────────────────────────────────────────────────"
+echo ""
+
+# ── App directory ─────────────────────────────────────────────────────────────
+if [ -d "$APP_DIR" ]; then
+    check "App directory exists ($APP_DIR)" "ok"
+else
+    check "App directory" "fail" "$APP_DIR not found" "Run the setup wizard: curl -sL https://raw.githubusercontent.com/Zidans-Haare/beer-pong/main/setup.sh | bash"
+fi
+
+# ── .env ──────────────────────────────────────────────────────────────────────
+if [ -f "$APP_DIR/.env" ]; then
+    check ".env exists" "ok"
+
+    for VAR in AUTH_SECRET AUTH_URL DATABASE_URL ADMIN_EMAIL PORT; do
+        if grep -q "^${VAR}=" "$APP_DIR/.env" 2>/dev/null; then
+            check ".env: $VAR set" "ok"
+        else
+            check ".env: $VAR missing" "fail" "" "Add ${VAR}=... to $APP_DIR/.env"
+        fi
+    done
+else
+    check ".env" "fail" "Not found" "Re-run the setup wizard"
+fi
+
+# ── Database ──────────────────────────────────────────────────────────────────
+DB_PATH=$(grep "^DATABASE_URL=" "$APP_DIR/.env" 2>/dev/null | sed 's/DATABASE_URL="file://;s/".*//')
+if [ -z "$DB_PATH" ]; then
+    DB_PATH="$APP_DIR/dev.db"
+fi
+
+if [ -f "$DB_PATH" ]; then
+    check "Database file exists ($DB_PATH)" "ok"
+    TABLE_COUNT=$(sqlite3 "$DB_PATH" ".tables" 2>/dev/null | wc -w)
+    if [ "$TABLE_COUNT" -gt 5 ]; then
+        check "Database has tables ($TABLE_COUNT)" "ok"
+    else
+        check "Database tables" "fail" "Only $TABLE_COUNT tables found — migrations may not have run" \
+            "cd $APP_DIR && set -a; . .env; set +a && npx prisma migrate deploy"
+    fi
+else
+    check "Database file" "fail" "$DB_PATH not found" \
+        "cd $APP_DIR && set -a; . .env; set +a && npx prisma migrate deploy"
+fi
+
+# ── Node / NVM ────────────────────────────────────────────────────────────────
+if command -v node &>/dev/null; then
+    NODE_VER=$(node --version)
+    check "Node.js installed ($NODE_VER)" "ok"
+else
+    check "Node.js" "fail" "Not found" "source ~/.bashrc && nvm install 20"
+fi
+
+# ── PM2 ───────────────────────────────────────────────────────────────────────
+if command -v pm2 &>/dev/null; then
+    check "PM2 installed" "ok"
+    if pm2 show beer-pong &>/dev/null 2>&1; then
+        STATUS=$(pm2 jlist 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 | sed 's/"status":"//;s/"//')
+        if [ "$STATUS" = "online" ]; then
+            check "PM2 process 'beer-pong' running" "ok"
+        else
+            check "PM2 process 'beer-pong'" "warn" "Status: $STATUS" \
+                "set -a; . $APP_DIR/.env; set +a && pm2 restart beer-pong --update-env"
+        fi
+    else
+        check "PM2 process 'beer-pong'" "fail" "Not registered" \
+            "Re-run the setup wizard or: pm2 start $APP_DIR/.next/standalone/server.js --name beer-pong"
+    fi
+else
+    check "PM2" "fail" "Not found" "npm install -g pm2"
+fi
+
+# ── Nginx ─────────────────────────────────────────────────────────────────────
+if command -v nginx &>/dev/null; then
+    check "nginx installed" "ok"
+    if nginx -t &>/dev/null 2>&1; then
+        check "nginx config valid" "ok"
+    else
+        check "nginx config" "fail" "$(nginx -t 2>&1 | tail -1)" "nginx -t  for details"
+    fi
+else
+    check "nginx" "warn" "Not installed" "apt install nginx"
+fi
+
+# ── Certbot / SSL ─────────────────────────────────────────────────────────────
+if command -v certbot &>/dev/null; then
+    check "certbot installed" "ok"
+else
+    check "certbot" "warn" "Not installed — HTTPS may not work" "apt install certbot python3-certbot-nginx"
+fi
+
+# ── Port reachable ────────────────────────────────────────────────────────────
+PORT=$(grep "^PORT=" "$APP_DIR/.env" 2>/dev/null | sed 's/PORT=//;s/"//g')
+PORT="${PORT:-3000}"
+if curl -sf "http://localhost:$PORT" -o /dev/null -m 3 2>/dev/null; then
+    check "App responding on port $PORT" "ok"
+else
+    check "App responding on port $PORT" "warn" "No response from localhost:$PORT" \
+        "pm2 logs beer-pong  to check errors"
+fi
+
+# ── Disk space ────────────────────────────────────────────────────────────────
+DISK_FREE=$(df "$APP_DIR" 2>/dev/null | awk 'NR==2 {print $4}')
+DISK_FREE_MB=$((DISK_FREE / 1024))
+if [ "$DISK_FREE_MB" -gt 500 ]; then
+    check "Disk space (${DISK_FREE_MB}MB free)" "ok"
+elif [ "$DISK_FREE_MB" -gt 100 ]; then
+    check "Disk space (${DISK_FREE_MB}MB free)" "warn" "Getting low" "df -h $APP_DIR"
+else
+    check "Disk space (${DISK_FREE_MB}MB free)" "fail" "Critically low!" "Clean up with: journalctl --vacuum-size=100M"
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+echo ""
+echo "  ──────────────────────────────────────────────────────"
+if [ "$ISSUES" -eq 0 ]; then
+    printf "  \e[32m✔  Everything looks good!\e[0m\n"
+else
+    printf "  \e[33m⚠  %d issue(s) found — see fixes above.\e[0m\n" "$ISSUES"
+fi
+echo ""

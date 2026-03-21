@@ -221,6 +221,7 @@ async function main() {
         ? ['.env', 'Database']
         : ['System deps', 'Clone repo', '.env', 'Nginx + SSL', 'Database', 'Build + PM2',
            ...(answers.dbBackup ? ['Cron backup'] : []),
+           'Shell aliases',
            ];
     let stepIdx = 0;
 
@@ -350,6 +351,22 @@ async function main() {
         }
     }
 
+    // ── Shell aliases ─────────────────────────────────────────────────────
+    sp = makeSpinner('Installing shell aliases…');
+    try {
+        const fs = require('fs');
+        const os = require('os');
+        const aliasesSrc = require('path').join(answers.appPath, 'scripts', 'aliases.sh');
+        const bashrc = require('path').join(os.homedir(), '.bashrc');
+        const marker = '# Beer Pong — Shell Aliases';
+        const bashrcContent = fs.existsSync(bashrc) ? fs.readFileSync(bashrc, 'utf-8') : '';
+        if (!bashrcContent.includes(marker)) {
+            fs.appendFileSync(bashrc, `\n# >>> Beer Pong aliases >>>\nsource "${aliasesSrc}"\n# <<< Beer Pong aliases <<<\n`);
+        }
+        ok(sp, 'Shell aliases installed', 'run: source ~/.bashrc');
+    } catch (err) {
+        fail(sp, 'Aliases failed', err.message);
+    }
 
     // ── Done ──────────────────────────────────────────────────────────────
     console.log('');
@@ -363,9 +380,12 @@ async function main() {
     console.log(row('  ' + chalk.white('2.') + '  ' + chalk.cyan(`bash ~/beer-pong/scripts/update.sh`) + chalk.dim('  # update')));
     console.log(row(''));
     console.log(mid);
-    console.log(row(chalk.dim('  pm2 logs beer-pong      # view logs')));
-    console.log(row(chalk.dim('  pm2 restart beer-pong   # restart')));
-    console.log(row(chalk.dim('  pm2 status              # all processes')));
+    console.log(row(chalk.dim('  bp-update               # update to latest version')));
+    console.log(row(chalk.dim('  bp-doctor               # check for issues')));
+    console.log(row(chalk.dim('  bp-logs                 # view logs')));
+    console.log(row(chalk.dim('  bp-maint-on / off       # maintenance mode')));
+    console.log(row(chalk.dim('  bp-restart              # restart app')));
+    console.log(row('  ' + chalk.dim('Run ') + chalk.cyan('source ~/.bashrc') + chalk.dim(' to activate')));
     console.log(row(''));
     console.log(mid);
     console.log(row(chalk.bold.white('Auto-Updates via GitHub Webhook')));

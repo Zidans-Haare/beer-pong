@@ -1,4 +1,4 @@
-const { input, password, confirm } = require('@inquirer/prompts');
+const { input, confirm } = require('@inquirer/prompts');
 const os = require('os');
 const path = require('path');
 const { validateDomain, validateEmail, validatePort } = require('./utils/validate');
@@ -93,50 +93,7 @@ async function askQuestions(mode, section) {
         default: '',
     });
 
-    // ── GitHub Actions ───────────────────────────────────────────────────
-    if (mode === 'server') {
-        section('🚀', 'CI/CD  (GitHub Actions)');
-
-        answers.setupGithub = await confirm({
-            message: 'Set up GitHub Actions secrets?  (requires gh CLI)',
-            default: false,
-        });
-
-        if (answers.setupGithub) {
-            answers.repoOwner = await input({
-                message: 'GitHub repository (owner/repo):',
-                validate: (v) => v.trim() ? true : 'Required',
-            });
-
-            answers.sshHost = await input({
-                message: 'Server IP or hostname:',
-                validate: (v) => v.trim() ? true : 'Required',
-            });
-
-            answers.sshUser = await input({
-                message: 'SSH user:',
-                default: user,
-            });
-
-            answers.sshKeyPath = await input({
-                message: 'SSH private key path:',
-                default: path.join(home, '.ssh', 'id_rsa'),
-            });
-
-            answers.e2eEmail = await input({
-                message: 'E2E test user email:',
-                default: answers.adminEmail,
-                validate: validateEmail,
-            });
-
-            answers.e2ePassword = await password({
-                message: 'E2E test user password:',
-                mask: '*',
-            });
-        }
-    } else {
-        answers.setupGithub = false;
-    }
+    answers.setupGithub = false; // CI/CD setup is for developers — see docs/cicd.md
 
     console.log('');
     return answers;

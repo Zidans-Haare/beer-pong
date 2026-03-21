@@ -20,7 +20,6 @@ async function main() {
     const { setupCronBackup } = require('./generators/cron');
     const { setupDatabase } = require('./installers/database');
     const { setupPm2 } = require('./installers/pm2');
-    const { setupGithubSecrets } = require('./installers/github');
 
     const W = 56; // box width
     const line  = (s = '') => chalk.magenta('│') + s + chalk.magenta('│');
@@ -187,7 +186,6 @@ async function main() {
     console.log(summaryRow('Sentry', answers.sentryDsn ? chalk.green('✓ configured') : chalk.dim('—')));
     if (mode === 'server') {
         console.log(summaryRow('DB backup', answers.dbBackup ? chalk.green('✓ weekly') : chalk.dim('—')));
-        console.log(summaryRow('GitHub CI', answers.setupGithub ? chalk.green('✓ ' + answers.repoOwner) : chalk.dim('—')));
     }
     console.log(bot);
     console.log('');
@@ -215,7 +213,7 @@ async function main() {
         ? ['.env', 'Database']
         : ['System deps', 'Clone repo', '.env', 'Nginx + SSL', 'Database', 'Build + PM2',
            ...(answers.dbBackup ? ['Cron backup'] : []),
-           ...(answers.setupGithub ? ['GitHub secrets'] : [])];
+           ];
     let stepIdx = 0;
 
     function makeSpinner(label) {
@@ -344,15 +342,6 @@ async function main() {
         }
     }
 
-    if (answers.setupGithub) {
-        sp = makeSpinner('Setting GitHub secrets…');
-        try {
-            setupGithubSecrets(answers, sp);
-            ok(sp, 'GitHub secrets set');
-        } catch (err) {
-            fail(sp, 'GitHub failed', err.message);
-        }
-    }
 
     // ── Done ──────────────────────────────────────────────────────────────
     console.log('');

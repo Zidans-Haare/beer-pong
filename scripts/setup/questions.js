@@ -4,6 +4,7 @@ const path = require('path');
 const { validateDomain, validateEmail, validatePort } = require('./utils/validate');
 
 async function askQuestions(mode, section) {
+    const { default: chalk } = await import('chalk');
     const answers = { mode };
     const user = os.userInfo().username;
     const home = os.homedir();
@@ -21,6 +22,15 @@ async function askQuestions(mode, section) {
     });
 
     if (mode === 'server') {
+        console.log('');
+        console.log(chalk.dim('  DNS — set these records at your domain registrar before continuing:'));
+        console.log(chalk.dim('  ┌─────────────────────────────────────────────────────┐'));
+        console.log(chalk.dim('  │  Type   Name        Value                           │'));
+        console.log(chalk.dim('  │  A      @           <your server IP>                │'));
+        console.log(chalk.dim('  │  A      www         <your server IP>   (optional)   │'));
+        console.log(chalk.dim('  └─────────────────────────────────────────────────────┘'));
+        console.log(chalk.dim('  SSL (certbot) requires the domain to already point to this server.'));
+        console.log('');
         answers.domain = await input({
             message: 'Domain (e.g. beerping.example.com):',
             validate: validateDomain,
@@ -53,6 +63,11 @@ async function askQuestions(mode, section) {
 
     // ── Email ────────────────────────────────────────────────────────────
     section('✉', 'Email  (Resend)');
+    console.log(chalk.dim('  Enables email notifications (e.g. account approval).'));
+    console.log(chalk.dim('  1. Create account at resend.com'));
+    console.log(chalk.dim('  2. Add & verify your domain → get SPF/DKIM DNS records'));
+    console.log(chalk.dim('  3. Create an API key with Sending access'));
+    console.log('');
 
     answers.resendApiKey = await input({
         message: 'Resend API key (leave empty to skip):',
@@ -79,6 +94,10 @@ async function askQuestions(mode, section) {
 
     // ── Sentry ───────────────────────────────────────────────────────────
     section('🐛', 'Error Tracking  (Sentry)');
+    console.log(chalk.dim('  Tracks runtime errors in production automatically.'));
+    console.log(chalk.dim('  1. Create account at sentry.io'));
+    console.log(chalk.dim('  2. New Project → Next.js → copy the DSN'));
+    console.log('');
 
     answers.sentryDsn = await input({
         message: 'Sentry DSN (leave empty to skip):',
@@ -87,6 +106,11 @@ async function askQuestions(mode, section) {
 
     // ── Google Maps ──────────────────────────────────────────────────────
     section('🗺', 'Maps  (Google Maps)');
+    console.log(chalk.dim('  Enables location autocomplete for tournaments (optional).'));
+    console.log(chalk.dim('  1. console.cloud.google.com → new project'));
+    console.log(chalk.dim('  2. Enable: Maps JavaScript API + Places API'));
+    console.log(chalk.dim('  3. Create API key → restrict to your domain'));
+    console.log('');
 
     answers.googleMapsKey = await input({
         message: 'Google Maps API key (leave empty to skip):',

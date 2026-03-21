@@ -1,4 +1,5 @@
 const { runShell } = require('../utils/shell');
+const { confirm } = require('@inquirer/prompts');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,6 +31,20 @@ async function generateEnv(answers, spinner) {
     // Ensure the directory exists
     if (!fs.existsSync(appPath)) {
         fs.mkdirSync(appPath, { recursive: true });
+    }
+
+    // Ask before overwriting an existing .env
+    const envPath = path.join(appPath, '.env');
+    if (fs.existsSync(envPath)) {
+        spinner.stop();
+        const overwrite = await confirm({
+            message: '.env already exists — overwrite it?',
+            default: false,
+        });
+        if (!overwrite) {
+            return envPath; // keep existing .env, skip generation
+        }
+        spinner.start();
     }
 
     spinner.text = 'Generating AUTH_SECRET…';
@@ -97,7 +112,6 @@ async function generateEnv(answers, spinner) {
         `NEXT_PUBLIC_GITHUB_REPO=""`,
     ];
 
-    const envPath = path.join(appPath, '.env');
     fs.writeFileSync(envPath, lines.join('\n') + '\n', 'utf-8');
     return envPath;
 }

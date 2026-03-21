@@ -30,6 +30,7 @@
     "@sentry/nextjs": "^10.45.0",
     "@simplewebauthn/browser": "^9.0.1",
     "@simplewebauthn/server": "^9.0.3",
+    "@swc/helpers": "^0.5.19",
     "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.5.0",

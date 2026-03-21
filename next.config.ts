@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/**/*': ['./messages/**/*'],
+    },
+  },
   async headers() {
     const csp = [
       "default-src 'self'",

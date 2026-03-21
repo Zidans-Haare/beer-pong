@@ -113,6 +113,9 @@ jobs:
             # maintenance.on darf nicht im standalone landen — sonst bleibt Maintenance ewig an
             rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
 
+            # i18n messages in standalone kopieren (dynamic imports werden nicht automatisch getrackt)
+            cp -r messages .next/standalone/messages
+
             # Backup nicht mehr nötig
             rm -rf .next/standalone.bak
 

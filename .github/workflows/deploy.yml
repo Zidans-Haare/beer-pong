@@ -33,7 +33,7 @@ jobs:
           E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
         # rate-limit.spec.ts ausgeschlossen — testet neuen Code der erst nach Deploy verfügbar ist
-        run: npx playwright test e2e/auth.spec.ts e2e/navigation.spec.ts e2e/images.spec.ts e2e/tournaments.spec.ts
+        run: npx playwright test e2e/auth.spec.ts e2e/navigation.spec.ts e2e/images.spec.ts e2e/tournaments.spec.ts e2e/players.spec.ts e2e/stats.spec.ts
         # Wenn E2E_BASE_URL nicht gesetzt ist, startet playwright.config.ts einen lokalen Dev-Server
 
       - name: Test-Report hochladen (bei Fehler)

@@ -36,7 +36,7 @@ check() {
 }
 
 echo ""
-echo "  \e[1mBeer Pong — Doctor\e[0m"
+echo -e "  \e[1mBeer Pong — Doctor\e[0m"
 echo "  ──────────────────────────────────────────────────────"
 echo ""
 

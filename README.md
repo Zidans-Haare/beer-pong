@@ -25,6 +25,22 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong
 npm run setup
 ```
 
+## Systemanforderungen (Setup Wizard)
+
+Der Setup-Wizard und die Shell-Aliases (`bp-*`) sind auf **Linux-Server mit bash** ausgelegt und getestet:
+
+| Betriebssystem | Shell | Unterstützt |
+|---|---|---|
+| Ubuntu 20.04 / 22.04 / 24.04 | bash | ✅ getestet |
+| Debian 11 / 12 | bash | ✅ |
+| CentOS / RHEL / Fedora | bash | ✅ |
+| Alpine Linux | bash | ✅ (`echo -e` + `\e` funktionieren) |
+| macOS | zsh | ⚠️ Wizard läuft, aber Shell-Aliases werden in `.bashrc` geschrieben — zsh lädt diese nicht automatisch |
+
+**Hinweis:** Der lokale Modus (`--mode local`) installiert keine Shell-Aliases. Die `bp-*`-Befehle sind ausschließlich für den Server-Modus gedacht.
+
+---
+
 ## Updating
 
 Run on your server to pull the latest version, rebuild, and restart:

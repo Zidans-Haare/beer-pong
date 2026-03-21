@@ -109,7 +109,7 @@ async function generateEnv(answers, spinner) {
         `UPTIME_KUMA_SLUG=""`,
         '',
         '# GitHub Repository URL (optional, shown in app)',
-        `NEXT_PUBLIC_GITHUB_REPO=""`,
+        `NEXT_PUBLIC_GITHUB_REPO="https://github.com/Zidans-Haare/beer-pong"`,
     ];
 
     fs.writeFileSync(envPath, lines.join('\n') + '\n', 'utf-8');

@@ -64,7 +64,7 @@ async function generateEnv(answers, spinner) {
         }
     }
 
-    const dbPath = path.join(appPath, 'prisma', 'dev.db');
+    const dbPath = path.join(appPath, 'dev.db'); // prisma.config.ts uses file:./dev.db (project root)
     const appUrl = mode === 'local' ? `http://localhost:${port}` : `https://${domain}`;
 
     const lines = [

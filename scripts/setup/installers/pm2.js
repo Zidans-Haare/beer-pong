@@ -11,7 +11,7 @@ const os = require('os');
 function setupPm2(answers, spinner) {
     const { appPath, port } = answers;
     const nvm = nvmPrefix();
-    const dbPath = path.join(appPath, 'prisma', 'dev.db');
+    const dbPath = path.join(appPath, 'dev.db'); // prisma.config.ts uses file:./dev.db (project root)
     const serverScript = path.join(appPath, '.next', 'standalone', 'server.js');
     const pm2Name = 'beer-pong';
     const user = os.userInfo().username;

@@ -14,7 +14,7 @@ function dryLog(cmd) { process.stdout.write('\x1b[2m    $ ' + cmd + '\x1b[0m\n')
  */
 function setupDatabase(answers, spinner) {
     const { appPath, mode } = answers;
-    const dbPath = path.join(appPath, 'prisma', 'dev.db');
+    const dbPath = path.join(appPath, 'dev.db'); // prisma.config.ts uses file:./dev.db (project root)
     const backupsDir = path.join(appPath, 'prisma', 'backups');
 
     if (!fs.existsSync(backupsDir)) {

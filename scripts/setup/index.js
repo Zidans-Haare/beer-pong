@@ -359,6 +359,15 @@ async function main() {
     console.log(row(chalk.dim('  pm2 restart beer-pong   # restart')));
     console.log(row(chalk.dim('  pm2 status              # all processes')));
     console.log(row(''));
+    console.log(mid);
+    console.log(row(chalk.bold.white('Auto-Updates via GitHub Webhook')));
+    console.log(row(''));
+    console.log(row(chalk.dim('  In your GitHub repo → Settings → Webhooks:')));
+    console.log(row('  ' + chalk.dim('Payload URL:  ') + chalk.cyan(`https://${answers.domain}/api/deploy`)));
+    console.log(row('  ' + chalk.dim('Content type: ') + chalk.white('application/json')));
+    console.log(row('  ' + chalk.dim('Secret:       ') + chalk.white('DEPLOY_SECRET') + chalk.dim(' from .env')));
+    console.log(row('  ' + chalk.dim('Event:        ') + chalk.white('Just the push event')));
+    console.log(row(''));
     console.log(bot);
     console.log('');
 }

@@ -49,6 +49,7 @@ async function generateEnv(answers, spinner) {
 
     spinner.text = 'Generating AUTH_SECRET…';
     const authSecret = generateAuthSecret();
+    const deploySecret = generateAuthSecret();
 
     let vapidPublic = '';
     let vapidPrivate = '';
@@ -110,6 +111,10 @@ async function generateEnv(answers, spinner) {
         '',
         '# GitHub Repository URL (optional, shown in app)',
         `NEXT_PUBLIC_GITHUB_REPO="https://github.com/Zidans-Haare/beer-pong"`,
+        '',
+        '# Auto-Deploy Webhook (POST /api/deploy)',
+        '# Set this as the "Secret" when adding a GitHub webhook to your repo',
+        `DEPLOY_SECRET="${deploySecret}"`,
     ];
 
     fs.writeFileSync(envPath, lines.join('\n') + '\n', 'utf-8');

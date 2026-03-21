@@ -54,10 +54,10 @@ export default async function AdminDashboard() {
                             (aktuell: v{updateInfo.currentVersion})
                         </span>
                         <div style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>
-                            Auf dem Server ausführen:{' '}
-                            <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>
-                                bash ~/beer-pong/scripts/update.sh
-                            </code>
+                            {process.env.DEPLOY_SECRET
+                                ? <>GitHub Webhook aktiv — pushe auf <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>main</code> zum Deployen.</>
+                                : <>Manuell: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>bash ~/beer-pong/scripts/update.sh</code></>
+                            }
                         </div>
                     </div>
                     <Link

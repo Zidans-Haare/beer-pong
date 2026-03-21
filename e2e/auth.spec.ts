@@ -51,12 +51,9 @@ test.describe('Authentifizierung', () => {
     test.skip(!hasCredentials, 'Keine E2E-Zugangsdaten gesetzt');
     await page.goto('/');
     await page.getByRole('button', { name: /Logout/i }).click();
-    // Warten bis Logout-Redirect abgeschlossen
-    await page.waitForURL(url => url.pathname.includes('/login') || url.pathname === '/', { timeout: 10_000 }).catch(() => {});
-    // Cookies löschen um sicherzustellen dass Session weg ist
-    await page.context().clearCookies();
-    await page.goto('/settings');
-    // App leitet zu / oder /login weiter — Hauptsache kein Logout-Button mehr sichtbar
-    await expect(page.getByRole('button', { name: /Logout/i })).not.toBeVisible();
+    // Nach Logout landet man auf / oder /login
+    await page.waitForURL(url => url.pathname === '/' || url.pathname.includes('/login'), { timeout: 10_000 });
+    const url = page.url();
+    expect(url).toMatch(/\/(login)?$/);
   });
 });

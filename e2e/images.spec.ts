@@ -17,7 +17,7 @@ test.describe('Bilder laden korrekt', () => {
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     expect(failedImages, `404-Bilder: ${failedImages.join(', ')}`).toHaveLength(0);
   });
 
@@ -29,7 +29,7 @@ test.describe('Bilder laden korrekt', () => {
     });
 
     await page.goto('/players');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     expect(failedImages, `404-Bilder: ${failedImages.join(', ')}`).toHaveLength(0);
   });
 });

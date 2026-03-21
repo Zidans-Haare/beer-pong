@@ -32,4 +32,33 @@ test.describe('Navigation nach Login', () => {
     await expect(page).toHaveURL('/stats');
     await expect(page.getByRole('button', { name: /Logout/i })).toBeVisible();
   });
+
+  test('Einstellungen-Seite erreichbar', async ({ page }) => {
+    await page.goto('/settings');
+    await expect(page).toHaveURL('/settings');
+    await expect(page.getByRole('button', { name: /Logout/i })).toBeVisible();
+  });
+
+  test('Regeln-Seite erreichbar', async ({ page }) => {
+    await page.goto('/rules');
+    await expect(page).toHaveURL('/rules');
+  });
+
+  test('Nicht vorhandene Seite gibt 404', async ({ page }) => {
+    const res = await page.goto('/diese-seite-gibt-es-nicht');
+    expect(res?.status()).toBe(404);
+  });
+});
+
+test.describe('Navigation ohne Login', () => {
+  test('Startseite lädt (oder leitet zu Login)', async ({ page }) => {
+    await page.goto('/');
+    const url = page.url();
+    expect(url).toMatch(/\/login|\//);
+  });
+
+  test('Admin-Bereich leitet zu Login', async ({ page }) => {
+    await page.goto('/admin');
+    await expect(page).toHaveURL(/\/login/);
+  });
 });

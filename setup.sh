@@ -26,4 +26,6 @@ if ! command -v node &>/dev/null; then
 fi
 
 # ── Run wizard directly from GitHub via npx ───────────────────────────────────
+# Restore terminal stdin — curl|bash pipes stdin away, but the wizard needs it
+exec </dev/tty
 npx --yes github:Zidans-Haare/beer-pong -- --mode server

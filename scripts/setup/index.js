@@ -6,7 +6,6 @@ async function main() {
     const { default: ora } = await import('ora');
     const { select, confirm } = require('@inquirer/prompts');
     const { askQuestions } = require('./questions');
-    const { cloneOrPull } = require('./installers/clone');
     const { generateEnv } = require('./generators/env');
     const { generateNginx } = require('./generators/nginx');
     const { setupCronBackup } = require('./generators/cron');
@@ -35,7 +34,7 @@ async function main() {
                     value: 'local',
                 },
                 {
-                    name: 'Production server  — git clone, nginx, SSL, PM2, cron',
+                    name: 'Production server  — full setup: nginx, SSL, PM2, cron',
                     value: 'server',
                 },
             ],
@@ -66,7 +65,6 @@ async function main() {
     console.log(chalk.bold('Summary:'));
     console.log(`  Mode:      ${chalk.cyan(mode === 'local' ? 'Local development' : 'Production server')}`);
     if (mode === 'server') {
-        console.log(`  Repo:      ${chalk.cyan(answers.repoUrl)}`);
         console.log(`  Domain:    ${chalk.cyan(answers.domain)}`);
     }
     console.log(`  Port:      ${chalk.cyan(answers.port)}`);
@@ -137,17 +135,7 @@ async function main() {
 
     // ── SERVER mode ───────────────────────────────────────────────────────
 
-    // 1. Clone repo
-    spinner.start('Cloning repository…');
-    try {
-        cloneOrPull(answers, spinner);
-        spinner.succeed(chalk.green('Repository ready') + chalk.dim(' → ' + answers.appPath));
-    } catch (err) {
-        spinner.fail(chalk.red('Git error: ' + err.message));
-        process.exit(1);
-    }
-
-    // 2. Generate .env
+    // 1. Generate .env
     spinner.start('Generating .env…');
     try {
         const envPath = await generateEnv(answers, spinner);

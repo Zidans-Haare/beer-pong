@@ -1,21 +1,18 @@
-const { input, password, confirm, select } = require('@inquirer/prompts');
+const { input, password, confirm } = require('@inquirer/prompts');
 const os = require('os');
 const path = require('path');
 const { validateDomain, validateEmail, validatePort } = require('./utils/validate');
 
 /**
  * Asks all wizard questions and returns an answers object.
- * appPath is NOT asked — it is derived automatically:
- *   local  → process.cwd()
- *   server → path derived from git clone destination
+ * appPath is always process.cwd() — the wizard must be run from the repo root.
  */
 async function askQuestions(mode) {
     const answers = { mode };
     const user = os.userInfo().username;
     const home = os.homedir();
 
-    // App path is set automatically — never shown to the user
-    answers.appPath = mode === 'local' ? process.cwd() : path.join(home, 'beer-pong');
+    answers.appPath = process.cwd();
 
     console.log('');
 
@@ -26,18 +23,6 @@ async function askQuestions(mode) {
     });
 
     if (mode === 'server') {
-        answers.repoUrl = await input({
-            message: 'Git repository URL to clone:',
-            default: 'https://github.com/your-org/beer-pong.git',
-            validate: (v) => v.trim().endsWith('.git') || v.trim().startsWith('git@') || v.trim().startsWith('https://')
-                ? true
-                : 'Enter a valid git URL (https://... or git@...)',
-        });
-
-        // Derive app path from clone destination
-        const repoName = answers.repoUrl.split('/').pop()?.replace(/\.git$/, '') || 'beer-pong';
-        answers.appPath = path.join(home, repoName);
-
         answers.domain = await input({
             message: 'Domain (e.g. beerping.example.com):',
             validate: validateDomain,

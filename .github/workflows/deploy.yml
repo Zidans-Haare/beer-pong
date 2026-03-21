@@ -87,7 +87,7 @@ jobs:
             trap cleanup EXIT
 
             # Maintenance-Modus aktivieren
-            echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
+            echo '{"msg":"Automatisches Update via GitHub Actions","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
             touch public/maintenance.on
 
             # App stoppen (sicher während npm ci läuft)

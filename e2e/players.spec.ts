@@ -11,7 +11,7 @@ test.describe('Spieler-Seite', () => {
 
   test('Spielerliste lädt', async ({ page }) => {
     await page.goto('/players');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     // Entweder Spielerkarten oder Leer-Hinweis sichtbar
     const hasPlayers = await page.locator('.glass-panel').count() > 0;
     expect(hasPlayers).toBe(true);
@@ -19,7 +19,7 @@ test.describe('Spieler-Seite', () => {
 
   test('Spieler-Detailseite erreichbar', async ({ page }) => {
     await page.goto('/players');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     const firstLink = page.locator('a[href^="/players/"]').first();
     const exists = await firstLink.count() > 0;
     if (!exists) { test.skip(); return; }

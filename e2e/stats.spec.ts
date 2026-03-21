@@ -11,7 +11,7 @@ test.describe('Stats-Seite', () => {
 
   test('Stats-Seite lädt korrekt', async ({ page }) => {
     await page.goto('/stats');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     await expect(page).toHaveURL('/stats');
     await expect(page).not.toHaveURL(/\/login/);
   });
@@ -20,7 +20,7 @@ test.describe('Stats-Seite', () => {
     const errors: string[] = [];
     page.on('pageerror', err => errors.push(err.message));
     await page.goto('/stats');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     expect(errors).toHaveLength(0);
   });
 });

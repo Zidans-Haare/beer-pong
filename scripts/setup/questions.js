@@ -3,24 +3,18 @@ const os = require('os');
 const path = require('path');
 const { validateDomain, validateEmail, validatePort } = require('./utils/validate');
 
-/**
- * Asks all wizard questions and returns an answers object.
- * appPath is always process.cwd() — the wizard must be run from the repo root.
- */
-async function askQuestions(mode) {
+async function askQuestions(mode, section) {
     const answers = { mode };
     const user = os.userInfo().username;
     const home = os.homedir();
 
-    // Local: run from within the repo → use cwd
-    // Server: wizard bootstraps before clone → install to ~/beer-pong
     answers.appPath = mode === 'local'
         ? process.cwd()
         : path.join(home, 'beer-pong');
 
-    console.log('');
+    // ── Basic configuration ──────────────────────────────────────────────
+    section('⚙', 'Basic configuration');
 
-    // ── [1] Basic configuration ──────────────────────────────────────────
     answers.appName = await input({
         message: 'App name:',
         default: 'Beer Pong',
@@ -46,19 +40,20 @@ async function askQuestions(mode) {
         validate: validateEmail,
     });
 
-    // ── [2] Database ─────────────────────────────────────────────────────
+    // ── Database ─────────────────────────────────────────────────────────
     if (mode === 'server') {
-        console.log('');
+        section('🗄', 'Database');
         answers.dbBackup = await confirm({
-            message: 'Set up weekly DB backup via cron?',
+            message: 'Weekly DB backup via cron?',
             default: true,
         });
     } else {
         answers.dbBackup = false;
     }
 
-    // ── [3] Email (Resend) ───────────────────────────────────────────────
-    console.log('');
+    // ── Email ────────────────────────────────────────────────────────────
+    section('✉', 'Email  (Resend)');
+
     answers.resendApiKey = await input({
         message: 'Resend API key (leave empty to skip):',
         default: '',
@@ -74,32 +69,36 @@ async function askQuestions(mode) {
         answers.emailFrom = mode === 'server' ? `noreply@${answers.domain}` : 'noreply@localhost';
     }
 
-    // ── [4] Push Notifications ───────────────────────────────────────────
-    console.log('');
+    // ── Push Notifications ───────────────────────────────────────────────
+    section('🔔', 'Push Notifications  (VAPID)');
+
     answers.generateVapid = await confirm({
-        message: 'Generate VAPID keys for push notifications?',
+        message: 'Generate VAPID keys?',
         default: true,
     });
 
-    // ── [5] Sentry ───────────────────────────────────────────────────────
-    console.log('');
+    // ── Sentry ───────────────────────────────────────────────────────────
+    section('🐛', 'Error Tracking  (Sentry)');
+
     answers.sentryDsn = await input({
         message: 'Sentry DSN (leave empty to skip):',
         default: '',
     });
 
-    // ── [6] Google Maps ──────────────────────────────────────────────────
-    console.log('');
+    // ── Google Maps ──────────────────────────────────────────────────────
+    section('🗺', 'Maps  (Google Maps)');
+
     answers.googleMapsKey = await input({
         message: 'Google Maps API key (leave empty to skip):',
         default: '',
     });
 
-    // ── [7] Server-only: GitHub Actions ─────────────────────────────────
+    // ── GitHub Actions ───────────────────────────────────────────────────
     if (mode === 'server') {
-        console.log('');
+        section('🚀', 'CI/CD  (GitHub Actions)');
+
         answers.setupGithub = await confirm({
-            message: 'Set up GitHub Actions CI/CD secrets? (requires gh CLI)',
+            message: 'Set up GitHub Actions secrets?  (requires gh CLI)',
             default: false,
         });
 
@@ -110,7 +109,7 @@ async function askQuestions(mode) {
             });
 
             answers.sshHost = await input({
-                message: 'Server IP or hostname for SSH:',
+                message: 'Server IP or hostname:',
                 validate: (v) => v.trim() ? true : 'Required',
             });
 
@@ -139,6 +138,7 @@ async function askQuestions(mode) {
         answers.setupGithub = false;
     }
 
+    console.log('');
     return answers;
 }
 

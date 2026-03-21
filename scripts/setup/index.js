@@ -14,18 +14,40 @@ async function main() {
     const { setupPm2 } = require('./installers/pm2');
     const { setupGithubSecrets } = require('./installers/github');
 
+    const W = 56; // box width
+    const line  = (s = '') => chalk.magenta('│') + s + chalk.magenta('│');
+    const pad   = (s, w) => s + ' '.repeat(Math.max(0, w - stripAnsi(s)));
+    const top   = chalk.magenta('┌' + '─'.repeat(W) + '┐');
+    const mid   = chalk.magenta('├' + '─'.repeat(W) + '┤');
+    const bot   = chalk.magenta('└' + '─'.repeat(W) + '┘');
+
+    // Rough ANSI-strip for padding calc
+    function stripAnsi(s) {
+        return s.replace(/\x1B\[[0-9;]*m/g, '').length;
+    }
+    function center(text, width) {
+        const len = stripAnsi(text);
+        const left = Math.floor((width - len) / 2);
+        const right = width - len - left;
+        return ' '.repeat(left) + text + ' '.repeat(right);
+    }
+    function row(text) {
+        return line(center(text, W));
+    }
+
     // ── Banner ────────────────────────────────────────────────────────────
     console.log('');
-    console.log(chalk.bold.magenta('╔══════════════════════════════════════════════════════╗'));
-    console.log(chalk.bold.magenta('║') + chalk.bold('        Beer Pong — Setup Wizard v1.0               ') + chalk.bold.magenta('║'));
-    console.log(chalk.bold.magenta('╚══════════════════════════════════════════════════════╝'));
+    console.log(top);
+    console.log(row(''));
+    console.log(row(chalk.bold.white('🍺  Beer Pong — Setup Wizard')));
+    console.log(row(chalk.magenta('v1.0') + chalk.dim('  ·  Self-hosting made easy')));
+    console.log(row(''));
+    console.log(bot);
     console.log('');
-    console.log(chalk.dim('This wizard configures the Beer Pong app for your environment.'));
-    console.log(chalk.dim('Press Enter to accept defaults. Ctrl+C to abort at any time.'));
+    console.log(chalk.dim('  Press ') + chalk.white('Enter') + chalk.dim(' to accept defaults  ·  ') + chalk.white('Ctrl+C') + chalk.dim(' to abort'));
     console.log('');
 
     // ── Mode selection ────────────────────────────────────────────────────
-    // Allow --mode local|server as a CLI flag (used by setup.sh)
     const modeFlag = (() => {
         const idx = process.argv.indexOf('--mode');
         return idx !== -1 ? process.argv[idx + 1] : null;
@@ -34,38 +56,47 @@ async function main() {
     let mode;
     if (modeFlag === 'local' || modeFlag === 'server') {
         mode = modeFlag;
-        console.log(chalk.dim(`Mode: ${mode}`));
+        const label = mode === 'local' ? chalk.cyan('Local development') : chalk.yellow('Production server');
+        console.log(chalk.dim('  Mode: ') + label + '\n');
     } else {
         try {
             mode = await select({
-                message: 'Where are you deploying?',
+                message: 'Deployment target',
                 choices: [
                     {
-                        name: 'Local development  — generates .env, initializes DB',
+                        name: chalk.cyan('Local development') + chalk.dim('   .env + DB only, skip nginx/PM2'),
                         value: 'local',
                     },
                     {
-                        name: 'Production server  — full setup: nginx, SSL, PM2, cron',
+                        name: chalk.yellow('Production server') + chalk.dim('  full setup: nginx, SSL, PM2, cron'),
                         value: 'server',
                     },
                 ],
             });
         } catch (err) {
             if (err.name === 'ExitPromptError') {
-                console.log('\n' + chalk.yellow('Setup cancelled.'));
+                console.log('\n' + chalk.yellow('  Aborted.'));
                 process.exit(0);
             }
             throw err;
         }
+        console.log('');
+    }
+
+    // ── Section header helper ─────────────────────────────────────────────
+    function section(icon, title) {
+        console.log('');
+        console.log(chalk.magenta('  ' + icon + '  ') + chalk.bold(title));
+        console.log(chalk.magenta('  ' + '─'.repeat(W - 2)));
     }
 
     // ── Questions ─────────────────────────────────────────────────────────
     let answers;
     try {
-        answers = await askQuestions(mode);
+        answers = await askQuestions(mode, section);
     } catch (err) {
         if (err.name === 'ExitPromptError') {
-            console.log('\n' + chalk.yellow('Setup cancelled.'));
+            console.log('\n' + chalk.yellow('  Aborted.'));
             process.exit(0);
         }
         throw err;
@@ -73,22 +104,34 @@ async function main() {
 
     // ── Summary ───────────────────────────────────────────────────────────
     console.log('');
-    console.log(chalk.bold('══════════════════════════════════════════════════════'));
-    console.log(chalk.bold('Summary:'));
-    console.log(`  Mode:      ${chalk.cyan(mode === 'local' ? 'Local development' : 'Production server')}`);
-    if (mode === 'server') {
-        console.log(`  Domain:    ${chalk.cyan(answers.domain)}`);
+    console.log(top);
+    console.log(row(chalk.bold.white('Summary')));
+    console.log(mid);
+
+    function summaryRow(label, value) {
+        const l = chalk.dim('  ' + label.padEnd(12));
+        const v = value;
+        return line(' ' + pad(l + v, W - 2) + ' ');
     }
-    console.log(`  Port:      ${chalk.cyan(answers.port)}`);
-    console.log(`  Admin:     ${chalk.cyan(answers.adminEmail)}`);
-    console.log(`  Email:     ${answers.resendApiKey ? chalk.green('✓ Resend configured') : chalk.dim('skipped')}`);
-    console.log(`  VAPID:     ${answers.generateVapid ? chalk.green('✓ will be generated') : chalk.dim('skipped')}`);
-    console.log(`  Sentry:    ${answers.sentryDsn ? chalk.green('✓ configured') : chalk.dim('skipped')}`);
+
+    const modeLabel = mode === 'local'
+        ? chalk.cyan('Local development')
+        : chalk.yellow('Production server');
+
+    console.log(summaryRow('Mode', modeLabel));
     if (mode === 'server') {
-        console.log(`  DB backup: ${answers.dbBackup ? chalk.green('✓ weekly cron') : chalk.dim('skipped')}`);
-        console.log(`  GitHub:    ${answers.setupGithub ? chalk.green('✓ ' + answers.repoOwner) : chalk.dim('skipped')}`);
+        console.log(summaryRow('Domain', chalk.white(answers.domain)));
     }
-    console.log(chalk.bold('══════════════════════════════════════════════════════'));
+    console.log(summaryRow('Port', chalk.white(answers.port)));
+    console.log(summaryRow('Admin', chalk.white(answers.adminEmail)));
+    console.log(summaryRow('Email', answers.resendApiKey ? chalk.green('✓ Resend') : chalk.dim('—')));
+    console.log(summaryRow('VAPID', answers.generateVapid ? chalk.green('✓ generate') : chalk.dim('—')));
+    console.log(summaryRow('Sentry', answers.sentryDsn ? chalk.green('✓ configured') : chalk.dim('—')));
+    if (mode === 'server') {
+        console.log(summaryRow('DB backup', answers.dbBackup ? chalk.green('✓ weekly') : chalk.dim('—')));
+        console.log(summaryRow('GitHub CI', answers.setupGithub ? chalk.green('✓ ' + answers.repoOwner) : chalk.dim('—')));
+    }
+    console.log(bot);
     console.log('');
 
     let proceed;
@@ -96,147 +139,175 @@ async function main() {
         proceed = await confirm({ message: 'Start setup?', default: true });
     } catch (err) {
         if (err.name === 'ExitPromptError') {
-            console.log('\n' + chalk.yellow('Setup cancelled.'));
+            console.log('\n' + chalk.yellow('  Aborted.'));
             process.exit(0);
         }
         throw err;
     }
 
     if (!proceed) {
-        console.log(chalk.yellow('Setup cancelled.'));
+        console.log('\n' + chalk.yellow('  Aborted.'));
         process.exit(0);
     }
 
     console.log('');
 
-    const spinner = ora({ color: 'magenta' });
+    // ── Progress helper ───────────────────────────────────────────────────
+    const steps = mode === 'local'
+        ? ['.env', 'Database']
+        : ['.env', 'Nginx + SSL', 'Database', 'Build + PM2',
+           ...(answers.dbBackup ? ['Cron backup'] : []),
+           ...(answers.setupGithub ? ['GitHub secrets'] : [])];
+    let stepIdx = 0;
+
+    function makeSpinner(label) {
+        stepIdx++;
+        const prefix = chalk.magenta(`  [${stepIdx}/${steps.length}]`);
+        return ora({
+            text: `${prefix} ${chalk.bold(label)}`,
+            color: 'magenta',
+            spinner: 'dots',
+        }).start();
+    }
+
+    function ok(sp, label, detail = '') {
+        sp.stopAndPersist({
+            symbol: chalk.green('  ✔'),
+            text: chalk.bold(label) + (detail ? chalk.dim('  ' + detail) : ''),
+        });
+    }
+
+    function fail(sp, label, detail = '') {
+        sp.stopAndPersist({
+            symbol: chalk.red('  ✖'),
+            text: chalk.bold(label) + (detail ? chalk.dim('\n      ' + detail) : ''),
+        });
+    }
 
     // ── LOCAL mode ────────────────────────────────────────────────────────
     if (mode === 'local') {
-        // 1. Generate .env
-        spinner.start('Generating .env…');
+        let sp = makeSpinner('Generating .env…');
         try {
-            const envPath = await generateEnv(answers, spinner);
-            spinner.succeed(chalk.green('.env generated') + chalk.dim(' → ' + envPath));
+            const envPath = await generateEnv(answers, sp);
+            ok(sp, '.env ready', envPath);
         } catch (err) {
-            spinner.fail(chalk.red('.env error: ' + err.message));
+            fail(sp, '.env failed', err.message);
             process.exit(1);
         }
 
-        // 2. Initialize database
-        spinner.start('Initializing database…');
+        sp = makeSpinner('Initializing database…');
         try {
-            setupDatabase(answers, spinner);
-            spinner.succeed(chalk.green('Database initialized'));
+            setupDatabase(answers, sp);
+            ok(sp, 'Database initialized');
         } catch (err) {
-            spinner.fail(chalk.red('Database error: ' + err.message));
-            console.log(chalk.dim('  Run manually: npx prisma generate && npx prisma migrate deploy'));
+            fail(sp, 'Database failed', err.message);
+            console.log(chalk.dim('      Run manually: npx prisma generate && npx prisma migrate deploy'));
         }
 
         console.log('');
-        console.log(chalk.bold.green('✓ Local setup complete!'));
-        console.log('');
-        console.log(chalk.bold('Next steps:'));
-        console.log(`  1. Review ${chalk.cyan('.env')} and fill in any missing values`);
-        console.log(`  2. Start the dev server: ${chalk.cyan('npm run dev')}`);
-        console.log(`  3. Open ${chalk.cyan('http://localhost:' + answers.port + '/register')} and create your admin account`);
-        console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
+        console.log(top);
+        console.log(row(chalk.bold.green('✓  Local setup complete!')));
+        console.log(mid);
+        console.log(row(''));
+        console.log(row(chalk.dim('Next steps:')));
+        console.log(row('  ' + chalk.white('1.') + chalk.dim(' Review ') + chalk.cyan('.env') + chalk.dim(' and fill in missing values')));
+        console.log(row('  ' + chalk.white('2.') + '  ' + chalk.cyan('npm run dev')));
+        console.log(row('  ' + chalk.white('3.') + '  ' + chalk.cyan('http://localhost:' + answers.port + '/register')));
+        console.log(row(''));
+        console.log(bot);
         console.log('');
         return;
     }
 
     // ── SERVER mode ───────────────────────────────────────────────────────
+    let sp;
 
-    // 1. Clone repo
-    spinner.start('Cloning repository…');
+    sp = makeSpinner('Cloning repository…');
     try {
-        cloneOrPull(answers, spinner);
-        spinner.succeed(chalk.green('Repository ready') + chalk.dim(' → ' + answers.appPath));
+        cloneOrPull(answers, sp);
+        ok(sp, 'Repository ready', answers.appPath);
     } catch (err) {
-        spinner.fail(chalk.red('Git error: ' + err.message));
+        fail(sp, 'Git failed', err.message);
         process.exit(1);
     }
 
-    // 2. Generate .env
-    spinner.start('Generating .env…');
+    sp = makeSpinner('Generating .env…');
     try {
-        const envPath = await generateEnv(answers, spinner);
-        spinner.succeed(chalk.green('.env generated') + chalk.dim(' → ' + envPath));
+        const envPath = await generateEnv(answers, sp);
+        ok(sp, '.env ready', envPath);
     } catch (err) {
-        spinner.fail(chalk.red('.env error: ' + err.message));
+        fail(sp, '.env failed', err.message);
         process.exit(1);
     }
 
-    // 3. Nginx + SSL
-    spinner.start('Configuring nginx…');
+    sp = makeSpinner('Configuring nginx + SSL…');
     try {
-        await generateNginx(answers, spinner);
-        spinner.succeed(chalk.green('Nginx configured') + chalk.dim(` → https://${answers.domain}`));
+        await generateNginx(answers, sp);
+        ok(sp, 'Nginx configured', 'https://' + answers.domain);
     } catch (err) {
-        spinner.fail(chalk.red('Nginx error: ' + err.message));
-        console.log(chalk.dim('  Continuing without nginx…'));
+        fail(sp, 'Nginx failed', err.message);
+        console.log(chalk.dim('      Continuing without nginx…'));
     }
 
-    // 4. Database
-    spinner.start('Initializing database…');
+    sp = makeSpinner('Initializing database…');
     try {
-        setupDatabase(answers, spinner);
-        spinner.succeed(chalk.green('Database initialized'));
+        setupDatabase(answers, sp);
+        ok(sp, 'Database initialized');
     } catch (err) {
-        spinner.fail(chalk.red('Database error: ' + err.message));
+        fail(sp, 'Database failed', err.message);
         process.exit(1);
     }
 
-    // 5. Build + PM2
-    spinner.start('Building app and setting up PM2…');
+    sp = makeSpinner('Building app + PM2…');
     try {
-        setupPm2(answers, spinner);
-        spinner.succeed(chalk.green('App running') + chalk.dim(` → port ${answers.port}`));
+        setupPm2(answers, sp);
+        ok(sp, 'App running', 'port ' + answers.port);
     } catch (err) {
-        spinner.fail(chalk.red('PM2 error: ' + err.message));
+        fail(sp, 'PM2 failed', err.message);
         process.exit(1);
     }
 
-    // 6. Cron backup
     if (answers.dbBackup) {
-        spinner.start('Setting up cron backup…');
+        sp = makeSpinner('Setting up cron backup…');
         try {
-            setupCronBackup(answers, spinner);
-            spinner.succeed(chalk.green('Cron backup configured'));
+            setupCronBackup(answers, sp);
+            ok(sp, 'Cron backup configured', 'Sundays 02:00');
         } catch (err) {
-            spinner.fail(chalk.red('Cron error: ' + err.message));
+            fail(sp, 'Cron failed', err.message);
         }
     }
 
-    // 7. GitHub secrets
     if (answers.setupGithub) {
-        spinner.start('Setting GitHub secrets…');
+        sp = makeSpinner('Setting GitHub secrets…');
         try {
-            setupGithubSecrets(answers, spinner);
-            spinner.succeed(chalk.green('GitHub secrets set'));
+            setupGithubSecrets(answers, sp);
+            ok(sp, 'GitHub secrets set');
         } catch (err) {
-            spinner.fail(chalk.red('GitHub error: ' + err.message));
+            fail(sp, 'GitHub failed', err.message);
         }
     }
 
     // ── Done ──────────────────────────────────────────────────────────────
     console.log('');
-    console.log(chalk.bold.green('✓ Setup complete!'));
-    console.log('');
-    console.log(chalk.bold('Next steps:'));
-    console.log(`  1. Open ${chalk.cyan(`https://${answers.domain}/register`)} and create your admin account`);
-    console.log(`     ${chalk.dim('(email must match ADMIN_EMAIL: ' + answers.adminEmail + ')')}`);
-    console.log(`  2. For CI/CD: push to the main branch on GitHub`);
-    console.log(`     ${chalk.dim('→ Tests run automatically, deploy starts on success')}`);
-    console.log('');
-    console.log(chalk.dim('Useful commands:'));
-    console.log(chalk.dim('  pm2 logs beer-pong       # view logs'));
-    console.log(chalk.dim('  pm2 restart beer-pong    # restart app'));
-    console.log(chalk.dim('  pm2 status               # process overview'));
+    console.log(top);
+    console.log(row(chalk.bold.green('✓  Setup complete!')));
+    console.log(mid);
+    console.log(row(''));
+    console.log(row(chalk.dim('Next steps:')));
+    console.log(row('  ' + chalk.white('1.') + '  ' + chalk.cyan(`https://${answers.domain}/register`)));
+    console.log(row('     ' + chalk.dim('Create your admin account (email = ADMIN_EMAIL)')));
+    console.log(row('  ' + chalk.white('2.') + chalk.dim('  Push to main → CI/CD runs automatically')));
+    console.log(row(''));
+    console.log(mid);
+    console.log(row(chalk.dim('  pm2 logs beer-pong      # view logs')));
+    console.log(row(chalk.dim('  pm2 restart beer-pong   # restart')));
+    console.log(row(chalk.dim('  pm2 status              # all processes')));
+    console.log(row(''));
+    console.log(bot);
     console.log('');
 }
 
 main().catch(err => {
-    console.error('\n' + (err.message || err));
+    console.error('\n  ' + chalk.red('✖  ' + (err.message || err)));
     process.exit(1);
 });

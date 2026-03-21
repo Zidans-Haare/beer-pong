@@ -10,17 +10,18 @@ A modern, mobile-first web application for managing Beer Pong tournaments. Built
 
 **On a fresh server** (installs Node, clones repo, configures nginx + SSL + PM2):
 ```bash
-curl -sL https://raw.githubusercontent.com/your-org/beer-pong/main/setup.sh | bash
+curl -sL https://raw.githubusercontent.com/Zidans-Haare/beer-pong/main/setup.sh | bash
 ```
+> Feel free to [inspect setup.sh](https://github.com/Zidans-Haare/beer-pong/blob/main/setup.sh) before running it.
 
 **If Node is already installed:**
 ```bash
-npx github:your-org/beer-pong
+npx github:Zidans-Haare/beer-pong
 ```
 
 **Local development:**
 ```bash
-git clone https://github.com/your-org/beer-pong.git && cd beer-pong
+git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong
 npm run setup
 ```
 

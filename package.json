@@ -4,7 +4,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/beer-pong.git"
+    "url": "https://github.com/Zidans-Haare/beer-pong.git"
   },
   "bin": {
     "beer-pong-setup": "scripts/setup/index.js"

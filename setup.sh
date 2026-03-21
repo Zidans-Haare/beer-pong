@@ -2,10 +2,10 @@
 # Beer Pong — Setup Bootstrap
 #
 # Usage (recommended):
-#   npx github:your-org/beer-pong
+#   npx github:Zidans-Haare/beer-pong
 #
 # Or via curl if Node is not yet installed:
-#   curl -sL https://raw.githubusercontent.com/your-org/beer-pong/main/setup.sh | bash
+#   curl -sL https://raw.githubusercontent.com/Zidans-Haare/beer-pong/main/setup.sh | bash
 #
 set -e
 
@@ -26,4 +26,4 @@ if ! command -v node &>/dev/null; then
 fi
 
 # ── Run wizard directly from GitHub via npx ───────────────────────────────────
-npx --yes github:your-org/beer-pong
+npx --yes github:Zidans-Haare/beer-pong

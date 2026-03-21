@@ -6,7 +6,23 @@
 
 A modern, mobile-first web application for managing Beer Pong tournaments. Built with Next.js 15 and a "Neon Flow" aesthetic — featuring real-time brackets, player statistics, live chat, and full PWA support.
 
-Full documentation : https://codewiki.google/github.com/zidans-haare/beer-pong
+## Quick Setup
+
+**On a fresh server** (installs Node, clones repo, configures nginx + SSL + PM2):
+```bash
+curl -sL https://raw.githubusercontent.com/your-org/beer-pong/main/setup.sh | bash
+```
+
+**If Node is already installed:**
+```bash
+npx github:your-org/beer-pong
+```
+
+**Local development:**
+```bash
+git clone https://github.com/your-org/beer-pong.git && cd beer-pong
+npm run setup
+```
 
 ---
 

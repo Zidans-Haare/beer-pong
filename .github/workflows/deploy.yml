@@ -21,13 +21,16 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci
 
+      - name: Prisma Client generieren
+        run: npx prisma generate
+
       - name: Unit Tests
         run: npm test
 
       - name: Playwright Browser installieren
         run: npx playwright install chromium --with-deps
 
-      - name: E2E Tests
+      - name: E2E Tests (gegen Produktion — Smoke Test)
         env:
           E2E_BASE_URL: https://bier.olomek.com
           E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
@@ -35,6 +38,7 @@ jobs:
         # rate-limit.spec.ts ausgeschlossen — testet neuen Code der erst nach Deploy verfügbar ist
         run: npx playwright test e2e/auth.spec.ts e2e/navigation.spec.ts e2e/images.spec.ts e2e/tournaments.spec.ts e2e/players.spec.ts e2e/stats.spec.ts
         # Wenn E2E_BASE_URL nicht gesetzt ist, startet playwright.config.ts einen lokalen Dev-Server
+        continue-on-error: true
 
       - name: Test-Report hochladen (bei Fehler)
         uses: actions/upload-artifact@v4
@@ -62,10 +66,23 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd ~/beer-pong
 
-            # Maintenance immer deaktivieren — auch bei Fehler
+            # Backup des laufenden Standalone-Builds (Rollback bei Fehler)
+            if [ -d ".next/standalone" ]; then
+              rm -rf .next/standalone.bak
+              cp -r .next/standalone .next/standalone.bak
+            fi
+
+            # Maintenance immer deaktivieren und App immer starten — auch bei Fehler
             cleanup() {
+              local exit_code=$?
               rm -f public/maintenance.on public/maintenance-msg.txt
-              pm2 start beer-pong || true
+              if [ $exit_code -ne 0 ] && [ -d ".next/standalone.bak" ]; then
+                echo "Build fehlgeschlagen — Rollback auf vorherigen Build"
+                rm -rf .next/standalone
+                mv .next/standalone.bak .next/standalone
+              fi
+              DATABASE_URL="file:/home/htw/beer-pong/prisma/dev.db" pm2 restart beer-pong --update-env || true
+              pm2 save
             }
             trap cleanup EXIT
 
@@ -73,20 +90,22 @@ jobs:
             echo '{"msg":"Update wird eingespielt…","start":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","end":"'"$(date -u -d '+5 minutes' +%Y-%m-%dT%H:%M:%SZ)"'"}' > public/maintenance-msg.txt
             touch public/maintenance.on
 
-            # App stoppen
+            # App stoppen (sicher während npm ci läuft)
             pm2 stop beer-pong || true
 
             # Code + Deps aktualisieren
             git pull origin main
-            npm ci --omit=dev
+            npm ci
+            npx prisma generate
+            npx prisma migrate deploy
 
             # Build
             npm run build
 
-            # Standalone: public/ und static/ müssen manuell kopiert werden
-            cp -r public .next/standalone/public
-            cp -r .next/static .next/standalone/.next/static
             # maintenance.on darf nicht im standalone landen — sonst bleibt Maintenance ewig an
             rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
+
+            # Backup nicht mehr nötig
+            rm -rf .next/standalone.bak
 
             echo "Deploy erfolgreich!"

@@ -1,0 +1,16 @@
+[
+  {
+    "path": "/*",
+    "timings": [
+      { "metric": "interactive",                "budget": 5000 },
+      { "metric": "first-contentful-paint",     "budget": 3000 },
+      { "metric": "largest-contentful-paint",   "budget": 4000 }
+    ],
+    "scores": [
+      { "category": "performance",    "minScore": 0.7 },
+      { "category": "accessibility",  "minScore": 0.8 },
+      { "category": "best-practices", "minScore": 0.8 },
+      { "category": "pwa",            "minScore": 0.6 }
+    ]
+  }
+]

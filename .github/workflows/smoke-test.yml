@@ -1,0 +1,40 @@
+name: Nightly Smoke-Test
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Jeden Tag um 3 Uhr nachts
+  workflow_dispatch:      # Auch manuell auslösbar
+
+jobs:
+  smoke-test:
+    name: E2E Smoke-Test gegen Produktion
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Playwright Browser installieren
+        run: npx playwright install chromium --with-deps
+
+      - name: E2E Tests gegen Produktion
+        env:
+          E2E_BASE_URL: https://bier.olomek.com
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+        run: npx playwright test e2e/auth.spec.ts e2e/navigation.spec.ts e2e/images.spec.ts e2e/tournaments.spec.ts e2e/players.spec.ts e2e/stats.spec.ts
+
+      - name: Test-Report hochladen (bei Fehler)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-test-report
+          path: playwright-report/
+          retention-days: 7

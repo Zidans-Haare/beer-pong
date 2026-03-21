@@ -26,4 +26,4 @@ if ! command -v node &>/dev/null; then
 fi
 
 # ── Run wizard directly from GitHub via npx ───────────────────────────────────
-npx --yes github:Zidans-Haare/beer-pong
+npx --yes github:Zidans-Haare/beer-pong -- --mode server

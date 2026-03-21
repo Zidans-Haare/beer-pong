@@ -25,27 +25,38 @@ async function main() {
     console.log('');
 
     // ── Mode selection ────────────────────────────────────────────────────
+    // Allow --mode local|server as a CLI flag (used by setup.sh)
+    const modeFlag = (() => {
+        const idx = process.argv.indexOf('--mode');
+        return idx !== -1 ? process.argv[idx + 1] : null;
+    })();
+
     let mode;
-    try {
-        mode = await select({
-            message: 'Where are you deploying?',
-            choices: [
-                {
-                    name: 'Local development  — generates .env, initializes DB',
-                    value: 'local',
-                },
-                {
-                    name: 'Production server  — full setup: nginx, SSL, PM2, cron',
-                    value: 'server',
-                },
-            ],
-        });
-    } catch (err) {
-        if (err.name === 'ExitPromptError') {
-            console.log('\n' + chalk.yellow('Setup cancelled.'));
-            process.exit(0);
+    if (modeFlag === 'local' || modeFlag === 'server') {
+        mode = modeFlag;
+        console.log(chalk.dim(`Mode: ${mode}`));
+    } else {
+        try {
+            mode = await select({
+                message: 'Where are you deploying?',
+                choices: [
+                    {
+                        name: 'Local development  — generates .env, initializes DB',
+                        value: 'local',
+                    },
+                    {
+                        name: 'Production server  — full setup: nginx, SSL, PM2, cron',
+                        value: 'server',
+                    },
+                ],
+            });
+        } catch (err) {
+            if (err.name === 'ExitPromptError') {
+                console.log('\n' + chalk.yellow('Setup cancelled.'));
+                process.exit(0);
+            }
+            throw err;
         }
-        throw err;
     }
 
     // ── Questions ─────────────────────────────────────────────────────────

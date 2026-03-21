@@ -113,8 +113,20 @@ else
 fi
 
 if [ "$FIX_MODE" = "1" ] && [ "$DB_NEEDS_MIGRATE" = "1" ]; then
-    autofix "Running prisma migrate deploy…" \
-        bash -c "cd \"$APP_DIR\" && set -a; . .env; set +a && npx prisma generate && npx prisma migrate deploy"
+    printf "        \e[35m→ Auto-fix: Datenbank-Migrationen\e[0m\n"
+    printf "          \e[2mNur fehlende Tabellen werden ergänzt — keine Daten werden gelöscht.\e[0m\n"
+    printf "          \e[33mFortfahren? [y/N] \e[0m"
+    read -r DB_CONFIRM </dev/tty
+    if [ "${DB_CONFIRM:-n}" = "y" ] || [ "${DB_CONFIRM:-n}" = "Y" ]; then
+        if bash -c "cd \"$APP_DIR\" && set -a; . .env; set +a && npx prisma generate && npx prisma migrate deploy" >/dev/null 2>&1; then
+            printf "          \e[32m%s Fixed.\e[0m\n" "$PASS"
+            FIXED=$((FIXED+1))
+        else
+            printf "          \e[31m%s Fehlgeschlagen — bitte manuell ausführen.\e[0m\n" "$FAIL"
+        fi
+    else
+        printf "          \e[2mÜbersprungen.\e[0m\n"
+    fi
 fi
 
 # ── Node / NVM ────────────────────────────────────────────────────────────────

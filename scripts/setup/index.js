@@ -102,6 +102,56 @@ async function main() {
         throw err;
     }
 
+    // ── Already-deployed guard (server mode only) ─────────────────────────
+    if (mode === 'server') {
+        const { commandExists } = require('./utils/shell');
+        const { nvmPrefix } = require('./utils/nvm');
+        const { runShell } = require('./utils/shell');
+        const fs = require('fs');
+        const path = require('path');
+
+        const envExists = fs.existsSync(path.join(answers.appPath, '.env'));
+        let pm2Running = false;
+        if (commandExists('pm2') || commandExists('node')) {
+            try {
+                const nvm = nvmPrefix();
+                runShell(`${nvm}pm2 show beer-pong`);
+                pm2Running = true;
+            } catch { /* not running */ }
+        }
+
+        if (envExists || pm2Running) {
+            console.log('');
+            console.log(chalk.yellow('  ⚠  Existing installation detected'));
+            if (envExists)   console.log(chalk.dim('     · .env already exists'));
+            if (pm2Running)  console.log(chalk.dim('     · PM2 process "beer-pong" is running'));
+            console.log('');
+            console.log(chalk.dim('  The setup wizard is intended for INITIAL installation.'));
+            console.log(chalk.dim('  For updates, use the CI/CD pipeline (push to main).'));
+            console.log('');
+
+            let continueAnyway;
+            try {
+                continueAnyway = await confirm({
+                    message: chalk.yellow('Continue anyway? This may interrupt the running app.'),
+                    default: false,
+                });
+            } catch (err) {
+                if (err.name === 'ExitPromptError') {
+                    console.log('\n' + chalk.yellow('  Aborted.'));
+                    process.exit(0);
+                }
+                throw err;
+            }
+
+            if (!continueAnyway) {
+                console.log('\n' + chalk.green('  Smart choice. Use the CI/CD pipeline for updates.'));
+                process.exit(0);
+            }
+            console.log('');
+        }
+    }
+
     // ── Summary ───────────────────────────────────────────────────────────
     console.log('');
     console.log(top);

@@ -42,6 +42,7 @@ npx prisma migrate deploy
 
 echo "🔨  Building app..."
 npm run build
+cp -r messages .next/standalone/messages 2>/dev/null || true
 
 echo "♻️   Restarting PM2..."
 set -a; [ -f .env ] && . .env; set +a

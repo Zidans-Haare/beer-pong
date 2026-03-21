@@ -441,8 +441,26 @@ function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, start
 const libraries: ("places")[] = ["places"];
 
 function LocationPicker({ defaultValue, onLocationSelect }: { defaultValue: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey) {
+        return (
+            <input
+                name="location"
+                className="input-field"
+                placeholder="z.B. Musterstraße 1, Wien"
+                defaultValue={defaultValue}
+                style={{ width: '100%', boxSizing: 'border-box' }}
+            />
+        );
+    }
+
+    return <LocationPickerWithMaps apiKey={apiKey} defaultValue={defaultValue} onLocationSelect={onLocationSelect} />;
+}
+
+function LocationPickerWithMaps({ apiKey, defaultValue, onLocationSelect }: { apiKey: string, defaultValue: string, onLocationSelect: (addr: string, lat: number, lng: number) => void }) {
     const { isLoaded } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        googleMapsApiKey: apiKey,
         libraries,
     });
 

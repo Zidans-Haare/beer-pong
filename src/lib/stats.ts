@@ -152,8 +152,8 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
         });
 
         // Method 2: Check completed tournaments where this player won the final match (for Elimination tournaments)
-        // Get all completed tournaments this player participated in
-        const completedTournamentIds = new Set<string>();
+        // Get all completed tournaments this player participated in (via matches OR TournamentParticipant)
+        const completedTournamentIds = new Set<string>(allMatches.map((m: any) => m.tournamentId));
         relevantTournaments.forEach((tp: any) => {
             if (tp.tournament?.status === 'COMPLETED') {
                 completedTournamentIds.add(tp.tournament.id);
@@ -188,7 +188,7 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
             name: p.name,
             matchesPlayed,
             matchesWon,
-            tournamentsPlayed: relevantTournaments.length,
+            tournamentsPlayed: completedTournamentIds.size,
             tournamentsWon,
             cupDiff: cupsHit - cupsReceived,
             winRate: matchesPlayed > 0 ? (matchesWon / matchesPlayed) : 0,

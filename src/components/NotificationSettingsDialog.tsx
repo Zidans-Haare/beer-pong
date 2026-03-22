@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { updateNotificationPreferences, getNotificationPreferences } from '@/app/actions/notifications';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, X, Trophy, AlertCircle, Radio } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) => void }) => (
     <button
@@ -37,6 +38,7 @@ const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) 
 );
 
 export default function NotificationSettingsDialog({ onClose }: { onClose: () => void }) {
+    const t = useTranslations('notifications');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [prefs, setPrefs] = useState({
@@ -143,9 +145,9 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                             <Settings size={28} style={{ color: 'var(--color-primary)' }} />
                         </div>
                         <h2 className="title-display" style={{ fontSize: '1.5rem', marginBottom: '4px', color: '#1d1d1f' }}>
-                            Einstellungen
+                            {t('settings')}
                         </h2>
-                        <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.8 }}>Verwalte deine Benachrichtigungen</p>
+                        <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('manageNotifications')}</p>
                     </div>
 
                     {loading ? (
@@ -175,8 +177,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <Trophy size={20} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Neue Turniere</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Infos zu neuen Events.</div>
+                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>{t('newTournaments')}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('newTournamentsDesc')}</div>
                                     </div>
                                     <Toggle
                                         active={prefs.notifyNewTournaments}
@@ -204,8 +206,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <AlertCircle size={20} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Wichtige Updates</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Änderungen & News.</div>
+                                        <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>{t('importantUpdates')}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('importantUpdatesDesc')}</div>
                                     </div>
                                     <Toggle
                                         active={prefs.notifyUpdates}
@@ -234,7 +236,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>Live Ticker</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>Echtzeit Match-Updates.</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('liveTickerDesc')}</div>
                                     </div>
                                     <Toggle
                                         active={prefs.notifyLiveTicker}
@@ -266,7 +268,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         e.currentTarget.style.color = 'var(--color-text-dim)';
                                     }}
                                 >
-                                    Abbrechen
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     type="submit"
@@ -279,7 +281,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         transition: 'all 0.2s'
                                     }}
                                 >
-                                    {saving ? 'Speichert...' : 'Speichern'}
+                                    {saving ? t('saving') : t('save')}
                                 </button>
                             </div>
                         </form>

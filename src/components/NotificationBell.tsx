@@ -5,6 +5,7 @@ import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } 
 import { usePathname, useRouter } from 'next/navigation';
 import NotificationSettingsDialog from './NotificationSettingsDialog';
 import { Settings, Bell } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type Notification = {
     id: string;
@@ -17,6 +18,7 @@ type Notification = {
 };
 
 export default function NotificationBell() {
+    const t = useTranslations('notifications');
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -124,7 +126,7 @@ export default function NotificationBell() {
 
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 backdrop-blur-md">
                             <span className="font-bold text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
-                                <Bell size={16} /> Benachrichtigungen
+                                <Bell size={16} /> {t('title')}
                             </span>
                             <div className="flex gap-2 items-center">
                                 {unreadCount > 0 && (
@@ -132,13 +134,13 @@ export default function NotificationBell() {
                                         onClick={handleMarkAllRead}
                                         className="text-xs text-blue-600 hover:text-blue-700 transition-colors font-medium px-2 py-1 rounded hover:bg-black/5"
                                     >
-                                        Alle gelesen
+                                        {t('allRead')}
                                     </button>
                                 )}
                                 <button
                                     onClick={() => { setIsOpen(false); setShowSettings(true); }}
                                     className="text-gray-400 hover:text-gray-900 transition-colors p-1.5 rounded-full hover:bg-black/5"
-                                    title="Einstellungen"
+                                    title={t('settings')}
                                 >
                                     <Settings size={16} />
                                 </button>
@@ -155,7 +157,7 @@ export default function NotificationBell() {
                                             <line x1="12" y1="16" x2="12.01" y2="16" />
                                         </svg>
                                     </div>
-                                    <span className="text-sm font-medium">Keine neuen Nachrichten</span>
+                                    <span className="text-sm font-medium">{t('noMessages')}</span>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-white/5">

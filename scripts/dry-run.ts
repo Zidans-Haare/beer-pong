@@ -7,7 +7,40 @@
 
 import { prisma } from '../src/lib/prisma';
 import { generateRoundRobinMatches } from '../src/lib/brackets';
-import { TournamentService } from '../src/lib/services/TournamentService';
+
+async function generatePlayoffs(tournamentId: string) {
+    // Recalculate standings from match results
+    await (prisma as any).tournamentStanding.updateMany({
+        where: { tournamentId },
+        data: { played: 0, won: 0, drawn: 0, lost: 0, points: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0 }
+    });
+    const matches = await prisma.match.findMany({ where: { tournamentId, isPlayed: true } });
+    for (const m of matches) {
+        if (!m.player1Id || !m.player2Id || m.score1 == null || m.score2 == null) continue;
+        const s1 = m.score1, s2 = m.score2;
+        const p1 = m.player1Id, p2 = m.player2Id;
+        if (s1 > s2) {
+            await (prisma as any).tournamentStanding.updateMany({ where: { tournamentId, playerId: p1 }, data: { played: { increment: 1 }, won: { increment: 1 }, points: { increment: 3 }, goalsFor: { increment: s1 }, goalsAgainst: { increment: s2 }, goalDifference: { increment: s1 - s2 } } });
+            await (prisma as any).tournamentStanding.updateMany({ where: { tournamentId, playerId: p2 }, data: { played: { increment: 1 }, lost: { increment: 1 }, goalsFor: { increment: s2 }, goalsAgainst: { increment: s1 }, goalDifference: { increment: s2 - s1 } } });
+        } else if (s2 > s1) {
+            await (prisma as any).tournamentStanding.updateMany({ where: { tournamentId, playerId: p2 }, data: { played: { increment: 1 }, won: { increment: 1 }, points: { increment: 3 }, goalsFor: { increment: s2 }, goalsAgainst: { increment: s1 }, goalDifference: { increment: s2 - s1 } } });
+            await (prisma as any).tournamentStanding.updateMany({ where: { tournamentId, playerId: p1 }, data: { played: { increment: 1 }, lost: { increment: 1 }, goalsFor: { increment: s1 }, goalsAgainst: { increment: s2 }, goalDifference: { increment: s1 - s2 } } });
+        }
+    }
+    // Seed top 4 into bracket
+    const standings = await (prisma as any).tournamentStanding.findMany({
+        where: { tournamentId },
+        orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }, { goalsFor: 'desc' }]
+    });
+    const top4 = standings.slice(0, 4);
+    if (top4.length < 4) throw new Error('Not enough players for playoffs');
+    // 1v4, 3v2
+    const semi1 = await prisma.match.create({ data: { tournamentId, player1Id: top4[0].playerId, player2Id: top4[3].playerId, round: 1, position: 0, stage: 'BRACKET', isPlayed: false } });
+    const semi2 = await prisma.match.create({ data: { tournamentId, player1Id: top4[2].playerId, player2Id: top4[1].playerId, round: 1, position: 1, stage: 'BRACKET', isPlayed: false } });
+    await prisma.match.create({ data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 0, stage: 'BRACKET', isPlayed: false } });
+    await prisma.match.create({ data: { tournamentId, player1Id: null, player2Id: null, round: 2, position: 1, stage: 'BRACKET', isPlayed: false } });
+    return { semi1Id: semi1.id, semi2Id: semi2.id };
+}
 
 function simulateScore(): [number, number] {
     const score1 = Math.floor(Math.random() * 6) + 5; // 5-10
@@ -119,7 +152,7 @@ async function main() {
 
     // 6. Generate playoffs (recalculates standings, seeds top 4 into bracket)
     console.log('\n⚔️  GENERATING PLAYOFFS (top 4)...');
-    await TournamentService.generateKnockoutFromGroups(tournament.id);
+    await generatePlayoffs(tournament.id);
 
     // 7. Show standings
     const standingsRows = await prisma.tournamentStanding.findMany({

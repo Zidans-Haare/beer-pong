@@ -5,6 +5,7 @@ import { Pencil, X, Check, Search } from 'lucide-react';
 import { adminUpdatePlayer } from '@/app/actions/admin';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
+import { useTranslations } from 'next-intl';
 
 type Player = {
     id: string;
@@ -16,6 +17,7 @@ type Player = {
 };
 
 export default function PlayersClient({ players }: { players: Player[] }) {
+    const t = useTranslations('admin.players');
     const [search, setSearch] = useState('');
     const [editing, setEditing] = useState<Player | null>(null);
     const [name, setName] = useState('');
@@ -45,7 +47,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
             if (res.success) {
                 setEditing(null);
             } else {
-                setError(res.error ?? 'Fehler beim Speichern.');
+                setError(res.error ?? t('saveError'));
             }
         });
     }
@@ -57,7 +59,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-dim)', pointerEvents: 'none' }} />
                 <input
                     type="text"
-                    placeholder="Spieler suchen…"
+                    placeholder={t('searchPlaceholder')}
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     style={{ width: '100%', padding: '10px 12px 10px 36px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)', fontSize: '0.9rem' }}
@@ -66,14 +68,14 @@ export default function PlayersClient({ players }: { players: Player[] }) {
 
             <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
                 {filtered.length === 0 ? (
-                    <p style={{ padding: 'var(--spacing-6)', color: 'var(--color-text-dim)', textAlign: 'center' }}>Keine Spieler gefunden.</p>
+                    <p style={{ padding: 'var(--spacing-6)', color: 'var(--color-text-dim)', textAlign: 'center' }}>{t('noPlayersFound')}</p>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spieler</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spiele</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colPlayer')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colGames')}</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} />
                                 </tr>
                             </thead>
@@ -99,7 +101,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                             <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'right' }}>
                                                 <button
                                                     onClick={() => openEdit(p)}
-                                                    title="Bearbeiten"
+                                                    title={t('editTitle')}
                                                     style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', cursor: 'pointer', color: 'var(--color-text-dim)', display: 'inline-flex' }}
                                                 >
                                                     <Pencil size={15} />
@@ -119,7 +121,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }}>
                     <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: 'var(--spacing-6)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-5)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Spieler bearbeiten</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{t('editPlayer')}</h3>
                             <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-dim)', display: 'flex' }}>
                                 <X size={18} />
                             </button>
@@ -162,7 +164,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                     onClick={() => setEditing(null)}
                                     style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-dim)' }}
                                 >
-                                    Abbrechen
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     onClick={handleSave}
@@ -171,7 +173,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: isPending ? 0.6 : 1 }}
                                 >
                                     <Check size={15} />
-                                    {isPending ? 'Speichere…' : 'Speichern'}
+                                    {isPending ? t('saving') : t('save')}
                                 </button>
                             </div>
                         </div>

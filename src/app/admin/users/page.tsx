@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getUsers, resetUserPassword, deleteUser } from '@/app/actions/admin';
 import { Search, Key, Trash2 } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import { useTranslations } from 'next-intl';
 
 type User = {
     id: string;
@@ -14,6 +15,7 @@ type User = {
 };
 
 export default function UsersPage() {
+    const t = useTranslations('admin.users');
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -54,12 +56,12 @@ export default function UsersPage() {
                 setResetStatus(null);
             }, 1500);
         } else {
-            setResetStatus(res.error || 'Fehler');
+            setResetStatus(res.error || t('save'));
         }
     };
 
     const handleDelete = async (userId: string) => {
-        if (!confirm('Sicher, dass du diesen User löschen willst?')) return;
+        if (!confirm(t('confirmDelete'))) return;
         await deleteUser(userId);
         loadUsers();
     };
@@ -68,15 +70,15 @@ export default function UsersPage() {
         <div style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
             <header style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
                 <div>
-                    <h1 className="title-display" style={{ fontSize: '2rem' }}>Benutzerverwaltung</h1>
-                    <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{users.length} Benutzer registriert</p>
+                    <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
+                    <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{t('registered', { count: users.length })}</p>
                 </div>
 
                 <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
                     <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-dim)' }} size={18} />
                     <input
                         type="text"
-                        placeholder="Suchen..."
+                        placeholder={t('search')}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="input-field"
@@ -99,13 +101,13 @@ export default function UsersPage() {
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 <th style={{ padding: 'var(--spacing-4)' }}>User</th>
-                                <th style={{ padding: 'var(--spacing-4)' }}>Statistik</th>
-                                <th style={{ padding: 'var(--spacing-4)', textAlign: 'right' }}>Aktionen</th>
+                                <th style={{ padding: 'var(--spacing-4)' }}>{t('colStats')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', textAlign: 'right' }}>{t('colActions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={3} style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-text-dim)' }}>Lade User...</td></tr>
+                                <tr><td colSpan={3} style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-text-dim)' }}>{t('loading')}</td></tr>
                             ) : filteredUsers.map(user => (
                                 <tr key={user.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.2s' }}>
                                     <td style={{ padding: 'var(--spacing-4)' }}>
@@ -122,14 +124,14 @@ export default function UsersPage() {
                                         </div>
                                     </td>
                                     <td style={{ padding: 'var(--spacing-4)', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                                        {user._count.hostedTournaments} Turniere gehostet
+                                        {user._count.hostedTournaments} {t('tournamentsHosted')}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-4)', textAlign: 'right' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-2)' }}>
                                             <button
                                                 onClick={() => setSelectedUser(user)}
                                                 style={{ padding: '8px', color: 'var(--color-text-dim)', background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)' }}
-                                                title="Passwort ändern"
+                                                title={t('changePassword')}
                                             >
                                                 <Key size={18} />
                                             </button>
@@ -156,13 +158,13 @@ export default function UsersPage() {
                     padding: 'var(--spacing-4)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)'
                 }}>
                     <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: 'var(--spacing-6)' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 'var(--spacing-2)' }}>Passwort Reset</h3>
-                        <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-6)' }}>Neues Passwort für <span style={{ color: 'var(--color-secondary)' }}>{selectedUser.name}</span> vergeben.</p>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 'var(--spacing-2)' }}>{t('passwordReset')}</h3>
+                        <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-6)' }}>{t('newPasswordFor')} <span style={{ color: 'var(--color-secondary)' }}>{selectedUser.name}</span>.</p>
 
                         <form onSubmit={handleResetPassword} style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
                             <input
                                 type="text"
-                                placeholder="Neues Passwort eingeben"
+                                placeholder={t('newPasswordPlaceholder')}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 style={{
@@ -179,7 +181,7 @@ export default function UsersPage() {
                                     onClick={() => setSelectedUser(null)}
                                     style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-hover)' }}
                                 >
-                                    Abbrechen
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     type="submit"
@@ -187,8 +189,8 @@ export default function UsersPage() {
                                     className="btn-primary" // Reuse global class
                                     style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
                                 >
-                                    {resetStatus === 'loading' ? 'Speichere...' :
-                                        resetStatus === 'success' ? 'Erledigt!' : 'Speichern'}
+                                    {resetStatus === 'loading' ? t('saving') :
+                                        resetStatus === 'success' ? t('done') : t('save')}
                                 </button>
                             </div>
 

@@ -3,8 +3,10 @@
 import { startTournament } from '@/app/actions/tournaments';
 import { Play } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function StartTournamentButton({ tournamentId }: { tournamentId: string }) {
+    const t = useTranslations('tournaments');
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleStart() {
@@ -35,7 +37,7 @@ export default function StartTournamentButton({ tournamentId }: { tournamentId: 
             }}
         >
             <Play size={20} fill="currentColor" />
-            {isLoading ? 'Startet...' : 'Turnier starten'}
+            {isLoading ? t('starting') : t('startTournament')}
         </button>
     );
 }

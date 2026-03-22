@@ -5,8 +5,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTeamDisplayName } from '@/lib/team-utils';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
+    const t = useTranslations('match');
     const router = useRouter();
     const isTeamMatch = !!match.team1Id && !!match.team2Id;
 
@@ -36,15 +38,15 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
     // Get display names
     const team1Name = match.team1 ? getTeamDisplayName(match.team1) : 'Team 1';
     const team2Name = match.team2 ? getTeamDisplayName(match.team2) : 'Team 2';
-    const player1Name = match.player1?.name || 'Spieler 1';
-    const player2Name = match.player2?.name || 'Spieler 2';
+    const player1Name = match.player1?.name || t('player1');
+    const player2Name = match.player2?.name || t('player2');
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!winnerId) return alert('Bitte Gewinner auswählen');
+        if (!winnerId) return alert(t('selectWinner'));
         const loserCups = parseInt(loserCupsStr);
-        if (!isOT && (loserCupsStr === '' || isNaN(loserCups) || loserCups < 0 || loserCups > 9)) return alert('Bitte Becherzahl eingeben (0–9)');
-        if (isOT && otLoserCups === null) return alert('Bitte OT-Becherzahl eingeben');
+        if (!isOT && (loserCupsStr === '' || isNaN(loserCups) || loserCups < 0 || loserCups > 9)) return alert(t('cupsError'));
+        if (isOT && otLoserCups === null) return alert(t('otCupsError'));
 
         const isTeam1Winner = isTeamMatch ? winnerId === match.team1Id : winnerId === match.player1Id;
 
@@ -65,7 +67,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         const result = await updateMatchResult(match.id, score1, score2);
 
         if (!result.success) {
-            alert(result.error || 'Fehler beim Speichern');
+            alert(result.error || t('saveError'));
             return;
         }
 
@@ -98,11 +100,11 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         }}>
             <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '350px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)' }}>
                 <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-text)' }}>
-                    {match.isPlayed ? 'Ergebnis korrigieren' : 'Ergebnis eintragen'}
+                    {match.isPlayed ? t('correctResult') : t('editResult')}
                 </h3>
 
                 <form onSubmit={handleSubmit}>
-                    <p style={{ marginBottom: 'var(--spacing-2)', textAlign: 'center', color: 'var(--color-text-dim)' }}>Wer hat gewonnen?</p>
+                    <p style={{ marginBottom: 'var(--spacing-2)', textAlign: 'center', color: 'var(--color-text-dim)' }}>{t('whoWon')}</p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
                         <button
@@ -140,7 +142,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                     {winnerId && !isOT && (
                         <div style={{ marginBottom: 'var(--spacing-6)' }}>
                             <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center' }}>
-                                Becher <strong>Verlierer</strong> (0–9)
+                                {t('loserCups')}
                             </label>
                             <input
                                 type="text"
@@ -184,7 +186,7 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                 }}
                             >
                                 <RefreshCw size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-                                Verlängerung (beide 10)
+                                {t('overtime')}
                             </button>
                         </div>
                     )}
@@ -205,10 +207,10 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                 width: '100%',
                                 boxSizing: 'border-box',
                             }}>
-                                OT{otRounds > 0 ? ` Runde ${otRounds + 1}` : ''} — je 3 Becher
+                                {otRounds > 0 ? t('otRound', { round: otRounds + 1 }) : t('otBase')}
                             </div>
                             <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center', fontSize: '0.9rem' }}>
-                                Becher <strong>Verlierer</strong> im OT
+                                {t('loserCupsOT')}
                                 {otLoserCups !== null && (
                                     <span style={{ marginLeft: '8px', color: 'var(--color-primary)', fontWeight: 700 }}>→ {otLoserCups}</span>
                                 )}
@@ -268,14 +270,14 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
                                 }}
                             >
                                 <ChevronLeft size={14} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                                Zurück
+                                {t('back')}
                             </button>
                         </div>
                     )}
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-                        <button type="button" onClick={onClose} className="btn" style={{ flex: 1, border: '1px solid var(--color-border)', color: 'var(--color-text-dim)' }}>Abbrechen</button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={!winnerId || (!isOT && loserCupsStr === '') || (isOT && otLoserCups === null)}>Speichern</button>
+                        <button type="button" onClick={onClose} className="btn" style={{ flex: 1, border: '1px solid var(--color-border)', color: 'var(--color-text-dim)' }}>{t('cancel')}</button>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={!winnerId || (!isOT && loserCupsStr === '') || (isOT && otLoserCups === null)}>{t('save')}</button>
                     </div>
                 </form>
             </div>

@@ -3,16 +3,18 @@
 import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { deleteGuestPlayer, deleteExpiredGuests } from '@/app/actions/admin';
+import { useTranslations } from 'next-intl';
 
 export function GuestDeleteButton({ guestId }: { guestId: string }) {
+    const t = useTranslations('admin.guests');
     const [isDeleting, setIsDeleting] = useState(false);
 
     async function handleDelete() {
-        if (!confirm('Gast-Spieler wirklich löschen?')) return;
+        if (!confirm(t('confirmDelete'))) return;
         setIsDeleting(true);
         const result = await deleteGuestPlayer(guestId);
         if (!result.success) {
-            alert(result.error ?? 'Fehler beim Löschen.');
+            alert(result.error ?? t('deleteError'));
             setIsDeleting(false);
         }
     }
@@ -21,7 +23,7 @@ export function GuestDeleteButton({ guestId }: { guestId: string }) {
         <button
             onClick={handleDelete}
             disabled={isDeleting}
-            title="Gast löschen"
+            title={t('deleteTitle')}
             style={{
                 background: 'none',
                 border: 'none',
@@ -40,18 +42,19 @@ export function GuestDeleteButton({ guestId }: { guestId: string }) {
 }
 
 export function CleanupButton({ expiredCount }: { expiredCount: number }) {
+    const t = useTranslations('admin.guests');
     const [isPending, startTransition] = useTransition();
     const [result, setResult] = useState<string | null>(null);
 
     function handleCleanup() {
-        if (!confirm(`${expiredCount} abgelaufene Gäste löschen?`)) return;
+        if (!confirm(t('confirmCleanup', { count: expiredCount }))) return;
         startTransition(async () => {
             const res = await deleteExpiredGuests();
             if (res.success) {
-                setResult(`${res.count} Gäste gelöscht.`);
+                setResult(t('guestsDeleted', { count: res.count ?? 0 }));
                 setTimeout(() => setResult(null), 4000);
             } else {
-                alert(res.error ?? 'Fehler.');
+                alert(res.error ?? t('deleteError'));
             }
         });
     }
@@ -68,7 +71,7 @@ export function CleanupButton({ expiredCount }: { expiredCount: number }) {
                 style={{ fontSize: '0.85rem', opacity: isPending ? 0.5 : 1 }}
             >
                 <Trash2 size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-                {expiredCount} Abgelaufene löschen
+                {t('deleteExpired', { count: expiredCount })}
             </button>
         </div>
     );

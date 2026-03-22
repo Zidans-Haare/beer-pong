@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
 import { getTeamDisplayName } from '@/lib/team-utils';
+import { useTranslations } from 'next-intl';
 
 export default function Bracket({ matches, tableCount }: { matches: any[], tableCount: number }) {
+    const t = useTranslations('bracket');
     const [editingMatch, setEditingMatch] = useState<any>(null);
 
     // Filter only bracket matches
@@ -36,21 +38,21 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
     const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
 
     const getDynamicRoundName = (round: number) => {
-        if (round === maxRound) return 'Entscheidung';
-        if (round === maxRound - 1) return 'Halbfinale';
-        if (round === maxRound - 2) return 'Viertelfinale';
-        return `Runde ${round}`;
+        if (round === maxRound) return t('decision');
+        if (round === maxRound - 1) return t('semifinal');
+        if (round === maxRound - 2) return t('quarterfinal');
+        return t('round', { round });
     };
 
     const getMatchLabel = (match: any, round: number) => {
         if (round !== maxRound) return null;
-        if (match.position === 0) return { text: 'Finale', color: '#b45309', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)' };
-        if (match.position === 1) return { text: 'Spiel um Platz 3', color: '#7c5c2e', bg: 'rgba(205,127,50,0.10)', border: 'rgba(205,127,50,0.35)' };
+        if (match.position === 0) return { text: t('final'), color: '#b45309', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)' };
+        if (match.position === 1) return { text: t('thirdPlace'), color: '#7c5c2e', bg: 'rgba(205,127,50,0.10)', border: 'rgba(205,127,50,0.35)' };
         return null;
     };
 
     if (bracketMatches.length === 0) {
-        return <div style={{ padding: 'var(--spacing-4)', textAlign: 'center', color: 'var(--color-text-dim)' }}>K.O.-Phase beginnt erst nach der Gruppenphase.</div>;
+        return <div style={{ padding: 'var(--spacing-4)', textAlign: 'center', color: 'var(--color-text-dim)' }}>{t('knockoutPending')}</div>;
     }
 
     return (
@@ -116,7 +118,7 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                                             whiteSpace: 'nowrap',
                                             zIndex: 20
                                         }}>
-                                            Tisch {match.tableNumber}
+                                            {t('table', { number: match.tableNumber })}
                                         </div>
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, true) }}>

@@ -100,7 +100,7 @@ export default function AdminNav({ pendingCount }: Props) {
                         marginBottom: '3px',
                         fontFamily: 'monospace',
                     }}>
-                        Bierpong
+                        {process.env.NEXT_PUBLIC_APP_NAME || 'Beer Pong'}
                     </div>
                     <div style={{
                         fontSize: '1.05rem',

@@ -3,12 +3,14 @@
 import { startPlayoffs } from '@/app/actions/tournaments';
 import { Trophy } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function StartPlayoffsButton({ tournamentId }: { tournamentId: string }) {
+    const t = useTranslations('tournaments');
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleClick() {
-        if (!confirm('Gruppenphase beenden und Finale generieren?')) return;
+        if (!confirm(t('confirmPlayoffs'))) return;
 
         setIsLoading(true);
         const res = await startPlayoffs(tournamentId);
@@ -38,7 +40,7 @@ export default function StartPlayoffsButton({ tournamentId }: { tournamentId: st
             }}
         >
             <Trophy size={20} />
-            {isLoading ? 'Generiert...' : 'Finale starten'}
+            {isLoading ? t('generatingPlayoffs') : t('startPlayoffs')}
         </button>
     );
 }

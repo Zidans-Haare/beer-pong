@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { adminAddPlayerToTournament, adminRemovePlayerFromTournament } from '@/app/actions/admin';
 import { UserPlus, UserMinus, Check, Search, Calendar, Users, ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type Tournament = {
     id: string;
@@ -27,6 +28,7 @@ export function AdminTournamentManager({
     tournaments: Tournament[];
     players: Player[];
 }) {
+    const t = useTranslations('admin.manager');
     const [selectedTournamentId, setSelectedTournamentId] = useState(tournaments[0]?.id ?? '');
     const [search, setSearch] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -59,10 +61,10 @@ export function AdminTournamentManager({
             if (result.success) {
                 setAddedPlayerIds(prev => new Set(prev).add(playerId));
                 setRemovedPlayerIds(prev => { const s = new Set(prev); s.delete(playerId); return s; });
-                setFeedback({ type: 'success', message: `${result.playerName} wurde angemeldet!` });
+                setFeedback({ type: 'success', message: t('registeredFeedback', { name: result.playerName ?? '' }) });
                 setTimeout(() => setFeedback(null), 3000);
             } else {
-                setFeedback({ type: 'error', message: result.error ?? 'Fehler' });
+                setFeedback({ type: 'error', message: result.error ?? t('error') });
             }
         });
     }
@@ -74,10 +76,10 @@ export function AdminTournamentManager({
             if (result.success) {
                 setRemovedPlayerIds(prev => new Set(prev).add(playerId));
                 setAddedPlayerIds(prev => { const s = new Set(prev); s.delete(playerId); return s; });
-                setFeedback({ type: 'success', message: `${result.playerName} wurde abgemeldet.` });
+                setFeedback({ type: 'success', message: t('unregisteredFeedback', { name: result.playerName ?? '' }) });
                 setTimeout(() => setFeedback(null), 3000);
             } else {
-                setFeedback({ type: 'error', message: result.error ?? 'Fehler' });
+                setFeedback({ type: 'error', message: result.error ?? t('error') });
             }
         });
     }
@@ -88,7 +90,7 @@ export function AdminTournamentManager({
             <div className="form-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
                     <Calendar size={16} />
-                    Turnier auswählen
+                    {t('selectTournament')}
                 </label>
                 <div style={{ position: 'relative' }}>
                     <select
@@ -104,7 +106,7 @@ export function AdminTournamentManager({
                     >
                         {tournaments.map(t => (
                             <option key={t.id} value={t.id}>
-                                {t.name} — {new Date(t.date).toLocaleDateString('de-DE')} ({t.mode === 'TEAM' ? '2v2' : '1v1'})
+                                {t.name} — {new Date(t.date).toLocaleDateString()} ({t.mode === 'TEAM' ? '2v2' : '1v1'})
                             </option>
                         ))}
                     </select>
@@ -134,7 +136,7 @@ export function AdminTournamentManager({
                         fontSize: '0.85rem'
                     }}>
                         <Users size={14} />
-                        <span>Bereits angemeldet ({alreadyRegistered.length})</span>
+                        <span>{t('alreadyRegistered', { count: alreadyRegistered.length })}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {alreadyRegistered.map(p => (
@@ -159,7 +161,7 @@ export function AdminTournamentManager({
                                 <button
                                     onClick={() => handleRemove(p.id)}
                                     disabled={isPending}
-                                    title="Vom Turnier abmelden"
+                                    title={t('removeFromTournament')}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -175,7 +177,7 @@ export function AdminTournamentManager({
                                     }}
                                 >
                                     <UserMinus size={12} />
-                                    Entfernen
+                                    {t('remove')}
                                 </button>
                             </div>
                         ))}
@@ -192,7 +194,7 @@ export function AdminTournamentManager({
                     marginBottom: 'var(--spacing-3)'
                 }}>
                     <UserPlus size={16} />
-                    <span style={{ fontWeight: 600 }}>Spieler hinzufügen</span>
+                    <span style={{ fontWeight: 600 }}>{t('addPlayers')}</span>
                 </div>
 
                 <div style={{ position: 'relative', marginBottom: 'var(--spacing-3)' }}>
@@ -208,7 +210,7 @@ export function AdminTournamentManager({
                     />
                     <input
                         type="text"
-                        placeholder="Spieler suchen (Name, Nickname, E-Mail)..."
+                        placeholder={t('searchPlayers')}
                         className="form-control"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -243,7 +245,7 @@ export function AdminTournamentManager({
                 }}>
                     {availablePlayers.length === 0 ? (
                         <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem', textAlign: 'center', padding: 'var(--spacing-4)' }}>
-                            {search ? 'Kein Spieler gefunden.' : 'Alle Spieler sind bereits angemeldet.'}
+                            {search ? t('noPlayerFound') : t('allRegistered')}
                         </p>
                     ) : (
                         availablePlayers.map(player => (
@@ -286,7 +288,7 @@ export function AdminTournamentManager({
                                     }}
                                 >
                                     <UserPlus size={14} />
-                                    Anmelden
+                                    {t('register')}
                                 </button>
                             </div>
                         ))

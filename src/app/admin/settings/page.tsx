@@ -1,10 +1,10 @@
 import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
 import { getGlobalDurationStats } from '@/lib/duration';
 import { Clock, Users, BarChart3, AlertCircle, CheckCircle } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 
 export default async function AdminSettingsPage() {
-    const settings = await getSystemSettings();
-    const durationStats = await getGlobalDurationStats();
+    const [settings, durationStats, t] = await Promise.all([getSystemSettings(), getGlobalDurationStats(), getTranslations('admin.settings')]);
 
     async function handleSubmit(formData: FormData) {
         'use server';
@@ -13,7 +13,7 @@ export default async function AdminSettingsPage() {
 
     return (
         <div className="card" style={{ maxWidth: '600px' }}>
-            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>System-Einstellungen</h2>
+            <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>{t('title')}</h2>
 
             {/* Smart Duration Info Box */}
             <div style={{
@@ -27,7 +27,7 @@ export default async function AdminSettingsPage() {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-3)' }}>
                     <BarChart3 size={18} color={durationStats.isCalculated ? 'var(--color-secondary)' : 'orange'} />
-                    <span style={{ fontWeight: 600 }}>Smart Duration Tracking</span>
+                    <span style={{ fontWeight: 600 }}>{t('smartDuration')}</span>
                     {durationStats.isCalculated ? (
                         <CheckCircle size={14} color="var(--color-secondary)" />
                     ) : (
@@ -41,11 +41,10 @@ export default async function AdminSettingsPage() {
                             <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
                                 {durationStats.averageMinutes}
                             </span>
-                            <span style={{ color: 'var(--color-text-dim)' }}>Min. durchschnittlich</span>
+                            <span style={{ color: 'var(--color-text-dim)' }}>{t('avgMin')}</span>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>
-                            Basierend auf <strong>{durationStats.matchCount}</strong> gespielten Matches.
-                            Das System lernt automatisch aus echten Spieldaten.
+                            {t('basedOn', { count: durationStats.matchCount })}
                         </p>
                     </>
                 ) : (
@@ -54,11 +53,10 @@ export default async function AdminSettingsPage() {
                             <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'orange' }}>
                                 {durationStats.averageMinutes}
                             </span>
-                            <span style={{ color: 'var(--color-text-dim)' }}>Min. (Standardwert)</span>
+                            <span style={{ color: 'var(--color-text-dim)' }}>{t('defaultMin')}</span>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>
-                            Noch nicht genug Daten ({durationStats.matchCount}/3 Matches).
-                            Nach mehr Spielen wird die Dauer automatisch berechnet.
+                            {t('notEnoughData', { count: durationStats.matchCount })}
                         </p>
                     </>
                 )}
@@ -70,7 +68,7 @@ export default async function AdminSettingsPage() {
                 <div className="form-group">
                     <label htmlFor="matchDurationMin" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                         <Clock size={16} />
-                        Spieldauer-Korrektur (Minuten)
+                        {t('durationLabel')}
                     </label>
                     <input
                         type="number"
@@ -84,9 +82,9 @@ export default async function AdminSettingsPage() {
                     />
                     <small style={{ color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)', display: 'block' }}>
                         {durationStats.isCalculated ? (
-                            <>Nur anpassen, wenn die automatische Berechnung ({durationStats.averageMinutes} Min.) nicht passt.</>
+                            t('durationHint', { avg: durationStats.averageMinutes })
                         ) : (
-                            <>Wird verwendet bis genug Spieldaten vorhanden sind.</>
+                            t('durationHintDefault')
                         )}
                     </small>
                 </div>
@@ -95,7 +93,7 @@ export default async function AdminSettingsPage() {
                 <div className="form-group">
                     <label htmlFor="tableCount" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                         <Users size={16} />
-                        Anzahl Tische
+                        {t('tableCountLabel')}
                     </label>
                     <input
                         type="number"
@@ -108,12 +106,12 @@ export default async function AdminSettingsPage() {
                         style={{ maxWidth: '150px' }}
                     />
                     <small style={{ color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)', display: 'block' }}>
-                        Wie viele Tische gleichzeitig bespielt werden können.
+                        {t('tableCountHint')}
                     </small>
                 </div>
 
                 <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'var(--spacing-2)' }}>
-                    Speichern
+                    {t('save')}
                 </button>
             </form>
         </div>

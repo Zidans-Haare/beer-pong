@@ -2,12 +2,9 @@
 
 import { useState } from 'react';
 import { setTournamentStatus, adminDeleteTournament } from '@/app/actions/admin';
+import { useTranslations } from 'next-intl';
 
-const STATUS_LABELS: Record<string, string> = {
-    PLANNED: 'Geplant',
-    ACTIVE: 'Aktiv',
-    COMPLETED: 'Abgeschlossen',
-};
+const STATUS_KEYS = ['PLANNED', 'ACTIVE', 'COMPLETED'] as const;
 
 const STATUS_COLORS: Record<string, string> = {
     PLANNED: 'rgba(59,130,246,0.15)',
@@ -21,9 +18,13 @@ const STATUS_TEXT: Record<string, string> = {
     COMPLETED: '#94a3b8',
 };
 
-const ALL_STATUSES = ['PLANNED', 'ACTIVE', 'COMPLETED'] as const;
-
 export function StatusBadge({ status }: { status: string }) {
+    const t = useTranslations('admin.statusButton');
+    const STATUS_LABELS: Record<string, string> = {
+        PLANNED: t('planned'),
+        ACTIVE: t('active'),
+        COMPLETED: t('completed'),
+    };
     return (
         <span style={{
             display: 'inline-block',
@@ -43,13 +44,14 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: string; tournamentName: string }) {
     const [loading, setLoading] = useState(false);
+    const t = useTranslations('admin.statusButton');
 
     async function handleDelete() {
-        if (!confirm(`Turnier "${tournamentName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+        if (!confirm(t('confirmDelete', { name: tournamentName }))) return;
         setLoading(true);
         const result = await adminDeleteTournament(tournamentId);
         if (!result.success) {
-            alert(result.error ?? 'Fehler beim Löschen');
+            alert(result.error ?? t('deleteError'));
         }
         setLoading(false);
     }
@@ -58,7 +60,7 @@ export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: s
         <button
             onClick={handleDelete}
             disabled={loading}
-            title="Turnier löschen"
+            title={t('delete')}
             style={{
                 padding: '3px 10px',
                 borderRadius: '6px',
@@ -72,15 +74,21 @@ export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: s
                 transition: 'all 0.15s',
             }}
         >
-            {loading ? '...' : 'Löschen'}
+            {loading ? '...' : t('delete')}
         </button>
     );
 }
 
 export function StatusButton({ tournamentId, currentStatus }: { tournamentId: string; currentStatus: string }) {
     const [loading, setLoading] = useState(false);
+    const t = useTranslations('admin.statusButton');
+    const STATUS_LABELS: Record<string, string> = {
+        PLANNED: t('planned'),
+        ACTIVE: t('active'),
+        COMPLETED: t('completed'),
+    };
 
-    async function handleChange(status: typeof ALL_STATUSES[number]) {
+    async function handleChange(status: typeof STATUS_KEYS[number]) {
         if (status === currentStatus) return;
         setLoading(true);
         await setTournamentStatus(tournamentId, status);
@@ -89,7 +97,7 @@ export function StatusButton({ tournamentId, currentStatus }: { tournamentId: st
 
     return (
         <div style={{ display: 'flex', gap: '4px' }}>
-            {ALL_STATUSES.map(s => (
+            {STATUS_KEYS.map(s => (
                 <button
                     key={s}
                     onClick={() => handleChange(s)}

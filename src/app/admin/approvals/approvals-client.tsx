@@ -3,10 +3,12 @@
 import { useTransition } from 'react';
 import { approveUser, rejectUser } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export default function ApprovalsClient({ userId }: { userId: string }) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+    const t = useTranslations('admin.approvals');
 
     function handleApprove() {
         startTransition(async () => {
@@ -39,7 +41,7 @@ export default function ApprovalsClient({ userId }: { userId: string }) {
                     opacity: isPending ? 0.6 : 1,
                 }}
             >
-                Freigeben
+                {t('approve')}
             </button>
             <button
                 onClick={handleReject}
@@ -56,7 +58,7 @@ export default function ApprovalsClient({ userId }: { userId: string }) {
                     opacity: isPending ? 0.6 : 1,
                 }}
             >
-                Ablehnen
+                {t('reject')}
             </button>
         </div>
     );

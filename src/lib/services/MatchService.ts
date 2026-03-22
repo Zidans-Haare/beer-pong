@@ -40,8 +40,8 @@ export class MatchService {
                         if (player?.userId) {
                             await sendPushToUser(
                                 player.userId,
-                                "Du bist dran!",
-                                `Euer Match gegen ${team2Name} kann jetzt gespielt werden.`,
+                                "Your turn!",
+                                `Your match against ${team2Name} is ready to be played.`,
                                 tournamentLink
                             );
                         }
@@ -58,8 +58,8 @@ export class MatchService {
                         if (player?.userId) {
                             await sendPushToUser(
                                 player.userId,
-                                "Du bist dran!",
-                                `Euer Match gegen ${team1Name} kann jetzt gespielt werden.`,
+                                "Your turn!",
+                                `Your match against ${team1Name} is ready to be played.`,
                                 tournamentLink
                             );
                         }
@@ -68,14 +68,14 @@ export class MatchService {
             }
         } else {
             // Player match - notify both players
-            const player1Name = match.player1?.name || "Gegner";
-            const player2Name = match.player2?.name || "Gegner";
+            const player1Name = match.player1?.name || "Opponent";
+            const player2Name = match.player2?.name || "Opponent";
 
             if (match.player1?.userId) {
                 await sendPushToUser(
                     match.player1.userId,
-                    "Du bist dran!",
-                    `Dein Match gegen ${player2Name} kann jetzt gespielt werden.`,
+                    "Your turn!",
+                    `Your match against ${player2Name} is ready to be played.`,
                     tournamentLink
                 );
             }
@@ -83,8 +83,8 @@ export class MatchService {
             if (match.player2?.userId) {
                 await sendPushToUser(
                     match.player2.userId,
-                    "Du bist dran!",
-                    `Dein Match gegen ${player1Name} kann jetzt gespielt werden.`,
+                    "Your turn!",
+                    `Your match against ${player1Name} is ready to be played.`,
                     tournamentLink
                 );
             }

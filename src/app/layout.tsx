@@ -9,10 +9,12 @@ import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
+const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Beer Pong';
+
 export const metadata: Metadata = {
-  title: 'Bier Pong',
+  title: appName,
   description: 'Manage your beer pong tournaments professionally.',
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   robots: {
     index: false,
     follow: false,
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Bier Pong',
+    title: appName,
   },
   icons: {
     icon: '/icon.png',

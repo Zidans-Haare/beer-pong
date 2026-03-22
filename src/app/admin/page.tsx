@@ -3,6 +3,7 @@ import { getDashboardStats } from '@/app/actions/admin';
 import { checkForUpdate } from '@/lib/update-check';
 import { Users, Trophy, Swords, MessageSquare, User, ArrowUpCircle } from 'lucide-react';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 async function getBaseStats() {
     const [userCount, tournamentCount] = await Promise.all([
@@ -18,13 +19,13 @@ async function getBaseStats() {
 }
 
 export default async function AdminDashboard() {
-    const [base, extra, updateInfo] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate()]);
+    const [base, extra, updateInfo, t] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate(), getTranslations('admin.dashboard')]);
 
     const statCards = [
         { label: 'User', value: base.userCount, icon: Users, color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
-        { label: 'Turniere', value: base.tournamentCount, icon: Trophy, color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
-        { label: 'Spieler', value: extra.playerCount, icon: User, color: '#4ade80', bg: 'rgba(34,197,94,0.15)' },
-        { label: 'Spiele', value: extra.matchCount, icon: Swords, color: '#fb923c', bg: 'rgba(249,115,22,0.15)' },
+        { label: t('statTournaments'), value: base.tournamentCount, icon: Trophy, color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
+        { label: t('statPlayers'), value: extra.playerCount, icon: User, color: '#4ade80', bg: 'rgba(34,197,94,0.15)' },
+        { label: t('statMatches'), value: extra.matchCount, icon: Swords, color: '#fb923c', bg: 'rgba(249,115,22,0.15)' },
         { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: '#38bdf8', bg: 'rgba(56,189,248,0.15)' },
     ];
 
@@ -32,7 +33,7 @@ export default async function AdminDashboard() {
         <div style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
             <header style={{ marginBottom: 'var(--spacing-4)' }}>
                 <h1 className="title-display" style={{ fontSize: '2rem', marginBottom: 'var(--spacing-2)' }}>Dashboard</h1>
-                <p style={{ color: 'var(--color-text-dim)' }}>Willkommen zurück, Boss.</p>
+                <p style={{ color: 'var(--color-text-dim)' }}>{t('welcome')}</p>
             </header>
 
             {/* Update Banner */}
@@ -49,14 +50,14 @@ export default async function AdminDashboard() {
                 }}>
                     <ArrowUpCircle size={20} style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
-                        <span style={{ fontWeight: 600 }}>Update verfügbar: v{updateInfo.latestVersion}</span>
+                        <span style={{ fontWeight: 600 }}>{t('updateAvailable', { version: updateInfo.latestVersion })}</span>
                         <span style={{ color: 'var(--color-text-dim)', marginLeft: '8px', fontSize: '0.85rem' }}>
-                            (aktuell: v{updateInfo.currentVersion})
+                            {t('currentVersion', { version: updateInfo.currentVersion })}
                         </span>
                         <div style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>
                             {process.env.DEPLOY_SECRET
-                                ? <>GitHub Webhook aktiv — pushe auf <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>main</code> zum Deployen.</>
-                                : <>Manuell: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>bash ~/beer-pong/scripts/update.sh</code></>
+                                ? <>{t('webhookActive')} <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>main</code> {t('webhookActiveSuffix')}</>
+                                : <>{t('manualUpdate')} <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>bash ~/beer-pong/scripts/update.sh</code></>
                             }
                         </div>
                     </div>
@@ -88,7 +89,7 @@ export default async function AdminDashboard() {
                 {/* Top Spieler */}
                 <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Swords size={16} color="var(--color-primary)" /> Aktivste Spieler
+                        <Swords size={16} color="var(--color-primary)" /> {t('topPlayers')}
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {extra.topPlayers.map((p: (typeof extra.topPlayers)[number], i: number) => {
@@ -101,30 +102,30 @@ export default async function AdminDashboard() {
                                             {p.name}
                                         </Link>
                                     </div>
-                                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)' }}>{total} Spiele</span>
+                                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-dim)' }}>{total} {t('games')}</span>
                                 </div>
                             );
                         })}
-                        {extra.topPlayers.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>Noch keine Spieldaten.</p>}
+                        {extra.topPlayers.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('noMatchData')}</p>}
                     </div>
                 </div>
 
                 {/* Letzte Aktivitäten */}
                 <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)' }}>Letzte Aktivitäten</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)' }}>{t('recentActivity')}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {base.recentNotifications.map((n: (typeof base.recentNotifications)[number], i: number) => (
                             <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-2) 0', borderBottom: i < base.recentNotifications.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                 <div>
                                     <div style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>{n.title}</div>
-                                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)' }}>an {n.user?.name ?? 'Unbekannt'}</div>
+                                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)' }}>{t('to', { name: n.user?.name ?? '?' })}</div>
                                 </div>
                                 <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap', marginLeft: '8px' }}>
-                                    {new Date(n.createdAt).toLocaleDateString('de-DE')}
+                                    {new Date(n.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
                         ))}
-                        {base.recentNotifications.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>Keine Aktivitäten.</p>}
+                        {base.recentNotifications.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('noActivity')}</p>}
                     </div>
                 </div>
             </div>

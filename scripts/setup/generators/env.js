@@ -82,6 +82,7 @@ async function generateEnv(answers, spinner) {
         '# App',
         `APP_URL="${appUrl}"`,
         `NEXT_PUBLIC_APP_URL="${appUrl}"`,
+        `NEXT_PUBLIC_APP_NAME="${answers.appName}"`,
         `PORT=${port}`,
         `NEXT_PUBLIC_LOCALE="${answers.locale || 'en'}"`,
         '',

@@ -1,6 +1,6 @@
 import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
 import { getGlobalDurationStats } from '@/lib/duration';
-import { Clock, Users, BarChart3, AlertCircle, CheckCircle } from 'lucide-react';
+import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ScrollText } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 export default async function AdminSettingsPage() {
@@ -107,6 +107,26 @@ export default async function AdminSettingsPage() {
                     />
                     <small style={{ color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)', display: 'block' }}>
                         {t('tableCountHint')}
+                    </small>
+                </div>
+
+                {/* Rules */}
+                <div className="form-group">
+                    <label htmlFor="rulesText" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                        <ScrollText size={16} />
+                        {t('rulesLabel')}
+                    </label>
+                    <textarea
+                        id="rulesText"
+                        name="rulesText"
+                        defaultValue={settings.rulesText ?? ''}
+                        rows={12}
+                        className="form-control"
+                        style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: '0.85rem' }}
+                        placeholder={t('rulesPlaceholder')}
+                    />
+                    <small style={{ color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)', display: 'block' }}>
+                        {t('rulesHint')}
                     </small>
                 </div>
 

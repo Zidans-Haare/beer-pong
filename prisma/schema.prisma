@@ -45,6 +45,7 @@ model Tournament {
   tableCount       Int                     @default(1)
   mode             String                  @default("SOLO")
   isRanked         Boolean                 @default(true)
+  image            String?
   bringItems       BringItem[]
   guests           GuestPlayer[]
   matches          Match[]
@@ -270,6 +271,7 @@ model SystemSettings {
   id               String @id @default("default")
   matchDurationMin Int    @default(15)
   tableCount       Int    @default(1)
+  rulesText        String @default("")
 }
 
 model UptimeHeartbeat {

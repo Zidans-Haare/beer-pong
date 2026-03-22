@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 function getOrCreatePresenceId(): string {
     const key = 'presence_id';
@@ -14,6 +15,7 @@ function getOrCreatePresenceId(): string {
 }
 
 export default function OnlineIndicator() {
+    const t = useTranslations('home');
     const [count, setCount] = useState<number | null>(null);
     const [alone, setAlone] = useState(false);
 
@@ -39,8 +41,8 @@ export default function OnlineIndicator() {
     if (count === null) return null;
 
     const label = alone
-        ? 'Nur du online'
-        : count === 1 ? '1 Person online' : `${count} Personen online`;
+        ? t('aloneOnline')
+        : count === 1 ? t('onePerson') : t('personsOnline', { count });
 
     return (
         <div style={{

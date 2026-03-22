@@ -5,13 +5,9 @@ import { useState } from 'react';
 import { Trophy, PartyPopper, Calendar, Users, X } from 'lucide-react';
 import type { StatsPeriod } from '@/lib/stats';
 import type { Player } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 
-const PERIODS: { key: StatsPeriod; label: string }[] = [
-    { key: 'month', label: 'Monat' },
-    { key: 'last5', label: 'Letzte 5' },
-    { key: 'year', label: 'Jahr' },
-    { key: 'all', label: 'All Time' },
-];
+const PERIOD_KEYS: StatsPeriod[] = ['month', 'last5', 'year', 'all'];
 
 export default function StatsFilterBar({
     onlyRanked,
@@ -24,6 +20,7 @@ export default function StatsFilterBar({
     selectedPlayerIds: string[];
     allPlayers: Player[];
 }) {
+    const t = useTranslations('stats');
     const router = useRouter();
     const [playerSearch, setPlayerSearch] = useState('');
     const [showPlayerPicker, setShowPlayerPicker] = useState(false);
@@ -56,6 +53,13 @@ export default function StatsFilterBar({
         p.name.toLowerCase().includes(playerSearch.toLowerCase())
     );
 
+    const periodLabels: Record<StatsPeriod, string> = {
+        month: t('month'),
+        last5: t('last5'),
+        year: t('year'),
+        all: t('allTime'),
+    };
+
     return (
         <div style={{
             display: 'grid', gap: 'var(--spacing-3)',
@@ -63,11 +67,11 @@ export default function StatsFilterBar({
             padding: 'var(--spacing-4)', background: 'var(--color-surface)',
             borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)'
         }}>
-            {/* Zeile 1: Zeitraum */}
+            {/* Row 1: Period */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Calendar size={14} color="var(--color-text-dim)" style={{ flexShrink: 0 }} />
                 <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
-                    {PERIODS.map(({ key, label }) => (
+                    {PERIOD_KEYS.map((key) => (
                         <button key={key} onClick={() => navigate(buildUrl({ period: key }))}
                             style={{
                                 padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
@@ -76,7 +80,7 @@ export default function StatsFilterBar({
                                 color: activePeriod === key ? 'white' : 'var(--color-text-dim)',
                                 transition: 'all 0.2s ease'
                             }}>
-                            {label}
+                            {periodLabels[key]}
                         </button>
                     ))}
                 </div>
@@ -85,7 +89,7 @@ export default function StatsFilterBar({
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
-            {/* Zeile 2: Rangliste / Alles */}
+            {/* Row 2: Ranked / All */}
             <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)', justifySelf: 'start' }}>
                 <button onClick={() => navigate(buildUrl({ ranked: true }))}
                     style={{
@@ -96,7 +100,7 @@ export default function StatsFilterBar({
                         color: onlyRanked ? 'white' : 'var(--color-text-dim)',
                         transition: 'all 0.2s ease'
                     }}>
-                    <Trophy size={12} /> Rangliste
+                    <Trophy size={12} /> {t('ranked')}
                 </button>
                 <button onClick={() => navigate(buildUrl({ ranked: false }))}
                     style={{
@@ -107,14 +111,14 @@ export default function StatsFilterBar({
                         color: !onlyRanked ? 'white' : 'var(--color-text-dim)',
                         transition: 'all 0.2s ease'
                     }}>
-                    <PartyPopper size={12} /> Alles
+                    <PartyPopper size={12} /> {t('all')}
                 </button>
             </div>
 
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
-            {/* Spieler-Filter */}
+            {/* Player Filter */}
             <div style={{ position: 'relative' }}>
                 <button
                     onClick={() => setShowPlayerPicker(v => !v)}
@@ -127,7 +131,7 @@ export default function StatsFilterBar({
                         color: selectedPlayerIds.length > 0 ? 'var(--color-primary)' : 'var(--color-text-dim)',
                     }}>
                     <Users size={12} />
-                    {selectedPlayerIds.length > 0 ? `${selectedPlayerIds.length} Spieler` : 'Alle Spieler'}
+                    {selectedPlayerIds.length > 0 ? t('nPlayers', { count: selectedPlayerIds.length }) : t('allPlayers')}
                 </button>
 
                 {selectedPlayerIds.length > 0 && (
@@ -152,7 +156,7 @@ export default function StatsFilterBar({
                     }}>
                         <input
                             type="text"
-                            placeholder="Suchen..."
+                            placeholder={t('search')}
                             value={playerSearch}
                             onChange={e => setPlayerSearch(e.target.value)}
                             style={{

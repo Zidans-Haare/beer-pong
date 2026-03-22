@@ -3,12 +3,14 @@
 import { motion } from 'framer-motion';
 import { Beer, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     userName?: string | null;
 }
 
 export default function HeroSection({ userName }: Props) {
+    const t = useTranslations('home');
     return (
         <div className="glass-panel" style={{
             position: 'relative',
@@ -59,7 +61,7 @@ export default function HeroSection({ userName }: Props) {
                             fontWeight: 700,
                             fontFamily: 'var(--font-heading)',
                         }}>
-                            Willkommen zurück
+                            {t('welcomeBack')}
                         </span>
                         <h1 style={{
                             fontSize: 'clamp(2.2rem, 5vw, 2.8rem)',
@@ -96,7 +98,7 @@ export default function HeroSection({ userName }: Props) {
                 {!userName && (
                     <div style={{ marginTop: 'var(--spacing-6)' }}>
                         <Link href="/login" className="btn btn-primary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem' }}>
-                            Loslegen
+                            {t('getStarted')}
                         </Link>
                     </div>
                 )}

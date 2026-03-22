@@ -30,7 +30,7 @@ export default async function TournamentsPage() {
                     <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
                     <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
                 </div>
-                <Link href="/tournaments/new" className="btn btn-primary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Link href="/tournaments/new" className="btn btn-primary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                     <Plus size={20} /> <span>{t('new')}</span>
                 </Link>
             </div>

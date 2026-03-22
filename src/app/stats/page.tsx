@@ -10,6 +10,7 @@ import UptimeGraph from '@/components/UptimeGraph';
 import { prisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
+import { getTranslations } from 'next-intl/server';
 
 async function syncAndGetUptimeData() {
     const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
@@ -100,6 +101,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const onlyRanked = ranked !== 'false';
     const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
     const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
+    const t = await getTranslations('stats');
 
     const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
@@ -121,8 +123,8 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                     <div>
-                        <h1 className="title-display" style={{ fontSize: '2rem' }}>Statistiken</h1>
-                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>Daten, Fakten & Legenden</p>
+                        <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
+                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
                     </div>
                     <StatsExportButton stats={stats} />
                 </div>
@@ -139,7 +141,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     color: '#b45309'
                 }}>
                     <Trophy size={14} color="#b45309" />
-                    {onlyRanked ? 'Nur Liga-Turniere (keine Spaß-Turniere)' : 'Alle Turniere (inkl. Spaß-Turniere)'}
+                    {onlyRanked ? t('onlyRanked') : t('allTournamentsFilter')}
                 </div>
             </header>
 
@@ -156,7 +158,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Trophy size={20} color="var(--color-primary)" />
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Ewige Tabelle</h2>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('allTimeTable')}</h2>
                     </div>
                     <RankingFormulaInfo />
                 </div>
@@ -164,14 +166,14 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
                         <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
                             <tr>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>RANG</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>SPIELER</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>SIEGE</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>SPIELE</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('rank')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('player')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('wins')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('games')}</th>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>WIN RATE</th>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>+/-</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>POKALE</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>Ø / TURNIER</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('trophies')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('avgPerTournament')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -231,9 +233,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
                     <Zap size={24} color="#b45309" />
                     <div>
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Turnier-Effizienz</h2>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('tournamentEfficiency')}</h2>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>
-                            Verhältnis von gewonnenen zu gespielten Turnieren
+                            {t('efficiencySubtitle')}
                             <span style={{
                                 display: 'inline-block',
                                 marginLeft: '12px',
@@ -244,7 +246,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                 color: 'orange',
                                 border: '1px solid rgba(255, 165, 0, 0.3)'
                             }}>
-                                Inoffiziell
+                                {t('unofficial')}
                             </span>
                         </p>
                     </div>
@@ -253,11 +255,11 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
                         <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
                             <tr>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>RANG</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>SPIELER</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>QUOTE</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>POKALE</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>TURNIERE</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('rank')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('player')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('rate')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('trophies')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('tournaments')}</th>
                             </tr>
                         </thead>
                         <tbody>

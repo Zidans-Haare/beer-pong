@@ -22,6 +22,7 @@ import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
 import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
 import LiveInfoCards from '@/components/tournament/LiveInfoCards';
 import { ChevronRight, Zap } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 import { auth } from '@/auth';
@@ -88,6 +89,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
 
     if (!tournament) notFound();
 
+    const t = await getTranslations('tournaments');
     const [players, systemSettings, bringItems] = await Promise.all([
         getPlayers(),
         getPublicSystemSettings(),
@@ -182,7 +184,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 }}
             >
                 <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
-                Alle Turniere
+                {t('allTournaments')}
             </Link>
 
             <TournamentHeader
@@ -217,7 +219,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     gap: 'var(--spacing-2)'
                 }}>
                     <Zap size={16} color="orange" />
-                    <span><strong style={{ color: 'orange' }}>Ungerade Teilnehmerzahl</strong> – Freilose werden automatisch vergeben</span>
+                    <span>{t('oddParticipants')}</span>
                 </div>
             )}
 
@@ -266,7 +268,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                                 return <PlayerProfilePrompt />;
                             }
                             const userRsvp = tournament.rsvps.find((r: any) => r.playerId === player.id);
-                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} title="Bist du dabei?" />;
+                            return <RSVPForm tournamentId={tournament.id} currentStatus={userRsvp?.status} />;
                         })()
                     )}
 
@@ -274,20 +276,20 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     {!session?.user?.id && (
                         tournament.isRanked ? (
                             <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                                <p style={{ marginBottom: 'var(--spacing-2)' }}>Zum Teilnehmen bitte einloggen.</p>
+                                <p style={{ marginBottom: 'var(--spacing-2)' }}>{t('loginToJoin')}</p>
                                 <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} className="btn btn-primary">
-                                    Einloggen
+                                    {t('login')}
                                 </Link>
                             </div>
                         ) : (
                             !currentGuest && (
                                 <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                                    <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1.2rem', textAlign: 'center' }}>Als Gast beitreten</h3>
+                                    <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1.2rem', textAlign: 'center' }}>{t('joinAsGuest')}</h3>
                                     <GuestJoinForm tournamentId={tournament.id} />
                                     <div style={{ marginTop: 'var(--spacing-6)', textAlign: 'center', fontSize: '0.9rem' }}>
-                                        <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>Oder einloggen?</p>
+                                        <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>{t('orLogin')}</p>
                                         <Link href={`/login?callbackUrl=${encodeURIComponent(`/tournaments/${tournament.id}`)}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
-                                            Zum Login
+                                            {t('toLogin')}
                                         </Link>
                                     </div>
                                 </div>
@@ -320,7 +322,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         <details style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface)', overflow: 'hidden' }}>
                             <summary style={{ padding: 'var(--spacing-3) var(--spacing-4)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-dim)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', userSelect: 'none' }}>
                                 <ChevronRight size={16} style={{ transition: 'transform 0.2s' }} />
-                                Zusätzliche Infos
+                                {t('additionalInfo')}
                             </summary>
                             <div style={{ padding: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)' }}>
                                 <LobbyDurationWidget
@@ -382,10 +384,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     {/* Tables */}
                     {tournament.type === 'ROUND_ROBIN' && (
                         <section style={{ marginTop: 'var(--spacing-8)' }}>
-                            <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>Tabelle</h2>
+                            <h2 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1.1rem', fontWeight: 600 }}>{t('tableSection')}</h2>
                             <TournamentTable
                                 standings={await getTournamentStandings(tournament.id)}
-                                label={isTeamMode ? 'Team' : 'Spieler'}
+                                label={isTeamMode ? 'Team' : t('playerLabel')}
                             />
                         </section>
                     )}
@@ -393,19 +395,19 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     {tournament.type === 'GROUPS' && (
                         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
                             <div>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe A</h3>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>{t('groupA')}</h3>
                                 <TournamentTable
                                     standings={await getTournamentStandings(tournament.id, 'GROUP_1')}
                                     highlightTop={2}
-                                    label={isTeamMode ? 'Team' : 'Spieler'}
+                                    label={isTeamMode ? 'Team' : t('playerLabel')}
                                 />
                             </div>
                             <div>
-                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>Gruppe B</h3>
+                                <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>{t('groupB')}</h3>
                                 <TournamentTable
                                     standings={await getTournamentStandings(tournament.id, 'GROUP_2')}
                                     highlightTop={2}
-                                    label={isTeamMode ? 'Team' : 'Spieler'}
+                                    label={isTeamMode ? 'Team' : t('playerLabel')}
                                 />
                             </div>
                         </section>

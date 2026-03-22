@@ -1,9 +1,9 @@
 
 export const TOURNAMENT_TYPE_LABELS: Record<string, string> = {
-    'SINGLE_ELIMINATION': 'K.O. System',
-    'ROUND_ROBIN': 'Jeder gegen Jeden',
-    'GROUPS': 'Gruppen & K.O.',
-    'ELIMINATION': 'K.O. System',
+    'SINGLE_ELIMINATION': 'Elimination',
+    'ROUND_ROBIN': 'Round Robin',
+    'GROUPS': 'Groups & Knockout',
+    'ELIMINATION': 'Elimination',
 };
 
 export function getTournamentTypeLabel(type: string): string {

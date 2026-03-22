@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sigma, X, ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function RankingFormulaInfo() {
+    const t = useTranslations('stats');
     const [open, setOpen] = useState(false);
 
     return (
@@ -28,7 +30,7 @@ export default function RankingFormulaInfo() {
                 }}
             >
                 <Sigma size={12} />
-                Wie wird gerankt?
+                {t('howRanked')}
                 <ChevronDown
                     size={12}
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
@@ -55,7 +57,7 @@ export default function RankingFormulaInfo() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Sigma size={15} color="var(--color-primary)" />
                                     <span style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
-                                        Ewige Tabelle — Ranking-Logik
+                                        {t('rankingLogicTitle')}
                                     </span>
                                 </div>
                                 <button
@@ -69,12 +71,12 @@ export default function RankingFormulaInfo() {
                             {/* Sorting cascade */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-4)' }}>
                                 <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                                    Sortierung (Tiebreaker-Kaskade)
+                                    {t('sortingCascade')}
                                 </div>
                                 {[
-                                    { rank: '1.', label: 'Turniersiege', formula: 'COUNT(Turnier-Platz-1)', note: 'Hauptkriterium' },
-                                    { rank: '2.', label: 'Match-Siege', formula: 'COUNT(winner = Spieler)', note: 'Bei Gleichstand' },
-                                    { rank: '3.', label: 'Becherdifferenz', formula: 'Σ cupsHit − Σ cupsReceived', note: 'Letzter Tiebreaker' },
+                                    { rank: '1.', label: t('tournamentWins'), formula: 'COUNT(Tournament Rank 1)', note: t('mainCriteria') },
+                                    { rank: '2.', label: t('matchWins'), formula: 'COUNT(winner = Player)', note: t('tiebreaker') },
+                                    { rank: '3.', label: t('cupDifference'), formula: 'Σ cupsHit − Σ cupsReceived', note: t('lastTiebreaker') },
                                 ].map(item => (
                                     <div key={item.rank} style={{
                                         padding: '6px 8px',
@@ -96,13 +98,13 @@ export default function RankingFormulaInfo() {
 
                             {/* Column formulas */}
                             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--spacing-2)' }}>
-                                Spalten-Formeln
+                                {t('columnFormulas')}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {[
-                                    { col: 'WIN RATE', formula: 'Siege / Spiele × 100', note: 'nur Liga' },
-                                    { col: '+/−', formula: 'Σ cupsHit − Σ cupsReceived', note: 'alle Matches' },
-                                    { col: 'POKALE', formula: 'COUNT(Platz 1 in Turnieren)', note: 'Rang 1' },
+                                    { col: 'WIN RATE', formula: 'Wins / Games × 100', note: t('rankedOnly') },
+                                    { col: '+/−', formula: 'Σ cupsHit − Σ cupsReceived', note: t('allMatches') },
+                                    { col: 'TROPHIES', formula: 'COUNT(Rank 1 in Tournaments)', note: t('rank1') },
                                 ].map(item => (
                                     <div key={item.col} style={{ padding: '4px 8px', borderRadius: 'var(--radius-sm)' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
@@ -120,7 +122,7 @@ export default function RankingFormulaInfo() {
                                 ))}
                             </div>
 
-                            {/* Datengrundlage */}
+                            {/* Data source */}
                             <div style={{
                                 marginTop: 'var(--spacing-3)',
                                 padding: '6px 10px',
@@ -131,7 +133,7 @@ export default function RankingFormulaInfo() {
                                 color: 'var(--color-text-dim)',
                                 fontFamily: 'monospace',
                             }}>
-                                Datengrundlage: nur Ranked-Turniere (isRanked = true) · Gast-Matches ausgeschlossen
+                                {t('dataSource')}
                             </div>
                         </div>
                     </motion.div>

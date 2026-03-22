@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { auth, signOut } from '@/auth';
 import DesktopNotificationLink from './DesktopNotificationLink';
 import LogoEasterEgg from './LogoEasterEgg';
+import { getTranslations } from 'next-intl/server';
 
 export default async function Navbar() {
     const session = await auth();
+    const t = await getTranslations('nav');
 
     return (
         <nav style={{
@@ -20,11 +22,11 @@ export default async function Navbar() {
 
             {/* Desktop Navigation Links */}
             <div className="desktop-nav-links" style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
-                <Link href="/tournaments" className="nav-link">Turniere</Link>
-                <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Beitreten</Link>
-                <Link href="/players" className="nav-link">Spieler</Link>
-                <Link href="/stats" className="nav-link">Statistik</Link>
-                {session?.user && <Link href="/chat" className="nav-link">Chat</Link>}
+                <Link href="/tournaments" className="nav-link">{t('tournaments')}</Link>
+                <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{t('join')}</Link>
+                <Link href="/players" className="nav-link">{t('players')}</Link>
+                <Link href="/stats" className="nav-link">{t('stats')}</Link>
+                {session?.user && <Link href="/chat" className="nav-link">{t('chat')}</Link>}
                 {session?.user?.email === process.env.ADMIN_EMAIL && (
                     <Link href="/admin/broadcast" className="nav-link">Admin</Link>
                 )}

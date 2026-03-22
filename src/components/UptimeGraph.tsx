@@ -3,6 +3,7 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Customized } from 'recharts';
 import { Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 const COLOR_UP = '#06b6d4';
 const COLOR_DOWN = '#ef4444';
@@ -51,12 +52,13 @@ function statusColor(status: number) {
 }
 
 function CustomTooltip({ active, payload, maintenanceList }: any) {
+    const t = useTranslations('stats');
     if (!active || !payload?.length) return null;
     const point = payload[0]?.payload;
     if (!point?.isoTime) return null;
 
     const d = new Date(point.isoTime);
-    const timeLabel = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth()+1).toString().padStart(2,'0')}. ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')} Uhr`;
+    const timeLabel = `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 
     const maint = findMaintenance(point.isoTime, maintenanceList ?? []);
     const isMaint = point.status === 3 || !!maint;
@@ -84,12 +86,12 @@ function CustomTooltip({ active, payload, maintenanceList }: any) {
             )}
             {isMaint && (
                 <div style={{ color: COLOR_MAINTENANCE, fontWeight: 600 }}>
-                    🔧 Wartung{maintLabel ? `: ${maintLabel}` : ''}
+                    🔧 {t('maintenance')}{maintLabel ? `: ${maintLabel}` : ''}
                 </div>
             )}
             {isDown && (
                 <div style={{ color: COLOR_DOWN, fontWeight: 600 }}>
-                    ⚠ Ausfall{point.msg ? `: ${point.msg}` : ''}
+                    ⚠ {t('outage')}{point.msg ? `: ${point.msg}` : ''}
                 </div>
             )}
         </div>
@@ -97,7 +99,7 @@ function CustomTooltip({ active, payload, maintenanceList }: any) {
 }
 
 
-// Zeichnet farbige Hintergrundflächen für Ausfall/Wartung direkt im SVG-Koordinatensystem
+// Draws colored background areas for outage/maintenance directly in SVG coordinate space
 function StatusBackground(props: any) {
     const { data, xAxisMap, yAxisMap } = props;
     const xAxis = xAxisMap && (Object.values(xAxisMap)[0] as any);
@@ -130,16 +132,17 @@ function StatusBackground(props: any) {
 
 type Period = '3h' | '24h' | 'all';
 
-const PERIODS: { label: string; value: Period; ms: number | null }[] = [
-    { label: 'Letzte 3h',  value: '3h',  ms: 3 * 60 * 60 * 1000 },
-    { label: 'Letzte 24h', value: '24h', ms: 24 * 60 * 60 * 1000 },
-    { label: 'Alles',      value: 'all', ms: null },
-];
-
 export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [] }: UptimeGraphProps) {
+    const t = useTranslations('stats');
     const [mounted, setMounted] = useState(false);
     const [period, setPeriod] = useState<Period>('all');
     useEffect(() => { setMounted(true); }, []);
+
+    const PERIODS: { label: string; value: Period; ms: number | null }[] = [
+        { label: t('last3h'),  value: '3h',  ms: 3 * 60 * 60 * 1000 },
+        { label: t('last24h'), value: '24h', ms: 24 * 60 * 60 * 1000 },
+        { label: t('allTime'), value: 'all', ms: null },
+    ];
 
     const filteredHeartbeats = period === 'all' ? heartbeats : (() => {
         const cutoff = Date.now() - (PERIODS.find(p => p.value === period)!.ms!);
@@ -159,7 +162,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
         const effectiveStatus = maint && hb.status !== 1 ? 3 : hb.status;
         const d = new Date(hb.time);
         const label = showDate
-            ? `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+            ? `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
             : `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
         return {
             time: label,
@@ -173,15 +176,15 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
     const avgPing = filteredHeartbeats.filter(h => h.status === 1).reduce((sum, h, _, arr) => sum + h.ping / arr.length, 0);
 
     const timeRange = (() => {
-        if (filteredHeartbeats.length < 2) return `${filteredHeartbeats.length} Pings`;
+        if (filteredHeartbeats.length < 2) return `${filteredHeartbeats.length} ${t('pings')}`;
         const diffMs = new Date(filteredHeartbeats[filteredHeartbeats.length - 1].time).getTime() - new Date(filteredHeartbeats[0].time).getTime();
         const diffMin = diffMs / 60000;
-        if (diffMin < 120) return `~${Math.round(diffMin)} Min.`;
-        if (diffMin < 1440) return `~${Math.round(diffMin / 60)} Std.`;
-        return `~${Math.round(diffMin / 1440)} Tage`;
+        if (diffMin < 120) return `~${Math.round(diffMin)} ${t('min')}`;
+        if (diffMin < 1440) return `~${Math.round(diffMin / 60)} ${t('hours')}`;
+        return `~${Math.round(diffMin / 1440)} ${t('days')}`;
     })();
 
-    const currentStatusLabel = isMaint ? 'Wartung' : isUp ? 'Online' : 'Offline';
+    const currentStatusLabel = isMaint ? t('maintenance') : isUp ? t('online') : t('offline');
     const currentStatusColor = isMaint ? COLOR_MAINTENANCE : isUp ? '#22c55e' : COLOR_DOWN;
 
     return (
@@ -199,7 +202,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Activity size={20} color={COLOR_UP} />
                     <div>
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Server-Uptime</h2>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('serverUptime')}</h2>
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: '2px 0 0 0' }}>
                             {process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname : 'localhost'} · {timeRange}
                         </p>
@@ -262,12 +265,12 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                 </div>
             </div>
 
-            {/* Geplante Wartungen */}
+            {/* Maintenance windows */}
             {maintenanceList.length > 0 && maintenanceList.map((m, i) => {
                 const slot = m.timeslotList?.[0];
                 const start = slot?.startDate ? new Date(slot.startDate) : null;
                 const end = slot?.endDate ? new Date(slot.endDate) : null;
-                const fmt = (d: Date) => d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                const fmt = (d: Date) => d.toLocaleString('en-US', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
                 return (
                     <div key={i} style={{
                         margin: 'var(--spacing-4) var(--spacing-6) 0',
@@ -286,7 +289,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                             {m.description && <div style={{ color: '#52525b', marginTop: '2px' }}>{m.description}</div>}
                             {start && end && (
                                 <div style={{ color: '#a1a1aa', marginTop: '4px', fontSize: '0.78rem' }}>
-                                    {fmt(start)} – {fmt(end)} Uhr
+                                    {fmt(start)} – {fmt(end)}
                                 </div>
                             )}
                         </div>
@@ -299,10 +302,10 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '12px', fontSize: '0.7rem', color: '#a1a1aa' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR_DOWN, display: 'inline-block' }} /> Ausfall
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR_DOWN, display: 'inline-block' }} /> {t('outage')}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR_MAINTENANCE, display: 'inline-block' }} /> Wartung
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR_MAINTENANCE, display: 'inline-block' }} /> {t('maintenance')}
                         </span>
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Ø {Math.round(avgPing)} ms</span>

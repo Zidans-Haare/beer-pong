@@ -3,8 +3,10 @@
 import { useMemo, useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { PlayerStats } from '@/lib/stats';
+import { useTranslations } from 'next-intl';
 
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
+    const t = useTranslations('stats');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -40,7 +42,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>
             {/* Win Rate Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Siegquote Trend (Top 5)</h3>
+                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('winRateTrend')}</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -80,7 +82,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
 
             {/* Game Duration Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Spielzeit Verlauf (Min)</h3>
+                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('gameDurationTrend')}</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -98,7 +100,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                                     labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                                    formatter={(value: any, name: string | undefined) => [`${Number(value).toFixed(1)} min`, name ?? 'Dauer']}
+                                    formatter={(value: any, name: string | undefined) => [`${Number(value).toFixed(1)} min`, name ?? t('duration')]}
                                 />
                                 {processedData.topDuration.map((p, i) => (
                                     <Line
@@ -125,7 +127,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
 
             {/* Cup Diff Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)', gridColumn: '1 / -1' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>Becherdifferenz (Top 10)</h3>
+                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('cupDiffTop')}</h3>
                 <div style={{ height: '300px' }}>
                     {mounted && (
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -137,7 +139,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                                 />
-                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name="Becherdiff." radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name={t('cupDiff')} radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}

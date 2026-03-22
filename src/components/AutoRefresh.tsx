@@ -2,8 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: number }) {
+    const t = useTranslations('tournaments');
     const router = useRouter();
     const [timeLeft, setTimeLeft] = useState(intervalMs / 1000);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -45,7 +47,7 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
             justifyContent: 'center',
             gap: 'var(--spacing-2)'
         }}>
-            <span>{isRefreshing ? 'Aktualisiere...' : `Auto-Refresh in ${timeLeft}s`}</span>
+            <span>{isRefreshing ? t('refreshing') : t('autoRefresh', { seconds: timeLeft })}</span>
             <button
                 onClick={handleManualRefresh}
                 className="btn-secondary"
@@ -56,7 +58,7 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
                     minHeight: 'unset'
                 }}
             >
-                Jetzt aktualisieren
+                {t('refreshNow')}
             </button>
         </div>
     );

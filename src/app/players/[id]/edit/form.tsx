@@ -5,8 +5,10 @@ import { Player } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import ProfileImagePicker from '@/components/ProfileImagePicker';
+import { useTranslations } from 'next-intl';
 
 export default function EditPlayerForm({ player }: { player: Player }) {
+    const t = useTranslations('players');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [imageData, setImageData] = useState<string | null>(player.image);
@@ -27,7 +29,7 @@ export default function EditPlayerForm({ player }: { player: Player }) {
             router.push(`/players/${player.id}`);
             router.refresh();
         } else {
-            alert('Fehler: ' + res.error);
+            alert(t('error') + res.error);
         }
     }
 
@@ -56,31 +58,31 @@ export default function EditPlayerForm({ player }: { player: Player }) {
             </div>
 
             <div>
-                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Spitzname</label>
+                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('nickname')}</label>
                 <input type="text" name="nickname" defaultValue={player.nickname || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div>
-                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Email (für Benachrichtigungen)</label>
+                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('emailNotif')}</label>
                 <input type="email" name="email" defaultValue={player.email || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div>
-                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Motto</label>
+                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('motto')}</label>
                 <input type="text" name="motto" defaultValue={player.motto || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div>
-                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Über mich</label>
+                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('bio')}</label>
                 <textarea name="bio" rows={4} defaultValue={player.bio || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-4)' }}>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? 'Speichere...' : 'Speichern'}
+                    {loading ? t('saving') : t('save')}
                 </button>
                 <button type="button" onClick={() => router.back()} className="btn btn-secondary">
-                    Abbrechen
+                    {t('cancel')}
                 </button>
             </div>
         </form>

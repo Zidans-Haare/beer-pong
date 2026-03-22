@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, FlashlightOff, Flashlight, SwitchCamera } from 'lucide-react';
 import jsQR from 'jsqr';
 import { haptic } from '@/lib/haptics';
+import { useTranslations } from 'next-intl';
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -12,6 +13,7 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan, onClose }: QRScannerProps) {
+  const t = useTranslations('join');
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [torch, setTorch] = useState(false);
@@ -54,7 +56,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       }
     } catch (err) {
       console.error('Camera error:', err);
-      setError('Kamera-Zugriff verweigert. Bitte erlaube den Zugriff in den Einstellungen.');
+      setError(t('cameraError'));
       haptic.error();
     }
   }, [facingMode]);
@@ -154,7 +156,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         }}
       >
         <Camera size={20} />
-        QR scannen
+        {t('scanBtn')}
       </button>
 
       {/* Scanner Modal */}
@@ -202,7 +204,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                   fontWeight: 600,
                 }}
               >
-                QR-Code scannen
+                {t('scanTitle')}
               </span>
 
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -255,7 +257,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                     onClick={startCamera}
                     className="btn btn-primary"
                   >
-                    Erneut versuchen
+                    {t('retry')}
                   </button>
                 </div>
               ) : (
@@ -332,7 +334,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                 fontSize: '0.9rem',
               }}
             >
-              Halte den QR-Code in den Rahmen
+              {t('scanHint')}
             </div>
           </motion.div>
         )}

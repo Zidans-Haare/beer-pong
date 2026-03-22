@@ -83,13 +83,13 @@ export async function getSystemSettings() {
         if (!settings) {
             // Create default if not exists
             return await (prisma as any).systemSettings.create({
-                data: { id: 'default', matchDurationMin: 15, tableCount: 1 }
+                data: { id: 'default', matchDurationMin: 15, tableCount: 1, rulesText: '' }
             });
         }
         return settings;
     } catch (error) {
         console.error('Failed to get settings:', error);
-        return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+        return { id: 'default', matchDurationMin: 15, tableCount: 1, rulesText: '' };
     }
 }
 
@@ -99,13 +99,12 @@ export async function getPublicSystemSettings() {
             where: { id: 'default' }
         });
         if (!settings) {
-            // Return default if not exists
-            return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+            return { id: 'default', matchDurationMin: 15, tableCount: 1, rulesText: '' };
         }
         return settings;
     } catch (error) {
         console.error('Failed to get settings:', error);
-        return { id: 'default', matchDurationMin: 15, tableCount: 1 };
+        return { id: 'default', matchDurationMin: 15, tableCount: 1, rulesText: '' };
     }
 }
 
@@ -114,6 +113,7 @@ export async function updateSystemSettings(formData: FormData) {
 
     const rawDuration = formData.get('matchDurationMin');
     const rawTableCount = formData.get('tableCount');
+    const rulesText = (formData.get('rulesText') as string) ?? '';
 
     const matchDurationMin = rawDuration ? parseInt(rawDuration as string) : 15;
     const tableCount = rawTableCount ? parseInt(rawTableCount as string) : 1;
@@ -125,9 +125,10 @@ export async function updateSystemSettings(formData: FormData) {
     try {
         await (prisma as any).systemSettings.upsert({
             where: { id: 'default' },
-            update: { matchDurationMin: validDuration, tableCount: validTableCount },
-            create: { id: 'default', matchDurationMin: validDuration, tableCount: validTableCount }
+            update: { matchDurationMin: validDuration, tableCount: validTableCount, rulesText },
+            create: { id: 'default', matchDurationMin: validDuration, tableCount: validTableCount, rulesText }
         });
+        revalidatePath('/rules');
         revalidatePath('/admin');
         revalidatePath('/admin/settings');
         return { success: true };

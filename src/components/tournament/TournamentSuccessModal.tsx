@@ -4,6 +4,7 @@ import { X, Mail, Megaphone, CalendarPlus } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { sendTournamentInviteEmails } from '@/app/actions/tournaments';
+import { useTranslations } from 'next-intl';
 
 type Participant = {
     email: string | null;
@@ -22,6 +23,7 @@ type TournamentSuccessModalProps = {
 };
 
 export default function TournamentSuccessModal({ tournament, participants }: TournamentSuccessModalProps) {
+    const t = useTranslations('successModal');
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(searchParams.get('newlyCreated') === 'true');
@@ -35,14 +37,14 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
         .filter((email): email is string => !!email);
 
     const handleSendEmails = async () => {
-        if (!confirm(`Einladungs-Email an ${participantEmails.length} Teilnehmer senden?`)) return;
+        if (!confirm(t('confirmEmail', { count: participantEmails.length }))) return;
         setEmailSending(true);
         const result = await sendTournamentInviteEmails(tournament.id);
         setEmailSending(false);
         if (result.success) {
             setEmailResult({ sent: result.sent ?? 0, failed: result.failed ?? 0 });
         } else {
-            alert('Fehler beim Senden der Emails.');
+            alert(t('emailError'));
         }
     };
 
@@ -112,15 +114,14 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                     <X size={24} />
                 </button>
 
-                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)', textAlign: 'center' }}>Turnier erfolgreich erstellt!</h2>
+                <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-4)', textAlign: 'center' }}>{t('title')}</h2>
 
                 <p style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)', textAlign: 'center' }}>
-                    &quot;{tournament.name}&quot; ist bereit. <br />
-                    Lade jetzt deine Freunde ein!
+                    {t('subtitle', { name: tournament.name })}
                 </p>
 
                 <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--spacing-4)' }}>
-                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Teilnehmer informieren</h3>
+                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{t('notifySection')}</h3>
                     <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                         <button onClick={handleSendEmails} disabled={emailSending || !!emailResult} className="btn" style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
@@ -129,17 +130,17 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                         }}>
                             <Mail size={18} />
                             {emailResult
-                                ? `✓ ${emailResult.sent} Email${emailResult.sent !== 1 ? 's' : ''} gesendet`
+                                ? t('emailsSent', { count: emailResult.sent })
                                 : emailSending
-                                    ? 'Sende...'
-                                    : `Email senden (${participantEmails.length})`}
+                                    ? t('sending')
+                                    : t('sendEmail', { count: participantEmails.length })}
                         </button>
 
                         <button
                             onClick={async () => {
-                                if (!confirm('Benachrichtigung jetzt an alle App-Nutzer senden?')) return;
-                                const title = 'Turnier Einladung';
-                                const message = `Komm zum Turnier "${tournament.name}" am ${new Date(tournament.date).toLocaleDateString()}!`;
+                                if (!confirm(t('confirmPush'))) return;
+                                const title = t('pushTitle');
+                                const message = t('pushMessage', { name: tournament.name, date: new Date(tournament.date).toLocaleDateString() });
                                 const { broadcastNotification } = await import('@/app/actions/notifications');
                                 await broadcastNotification({
                                     title,
@@ -147,7 +148,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                                     type: 'TOURNAMENT',
                                     link: `/tournaments/${tournament.id}`
                                 });
-                                alert('Benachrichtigung gesendet!');
+                                alert(t('pushSent'));
                             }}
                             className="btn"
                             style={{
@@ -155,18 +156,18 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                                 background: 'rgba(231, 76, 60, 0.15)', color: '#e74c3c', border: '1px solid rgba(231, 76, 60, 0.3)'
                             }}
                         >
-                            <Megaphone size={18} /> App-Push senden
+                            <Megaphone size={18} /> {t('sendPush')}
                         </button>
                     </div>
                 </div>
 
                 <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                     <button onClick={downloadICS} className="btn" style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)' }}>
-                        <CalendarPlus size={18} /> Kalendereintrag (.ics)
+                        <CalendarPlus size={18} /> {t('addCalendar')}
                     </button>
 
                     <button onClick={handleClose} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        Zum Turnier Dashboard
+                        {t('goDashboard')}
                     </button>
                 </div>
             </div>

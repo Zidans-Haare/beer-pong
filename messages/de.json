@@ -429,7 +429,75 @@
     "title": "Host-Aktionen",
     "deleting": "Löscht...",
     "delete": "Turnier löschen",
-    "confirm": "Möchtest du dieses Turnier wirklich löschen?"
+    "confirm": "Möchtest du dieses Turnier wirklich löschen?",
+    "deleteError": "Fehler beim Löschen"
+  },
+  "tabs": {
+    "overview": "Übersicht",
+    "players": "Spieler",
+    "teams": "Teams"
+  },
+  "playerMatches": {
+    "title": "Deine Spiele",
+    "nextMatch": "NÄCHSTES SPIEL (Tippen zum Eintragen)",
+    "right": "RECHTS",
+    "left": "LINKS",
+    "allDone": "Alle Spiele abgeschlossen!",
+    "noMatches": "Du hast keine Spiele in diesem Turnier.",
+    "groupRound": "Gruppenphase – Runde {round}",
+    "koRound": "K.O.-Runde {round}"
+  },
+  "liveInfo": {
+    "end": "Ende",
+    "formula": "Formel",
+    "matchLeft": "Spiel übrig",
+    "matchesLeft": "Spiele übrig",
+    "yourMatch": "Dein Spiel",
+    "tableWait": "Tisch {table} • {min} Min.",
+    "forecastTitle": "Prognose-Berechnung",
+    "sourceNote": "Ø pro Spiel: historischer Matchup → Spieler-Ø → globaler Fallback",
+    "avgPerMatch": "Ø pro Spiel",
+    "avgFormula": "basierend auf Spielerhistorie",
+    "matchesLeftLabel": "Spiele übrig",
+    "matchesLeftFormula": "verbleibende Matches ohne Ergebnis",
+    "grossTotal": "Summe brutto",
+    "parallelFactor": "Parallelfaktor",
+    "parallelFormula": "× 0.8 (Matches überlappen sich)",
+    "netTime": "Restzeit netto",
+    "endLabel": "Ende"
+  },
+  "successModal": {
+    "title": "Turnier erfolgreich erstellt!",
+    "subtitle": "\"{name}\" ist bereit. Lade jetzt deine Freunde ein!",
+    "notifySection": "Teilnehmer informieren",
+    "emailsSent": "✓ {count} Email(s) gesendet",
+    "sending": "Sende...",
+    "sendEmail": "Email senden ({count})",
+    "sendPush": "App-Push senden",
+    "addCalendar": "Kalendereintrag (.ics)",
+    "goDashboard": "Zum Turnier Dashboard",
+    "confirmEmail": "Einladungs-Email an {count} Teilnehmer senden?",
+    "confirmPush": "Benachrichtigung jetzt an alle App-Nutzer senden?",
+    "pushTitle": "Turnier Einladung",
+    "pushMessage": "Komm zum Turnier \"{name}\" am {date}!",
+    "pushSent": "Benachrichtigung gesendet!",
+    "emailError": "Fehler beim Senden der Emails."
+  },
+  "guest": {
+    "signedIn": "Angemeldet als Gast",
+    "leave": "Verlassen",
+    "cantLeave": "Du kannst das Turnier nicht verlassen, da es bereits gestartet wurde.",
+    "confirmLeave": "Möchtest du deine Teilnahme wirklich beenden?",
+    "leaveError": "Fehler beim Verlassen"
+  },
+  "playerProfile": {
+    "noProfile": "Du hast noch kein Spielerprofil.",
+    "createProfile": "Profil erstellen"
+  },
+  "victoryPhoto": {
+    "takePhoto": "Siegerfoto machen!",
+    "newPhoto": "Neues Foto",
+    "skip": "Überspringen"
   },
   "bringList": {
     "title": "Mitbringliste"

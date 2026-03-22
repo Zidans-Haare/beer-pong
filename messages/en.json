@@ -429,7 +429,75 @@
     "title": "Host Actions",
     "deleting": "Deleting...",
     "delete": "Delete Tournament",
-    "confirm": "Do you really want to delete this tournament?"
+    "confirm": "Do you really want to delete this tournament?",
+    "deleteError": "Error deleting"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "players": "Players",
+    "teams": "Teams"
+  },
+  "playerMatches": {
+    "title": "Your Matches",
+    "nextMatch": "NEXT MATCH (Tap to enter)",
+    "right": "RIGHT",
+    "left": "LEFT",
+    "allDone": "All matches completed!",
+    "noMatches": "You have no matches in this tournament.",
+    "groupRound": "Group Phase – Round {round}",
+    "koRound": "K.O. Round {round}"
+  },
+  "liveInfo": {
+    "end": "End",
+    "formula": "Formula",
+    "matchLeft": "match left",
+    "matchesLeft": "matches left",
+    "yourMatch": "Your Match",
+    "tableWait": "Table {table} • {min} min.",
+    "forecastTitle": "Forecast Calculation",
+    "sourceNote": "Avg. per match: historical matchup → player avg → global fallback",
+    "avgPerMatch": "Avg. per match",
+    "avgFormula": "based on player history",
+    "matchesLeftLabel": "Matches left",
+    "matchesLeftFormula": "remaining matches without result",
+    "grossTotal": "Gross total",
+    "parallelFactor": "Parallel factor",
+    "parallelFormula": "× 0.8 (matches overlap)",
+    "netTime": "Net time",
+    "endLabel": "End"
+  },
+  "successModal": {
+    "title": "Tournament created!",
+    "subtitle": "\"{name}\" is ready. Invite your friends now!",
+    "notifySection": "Notify Participants",
+    "emailsSent": "✓ {count} email(s) sent",
+    "sending": "Sending...",
+    "sendEmail": "Send email ({count})",
+    "sendPush": "Send App Push",
+    "addCalendar": "Calendar event (.ics)",
+    "goDashboard": "Go to Tournament Dashboard",
+    "confirmEmail": "Send invitation email to {count} participants?",
+    "confirmPush": "Send notification to all app users now?",
+    "pushTitle": "Tournament Invitation",
+    "pushMessage": "Join the tournament \"{name}\" on {date}!",
+    "pushSent": "Notification sent!",
+    "emailError": "Error sending emails."
+  },
+  "guest": {
+    "signedIn": "Signed in as Guest",
+    "leave": "Leave",
+    "cantLeave": "You cannot leave the tournament as it has already started.",
+    "confirmLeave": "Do you really want to leave?",
+    "leaveError": "Error leaving tournament"
+  },
+  "playerProfile": {
+    "noProfile": "You don't have a player profile yet.",
+    "createProfile": "Create profile"
+  },
+  "victoryPhoto": {
+    "takePhoto": "Take winner photo!",
+    "newPhoto": "New Photo",
+    "skip": "Skip"
   },
   "bringList": {
     "title": "Bring List"

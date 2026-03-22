@@ -21,7 +21,7 @@ export default function SwipeableMatchCard({
   children,
   onSwipeLeft,
   onSwipeRight,
-  leftLabel = 'Eintragen',
+  leftLabel = 'Enter',
   rightLabel = 'Details',
   disabled = false,
 }: SwipeableMatchCardProps) {

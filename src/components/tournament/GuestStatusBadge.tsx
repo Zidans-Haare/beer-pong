@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { leaveTournamentAsGuest } from '@/app/actions/guests';
 import { UserCheck, LogOut, Loader2 } from 'lucide-react';
 import { haptic } from '@/lib/haptics';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     guestId: string;
@@ -14,15 +15,16 @@ interface Props {
 }
 
 export default function GuestStatusBadge({ guestId, guestName, tournamentId, isPlanned }: Props) {
+    const t = useTranslations('guest');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const handleLeave = async () => {
         if (!isPlanned) {
-            alert('Du kannst das Turnier nicht verlassen, da es bereits gestartet wurde.');
+            alert(t('cantLeave'));
             return;
         }
-        if (!confirm('Möchtest du deine Teilnahme wirklich beenden?')) return;
+        if (!confirm(t('confirmLeave'))) return;
 
         setLoading(true);
         haptic.light();
@@ -34,7 +36,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                 router.refresh();
                 // Optional: redirect to home or keep on page to show join button
             } else {
-                alert(result.error || 'Fehler beim Verlassen');
+                alert(result.error || t('leaveError'));
                 haptic.error();
             }
         } catch (error) {
@@ -71,7 +73,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                 </div>
                 <div>
                     <p style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>
-                        Angemeldet als Gast
+                        {t('signedIn')}
                     </p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>
                         {guestName}
@@ -98,7 +100,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                 }}
             >
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
-                Verlassen
+                {t('leave')}
             </button>
         </div>
     );

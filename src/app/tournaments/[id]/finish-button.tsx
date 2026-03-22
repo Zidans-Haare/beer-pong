@@ -4,13 +4,15 @@ import { finishTournament } from '@/app/actions/tournaments';
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function FinishTournamentButton({ tournamentId }: { tournamentId: string }) {
+    const t = useTranslations('tournaments');
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleClick() {
-        if (!confirm('Turnier wirklich abschließen? Es können dann keine Ergebnisse mehr eingetragen werden.')) return;
+        if (!confirm(t('confirmFinish'))) return;
 
         setIsLoading(true);
         const res = await finishTournament(tournamentId);
@@ -42,7 +44,7 @@ export default function FinishTournamentButton({ tournamentId }: { tournamentId:
             }}
         >
             <Flag size={20} />
-            {isLoading ? 'Beendet...' : 'Turnier beenden'}
+            {isLoading ? t('finishing') : t('finishTournament')}
         </button>
     );
 }

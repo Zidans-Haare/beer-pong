@@ -2,19 +2,21 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { sendChatMessage } from '@/app/actions/chat';
+import { useTranslations } from 'next-intl';
 
 type ChatUser = { id: string; name: string | null; image: string | null };
 type ChatMsg = { id: string; userId: string; text: string; createdAt: string | Date; user: ChatUser };
 
-function formatTime(date: string | Date) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatTime(date: string | Date, t: (key: string, params?: any) => string) {
     const d = new Date(date);
     const now = new Date();
     const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
-    if (diffMin < 1) return 'gerade eben';
-    if (diffMin < 60) return `vor ${diffMin} Min.`;
+    if (diffMin < 1) return t('justNow');
+    if (diffMin < 60) return t('minutesAgo', { count: diffMin });
     const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `vor ${diffH} Std.`;
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    if (diffH < 24) return t('hoursAgo', { count: diffH });
+    return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
 }
 
 function AvatarInitial({ name }: { name: string | null }) {
@@ -48,6 +50,7 @@ export default function ChatWindow({
     currentUserId: string | null;
     isLoggedIn: boolean;
 }) {
+    const t = useTranslations('chat');
     const [messages, setMessages] = useState<ChatMsg[]>(initialMessages);
     const [input, setInput] = useState('');
     const [error, setError] = useState('');
@@ -94,7 +97,7 @@ export default function ChatWindow({
             userId: currentUserId ?? '',
             text,
             createdAt: new Date().toISOString(),
-            user: { id: currentUserId ?? '', name: 'Du', image: null },
+            user: { id: currentUserId ?? '', name: t('me'), image: null },
         };
         setMessages(prev => [...prev, optimisticMsg]);
         setInput('');
@@ -106,7 +109,7 @@ export default function ChatWindow({
                 // Remove optimistic message on error
                 setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
                 setInput(text);
-                setError(res.error ?? 'Fehler beim Senden.');
+                setError(res.error ?? t('sendError'));
             } else if (res.message) {
                 // Replace optimistic with real message
                 setMessages(prev =>
@@ -137,7 +140,7 @@ export default function ChatWindow({
             }}>
                 {messages.length === 0 && (
                     <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-8)' }}>
-                        Noch keine Nachrichten. Sag Hallo!
+                        {t('noMessages')}
                     </p>
                 )}
                 {messages.map(msg => (
@@ -164,8 +167,8 @@ export default function ChatWindow({
                                 alignItems: 'baseline',
                                 flexDirection: msg.userId === currentUserId ? 'row-reverse' : 'row',
                             }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.user.name ?? 'Unbekannt'}</span>
-                                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt)}</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.user.name ?? t('unknown')}</span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt, t)}</span>
                             </div>
                             <div style={{
                                 background: msg.userId === currentUserId ? 'var(--gradient-primary)' : 'var(--color-surface-2)',
@@ -200,7 +203,7 @@ export default function ChatWindow({
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Schreib eine Nachricht…"
+                            placeholder={t('placeholder')}
                             maxLength={500}
                             disabled={isPending}
                             style={{
@@ -219,12 +222,12 @@ export default function ChatWindow({
                             className="btn btn-primary"
                             style={{ flexShrink: 0, opacity: (isPending || !input.trim()) ? 0.5 : 1 }}
                         >
-                            Senden
+                            {t('send')}
                         </button>
                     </div>
                 ) : (
                     <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', fontSize: '0.9rem', margin: 0 }}>
-                        <a href="/login" style={{ color: 'var(--color-primary)' }}>Einloggen</a>, um am Chat teilzunehmen.
+                        <a href="/login" style={{ color: 'var(--color-primary)' }}>{t('login')}</a>{t('loginToChat')}
                     </p>
                 )}
             </div>

@@ -104,7 +104,20 @@
     "instantHint": "Scan den QR-Code um direkt beizutreten. Kein RSVP nötig!",
     "refreshing": "Aktualisiere...",
     "refreshNow": "Jetzt aktualisieren",
-    "autoRefresh": "Auto-Refresh in {seconds}s"
+    "autoRefresh": "Auto-Refresh in {seconds}s",
+    "startTournament": "Turnier starten",
+    "starting": "Startet...",
+    "confirmFinish": "Turnier wirklich abschließen? Es können dann keine Ergebnisse mehr eingetragen werden.",
+    "finishTournament": "Turnier beenden",
+    "finishing": "Beendet...",
+    "confirmPlayoffs": "Gruppenphase beenden und Finale generieren?",
+    "startPlayoffs": "Finale starten",
+    "generatingPlayoffs": "Generiert...",
+    "backToTournaments": "Zurück zu Turnieren",
+    "archiveTitle": "Archiv",
+    "archivedCount": "{count} beendete Turniere",
+    "noArchived": "Noch keine beendeten Turniere.",
+    "results": "Ergebnisse"
   },
   "rsvp": {
     "question": "Bist du dabei?",
@@ -341,6 +354,48 @@
       "sendBroadcast": "Broadcast Senden",
       "sendError": "Fehler beim Senden"
     }
+  },
+  "bracket": {
+    "decision": "Entscheidung",
+    "semifinal": "Halbfinale",
+    "quarterfinal": "Viertelfinale",
+    "round": "Runde {round}",
+    "final": "Finale",
+    "thirdPlace": "Spiel um Platz 3",
+    "knockoutPending": "K.O.-Phase beginnt erst nach der Gruppenphase.",
+    "table": "Tisch {number}"
+  },
+  "match": {
+    "editResult": "Ergebnis eintragen",
+    "correctResult": "Ergebnis korrigieren",
+    "whoWon": "Wer hat gewonnen?",
+    "loserCups": "Becher Verlierer (0–9)",
+    "loserCupsOT": "Becher Verlierer im OT",
+    "overtime": "Verlängerung (beide 10)",
+    "otBase": "OT — je 3 Becher",
+    "otRound": "OT Runde {round} — je 3 Becher",
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saveError": "Fehler beim Speichern",
+    "selectWinner": "Bitte Gewinner auswählen",
+    "cupsError": "Bitte Becherzahl eingeben (0–9)",
+    "otCupsError": "Bitte OT-Becherzahl eingeben",
+    "player1": "Spieler 1",
+    "player2": "Spieler 2"
+  },
+  "chat": {
+    "noMessages": "Noch keine Nachrichten. Sag Hallo!",
+    "me": "Du",
+    "sendError": "Fehler beim Senden.",
+    "unknown": "Unbekannt",
+    "placeholder": "Schreib eine Nachricht…",
+    "send": "Senden",
+    "login": "Einloggen",
+    "loginToChat": ", um am Chat teilzunehmen.",
+    "justNow": "gerade eben",
+    "minutesAgo": "vor {count} Min.",
+    "hoursAgo": "vor {count} Std."
   },
   "participants": {
     "available": "Verfügbare Spieler",

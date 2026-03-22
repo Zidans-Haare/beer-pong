@@ -104,7 +104,20 @@
     "instantHint": "Scan the QR code to join directly. No RSVP needed!",
     "refreshing": "Refreshing...",
     "refreshNow": "Refresh now",
-    "autoRefresh": "Auto-refresh in {seconds}s"
+    "autoRefresh": "Auto-refresh in {seconds}s",
+    "startTournament": "Start Tournament",
+    "starting": "Starting...",
+    "confirmFinish": "Really finish tournament? No more results can be entered.",
+    "finishTournament": "Finish Tournament",
+    "finishing": "Finishing...",
+    "confirmPlayoffs": "End group stage and generate finals?",
+    "startPlayoffs": "Start Finals",
+    "generatingPlayoffs": "Generating...",
+    "backToTournaments": "Back to Tournaments",
+    "archiveTitle": "Archive",
+    "archivedCount": "{count} completed tournaments",
+    "noArchived": "No completed tournaments yet.",
+    "results": "Results"
   },
   "rsvp": {
     "question": "Are you in?",
@@ -341,6 +354,48 @@
       "sendBroadcast": "Send Broadcast",
       "sendError": "Error sending"
     }
+  },
+  "bracket": {
+    "decision": "Finals",
+    "semifinal": "Semifinals",
+    "quarterfinal": "Quarterfinals",
+    "round": "Round {round}",
+    "final": "Final",
+    "thirdPlace": "3rd Place",
+    "knockoutPending": "Knockout stage starts after the group phase.",
+    "table": "Table {number}"
+  },
+  "match": {
+    "editResult": "Enter Result",
+    "correctResult": "Correct Result",
+    "whoWon": "Who won?",
+    "loserCups": "Loser's cups (0–9)",
+    "loserCupsOT": "Loser's cups in OT",
+    "overtime": "Overtime (both 10)",
+    "otBase": "OT — 3 cups each",
+    "otRound": "OT Round {round} — 3 cups each",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saveError": "Error saving",
+    "selectWinner": "Please select a winner",
+    "cupsError": "Please enter number of cups (0–9)",
+    "otCupsError": "Please enter OT cups",
+    "player1": "Player 1",
+    "player2": "Player 2"
+  },
+  "chat": {
+    "noMessages": "No messages yet. Say hello!",
+    "me": "Me",
+    "sendError": "Error sending message.",
+    "unknown": "Unknown",
+    "placeholder": "Write a message…",
+    "send": "Send",
+    "login": "Log in",
+    "loginToChat": "to join the chat.",
+    "justNow": "just now",
+    "minutesAgo": "{count} min. ago",
+    "hoursAgo": "{count} hrs. ago"
   },
   "participants": {
     "available": "Available Players",

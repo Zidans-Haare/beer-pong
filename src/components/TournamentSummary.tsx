@@ -1,5 +1,7 @@
-import { TournamentStanding } from '@prisma/client';
+'use client';
+
 import { Trophy, Target, Shield } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface TournamentSummaryProps {
     tournamentId: string;
@@ -16,6 +18,7 @@ export default function TournamentSummary({
     standings,
     matches
 }: TournamentSummaryProps) {
+    const t = useTranslations('summary');
     // Calculate statistics from matches if standings are empty
     let effectiveStandings = standings;
 
@@ -153,10 +156,10 @@ export default function TournamentSummary({
                     border: '2px solid gold'
                 }}>
                     <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                        <Trophy size={32} color="#FFD700" /> Sieger: {winner.player?.name || 'TBD'}
+                        <Trophy size={32} color="#FFD700" /> {t('winner')} {winner.player?.name || 'TBD'}
                     </h2>
                     <div style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)' }}>
-                        {winner.points} Punkte • {winner.won} Siege • {winner.goalsFor}:{winner.goalsAgainst} Becher
+                        {t('winnerStats', { points: winner.points, wins: winner.won, for: winner.goalsFor, against: winner.goalsAgainst })}
                     </div>
                 </div>
             )}
@@ -184,7 +187,7 @@ export default function TournamentSummary({
                             {topThree[1]?.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[1]?.points} Punkte
+                            {topThree[1]?.points} {t('points')}
                         </div>
                     </div>
 
@@ -202,7 +205,7 @@ export default function TournamentSummary({
                             {topThree[0]?.player?.name}
                         </div>
                         <div style={{ fontSize: '1rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[0]?.points} Punkte
+                            {topThree[0]?.points} {t('points')}
                         </div>
                     </div>
 
@@ -219,7 +222,7 @@ export default function TournamentSummary({
                             {topThree[2]?.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[2]?.points} Punkte
+                            {topThree[2]?.points} {t('points')}
                         </div>
                     </div>
                 </div>
@@ -236,14 +239,14 @@ export default function TournamentSummary({
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
                         {totalMatches}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Spiele gespielt</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{t('gamesPlayed')}</div>
                 </div>
 
                 <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
                         {totalGoals}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Becher insgesamt</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{t('totalCups')}</div>
                 </div>
 
                 {bestScorer && (
@@ -252,7 +255,7 @@ export default function TournamentSummary({
                             <Target size={20} /> {bestScorer.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Bester Angreifer ({bestScorer.goalsFor} Becher)
+                            {t('bestAttacker', { cups: bestScorer.goalsFor })}
                         </div>
                     </div>
                 )}
@@ -263,7 +266,7 @@ export default function TournamentSummary({
                             <Shield size={20} /> {bestDefense.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Beste Verteidigung ({bestDefense.goalsAgainst} Gegenbecher)
+                            {t('bestDefense', { cups: bestDefense.goalsAgainst })}
                         </div>
                     </div>
                 )}

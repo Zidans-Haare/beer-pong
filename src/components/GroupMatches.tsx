@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
+import { useTranslations } from 'next-intl';
 
 type MatchWithPlayers = Match & {
     player1: Player | null;
@@ -12,6 +13,7 @@ type MatchWithPlayers = Match & {
 };
 
 export default function GroupMatches({ matches, tableCount }: { matches: MatchWithPlayers[], tableCount: number }) {
+    const t = useTranslations('bracket');
     const [editingMatch, setEditingMatch] = useState<MatchWithPlayers | null>(null);
 
     // Identify active matches (first unplayed match per table where no player/team is busy elsewhere)
@@ -55,7 +57,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
     return (
         <>
             <div style={{ marginBottom: 'var(--spacing-8)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-text-dim)' }}>Gruppenspiele Übersicht</h3>
+                <h3 style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-text-dim)' }}>{t('groupOverview')}</h3>
                 <div className="glass-panel" style={{ padding: 'var(--spacing-4)', overflowX: 'auto' }}>
                     <div style={{ display: 'flex', gap: 'var(--spacing-8)' }}>
                         {rounds.map(round => (
@@ -67,7 +69,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
                                     paddingBottom: 'var(--spacing-2)',
                                     color: 'var(--color-primary)'
                                 }}>
-                                    Runde {round}
+                                    {t('round', { round })}
                                 </h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                                     {byRound[round].map(match => {
@@ -116,7 +118,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
                                                         boxShadow: 'var(--shadow-sm)',
                                                         zIndex: 10
                                                     }}>
-                                                        Tisch {match.tableNumber}
+                                                        {t('table', { number: match.tableNumber })}
                                                     </div>
                                                 )}
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
@@ -133,7 +135,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
                                                 </div>
                                                 {!match.isPlayed && !isActive && (
                                                     <div style={{ textAlign: 'center', marginTop: '4px', fontSize: '0.7rem', color: 'var(--color-primary)' }}>
-                                                        Tippe zum Eintragen
+                                                        {t('tapToEnter')}
                                                     </div>
                                                 )}
                                             </div>

@@ -1,8 +1,6 @@
 'use client';
 
-// Helper component to render the table (Props passed from server)
-// Actually we can reuse this for both valid Tournament Table and Main Stats Table partially?
-// Let's make it specific for Tournament.
+import { useTranslations } from 'next-intl';
 
 interface Standing {
     playerId: string;
@@ -14,8 +12,10 @@ interface Standing {
     cupDiff: number;
 }
 
-export default function TournamentTable({ standings, highlightTop = 0, label = 'Spieler' }: { standings: Standing[], highlightTop?: number, label?: string }) {
-    if (standings.length === 0) return <p style={{ color: 'var(--color-text-dim)', textAlign: 'center' }}>Noch keine Ergebnisse.</p>;
+export default function TournamentTable({ standings, highlightTop = 0, label }: { standings: Standing[], highlightTop?: number, label?: string }) {
+    const t = useTranslations('bracket');
+    const displayLabel = label ?? t('player');
+    if (standings.length === 0) return <p style={{ color: 'var(--color-text-dim)', textAlign: 'center' }}>{t('noResults')}</p>;
 
     return (
         <div className="glass-panel" style={{ overflowX: 'auto', marginBottom: 'var(--spacing-8)' }}>
@@ -23,12 +23,12 @@ export default function TournamentTable({ standings, highlightTop = 0, label = '
                 <thead>
                     <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <th style={{ padding: 'var(--spacing-3)' }}>#</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>{label}</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>Spiele</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>S</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>N</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>Diff.</th>
-                        <th style={{ padding: 'var(--spacing-3)' }}>Punkte</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{displayLabel}</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{t('colGames')}</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{t('colWins')}</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{t('colLosses')}</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{t('colDiff')}</th>
+                        <th style={{ padding: 'var(--spacing-3)' }}>{t('colPoints')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,7 +57,7 @@ export default function TournamentTable({ standings, highlightTop = 0, label = '
             {highlightTop > 0 && (
                 <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--color-text-dim)', textAlign: 'right' }}>
                     <span style={{ color: 'var(--color-success)', marginRight: '6px' }}>●</span>
-                    Plätze 1-{highlightTop} qualifizieren sich für die K.O.-Runde
+                    {t('qualify', { n: highlightTop })}
                 </div>
             )}
         </div>

@@ -107,7 +107,7 @@ export default function NotificationsPage() {
     };
 
     const handleDeleteAllRead = async () => {
-        if (!confirm('Alle gelesenen entfernen?')) return;
+        if (!confirm(t('confirmDeleteRead'))) return;
         setNotifications(prev => prev.filter(n => !n.isRead));
         await deleteAllReadNotifications();
     };
@@ -127,8 +127,8 @@ export default function NotificationsPage() {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                        <h1 className="title-display" style={{ fontSize: 'clamp(1.5rem, 6vw, 2rem)' }}>Benachrichtigungen</h1>
-                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>Updates & Live Ticker</p>
+                        <h1 className="title-display" style={{ fontSize: 'clamp(1.5rem, 6vw, 2rem)' }}>{t('title')}</h1>
+                        <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
                     </div>
 
                     {/* Desktop-only (Optional, but user wanted them under heading anyway) */}
@@ -141,17 +141,17 @@ export default function NotificationsPage() {
                         style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
                     >
                         <Settings size={18} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Einstellungen</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{t('settings')}</span>
                     </button>
 
                     <button
                         onClick={handleMarkAllRead}
                         className="glass-panel"
                         style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
-                        title="Alle als gelesen markieren"
+                        title={t('markAllReadTitle')}
                     >
                         <CheckCircle size={18} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Alle als gelesen</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{t('markAllRead')}</span>
                     </button>
                 </div>
             </div>
@@ -161,20 +161,20 @@ export default function NotificationsPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {pushStatus === 'granted' ? <ShieldCheck size={18} color="#22c55e" /> : <ShieldAlert size={18} color={pushStatus === 'denied' ? '#ef4444' : '#eab308'} />}
                     <span style={{ fontSize: '0.85rem' }}>
-                        Push Status: <strong>{pushStatus === 'granted' ? 'Aktiviert' : pushStatus === 'denied' ? 'Blockiert' : 'Nicht registriert'}</strong>
+                        Push Status: <strong>{pushStatus === 'granted' ? t('pushGranted') : pushStatus === 'denied' ? t('pushDenied') : t('pushDefault')}</strong>
                     </span>
                 </div>
                 {pushStatus === 'granted' && (
                     <button
                         onClick={async () => {
                             const res = await sendTestPush();
-                            if (res.success) alert("Test-Push gesendet! Schau in deine OS-Mitteilungen.");
-                            else alert("Fehler: " + res.error);
+                            if (res.success) alert(t('testPushSent'));
+                            else alert(t('testPushError') + res.error);
                         }}
                         className="nav-link"
                         style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px' }}
                     >
-                        <Send size={14} /> Test-Push senden
+                        <Send size={14} /> {t('sendTestPush')}
                     </button>
                 )}
             </div>
@@ -199,15 +199,15 @@ export default function NotificationsPage() {
                                 <Radio size={24} className="animate-pulse" />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px' }}>Live Updates aktivieren?</h3>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Push-Nachrichten für Ticker & Turniere empfangen.</p>
+                                <h3 style={{ fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px' }}>{t('enableLiveUpdates')}</h3>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{t('enableLiveSubtitle')}</p>
                             </div>
                             <button
                                 onClick={enablePushNotifications}
                                 className="btn-primary"
                                 style={{ fontSize: '0.8rem', padding: '8px 16px' }}
                             >
-                                Aktivieren
+                                {t('enable')}
                             </button>
                         </div>
                     </motion.div>
@@ -221,7 +221,7 @@ export default function NotificationsPage() {
             ) : notifications.length === 0 ? (
                 <div className="glass-panel" style={{ padding: 'var(--spacing-12)', textAlign: 'center', color: 'var(--color-text-dim)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-4)' }}>
                     <Bell size={48} style={{ opacity: 0.2 }} />
-                    <span>Keine neuen Nachrichten</span>
+                    <span>{t('noMessages')}</span>
                 </div>
             ) : (
                 <AnimatePresence mode="popLayout">

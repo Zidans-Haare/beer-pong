@@ -1,11 +1,12 @@
 'use client';
 
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { MapPin, Calendar, Users, User, Trophy, Sparkles, Copy, Check, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     tournament: {
@@ -31,6 +32,7 @@ export default function TournamentHeader({
     isHost,
     showQR = false
 }: Props) {
+    const t = useTranslations('tournaments');
     const [copied, setCopied] = useState(false);
     const isPlanned = tournament.status === 'PLANNED';
     const isActive = tournament.status === 'ACTIVE';
@@ -46,9 +48,9 @@ export default function TournamentHeader({
     };
 
     const statusConfig = {
-        PLANNED: { label: 'Lobby', color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
-        ACTIVE: { label: 'Live', color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.15)' },
-        COMPLETED: { label: 'Beendet', color: '#27ae60', bg: 'rgba(39, 174, 96, 0.15)' }
+        PLANNED: { label: t('statusLobby'), color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
+        ACTIVE: { label: t('statusLive'), color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.15)' },
+        COMPLETED: { label: t('statusEnded'), color: '#27ae60', bg: 'rgba(39, 174, 96, 0.15)' }
     };
 
     const status = statusConfig[tournament.status as keyof typeof statusConfig] || statusConfig.PLANNED;
@@ -123,7 +125,7 @@ export default function TournamentHeader({
                         color: tournament.isRanked ? '#d97706' : '#9b59b6'
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
-                        {tournament.isRanked ? 'Liga' : 'Spaß'}
+                        {tournament.isRanked ? t('rankedShort') : t('funShort')}
                     </span>
 
                     {/* Type Badge */}
@@ -158,7 +160,7 @@ export default function TournamentHeader({
                             fontWeight: 600,
                             color: '#22c55e'
                         }}>
-                            Rückrunde
+                            {t('returnLegBadge')}
                         </span>
                     )}
                 </div>
@@ -186,7 +188,7 @@ export default function TournamentHeader({
             }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={15} style={{ opacity: 0.7 }} />
-                    {format(new Date(tournament.date), "EEEE, d. MMMM 'um' HH:mm 'Uhr'", { locale: de })}
+                    {format(new Date(tournament.date), "EEEE, MMMM d 'at' h:mm a", { locale: enUS })}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <MapPin size={15} style={{ opacity: 0.7 }} />
@@ -194,7 +196,7 @@ export default function TournamentHeader({
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Users size={15} style={{ opacity: 0.7 }} />
-                    {participantCount} {tournament.mode === 'TEAM' ? 'Teams' : 'Spieler'}
+                    {participantCount} {tournament.mode === 'TEAM' ? 'Teams' : t('playerLabel')}
                 </span>
             </div>
 
@@ -240,7 +242,7 @@ export default function TournamentHeader({
                                 display: 'flex',
                                 marginLeft: '4px'
                             }}
-                            title="Link kopieren"
+                            title={t('copyLink')}
                         >
                             {copied ? <Check size={16} color="#27ae60" /> : <Copy size={16} />}
                         </button>

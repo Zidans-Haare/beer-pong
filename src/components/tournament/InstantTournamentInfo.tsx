@@ -1,10 +1,14 @@
+'use client';
+
 import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     isJoined: boolean;
 }
 
 export default function InstantTournamentInfo({ isJoined }: Props) {
+    const t = useTranslations('tournaments');
     return (
         <div className="glass-panel" style={{
             padding: 'var(--spacing-4)',
@@ -17,14 +21,14 @@ export default function InstantTournamentInfo({ isJoined }: Props) {
             {isJoined ? (
                 <>
                     <p style={{ marginBottom: 'var(--spacing-2)', fontWeight: 600, color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0 }}>
-                        <Check size={16} /> Du bist dabei!
+                        <Check size={16} /> {t('youreIn')}
                     </p>
                 </>
             ) : (
                 <>
-                    <p style={{ marginBottom: 'var(--spacing-2)', fontWeight: 600 }}>Sofort-Turnier</p>
+                    <p style={{ marginBottom: 'var(--spacing-2)', fontWeight: 600 }}>{t('instantTournament')}</p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
-                        Scan den QR-Code um direkt beizutreten. Kein RSVP nötig!
+                        {t('instantHint')}
                     </p>
                 </>
             )}

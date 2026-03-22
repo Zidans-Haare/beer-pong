@@ -124,7 +124,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
 
                 {/* Timing Section - Card Style */}
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>Zeitplanung</label>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>{t('timing')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)', padding: '4px', background: 'var(--color-surface)', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
                         <label style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer',
@@ -135,7 +135,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             fontWeight: 600
                         }}>
                             <input type="radio" name="startImmediately" value="on" checked={startImmediately} onChange={() => setStartImmediately(true)} style={{ display: 'none' }} />
-                            <Play size={16} /> Jetzt
+                            <Play size={16} /> {t('now')}
                         </label>
                         <label style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer',
@@ -146,7 +146,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             fontWeight: 600
                         }}>
                             <input type="radio" name="startImmediately" value="off" checked={!startImmediately} onChange={() => setStartImmediately(false)} style={{ display: 'none' }} />
-                            <Calendar size={16} /> Später
+                            <Calendar size={16} /> {t('later')}
                         </label>
                     </div>
 
@@ -166,7 +166,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
 
                 {/* Mode Selection Grid */}
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>Spielmodus</label>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>{t('gameMode')}</label>
                     <input type="hidden" name="mode" value={mode} />
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
                         <button type="button" onClick={() => setMode('SOLO')}
@@ -180,7 +180,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             <User size={28} color={mode === 'SOLO' ? 'var(--color-primary)' : 'var(--color-text-dim)'} />
                             <div style={{ textAlign: 'center' }}>
                                 <span style={{ display: 'block', fontWeight: 'bold', color: mode === 'SOLO' ? 'var(--color-primary)' : 'var(--color-text)' }}>1 vs 1</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Einzelspieler</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{t('solo')}</span>
                             </div>
                         </button>
                         <button type="button" onClick={() => setMode('TEAM')}
@@ -194,7 +194,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             <Users size={28} color={mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-text-dim)'} />
                             <div style={{ textAlign: 'center' }}>
                                 <span style={{ display: 'block', fontWeight: 'bold', color: mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-text)' }}>2 vs 2</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Team-Match</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{t('teamMatch')}</span>
                             </div>
                         </button>
                     </div>
@@ -212,7 +212,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
-                        <Trophy size={18} /> Rangliste
+                        <Trophy size={18} /> {t('ranked')}
                     </button>
                     <button type="button" onClick={() => setIsRanked(false)}
                         style={{
@@ -223,22 +223,22 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
-                        <PartyPopper size={18} /> Spaß-Modus
+                        <PartyPopper size={18} /> {t('funMode')}
                     </button>
                 </div>
 
                 {/* Type Selection */}
                 <div>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>Turnier-Format</label>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)', fontWeight: '600', color: 'var(--color-text)' }}>{t('format')}</label>
                     <div style={{ position: 'relative' }}>
                         <select name="type" id="type" value={type} onChange={(e) => setType(e.target.value)} style={{
                             width: '100%', padding: '14px', borderRadius: 'var(--radius-md)',
                             border: '1px solid var(--color-border)', background: 'var(--color-surface)',
                             appearance: 'none', fontSize: '1rem', color: 'var(--color-text)'
                         }}>
-                            <option value="SINGLE_ELIMINATION">K.O. System</option>
-                            <option value="ROUND_ROBIN">Jeder gegen Jeden</option>
-                            <option value="GROUPS">Gruppen & K.O.</option>
+                            <option value="SINGLE_ELIMINATION">{t('formatKO')}</option>
+                            <option value="ROUND_ROBIN">{t('formatRoundRobin')}</option>
+                            <option value="GROUPS">{t('formatGroups')}</option>
                         </select>
                         <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>▼</div>
                     </div>
@@ -273,14 +273,14 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         {hasReturnLeg && <input type="hidden" name="hasReturnLeg" value="on" />}
                     </div>
                     <label htmlFor="hasReturnLeg" style={{ cursor: 'pointer', fontWeight: '500', color: 'var(--color-text)' }}>
-                        Rückrunde spielen? <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>(Hin- & Rückspiel)</span>
+                        {t('returnLeg')} <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('returnLegHint')}</span>
                     </label>
                 </div>
 
                 {/* Table Count Selection */}
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
-                        <label style={{ fontWeight: '600', color: 'var(--color-text)' }}>Anzahl der Tische</label>
+                        <label style={{ fontWeight: '600', color: 'var(--color-text)' }}>{t('tableCount')}</label>
                         <span style={{ fontWeight: 'bold', color: 'var(--color-primary)', background: 'var(--color-surface)', padding: '4px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
                             {tableCount}
                         </span>
@@ -299,8 +299,8 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>
-                        <span>1 Tisch</span>
-                        <span>8 Tische</span>
+                        <span>1 {t('table')}</span>
+                        <span>8 {t('tables')}</span>
                     </div>
                 </div>
 
@@ -317,16 +317,16 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>
                         <Users size={16} color="var(--color-secondary)" />
-                        Spieler direkt hinzufügen
+                        {t('addPlayers')}
                         {selectedPlayerIds.length > 0 && (
                             <span style={{ marginLeft: 'auto', fontSize: '0.7rem', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', padding: '2px 8px', whiteSpace: 'nowrap' }}>
-                                {selectedPlayerIds.length} ausgewählt
+                                {selectedPlayerIds.length} {t('selected')}
                             </span>
                         )}
                     </label>
                     <input
                         type="text"
-                        placeholder="Spieler suchen..."
+                        placeholder={t('searchPlayers')}
                         value={playerSearch}
                         onChange={(e) => setPlayerSearch(e.target.value)}
                         style={{
@@ -387,7 +387,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                     borderRadius: 'var(--radius-full)', background: 'var(--gradient-primary)',
                     boxShadow: 'var(--shadow-glow-primary)', letterSpacing: '0.5px'
                 }}>
-                    {startImmediately ? 'Jetzt starten' : 'Turnier planen'}
+                    {startImmediately ? t('startNow') : t('planTournament')}
                 </button>
             </form >
         </div >
@@ -396,6 +396,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
 
 // Helper Component for Form Live Forecast
 function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, startDate }: { type: string, hasReturnLeg: boolean, matchDuration: number, tableCount: number, startDate?: Date }) {
+    const t = useTranslations('tournaments');
     const [estPlayers, setEstPlayers] = useState(8);
     const duration = useMemo(() => calculateTournamentDuration(type, estPlayers, tableCount, matchDuration, hasReturnLeg), [type, estPlayers, hasReturnLeg, matchDuration, tableCount]);
     const endTime = useMemo(() => getEstimatedEndTime(duration, startDate), [duration, startDate]);
@@ -403,12 +404,12 @@ function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, start
     return (
         <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
             <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>
-                Zeit-Prognose
+                {t('timeForecast')}
             </label>
 
             <div style={{ marginBottom: 'var(--spacing-4)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                    <span style={{ color: 'var(--color-text-dim)' }}>Erwartete Spieler:</span>
+                    <span style={{ color: 'var(--color-text-dim)' }}>{t('expectedPlayers')}</span>
                     <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{estPlayers}</span>
                 </div>
                 <input
@@ -427,12 +428,12 @@ function DurationForecast({ type, hasReturnLeg, matchDuration, tableCount, start
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
                 <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Dauer ca.</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>{t('durationApprox')}</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatDuration(duration)}</div>
                 </div>
                 <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', textAlign: 'center', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>Ende ca.</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-secondary)', whiteSpace: 'nowrap' }}>{endTime} Uhr</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>{t('endApprox')}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-secondary)', whiteSpace: 'nowrap' }}>{endTime}</div>
                 </div>
             </div>
         </div>
@@ -479,12 +480,14 @@ function LocationPickerWithMaps({ apiKey, defaultValue, placeholder, onLocationS
         libraries,
     });
 
-    if (!isLoaded) return <div>Lade Karte...</div>;
+    const t = useTranslations('tournaments');
+    if (!isLoaded) return <div>{t('loadingMap')}</div>;
 
     return <MapSearch onSelect={onLocationSelect} />;
 }
 
 function MapSearch({ onSelect }: { onSelect: (addr: string, lat: number, lng: number) => void }) {
+    const t = useTranslations('tournaments');
     const {
         ready,
         value,
@@ -520,7 +523,7 @@ function MapSearch({ onSelect }: { onSelect: (addr: string, lat: number, lng: nu
                     onChange={(e) => setValue(e.target.value)}
                     disabled={!ready}
                     className="input-field"
-                    placeholder="Suche nach einem Ort..."
+                    placeholder={t('searchLocation')}
                     style={{
                         width: '100%',
                         boxSizing: 'border-box',

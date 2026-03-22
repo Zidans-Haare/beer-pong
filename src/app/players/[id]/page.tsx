@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { isAdmin } from '@/lib/admin';
@@ -85,13 +85,13 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {/* Bio */}
             {player.bio && (
                 <div style={{ width: '100%', marginTop: 'var(--spacing-6)', padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)' }}>
-                    <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-2)' }}>Über mich</h3>
+                    <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-2)' }}>{t('aboutMe')}</h3>
                     <p style={{ lineHeight: 1.6 }}>{player.bio}</p>
                 </div>
             )}
 
             {/* Tournament History */}
-            <h2 className="title-gradient" style={{ marginTop: 'var(--spacing-12)', marginBottom: 'var(--spacing-6)' }}>Turnier Historie</h2>
+            <h2 className="title-gradient" style={{ marginTop: 'var(--spacing-12)', marginBottom: 'var(--spacing-6)' }}>{t('tournamentHistory')}</h2>
             <div style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
                 {player.tournaments.map((tp: any) => (
                     <Link key={tp.tournament.id} href={`/tournaments/${tp.tournament.id}`} style={{ textDecoration: 'none' }}>
@@ -99,14 +99,14 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                             <div>
                                 <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{tp.tournament.name}</h3>
                                 <p style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
-                                    {tp.tournament.date ? format(new Date(tp.tournament.date), 'dd.MM.yyyy HH:mm', { locale: de }) : 'Datum unbekannt'}
+                                    {tp.tournament.date ? format(new Date(tp.tournament.date), 'MM/dd/yyyy HH:mm', { locale: enUS }) : t('unknownDate')}
                                 </p>
                             </div>
                             <span style={{ fontSize: '2rem' }}>&rarr;</span>
                         </div>
                     </Link>
                 ))}
-                {player.tournaments.length === 0 && <p style={{ color: 'var(--color-text-dim)' }}>Noch keine Turniere gespielt.</p>}
+                {player.tournaments.length === 0 && <p style={{ color: 'var(--color-text-dim)' }}>{t('noTournaments')}</p>}
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 async function getActiveTournament() {
     const tournament = await prisma.tournament.findFirst({
@@ -18,17 +19,18 @@ async function getActiveTournament() {
 
 export default async function LiveTournamentWidget() {
     const activeTournament = await getActiveTournament();
+    const t = await getTranslations('home');
 
     if (!activeTournament) {
         return (
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)', position: 'relative', overflow: 'hidden' }}>
                 <div className="widget-header">
-                    <span className="widget-title">Live Tournament</span>
+                    <span className="widget-title">{t('liveTournament')}</span>
                 </div>
                 <div style={{ padding: 'var(--spacing-8) 0', textAlign: 'center', color: 'var(--color-text-dim)' }}>
-                    <p style={{ marginBottom: 'var(--spacing-4)' }}>Kein aktives Turnier.</p>
+                    <p style={{ marginBottom: 'var(--spacing-4)' }}>{t('noActiveTournament')}</p>
                     <Link href="/tournaments" className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '8px 16px' }}>
-                        Turnier Starten
+                        {t('startTournament')}
                     </Link>
                 </div>
             </div>
@@ -41,7 +43,7 @@ export default async function LiveTournamentWidget() {
             <div style={{ position: 'absolute', top: -50, right: -50, width: 100, height: 100, background: 'var(--color-primary)', filter: 'blur(60px)', opacity: 0.2 }} />
 
             <div className="widget-header">
-                <span className="widget-title">Live Tournament</span>
+                <span className="widget-title">{t('liveTournament')}</span>
                 <div className="live-badge">
                     <div className="live-dot" /> LIVE
                 </div>
@@ -54,7 +56,7 @@ export default async function LiveTournamentWidget() {
 
                 {activeTournament.matches.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
-                        Matches werden vorbereitet...
+                        {t('matchesPreparing')}
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
@@ -83,7 +85,7 @@ export default async function LiveTournamentWidget() {
 
                 <div style={{ marginTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'center' }}>
                     <Link href={`/tournaments/${activeTournament.id}`} className="btn btn-secondary" style={{ width: '100%', fontSize: '0.8rem' }}>
-                        Zum Turnier
+                        {t('goToTournament')}
                     </Link>
                 </div>
             </div>

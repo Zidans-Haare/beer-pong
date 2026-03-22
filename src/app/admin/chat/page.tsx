@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import { MessageSquare } from 'lucide-react';
 import ChatDeleteButton from './delete-button';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 function formatTime(date: Date) {
-    return new Date(date).toLocaleString('de-DE', {
+    return new Date(date).toLocaleString(undefined, {
         day: '2-digit',
         month: '2-digit',
         year: '2-digit',
@@ -15,25 +16,25 @@ function formatTime(date: Date) {
 }
 
 export default async function AdminChatPage() {
-    const messages = await prisma.chatMessage.findMany({
+    const [messages, t] = await Promise.all([prisma.chatMessage.findMany({
         orderBy: { createdAt: 'desc' },
         take: 200,
         include: {
             user: { select: { id: true, name: true } },
         },
-    });
+    }), getTranslations('admin.chat')]);
 
     return (
         <div style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
             <header style={{ marginBottom: 'var(--spacing-2)' }}>
-                <h1 className="title-display" style={{ fontSize: '2rem', marginBottom: 'var(--spacing-2)' }}>Chat</h1>
-                <p style={{ color: 'var(--color-text-dim)' }}>{messages.length} Nachrichten (neueste zuerst)</p>
+                <h1 className="title-display" style={{ fontSize: '2rem', marginBottom: 'var(--spacing-2)' }}>{t('title')}</h1>
+                <p style={{ color: 'var(--color-text-dim)' }}>{t('messages', { count: messages.length })}</p>
             </header>
 
             <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
                 {messages.length === 0 && (
                     <p style={{ padding: 'var(--spacing-6)', color: 'var(--color-text-dim)', textAlign: 'center' }}>
-                        Keine Nachrichten vorhanden.
+                        {t('noMessages')}
                     </p>
                 )}
                 {messages.map((msg, i) => (
@@ -67,7 +68,7 @@ export default async function AdminChatPage() {
                         {/* Content */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--spacing-2)', marginBottom: '2px' }}>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{msg.user.name ?? 'Unbekannt'}</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{msg.user.name ?? t('unknown')}</span>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt)}</span>
                             </div>
                             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text)', wordBreak: 'break-word', lineHeight: 1.4 }}>

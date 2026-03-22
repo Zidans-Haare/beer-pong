@@ -23,7 +23,7 @@ export default function BroadcastPage() {
             setMessage(`${t('sent')} (${count})`);
         } else {
             setStatus('error');
-            setMessage(res.error || 'Fehler beim Senden');
+            setMessage(res.error || t('sendError'));
         }
     };
 
@@ -59,7 +59,7 @@ export default function BroadcastPage() {
                         <input
                             name="title"
                             required
-                            placeholder="z.B. Neue Features!"
+                            placeholder={t('titlePlaceholder')}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -79,7 +79,7 @@ export default function BroadcastPage() {
                             name="message"
                             required
                             rows={4}
-                            placeholder="Deine Nachricht hier..."
+                            placeholder={t('messagePlaceholder')}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -95,7 +95,7 @@ export default function BroadcastPage() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Link</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>{t('linkLabel')}</label>
                         <input type="hidden" name="link" value={linkChoice === '__custom__' ? customLink : linkChoice} />
                         <select
                             value={linkChoice}
@@ -110,12 +110,12 @@ export default function BroadcastPage() {
                                 outline: 'none'
                             }}
                         >
-                            <option value="/">Startseite</option>
-                            <option value="/players">Spieler</option>
-                            <option value="/tournaments">Turniere</option>
-                            <option value="/stats">Statistiken</option>
-                            <option value="/settings">Einstellungen</option>
-                            <option value="__custom__">Eigener Link...</option>
+                            <option value="/">{t('linkHome')}</option>
+                            <option value="/players">{t('linkPlayers')}</option>
+                            <option value="/tournaments">{t('linkTournaments')}</option>
+                            <option value="/stats">{t('linkStats')}</option>
+                            <option value="/settings">{t('linkSettings')}</option>
+                            <option value="__custom__">{t('linkCustom')}</option>
                         </select>
                         {linkChoice === '__custom__' && (
                             <input
@@ -137,7 +137,7 @@ export default function BroadcastPage() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>Typ</label>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text-dim)', marginBottom: '8px' }}>{t('typeLabel')}</label>
                         <select
                             name="type"
                             style={{
@@ -150,13 +150,13 @@ export default function BroadcastPage() {
                                 outline: 'none'
                             }}
                         >
-                            <option value="UPDATE">Update (Allgemein)</option>
-                            <option value="TOURNAMENT">Turnier Info</option>
-                            <option value="SYSTEM">System</option>
-                            <option value="GENERIC">Sonstiges</option>
+                            <option value="UPDATE">{t('typeUpdate')}</option>
+                            <option value="TOURNAMENT">{t('typeTournament')}</option>
+                            <option value="SYSTEM">{t('typeSystem')}</option>
+                            <option value="GENERIC">{t('typeGeneric')}</option>
                         </select>
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '8px' }}>
-                            Nur Nutzer, die diesen Benachrichtigungstyp aktiviert haben, erhalten die Nachricht.
+                            {t('typeDesc')}
                         </p>
                     </div>
 
@@ -171,10 +171,10 @@ export default function BroadcastPage() {
                             cursor: status === 'sending' ? 'not-allowed' : 'pointer'
                         }}
                     >
-                        {status === 'sending' ? 'Sende...' : (
+                        {status === 'sending' ? t('sending') : (
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Send size={18} />
-                                Broadcast Senden
+                                {t('sendBroadcast')}
                             </span>
                         )}
                     </button>

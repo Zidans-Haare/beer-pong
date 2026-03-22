@@ -4,7 +4,7 @@ import { AdminTournamentManager } from './AdminTournamentManager';
 import { StatusBadge, StatusButton, DeleteButton } from './StatusButton';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +21,8 @@ export default async function AdminTournamentsPage() {
     const players = playersResult.success ? playersResult.players ?? [] : [];
 
     const t = await getTranslations('admin.tournaments');
+    const tRanked = t('ranked');
+    const tFun = t('fun');
 
     return (
         <div style={{ display: 'grid', gap: 'var(--spacing-8)' }}>
@@ -44,7 +46,7 @@ export default async function AdminTournamentsPage() {
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('title')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Datum</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('date')}</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('players')}</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('changeStatus')}</th>
@@ -59,11 +61,11 @@ export default async function AdminTournamentsPage() {
                                                 {t.name}
                                             </Link>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '2px' }}>
-                                                {t.host?.name ?? '—'} · {t.mode === 'TEAM' ? '2v2' : '1v1'}{t.isRanked ? ' · Liga' : ' · Spaß'}
+                                                {t.host?.name ?? '—'} · {t.mode === 'TEAM' ? '2v2' : '1v1'}{t.isRanked ? ` · ${tRanked}` : ` · ${tFun}`}
                                             </div>
                                         </td>
                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>
-                                            {format(new Date(t.date), 'dd.MM.yy HH:mm', { locale: de })}
+                                            {format(new Date(t.date), 'MM/dd/yy HH:mm', { locale: enUS })}
                                         </td>
                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>

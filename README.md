@@ -44,17 +44,10 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 
 ---
 
-## Screenshots
+## Demo
 
 <p align="center">
-  <img src="public/docs/images/image.png" width="30%" alt="Start Screen" />
-  <img src="public/docs/images/image copy.png" width="30%" alt="Tournament View" />
-  <img src="public/docs/images/image copy 2.png" width="30%" alt="Player Profile" />
-</p>
-<p align="center">
-  <img src="public/docs/images/image copy 9.png" width="30%" alt="Bracket View" />
-  <img src="public/docs/images/image copy 4.png" width="30%" alt="Stats Dashboard" />
-  <img src="public/docs/images/image copy 8.png" width="30%" alt="Match Interface" />
+  <img src="public/docs/images/demo.gif" alt="Beer Pong Tournament Manager Demo" width="350" />
 </p>
 
 ---

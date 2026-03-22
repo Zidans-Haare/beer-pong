@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDuration } from '@/lib/duration-utils';
 import FormulaRow from '@/components/FormulaRow';
+import { useTranslations } from 'next-intl';
 
 interface Forecast {
     estimatedEndTime: Date;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function LiveInfoCards({ forecast, waitTime }: Props) {
+    const t = useTranslations('liveInfo');
     const [showFormula, setShowFormula] = useState(false);
 
     if (!forecast && !waitTime) return null;
@@ -62,7 +64,7 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Clock size={14} color={showFormula ? 'var(--color-primary)' : 'var(--color-secondary)'} />
                                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Ende
+                                        {t('end')}
                                     </span>
                                 </div>
                                 <div style={{
@@ -71,14 +73,14 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                     color: showFormula ? 'var(--color-primary)' : 'var(--color-text-subtle)',
                                     transition: 'color 0.2s',
                                 }}>
-                                    <Sigma size={10} /> Formel
+                                    <Sigma size={10} /> {t('formula')}
                                 </div>
                             </div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>
                                 {format(forecast.estimatedEndTime, 'HH:mm')}
                             </div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                                {forecast.remainingMatches} {forecast.remainingMatches === 1 ? 'Spiel' : 'Spiele'} übrig
+                                {forecast.remainingMatches} {t(forecast.remainingMatches === 1 ? 'matchLeft' : 'matchesLeft')}
                             </div>
                         </div>
                     </button>
@@ -94,14 +96,14 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
                             <Target size={14} color="var(--color-primary)" />
                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                Dein Spiel
+                                {t('yourMatch')}
                             </span>
                         </div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>
                             ~{format(waitTime.startTime, 'HH:mm')}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>
-                            Tisch {waitTime.table} • {waitTime.waitMin} Min.
+                            {t('tableWait', { table: waitTime.table, min: waitTime.waitMin })}
                         </div>
                     </div>
                 )}
@@ -128,7 +130,7 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Sigma size={15} color="var(--color-primary)" />
                                     <span style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
-                                        Prognose-Berechnung
+                                        {t('forecastTitle')}
                                     </span>
                                 </div>
                                 <button
@@ -150,17 +152,17 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                     color: 'var(--color-text-dim)',
                                     fontFamily: 'monospace',
                                 }}>
-                                    Ø pro Spiel: historischer Matchup → Spieler-Ø → globaler Fallback
+                                    {t('sourceNote')}
                                 </div>
 
-                                {avgFormatted && <FormulaRow label="Ø pro Spiel" formula="basierend auf Spielerhistorie" result={avgFormatted} />}
-                                <FormulaRow label="Spiele übrig" formula="verbleibende Matches ohne Ergebnis" result={`${forecast.remainingMatches}`} />
-                                {totalMin !== null && <FormulaRow label="Summe brutto" formula={`${avgFormatted} × ${forecast.remainingMatches} Spiele`} result={`${totalMin} Min`} />}
-                                <FormulaRow label="Parallelfaktor" formula="× 0.8 (Matches überlappen sich)" result="80%" />
+                                {avgFormatted && <FormulaRow label={t('avgPerMatch')} formula={t('avgFormula')} result={avgFormatted} />}
+                                <FormulaRow label={t('matchesLeftLabel')} formula={t('matchesLeftFormula')} result={`${forecast.remainingMatches}`} />
+                                {totalMin !== null && <FormulaRow label={t('grossTotal')} formula={`${avgFormatted} × ${forecast.remainingMatches}`} result={`${totalMin} min`} />}
+                                <FormulaRow label={t('parallelFactor')} formula={t('parallelFormula')} result="80%" />
                                 {adjustedMin !== null && (
-                                    <FormulaRow label="Restzeit netto" formula={`${totalMin} Min × 0.8`} result={`${adjustedMin} Min`} highlight />
+                                    <FormulaRow label={t('netTime')} formula={`${totalMin} min × 0.8`} result={`${adjustedMin} min`} highlight />
                                 )}
-                                <FormulaRow label="Ende" formula={`jetzt + ${adjustedMin ?? '?'} Min`} result={format(forecast.estimatedEndTime, 'HH:mm') + ' Uhr'} highlight />
+                                <FormulaRow label={t('endLabel')} formula={`now + ${adjustedMin ?? '?'} min`} result={format(forecast.estimatedEndTime, 'HH:mm')} highlight />
                             </div>
                         </div>
                     </motion.div>

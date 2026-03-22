@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Share2, Download, Trophy } from 'lucide-react';
 import CameraCapture from './CameraCapture';
@@ -26,6 +27,7 @@ export default function VictoryPhoto({
   tournamentName,
   matchType,
 }: VictoryPhotoProps) {
+  const t = useTranslations('victoryPhoto');
   const [showCamera, setShowCamera] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -288,7 +290,7 @@ export default function VictoryPhoto({
                     }}
                   >
                     <Camera size={18} />
-                    Neues Foto
+                    {t('newPhoto')}
                   </button>
 
                   <button
@@ -339,7 +341,7 @@ export default function VictoryPhoto({
                 whileTap={{ scale: 0.95 }}
               >
                 <Camera size={24} />
-                Siegerfoto machen!
+                {t('takePhoto')}
               </motion.button>
             )}
 
@@ -353,7 +355,7 @@ export default function VictoryPhoto({
                   padding: '8px 16px',
                 }}
               >
-                Überspringen
+                {t('skip')}
               </button>
             )}
           </motion.div>

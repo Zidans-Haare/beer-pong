@@ -38,7 +38,7 @@ export default function HostControls({
             router.push('/tournaments');
             router.refresh();
         } else {
-            alert(res.error || 'Fehler beim Löschen');
+            alert(res.error || t('deleteError'));
             setIsDeleting(false);
         }
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import TournamentTabs, { getDefaultTabs } from './TournamentTabs';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     isTeamMode: boolean;
@@ -20,8 +21,9 @@ export default function TournamentContent({
     statsContent,
     defaultTab = 'overview'
 }: Props) {
+    const t = useTranslations('tabs');
     const [activeTab, setActiveTab] = useState(defaultTab);
-    const tabs = getDefaultTabs(isTeamMode);
+    const tabs = getDefaultTabs(isTeamMode, t);
 
     return (
         <div>

@@ -67,12 +67,12 @@ export default function TournamentTabs({ activeTab, onTabChange, tabs }: Props) 
     );
 }
 
-// Export default tabs configuration
-export function getDefaultTabs(isTeamMode: boolean): Tab[] {
+// Export default tabs configuration — labels are passed from TournamentContent via i18n
+export function getDefaultTabs(isTeamMode: boolean, t: (key: string) => string): Tab[] {
     return [
-        { id: 'overview', label: 'Übersicht', icon: <LayoutGrid size={20} /> },
+        { id: 'overview', label: t('overview'), icon: <LayoutGrid size={20} /> },
         { id: 'bracket', label: 'Bracket', icon: <Trophy size={20} /> },
-        { id: 'players', label: isTeamMode ? 'Teams' : 'Spieler', icon: <Users size={20} /> },
+        { id: 'players', label: isTeamMode ? t('teams') : t('players'), icon: <Users size={20} /> },
         { id: 'stats', label: 'Stats', icon: <BarChart3 size={20} /> }
     ];
 }

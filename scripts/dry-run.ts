@@ -1,12 +1,13 @@
 /**
- * DRY RUN: Round Robin Tournament Simulation
- * 8 players, everyone vs everyone, ranked, 2 tables
+ * DRY RUN: Round Robin + Playoffs (ranked)
+ * 8 players, everyone vs everyone, then top 4 → Semis → Final + 3rd place
  *
  * Run: DATABASE_URL="file:/root/beer-pong/dev.db" npx tsx scripts/dry-run.ts
  */
 
 import { prisma } from '../src/lib/prisma';
 import { generateRoundRobinMatches } from '../src/lib/brackets';
+import { TournamentService } from '../src/lib/services/TournamentService';
 
 function simulateScore(): [number, number] {
     const score1 = Math.floor(Math.random() * 6) + 5; // 5-10
@@ -17,7 +18,7 @@ function simulateScore(): [number, number] {
 
 async function main() {
     console.log('\n' + '='.repeat(70));
-    console.log('🎯 DRY RUN: Round Robin (ranked) with 8 players');
+    console.log('🎯 DRY RUN: Round Robin + Playoffs (ranked) — 8 players');
     console.log('='.repeat(70) + '\n');
 
     // 1. Fetch or create 8 players
@@ -55,7 +56,7 @@ async function main() {
     });
 
     console.log(`🏆 TOURNAMENT CREATED: ${tournament.name} (ID: ${tournament.id})`);
-    console.log(`   Ranked: ✅  Tables: 2  Mode: Round Robin\n`);
+    console.log(`   Ranked: ✅  Tables: 2  Mode: Round Robin + Playoffs\n`);
 
     // 3. Add RSVPs
     for (const player of players) {
@@ -63,11 +64,9 @@ async function main() {
             data: { tournamentId: tournament.id, playerId: player.id, status: 'YES' }
         });
     }
-    console.log('✅ 8 players added to lobby\n');
 
-    // 4. Generate round robin matches
+    // 4. Generate round robin matches + standings records
     const matchInputs = generateRoundRobinMatches(tournament.id, players.map(p => p.id), false);
-
     for (const input of matchInputs) {
         await prisma.match.create({
             data: {
@@ -81,85 +80,144 @@ async function main() {
             }
         });
     }
+    // Create standings rows (required by generateKnockoutFromGroups)
+    for (const p of players) {
+        await prisma.tournamentStanding.upsert({
+            where: { tournamentId_playerId: { tournamentId: tournament.id, playerId: p.id } },
+            update: {},
+            create: { tournamentId: tournament.id, playerId: p.id, groupId: 0 }
+        });
+    }
 
     await prisma.tournament.update({
         where: { id: tournament.id },
         data: { status: 'IN_PROGRESS' }
     });
 
-    const matches = await prisma.match.findMany({
+    const leagueMatches = await prisma.match.findMany({
         where: { tournamentId: tournament.id },
         include: { player1: true, player2: true },
         orderBy: [{ round: 'asc' }, { position: 'asc' }]
     });
 
-    console.log(`📊 ${matches.length} matches generated (${Math.ceil(matches.length / 4)} rounds)\n`);
+    console.log(`📊 ${leagueMatches.length} league matches generated\n`);
 
-    // 5. Simulate all matches
-    console.log('🎮 MATCH SIMULATION:');
+    // 5. Simulate all league matches
+    console.log('🎮 LEAGUE PHASE:');
     console.log('-'.repeat(70));
 
-    const standings = new Map<string, {
-        name: string; played: number; won: number; lost: number;
-        cupsFor: number; cupsAgainst: number;
-    }>();
-
-    for (const p of players) {
-        standings.set(p.id, { name: p.name, played: 0, won: 0, lost: 0, cupsFor: 0, cupsAgainst: 0 });
-    }
-
-    for (const match of matches) {
+    for (const match of leagueMatches) {
         if (!match.player1Id || !match.player2Id) continue;
-
         const [score1, score2] = simulateScore();
         const winnerId = score1 > score2 ? match.player1Id : match.player2Id;
-
         await prisma.match.update({
             where: { id: match.id },
             data: { score1, score2, winnerId, isPlayed: true }
         });
-
-        const s1 = standings.get(match.player1Id)!;
-        const s2 = standings.get(match.player2Id)!;
-        s1.played++; s2.played++;
-        s1.cupsFor += score1; s1.cupsAgainst += score2;
-        s2.cupsFor += score2; s2.cupsAgainst += score1;
-        if (score1 > score2) { s1.won++; s2.lost++; }
-        else { s2.won++; s1.lost++; }
-
         console.log(`   R${match.round}: ${match.player1?.name} ${score1}:${score2} ${match.player2?.name}`);
     }
 
-    // 6. Final standings
-    const sorted = Array.from(standings.entries())
-        .map(([id, s]) => ({ id, ...s, diff: s.cupsFor - s.cupsAgainst }))
-        .sort((a, b) => b.won - a.won || b.diff - a.diff || b.cupsFor - a.cupsFor);
+    // 6. Generate playoffs (recalculates standings, seeds top 4 into bracket)
+    console.log('\n⚔️  GENERATING PLAYOFFS (top 4)...');
+    await TournamentService.generateKnockoutFromGroups(tournament.id);
 
-    console.log('\n' + '='.repeat(70));
-    console.log('🏁 FINAL STANDINGS:');
-    console.log('='.repeat(70));
-    console.log('   Pl | Player               | W  | L  | Cups   | Diff');
-    console.log('   ' + '-'.repeat(55));
-    sorted.forEach((s, i) => {
-        const name = s.name.padEnd(21);
-        const cups = `${s.cupsFor}:${s.cupsAgainst}`.padStart(6);
-        const diff = (s.diff >= 0 ? '+' : '') + s.diff;
-        console.log(`   ${(i + 1).toString().padStart(2)} | ${name} | ${s.won.toString().padStart(2)} | ${s.lost.toString().padStart(2)} | ${cups} | ${diff}`);
+    // 7. Show standings
+    const standingsRows = await prisma.tournamentStanding.findMany({
+        where: { tournamentId: tournament.id },
+        include: { player: true },
+        orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }, { goalsFor: 'desc' }]
     });
 
-    // 7. Mark completed
+    console.log('\n📈 LEAGUE STANDINGS:');
+    console.log('   Pl | Player               | W  | L  | Cups   | Diff | Pts');
+    console.log('   ' + '-'.repeat(58));
+    standingsRows.forEach((s, i) => {
+        const name = (s.player?.name ?? '?').padEnd(21);
+        const cups = `${s.goalsFor}:${s.goalsAgainst}`.padStart(6);
+        const diff = (s.goalDifference >= 0 ? '+' : '') + s.goalDifference;
+        console.log(`   ${(i + 1).toString().padStart(2)} | ${name} | ${s.won.toString().padStart(2)} | ${s.lost.toString().padStart(2)} | ${cups} | ${diff.padStart(4)} | ${s.points}`);
+    });
+
+    // 8. Simulate bracket
+    const bracketMatches = await prisma.match.findMany({
+        where: { tournamentId: tournament.id, stage: 'BRACKET' },
+        include: { player1: true, player2: true },
+        orderBy: [{ round: 'asc' }, { position: 'asc' }]
+    });
+
+    const semis = bracketMatches.filter(m => m.round === 1);
+    const finals = bracketMatches.filter(m => m.round === 2);
+
+    console.log('\n⚔️  PLAYOFFS:');
+    console.log('-'.repeat(70));
+
+    const semiWinners: string[] = [];
+    const semiLosers: string[] = [];
+
+    for (const match of semis) {
+        if (!match.player1Id || !match.player2Id) continue;
+        const [s1, s2] = simulateScore();
+        const winnerId = s1 > s2 ? match.player1Id : match.player2Id;
+        const loserId = s1 > s2 ? match.player2Id : match.player1Id;
+        await prisma.match.update({ where: { id: match.id }, data: { score1: s1, score2: s2, winnerId, isPlayed: true } });
+        semiWinners.push(winnerId);
+        semiLosers.push(loserId);
+        const w = s1 > s2 ? match.player1?.name : match.player2?.name;
+        console.log(`   SF: ${match.player1?.name} ${s1}:${s2} ${match.player2?.name}  → ${w} advances`);
+    }
+
+    // Fill final + 3rd place player IDs
+    const finalMatch = finals.find(m => m.position === 0);
+    const thirdMatch = finals.find(m => m.position === 1);
+
+    if (finalMatch && semiWinners.length === 2) {
+        await prisma.match.update({ where: { id: finalMatch.id }, data: { player1Id: semiWinners[0], player2Id: semiWinners[1] } });
+    }
+    if (thirdMatch && semiLosers.length === 2) {
+        await prisma.match.update({ where: { id: thirdMatch.id }, data: { player1Id: semiLosers[0], player2Id: semiLosers[1] } });
+    }
+
+    // Simulate final
+    const playerMap = new Map(players.map(p => [p.id, p.name]));
+    let champion = '?', runnerUp = '?', third = '?', fourth = '?';
+
+    if (finalMatch && semiWinners.length === 2) {
+        const [fs1, fs2] = simulateScore();
+        const champId = fs1 > fs2 ? semiWinners[0] : semiWinners[1];
+        const ruId = fs1 > fs2 ? semiWinners[1] : semiWinners[0];
+        await prisma.match.update({ where: { id: finalMatch.id }, data: { score1: fs1, score2: fs2, winnerId: champId, isPlayed: true } });
+        champion = playerMap.get(champId) ?? '?';
+        runnerUp = playerMap.get(ruId) ?? '?';
+        console.log(`   🏆 FINAL: ${playerMap.get(semiWinners[0])} ${fs1}:${fs2} ${playerMap.get(semiWinners[1])}`);
+    }
+
+    if (thirdMatch && semiLosers.length === 2) {
+        const [ts1, ts2] = simulateScore();
+        const thirdId = ts1 > ts2 ? semiLosers[0] : semiLosers[1];
+        const fourthId = ts1 > ts2 ? semiLosers[1] : semiLosers[0];
+        await prisma.match.update({ where: { id: thirdMatch.id }, data: { score1: ts1, score2: ts2, winnerId: thirdId, isPlayed: true } });
+        third = playerMap.get(thirdId) ?? '?';
+        fourth = playerMap.get(fourthId) ?? '?';
+        console.log(`   🥉 3RD PLACE: ${playerMap.get(semiLosers[0])} ${ts1}:${ts2} ${playerMap.get(semiLosers[1])}`);
+    }
+
+    // 9. Complete tournament
     await prisma.tournament.update({
         where: { id: tournament.id },
         data: { status: 'COMPLETED' }
     });
 
     console.log('\n' + '='.repeat(70));
-    console.log(`🥇 WINNER: ${sorted[0].name}  (${sorted[0].won}W / ${sorted[0].lost}L)`);
+    console.log('🎊 FINAL RESULTS:');
     console.log('='.repeat(70));
+    console.log(`   🥇 1st: ${champion}`);
+    console.log(`   🥈 2nd: ${runnerUp}`);
+    console.log(`   🥉 3rd: ${third}`);
+    console.log(`      4th: ${fourth}`);
+    console.log('\n' + '='.repeat(70));
     console.log(`\n✅ Tournament viewable at: http://localhost:3000/tournaments/${tournament.id}\n`);
-
-    console.log('🧹 To clean up run:');
-    console.log(`   DATABASE_URL="file:/root/beer-pong/dev.db" npx tsx -e "import { prisma } from './src/lib/prisma'; await prisma.match.deleteMany({where:{tournamentId:'${tournament.id}'}}); await prisma.rSVP.deleteMany({where:{tournamentId:'${tournament.id}'}}); await prisma.tournament.delete({where:{id:'${tournament.id}'}}); console.log('Done!'); process.exit(0);"\n`);
+    console.log('🧹 To clean up:');
+    console.log(`   DATABASE_URL="file:/root/beer-pong/dev.db" npx tsx -e "import('./src/lib/prisma').then(({prisma})=>prisma.\\$transaction([prisma.match.deleteMany({where:{tournamentId:'${tournament.id}'}}),prisma.rSVP.deleteMany({where:{tournamentId:'${tournament.id}'}}),prisma.tournamentStanding.deleteMany({where:{tournamentId:'${tournament.id}'}}),prisma.tournament.delete({where:{id:'${tournament.id}'}})]).then(()=>console.log('Done!')).finally(()=>process.exit(0)))"\n`);
 }
 
 main()

@@ -37,14 +37,14 @@ async function main() {
 
     // 3. Create Players
     const playersData = [
-        { name: 'Nick', nickname: 'The King', motto: 'Bier her oder ich fall um!', userId: adminUser.id, email: adminEmail },
-        { name: 'Lukas', nickname: 'Sniper', motto: 'Ein Wurf, ein Treffer.' },
-        { name: 'Marco', nickname: 'The Wall', motto: 'Keiner kommt vorbei.' },
+        { name: 'Nick', nickname: 'The King', motto: 'Beer me or I\'m out!', userId: adminUser.id, email: adminEmail },
+        { name: 'Lukas', nickname: 'Sniper', motto: 'One throw, one cup.' },
+        { name: 'Marco', nickname: 'The Wall', motto: 'Nobody gets past me.' },
         { name: 'Sarah', nickname: 'Bouncer', motto: 'Trickshots only.' },
-        { name: 'Julia', nickname: 'Ice Queen', motto: 'Kalt wie der Hopfen.' },
-        { name: 'Stefan', nickname: 'Party Animal', motto: 'Nach dem Spiel ist vor dem Spiel.' },
-        { name: 'Felix', nickname: 'Lucky Luke', motto: 'Schneller als sein Schatten.' },
-        { name: 'Elena', nickname: 'The Pro', motto: 'Professionelles Trinken.' },
+        { name: 'Julia', nickname: 'Ice Queen', motto: 'Cold as the hops.' },
+        { name: 'Stefan', nickname: 'Party Animal', motto: 'The after-game is the game.' },
+        { name: 'Felix', nickname: 'Lucky Luke', motto: 'Faster than his shadow.' },
+        { name: 'Elena', nickname: 'The Pro', motto: 'Professional drinking.' },
     ];
 
     const players = await Promise.all(
@@ -56,9 +56,9 @@ async function main() {
     // 3. Create a COMPLETED Tournament
     const tournament1 = await prisma.tournament.create({
         data: {
-            name: 'Silvester Cup 2025',
+            name: 'New Year\'s Cup 2025',
             date: new Date('2025-12-31T20:00:00Z'),
-            location: 'Nicks Keller',
+            location: 'Nick\'s Basement',
             status: 'COMPLETED',
             type: 'ROUND_ROBIN',
             hasReturnLeg: false,
@@ -104,9 +104,9 @@ async function main() {
     // 4. Create an ACTIVE Tournament
     const tournament2 = await prisma.tournament.create({
         data: {
-            name: 'Montags-Liga',
+            name: 'Monday League',
             date: new Date(),
-            location: 'Sporthalle',
+            location: 'Sports Hall',
             status: 'ACTIVE',
             type: 'ELIMINATION',
         }
@@ -145,9 +145,9 @@ async function main() {
     // 5. Create Ticker Events
     await prisma.tickerEvent.createMany({
         data: [
-            { tournamentId: tournament2.id, type: 'MATCH_START', content: 'Das erste Match der Montags-Liga hat begonnen!' },
-            { tournamentId: tournament2.id, type: 'SCORE_UPDATE', content: 'Nick führt mit 5:2 gegen Lukas' },
-            { tournamentId: tournament2.id, type: 'MATCH_END', content: 'Nick gewinnt das Auftaktmatch mit 10:6!' },
+            { tournamentId: tournament2.id, type: 'MATCH_START', content: 'The first match of the Monday League has started!' },
+            { tournamentId: tournament2.id, type: 'SCORE_UPDATE', content: 'Nick leads 5:2 against Lukas' },
+            { tournamentId: tournament2.id, type: 'MATCH_END', content: 'Nick wins the opener 10:6!' },
         ]
     });
 

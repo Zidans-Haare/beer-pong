@@ -8,6 +8,18 @@ A modern, mobile-first web app for managing Beer Pong tournaments — real-time 
 
 ---
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=Zidans-Haare%2Fbeer-pong&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&legend=top-left" />
+ </picture>
+</a>
+
+---
+
 ## Quick Setup
 
 **Fresh server** — installs Node, nginx, SSL, PM2, and the app in one command:

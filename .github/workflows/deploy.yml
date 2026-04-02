@@ -89,6 +89,8 @@ jobs:
                 mv .next/standalone.bak .next/standalone
               fi
               set -a; [ -f .env ] && . .env; set +a
+              # Rogue-Prozesse auf Port 3000 beenden (nicht durch PM2 verwaltet)
+              fuser -k 3000/tcp 2>/dev/null || true
               pm2 restart beer-pong --update-env || true
               pm2 save
             }
@@ -117,6 +119,10 @@ jobs:
 
             # maintenance.on darf nicht im standalone landen — sonst bleibt Maintenance ewig an
             rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
+
+            # Statische Dateien in standalone kopieren (werden nicht automatisch getrackt)
+            cp -r public .next/standalone/public
+            cp -r .next/static .next/standalone/.next/static
 
             # i18n messages in standalone kopieren (dynamic imports werden nicht automatisch getrackt)
             cp -r messages .next/standalone/messages

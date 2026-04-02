@@ -6,7 +6,7 @@ test.describe('Authentifizierung', () => {
   test('Login-Seite lädt korrekt', async ({ page }) => {
     await page.context().clearCookies();
     await page.goto('/login');
-    await expect(page).toHaveTitle(/Bier Pong/i);
+    await expect(page).toHaveTitle(/Beer Pong/i);
     await expect(page.getByRole('button', { name: /Anmelden/i })).toBeVisible();
   });
 

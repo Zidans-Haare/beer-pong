@@ -366,7 +366,26 @@
     "final": "Finale",
     "thirdPlace": "Spiel um Platz 3",
     "knockoutPending": "K.O.-Phase beginnt erst nach der Gruppenphase.",
-    "table": "Tisch {number}"
+    "table": "Tisch {number}",
+    "groupOverview": "Gruppenspiele Übersicht",
+    "tapToEnter": "Tippe zum Eintragen",
+    "player": "Spieler",
+    "colGames": "Spiele",
+    "colWins": "S",
+    "colLosses": "N",
+    "colDiff": "Diff.",
+    "colPoints": "Punkte",
+    "noResults": "Noch keine Ergebnisse.",
+    "qualify": "Plätze 1–{n} qualifizieren sich für die K.O.-Runde"
+  },
+  "summary": {
+    "winner": "Sieger:",
+    "winnerStats": "{points} Punkte · {wins} Siege · {for}:{against} Becher",
+    "points": "Punkte",
+    "gamesPlayed": "Spiele gespielt",
+    "totalCups": "Becher insgesamt",
+    "bestAttacker": "Bester Angreifer ({cups} Becher)",
+    "bestDefense": "Beste Verteidigung ({cups} Gegenbecher)"
   },
   "match": {
     "editResult": "Ergebnis eintragen",

@@ -366,7 +366,26 @@
     "final": "Final",
     "thirdPlace": "3rd Place",
     "knockoutPending": "Knockout stage starts after the group phase.",
-    "table": "Table {number}"
+    "table": "Table {number}",
+    "groupOverview": "Group Phase Overview",
+    "tapToEnter": "Tap to enter result",
+    "player": "Player",
+    "colGames": "Games",
+    "colWins": "W",
+    "colLosses": "L",
+    "colDiff": "Diff.",
+    "colPoints": "Pts",
+    "noResults": "No results yet.",
+    "qualify": "Places 1–{n} qualify for the knockout stage"
+  },
+  "summary": {
+    "winner": "Winner:",
+    "winnerStats": "{points} pts · {wins} wins · {for}:{against} cups",
+    "points": "pts",
+    "gamesPlayed": "Games Played",
+    "totalCups": "Total Cups",
+    "bestAttacker": "Best Attacker ({cups} cups)",
+    "bestDefense": "Best Defense ({cups} conceded)"
   },
   "match": {
     "editResult": "Enter Result",

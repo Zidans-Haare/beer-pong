@@ -8,6 +8,18 @@ A modern, mobile-first web app for managing Beer Pong tournaments — real-time 
 
 ---
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=Zidans-Haare%2Fbeer-pong&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=Zidans-Haare/beer-pong&type=date&legend=top-left" />
+ </picture>
+</a>
+
+---
+
 ## Quick Setup
 
 **Fresh server** — installs Node, nginx, SSL, PM2, and the app in one command:
@@ -44,17 +56,10 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 
 ---
 
-## Screenshots
+## Demo
 
 <p align="center">
-  <img src="public/docs/images/image.png" width="30%" alt="Start Screen" />
-  <img src="public/docs/images/image copy.png" width="30%" alt="Tournament View" />
-  <img src="public/docs/images/image copy 2.png" width="30%" alt="Player Profile" />
-</p>
-<p align="center">
-  <img src="public/docs/images/image copy 9.png" width="30%" alt="Bracket View" />
-  <img src="public/docs/images/image copy 4.png" width="30%" alt="Stats Dashboard" />
-  <img src="public/docs/images/image copy 8.png" width="30%" alt="Match Interface" />
+  <img src="https://github.com/Zidans-Haare/beer-pong/releases/download/v0.9.0/demo.gif" alt="Beer Pong Tournament Manager Demo" width="350" />
 </p>
 
 ---

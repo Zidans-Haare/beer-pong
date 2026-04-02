@@ -59,7 +59,7 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 ## Demo
 
 <p align="center">
-  <img src="public/docs/images/demo.gif" alt="Beer Pong Tournament Manager Demo" width="350" />
+  <img src="https://github.com/Zidans-Haare/beer-pong/releases/download/v0.9.0/demo.gif" alt="Beer Pong Tournament Manager Demo" width="350" />
 </p>
 
 ---

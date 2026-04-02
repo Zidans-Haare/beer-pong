@@ -35,6 +35,7 @@ app*.log
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -56,6 +57,7 @@ e2e/.auth/
 
 # Claude Code
 .claude/
+.claude-flow/
 2026-*.txt
 
 # Sentry Config File

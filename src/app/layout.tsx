@@ -52,6 +52,7 @@ import { DrunkModeProvider } from '@/context/DrunkModeContext';
 import { isDemoMode } from '@/lib/demo';
 import DemoBanner from '@/components/DemoBanner';
 import DemoCtaPopup from '@/components/DemoCtaPopup';
+import DemoAlertOverride from '@/components/DemoAlertOverride';
 
 export default async function RootLayout({
   children,
@@ -95,6 +96,7 @@ export default async function RootLayout({
           <OfflineIndicator />
           <ServiceWorkerProvider />
           {isDemoMode && <DemoCtaPopup />}
+        {isDemoMode && <DemoAlertOverride />}
         </div>
         </DrunkModeProvider>
         </NextIntlClientProvider>

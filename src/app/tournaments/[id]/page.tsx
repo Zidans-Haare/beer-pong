@@ -178,7 +178,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
             <Link
                 href="/tournaments"
                 className="btn btn-secondary"
-                style={{ marginBottom: 'var(--spacing-4)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{ marginBottom: 'var(--spacing-6)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
                 <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                 {t('allTournaments')}

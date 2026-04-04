@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { getTickerEvents } from '@/app/actions/ticker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface TickerEvent {
     id: string;
@@ -16,6 +17,7 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
     const [events, setEvents] = useState<TickerEvent[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const t = useTranslations('liveTicker');
 
     useEffect(() => {
         fetchEvents();
@@ -163,12 +165,12 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                                                 textTransform: 'uppercase',
                                                 letterSpacing: '0.5px'
                                             }}>
-                                                {event.type === 'COMMENTARY' ? 'AI Kommentator' :
-                                                    event.type === 'SCORE_UPDATE' ? 'Update' :
-                                                        event.type === 'MATCH_END' ? 'Ergebnis' : 'Info'}
+                                                {event.type === 'COMMENTARY' ? t('commentary') :
+                                                    event.type === 'SCORE_UPDATE' ? t('scoreUpdate') :
+                                                        event.type === 'MATCH_END' ? t('matchEnd') : t('info')}
                                             </span>
                                             <span style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                                                {new Date(event.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(event.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
                                         <div style={{ lineHeight: 1.5 }}>
@@ -189,7 +191,7 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                                     gap: 'var(--spacing-2)'
                                 }}>
                                     <Sparkles size={24} style={{ opacity: 0.3 }} />
-                                    <p>Noch keine Ereignisse...</p>
+                                    <p>{t('noEvents')}</p>
                                 </div>
                             )}
                         </div>

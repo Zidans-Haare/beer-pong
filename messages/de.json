@@ -498,6 +498,13 @@
     "groupRound": "Gruppenphase – Runde {round}",
     "koRound": "K.O.-Runde {round}"
   },
+  "liveTicker": {
+    "commentary": "AI Kommentator",
+    "scoreUpdate": "Update",
+    "matchEnd": "Ergebnis",
+    "info": "Info",
+    "noEvents": "Noch keine Ereignisse…"
+  },
   "liveInfo": {
     "end": "Ende",
     "formula": "Formel",

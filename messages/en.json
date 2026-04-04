@@ -498,6 +498,13 @@
     "groupRound": "Group Phase – Round {round}",
     "koRound": "K.O. Round {round}"
   },
+  "liveTicker": {
+    "commentary": "AI Commentator",
+    "scoreUpdate": "Update",
+    "matchEnd": "Result",
+    "info": "Info",
+    "noEvents": "No events yet…"
+  },
   "liveInfo": {
     "end": "End",
     "formula": "Formula",

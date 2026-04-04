@@ -586,6 +586,8 @@
     "loginRequired": "Login required",
     "nobodyYet": "Nobody yet",
     "you": "You",
+    "addCustom": "Add item",
+    "customPlaceholder": "e.g. Snacks, Ice…",
     "categories": {
       "BEER": "Beer",
       "TABLES": "Tables",

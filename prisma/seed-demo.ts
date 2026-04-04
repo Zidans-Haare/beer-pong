@@ -86,22 +86,25 @@ async function main() {
         });
     }
 
+    // 6 players → 5 rounds × 3 matches (proper round-robin schedule)
+    // R1: 0v1, 2v3, 4v5  |  R2: 0v2, 1v4, 3v5  |  R3: 0v3, 1v5, 2v4
+    // R4: 0v4, 1v3, 2v5  |  R5: 0v5, 1v2, 3v4
     const summerMatches = [
-        { p1: 0, p2: 1, s1: 10, s2: 7,  w: 0, dur: 420 },
-        { p1: 0, p2: 2, s1: 8,  s2: 10, w: 2, dur: 510 },
-        { p1: 0, p2: 3, s1: 10, s2: 5,  w: 0, dur: 360 },
-        { p1: 0, p2: 4, s1: 10, s2: 9,  w: 0, dur: 600 },
-        { p1: 0, p2: 5, s1: 7,  s2: 10, w: 5, dur: 480 },
-        { p1: 1, p2: 2, s1: 6,  s2: 10, w: 2, dur: 390 },
-        { p1: 1, p2: 3, s1: 10, s2: 4,  w: 1, dur: 300 },
-        { p1: 1, p2: 4, s1: 9,  s2: 10, w: 4, dur: 540 },
-        { p1: 1, p2: 5, s1: 10, s2: 8,  w: 1, dur: 450 },
-        { p1: 2, p2: 3, s1: 10, s2: 6,  w: 2, dur: 420 },
-        { p1: 2, p2: 4, s1: 10, s2: 7,  w: 2, dur: 480 },
-        { p1: 2, p2: 5, s1: 5,  s2: 10, w: 5, dur: 510 },
-        { p1: 3, p2: 4, s1: 10, s2: 8,  w: 3, dur: 390 },
-        { p1: 3, p2: 5, s1: 7,  s2: 10, w: 5, dur: 420 },
-        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4, dur: 570 },
+        { p1: 0, p2: 1, s1: 10, s2: 7,  w: 0, dur: 420, r: 1 },
+        { p1: 2, p2: 3, s1: 10, s2: 6,  w: 2, dur: 420, r: 1 },
+        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4, dur: 570, r: 1 },
+        { p1: 0, p2: 2, s1: 8,  s2: 10, w: 2, dur: 510, r: 2 },
+        { p1: 1, p2: 4, s1: 9,  s2: 10, w: 4, dur: 540, r: 2 },
+        { p1: 3, p2: 5, s1: 7,  s2: 10, w: 5, dur: 420, r: 2 },
+        { p1: 0, p2: 3, s1: 10, s2: 5,  w: 0, dur: 360, r: 3 },
+        { p1: 1, p2: 5, s1: 10, s2: 8,  w: 1, dur: 450, r: 3 },
+        { p1: 2, p2: 4, s1: 10, s2: 7,  w: 2, dur: 480, r: 3 },
+        { p1: 0, p2: 4, s1: 10, s2: 9,  w: 0, dur: 600, r: 4 },
+        { p1: 1, p2: 3, s1: 10, s2: 4,  w: 1, dur: 300, r: 4 },
+        { p1: 2, p2: 5, s1: 5,  s2: 10, w: 5, dur: 510, r: 4 },
+        { p1: 0, p2: 5, s1: 7,  s2: 10, w: 5, dur: 480, r: 5 },
+        { p1: 1, p2: 2, s1: 6,  s2: 10, w: 2, dur: 390, r: 5 },
+        { p1: 3, p2: 4, s1: 10, s2: 8,  w: 3, dur: 390, r: 5 },
     ];
 
     for (let i = 0; i < summerMatches.length; i++) {
@@ -115,7 +118,7 @@ async function main() {
                 score2: m.s2,
                 winnerId: summerPlayers[m.w].id,
                 isPlayed: true,
-                round: 1,
+                round: m.r,
                 position: i,
                 stage: 'LEAGUE',
                 durationSeconds: m.dur,
@@ -206,44 +209,37 @@ async function main() {
         });
     }
 
-    // Full Round Robin: 8 players = 7 rounds × 4 matches = 28 matches
-    // Rounds 1-3 played, rounds 4-7 pending
+    // Full Round Robin: all 28 unique pairs, flat (round=1, sequential positions)
+    // 12 played, 16 pending
     const springMatches = [
-        // Round 1
-        { r: 1, p1: 0, p2: 1, s1: 10, s2: 6,  w: 0,  played: true,  dur: 390 },
-        { r: 1, p1: 2, p2: 3, s1: 7,  s2: 10, w: 3,  played: true,  dur: 450 },
-        { r: 1, p1: 4, p2: 5, s1: 10, s2: 9,  w: 4,  played: true,  dur: 540 },
-        { r: 1, p1: 6, p2: 7, s1: 8,  s2: 10, w: 7,  played: true,  dur: 420 },
-        // Round 2
-        { r: 2, p1: 0, p2: 2, s1: 10, s2: 7,  w: 0,  played: true,  dur: 480 },
-        { r: 2, p1: 1, p2: 3, s1: 5,  s2: 10, w: 3,  played: true,  dur: 360 },
-        { r: 2, p1: 4, p2: 6, s1: 10, s2: 8,  w: 4,  played: true,  dur: 510 },
-        { r: 2, p1: 5, p2: 7, s1: 9,  s2: 10, w: 7,  played: true,  dur: 570 },
-        // Round 3
-        { r: 3, p1: 0, p2: 3, s1: 6,  s2: 10, w: 3,  played: true,  dur: 420 },
-        { r: 3, p1: 1, p2: 2, s1: 10, s2: 8,  w: 1,  played: true,  dur: 390 },
-        { r: 3, p1: 4, p2: 7, s1: 10, s2: 6,  w: 4,  played: true,  dur: 450 },
-        { r: 3, p1: 5, p2: 6, s1: 10, s2: 7,  w: 5,  played: true,  dur: 480 },
-        // Round 4 — pending
-        { r: 4, p1: 0, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 4, p1: 1, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 4, p1: 2, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 4, p1: 3, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        // Round 5 — pending
-        { r: 5, p1: 0, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 5, p1: 1, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 5, p1: 2, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 5, p1: 3, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        // Round 6 — pending
-        { r: 6, p1: 0, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 6, p1: 1, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 6, p1: 2, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 6, p1: 3, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        // Round 7 — pending
-        { r: 7, p1: 0, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 7, p1: 1, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 7, p1: 2, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
-        { r: 7, p1: 3, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 0, p2: 1, s1: 10, s2: 6,  w: 0,  played: true,  dur: 390 },
+        { p1: 2, p2: 3, s1: 7,  s2: 10, w: 3,  played: true,  dur: 450 },
+        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4,  played: true,  dur: 540 },
+        { p1: 6, p2: 7, s1: 8,  s2: 10, w: 7,  played: true,  dur: 420 },
+        { p1: 0, p2: 2, s1: 10, s2: 7,  w: 0,  played: true,  dur: 480 },
+        { p1: 1, p2: 3, s1: 5,  s2: 10, w: 3,  played: true,  dur: 360 },
+        { p1: 4, p2: 6, s1: 10, s2: 8,  w: 4,  played: true,  dur: 510 },
+        { p1: 5, p2: 7, s1: 9,  s2: 10, w: 7,  played: true,  dur: 570 },
+        { p1: 0, p2: 3, s1: 6,  s2: 10, w: 3,  played: true,  dur: 420 },
+        { p1: 1, p2: 2, s1: 10, s2: 8,  w: 1,  played: true,  dur: 390 },
+        { p1: 4, p2: 7, s1: 10, s2: 6,  w: 4,  played: true,  dur: 450 },
+        { p1: 5, p2: 6, s1: 10, s2: 7,  w: 5,  played: true,  dur: 480 },
+        { p1: 0, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 1, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 2, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 3, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 0, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 1, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 2, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 3, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 0, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 1, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 2, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 3, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 0, p2: 7, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 1, p2: 6, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 2, p2: 5, s1: 0, s2: 0, w: -1, played: false, dur: null },
+        { p1: 3, p2: 4, s1: 0, s2: 0, w: -1, played: false, dur: null },
     ];
 
     for (let i = 0; i < springMatches.length; i++) {
@@ -257,7 +253,7 @@ async function main() {
                 score2: m.s2,
                 winnerId: m.w >= 0 ? springPlayers[m.w].id : null,
                 isPlayed: m.played,
-                round: m.r,
+                round: 1,
                 position: i,
                 stage: 'LEAGUE',
                 durationSeconds: m.dur ?? undefined,

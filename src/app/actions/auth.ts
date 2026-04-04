@@ -8,8 +8,22 @@ import { createNotificationForUser } from '@/app/actions/notifications';
 import { headers } from 'next/headers';
 import { checkRateLimit } from '@/lib/rate-limit';
 import logger from '@/lib/logger';
+import { isDemoMode, DEMO_USER_EMAIL } from '@/lib/demo';
+import { redirect } from 'next/navigation';
+
+export async function demoLogin() {
+    if (!isDemoMode) return;
+    await signIn('credentials', {
+        email: DEMO_USER_EMAIL,
+        password: process.env.DEMO_USER_PASSWORD ?? '',
+        redirectTo: '/',
+    });
+}
 
 export async function registerUser(formData: FormData) {
+    if (isDemoMode) {
+        return { success: false, error: 'Registrierung in der Demo nicht möglich.' };
+    }
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
     if (!await checkRateLimit(`register:${ip}`, 5, 10 * 60_000)) {

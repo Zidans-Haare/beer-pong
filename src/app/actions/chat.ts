@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
+import { isDemoMode } from '@/lib/demo';
 
 export async function getChatMessages(limit = 50) {
     try {
@@ -24,6 +25,9 @@ export async function getChatMessages(limit = 50) {
 }
 
 export async function sendChatMessage(text: string) {
+    if (isDemoMode) {
+        return { success: false, error: 'Chat ist in der Demo deaktiviert.' };
+    }
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Nicht eingeloggt.' };

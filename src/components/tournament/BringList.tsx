@@ -10,10 +10,24 @@ import { useTranslations } from 'next-intl';
 type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-    BEER:   <Droplets  size={18} />,
-    TABLES: <Table2    size={18} />,
-    CUPS:   <CupSoda   size={18} />,
-    BALLS:  <CircleDot size={18} />,
+    BEER:   <Droplets  size={20} />,
+    TABLES: <Table2    size={20} />,
+    CUPS:   <CupSoda   size={20} />,
+    BALLS:  <CircleDot size={20} />,
+};
+
+const CATEGORY_COLORS: Record<string, { bg: string; border: string; icon: string }> = {
+    BEER:   { bg: 'linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.03) 100%)',  border: 'rgba(251,191,36,0.35)',  icon: '#f59e0b' },
+    TABLES: { bg: 'linear-gradient(135deg, rgba(78,205,196,0.12) 0%, rgba(78,205,196,0.03) 100%)',  border: 'rgba(78,205,196,0.35)',  icon: 'var(--color-secondary)' },
+    CUPS:   { bg: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0.03) 100%)',  border: 'rgba(59,130,246,0.35)',  icon: '#3b82f6' },
+    BALLS:  { bg: 'linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.03) 100%)',  border: 'rgba(249,115,22,0.35)',  icon: '#f97316' },
+};
+
+const CATEGORY_COLORS_ACTIVE: Record<string, { bg: string; border: string }> = {
+    BEER:   { bg: 'linear-gradient(135deg, rgba(251,191,36,0.22) 0%, rgba(251,191,36,0.08) 100%)',  border: 'rgba(251,191,36,0.6)' },
+    TABLES: { bg: 'linear-gradient(135deg, rgba(78,205,196,0.22) 0%, rgba(78,205,196,0.08) 100%)',  border: 'rgba(78,205,196,0.6)' },
+    CUPS:   { bg: 'linear-gradient(135deg, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.08) 100%)',  border: 'rgba(59,130,246,0.6)' },
+    BALLS:  { bg: 'linear-gradient(135deg, rgba(249,115,22,0.22) 0%, rgba(249,115,22,0.08) 100%)',  border: 'rgba(249,115,22,0.6)' },
 };
 
 export default function BringList({
@@ -41,7 +55,6 @@ export default function BringList({
     function handleSet(category: string, quantity: number) {
         if (!currentUserId || isPending) return;
 
-        // Optimistic update
         setItems(prev => {
             const without = prev.filter(i => !(i.category === category && i.userId === currentUserId));
             if (quantity <= 0) return without;
@@ -63,120 +76,145 @@ export default function BringList({
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+            <h3 style={{
+                marginBottom: 'var(--spacing-4)',
+                fontSize: '1rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-2)',
+            }}>
                 <ShoppingBag size={18} />
                 {t('title')}
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 'var(--spacing-3)',
+            }}>
                 {BRING_CATEGORIES.map(cat => {
                     const contributors = items.filter(i => i.category === cat.key);
                     const myItem = getMyItem(cat.key);
                     const totalQty = contributors.reduce((s, i) => s + i.quantity, 0);
+                    const colors = myItem ? CATEGORY_COLORS_ACTIVE[cat.key] : CATEGORY_COLORS[cat.key];
+                    const iconColor = CATEGORY_COLORS[cat.key].icon;
 
                     return (
                         <div key={cat.key} style={{
-                            padding: 'var(--spacing-3) var(--spacing-4)',
-                            borderRadius: 'var(--radius-sm)',
-                            background: myItem ? 'rgba(var(--color-primary-rgb, 99,102,241), 0.08)' : 'var(--color-surface)',
-                            border: `1px solid ${myItem ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                            transition: 'all 0.15s',
+                            padding: 'var(--spacing-4)',
+                            borderRadius: 'var(--radius-md)',
+                            background: colors.bg,
+                            border: `1px solid ${colors.border}`,
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 'var(--spacing-3)',
                         }}>
-                            {/* Top row: icon + label + total + stepper */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
-                                <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', flexShrink: 0 }}>
+                            {/* Header: icon + label + total badge */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                                <span style={{ color: iconColor, flexShrink: 0, display: 'flex' }}>
                                     {CATEGORY_ICONS[cat.key]}
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t(`categories.${cat.key}`)}</span>
-                                    {totalQty > 0 && (
-                                        <span style={{ marginLeft: '8px', fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 700 }}>
-                                            {totalQty}x
-                                        </span>
-                                    )}
-                                </div>
-
-                                {currentUserId ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                        {myItem ? (
-                                            <>
-                                                <button
-                                                    onClick={() => handleSet(cat.key, myItem.quantity - 1)}
-                                                    disabled={isPending}
-                                                    style={btnStyle}
-                                                    title={t('less')}
-                                                >
-                                                    <Minus size={12} />
-                                                </button>
-                                                <span style={{ minWidth: '24px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-primary)' }}>
-                                                    {myItem.quantity}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleSet(cat.key, myItem.quantity + 1)}
-                                                    disabled={isPending}
-                                                    style={btnStyle}
-                                                    title={t('more')}
-                                                >
-                                                    <Plus size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSet(cat.key, 0)}
-                                                    disabled={isPending}
-                                                    style={{ ...btnStyle, marginLeft: '4px', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
-                                                    title={t('remove')}
-                                                >
-                                                    <X size={12} />
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleSet(cat.key, 1)}
-                                                disabled={isPending}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '4px',
-                                                    padding: '6px 12px',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    border: '1px solid var(--color-border)',
-                                                    background: 'transparent',
-                                                    color: 'var(--color-text-dim)',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: 600,
-                                                    cursor: isPending ? 'not-allowed' : 'pointer',
-                                                    opacity: isPending ? 0.6 : 1,
-                                                }}
-                                            >
-                                                <Plus size={13} /> {t('iWillBring')}
-                                            </button>
-                                        )}
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px',
+                                        color: 'var(--color-text-dim)',
+                                        fontWeight: 600,
+                                    }}>
+                                        {t(`categories.${cat.key}`)}
                                     </div>
-                                ) : (
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic', flexShrink: 0 }}>
-                                        {t('loginRequired')}
+                                </div>
+                                {totalQty > 0 && (
+                                    <span style={{
+                                        fontSize: '0.85rem',
+                                        fontWeight: 700,
+                                        color: iconColor,
+                                        background: `color-mix(in srgb, ${iconColor} 15%, transparent)`,
+                                        padding: '1px 8px',
+                                        borderRadius: '99px',
+                                        flexShrink: 0,
+                                    }}>
+                                        {totalQty}×
                                     </span>
                                 )}
                             </div>
 
+                            {/* Stepper / Add button */}
+                            {currentUserId ? (
+                                myItem ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <button onClick={() => handleSet(cat.key, myItem.quantity - 1)} disabled={isPending} style={stepBtn} title={t('less')}>
+                                            <Minus size={11} />
+                                        </button>
+                                        <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', color: iconColor }}>
+                                            {myItem.quantity}
+                                        </span>
+                                        <button onClick={() => handleSet(cat.key, myItem.quantity + 1)} disabled={isPending} style={stepBtn} title={t('more')}>
+                                            <Plus size={11} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleSet(cat.key, 0)}
+                                            disabled={isPending}
+                                            style={{ ...stepBtn, marginLeft: 'auto', borderColor: 'rgba(255,107,107,0.35)', color: 'var(--color-accent)' }}
+                                            title={t('remove')}
+                                        >
+                                            <X size={11} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleSet(cat.key, 1)}
+                                        disabled={isPending}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '5px',
+                                            padding: '5px 0',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: `1px dashed ${colors.border}`,
+                                            background: 'transparent',
+                                            color: 'var(--color-text-dim)',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 600,
+                                            cursor: isPending ? 'not-allowed' : 'pointer',
+                                            opacity: isPending ? 0.5 : 1,
+                                            width: '100%',
+                                        }}
+                                    >
+                                        <Plus size={12} /> {t('iWillBring')}
+                                    </button>
+                                )
+                            ) : (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
+                                    {t('loginRequired')}
+                                </span>
+                            )}
+
                             {/* Contributors */}
-                            {contributors.length > 0 && (
-                                <div style={{ marginTop: 'var(--spacing-2)', paddingLeft: '30px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {contributors.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                     {contributors.map(c => (
                                         <span key={c.id} style={{
-                                            fontSize: '0.78rem',
-                                            color: c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-text-dim)',
-                                            background: c.userId === currentUserId ? 'rgba(var(--color-primary-rgb,99,102,241),0.1)' : 'rgba(255,255,255,0.04)',
-                                            border: '1px solid ' + (c.userId === currentUserId ? 'rgba(var(--color-primary-rgb,99,102,241),0.3)' : 'var(--color-border)'),
-                                            borderRadius: '100px',
-                                            padding: '2px 8px',
+                                            fontSize: '0.75rem',
+                                            color: c.userId === currentUserId ? iconColor : 'var(--color-text-dim)',
+                                            background: c.userId === currentUserId
+                                                ? `color-mix(in srgb, ${iconColor} 12%, transparent)`
+                                                : 'rgba(255,255,255,0.04)',
+                                            border: `1px solid ${c.userId === currentUserId ? colors.border : 'var(--color-border)'}`,
+                                            borderRadius: '99px',
+                                            padding: '2px 7px',
+                                            fontWeight: c.userId === currentUserId ? 600 : 400,
                                         }}>
-                                            {c.userName} · {c.quantity}x
+                                            {c.userName} · {c.quantity}×
                                         </span>
                                     ))}
                                 </div>
-                            )}
-                            {contributors.length === 0 && (
-                                <div style={{ marginTop: '4px', paddingLeft: '30px', fontSize: '0.8rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
+                            ) : (
+                                <div style={{ fontSize: '0.78rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
                                     {t('nobodyYet')}
                                 </div>
                             )}
@@ -188,16 +226,17 @@ export default function BringList({
     );
 }
 
-const btnStyle: React.CSSProperties = {
+const stepBtn: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '26px',
-    height: '26px',
+    width: '24px',
+    height: '24px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid var(--color-border)',
     background: 'var(--color-surface)',
     color: 'var(--color-text-dim)',
     cursor: 'pointer',
     padding: 0,
+    flexShrink: 0,
 };

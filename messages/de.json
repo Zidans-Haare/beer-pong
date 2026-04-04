@@ -519,7 +519,20 @@
     "skip": "Überspringen"
   },
   "bringList": {
-    "title": "Mitbringliste"
+    "title": "Mitbringliste",
+    "less": "Weniger",
+    "more": "Mehr",
+    "remove": "Entfernen",
+    "iWillBring": "Ich",
+    "loginRequired": "Login nötig",
+    "nobodyYet": "Noch niemand",
+    "you": "Du",
+    "categories": {
+      "BEER": "Bier",
+      "TABLES": "Tische",
+      "CUPS": "Becher",
+      "BALLS": "Bälle"
+    }
   },
   "offline": {
     "title": "Du bist offline",

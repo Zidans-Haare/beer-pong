@@ -519,7 +519,20 @@
     "skip": "Skip"
   },
   "bringList": {
-    "title": "Bring List"
+    "title": "Bring List",
+    "less": "Less",
+    "more": "More",
+    "remove": "Remove",
+    "iWillBring": "I'll bring",
+    "loginRequired": "Login required",
+    "nobodyYet": "Nobody yet",
+    "you": "You",
+    "categories": {
+      "BEER": "Beer",
+      "TABLES": "Tables",
+      "CUPS": "Cups",
+      "BALLS": "Balls"
+    }
   },
   "offline": {
     "title": "You're offline",

@@ -50,7 +50,7 @@ export default function BringList({
                 id: existing?.id ?? `opt-${Date.now()}`,
                 category,
                 userId: currentUserId,
-                userName: 'Du',
+                userName: t('you'),
                 quantity,
             }];
         });
@@ -88,7 +88,7 @@ export default function BringList({
                                     {CATEGORY_ICONS[cat.key]}
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{cat.label}</span>
+                                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t(`categories.${cat.key}`)}</span>
                                     {totalQty > 0 && (
                                         <span style={{ marginLeft: '8px', fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 700 }}>
                                             {totalQty}x
@@ -104,7 +104,7 @@ export default function BringList({
                                                     onClick={() => handleSet(cat.key, myItem.quantity - 1)}
                                                     disabled={isPending}
                                                     style={btnStyle}
-                                                    title="Weniger"
+                                                    title={t('less')}
                                                 >
                                                     <Minus size={12} />
                                                 </button>
@@ -115,7 +115,7 @@ export default function BringList({
                                                     onClick={() => handleSet(cat.key, myItem.quantity + 1)}
                                                     disabled={isPending}
                                                     style={btnStyle}
-                                                    title="Mehr"
+                                                    title={t('more')}
                                                 >
                                                     <Plus size={12} />
                                                 </button>
@@ -123,7 +123,7 @@ export default function BringList({
                                                     onClick={() => handleSet(cat.key, 0)}
                                                     disabled={isPending}
                                                     style={{ ...btnStyle, marginLeft: '4px', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
-                                                    title="Entfernen"
+                                                    title={t('remove')}
                                                 >
                                                     <X size={12} />
                                                 </button>
@@ -147,13 +147,13 @@ export default function BringList({
                                                     opacity: isPending ? 0.6 : 1,
                                                 }}
                                             >
-                                                <Plus size={13} /> Ich
+                                                <Plus size={13} /> {t('iWillBring')}
                                             </button>
                                         )}
                                     </div>
                                 ) : (
                                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic', flexShrink: 0 }}>
-                                        Login nötig
+                                        {t('loginRequired')}
                                     </span>
                                 )}
                             </div>
@@ -177,7 +177,7 @@ export default function BringList({
                             )}
                             {contributors.length === 0 && (
                                 <div style={{ marginTop: '4px', paddingLeft: '30px', fontSize: '0.8rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
-                                    Noch niemand
+                                    {t('nobodyYet')}
                                 </div>
                             )}
                         </div>

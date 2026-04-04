@@ -453,7 +453,8 @@
   "participants": {
     "available": "Verfügbare Spieler",
     "participants": "Teilnehmer",
-    "none": "Noch keine Teilnehmer. Teile den Link!"
+    "none": "Noch keine Teilnehmer. Teile den Link!",
+    "maybe": "Vielleicht"
   },
   "install": {
     "prompt": "Du nutzt die App noch nicht?",

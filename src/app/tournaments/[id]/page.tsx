@@ -152,6 +152,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
         email: r.player.email
     }));
 
+    const maybePlayers = tournament.rsvps
+        .filter((r: { status: string }) => r.status === 'MAYBE')
+        .map((r: any) => ({ id: r.player.id, name: r.player.name, image: r.player.image }));
+
     return (
         <div className="container" style={{ paddingBottom: '120px' }}>
             <TournamentClientFeatures
@@ -246,6 +250,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     {/* Participants */}
                     <ParticipantList
                         players={availablePlayers}
+                        maybePlayers={maybePlayers}
                         guests={tournament.guests}
                         isTeamMode={isTeamMode}
                     />

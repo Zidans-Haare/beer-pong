@@ -32,7 +32,9 @@
     "noActiveTournament": "No active tournament.",
     "startTournament": "Start Tournament",
     "matchesPreparing": "Matches are being prepared…",
-    "goToTournament": "Go to Tournament"
+    "goToTournament": "Go to Tournament",
+    "recentMatches": "Recent Matches",
+    "gameLabel": "Game {n}"
   },
   "tournaments": {
     "title": "Tournaments",

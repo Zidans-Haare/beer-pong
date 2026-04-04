@@ -485,6 +485,34 @@
     "netTime": "Net time",
     "endLabel": "End"
   },
+  "lobbyDuration": {
+    "estimatedDuration": "Estimated Duration",
+    "formula": "Formula",
+    "forParticipants": "for {count} participants",
+    "estimatedEnd": "Estimated End",
+    "ifOnTime": "if it starts on time",
+    "ifNow": "if it starts now",
+    "table": "table",
+    "tables": "tables",
+    "players": "players",
+    "total": "Total",
+    "round": "Round {n}",
+    "titles": {
+      "elimination": "KO Bracket",
+      "roundRobin": "Round Robin",
+      "groups": "Groups + KO",
+      "estimate": "Estimate"
+    },
+    "labels": {
+      "totalMatches": "Total matches",
+      "maxParallel": "Max. parallel",
+      "parallelRounds": "Parallel rounds",
+      "groupA": "Group A",
+      "groupB": "Group B",
+      "groupStage": "Group stage",
+      "koPhase": "KO phase"
+    }
+  },
   "successModal": {
     "title": "Tournament created!",
     "subtitle": "\"{name}\" is ready. Invite your friends now!",

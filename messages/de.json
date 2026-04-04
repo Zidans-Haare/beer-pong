@@ -485,6 +485,34 @@
     "netTime": "Restzeit netto",
     "endLabel": "Ende"
   },
+  "lobbyDuration": {
+    "estimatedDuration": "Prognostizierte Dauer",
+    "formula": "Formel",
+    "forParticipants": "bei {count} Teilnehmern",
+    "estimatedEnd": "Voraussichtliches Ende",
+    "ifOnTime": "wenn es pünktlich losgeht",
+    "ifNow": "wenn es jetzt losgeht",
+    "table": "Tisch",
+    "tables": "Tische",
+    "players": "Spieler",
+    "total": "Gesamt",
+    "round": "Runde {n}",
+    "titles": {
+      "elimination": "K.O.-Simulation",
+      "roundRobin": "Jeder-gegen-Jeden",
+      "groups": "Gruppen + K.O.",
+      "estimate": "Schätzung"
+    },
+    "labels": {
+      "totalMatches": "Spiele gesamt",
+      "maxParallel": "Max. parallel",
+      "parallelRounds": "Parallele Runden",
+      "groupA": "Gruppe A",
+      "groupB": "Gruppe B",
+      "groupStage": "Gruppenphase",
+      "koPhase": "K.O.-Phase"
+    }
+  },
   "successModal": {
     "title": "Turnier erfolgreich erstellt!",
     "subtitle": "\"{name}\" ist bereit. Lade jetzt deine Freunde ein!",

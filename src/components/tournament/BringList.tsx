@@ -10,10 +10,10 @@ import { useTranslations } from 'next-intl';
 type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-    BEER:   <Droplets  size={16} />,
-    TABLES: <Table2    size={16} />,
-    CUPS:   <CupSoda   size={16} />,
-    BALLS:  <CircleDot size={16} />,
+    BEER:   <Droplets  size={14} />,
+    TABLES: <Table2    size={14} />,
+    CUPS:   <CupSoda   size={14} />,
+    BALLS:  <CircleDot size={14} />,
 };
 
 export default function BringList({
@@ -61,20 +61,23 @@ export default function BringList({
     }
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
-            <h3 style={{
-                marginBottom: 'var(--spacing-4)',
-                fontSize: '1rem',
-                fontWeight: 600,
+        <div>
+            {/* Section label */}
+            <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'var(--spacing-2)',
+                gap: '6px',
+                marginBottom: 'var(--spacing-3)',
+                color: 'var(--color-text-dim)',
             }}>
-                <ShoppingBag size={18} />
-                {t('title')}
-            </h3>
+                <ShoppingBag size={13} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {t('title')}
+                </span>
+            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+            {/* 2×2 compact grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
                 {BRING_CATEGORIES.map(cat => {
                     const contributors = items.filter(i => i.category === cat.key);
                     const myItem = getMyItem(cat.key);
@@ -82,102 +85,103 @@ export default function BringList({
 
                     return (
                         <div key={cat.key} style={{
-                            padding: 'var(--spacing-3) var(--spacing-4)',
+                            padding: 'var(--spacing-3)',
                             borderRadius: 'var(--radius-md)',
                             background: myItem
                                 ? 'rgba(var(--color-primary-rgb, 190, 35, 213), 0.05)'
                                 : 'var(--color-surface-hover)',
                             border: `1px solid ${myItem ? 'var(--color-primary)' : 'var(--color-border)'}`,
                             transition: 'border-color 0.2s, background 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 'var(--spacing-2)',
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
-                                {/* Icon */}
-                                <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', flexShrink: 0, display: 'flex' }}>
+                            {/* Row: icon + label + total */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', display: 'flex', flexShrink: 0 }}>
                                     {CATEGORY_ICONS[cat.key]}
                                 </span>
-
-                                {/* Label + total */}
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', minWidth: 0 }}>
-                                    <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>
-                                        {t(`categories.${cat.key}`)}
-                                    </span>
-                                    {totalQty > 0 && (
-                                        <span style={{
-                                            fontSize: '0.78rem',
-                                            fontWeight: 600,
-                                            color: 'var(--color-primary)',
-                                            background: 'rgba(var(--color-primary-rgb, 190, 35, 213), 0.1)',
-                                            padding: '1px 7px',
-                                            borderRadius: '99px',
-                                        }}>
-                                            {totalQty}×
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Action */}
-                                {currentUserId ? (
-                                    myItem ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                            <button onClick={() => handleSet(cat.key, myItem.quantity - 1)} disabled={isPending} style={stepBtn} title={t('less')}>
-                                                <Minus size={11} />
-                                            </button>
-                                            <span style={{ minWidth: '18px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-primary)' }}>
-                                                {myItem.quantity}
-                                            </span>
-                                            <button onClick={() => handleSet(cat.key, myItem.quantity + 1)} disabled={isPending} style={stepBtn} title={t('more')}>
-                                                <Plus size={11} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleSet(cat.key, 0)}
-                                                disabled={isPending}
-                                                style={{ ...stepBtn, marginLeft: '2px', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
-                                                title={t('remove')}
-                                            >
-                                                <X size={11} />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleSet(cat.key, 1)}
-                                            disabled={isPending}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                padding: '4px 10px',
-                                                borderRadius: 'var(--radius-sm)',
-                                                border: '1px solid var(--color-border)',
-                                                background: 'transparent',
-                                                color: 'var(--color-text-dim)',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 500,
-                                                cursor: isPending ? 'not-allowed' : 'pointer',
-                                                opacity: isPending ? 0.5 : 1,
-                                                flexShrink: 0,
-                                            }}
-                                        >
-                                            <Plus size={12} /> {t('iWillBring')}
-                                        </button>
-                                    )
-                                ) : (
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontStyle: 'italic', flexShrink: 0 }}>
-                                        {t('loginRequired')}
+                                <span style={{ fontSize: '0.82rem', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {t(`categories.${cat.key}`)}
+                                </span>
+                                {totalQty > 0 && (
+                                    <span style={{
+                                        fontSize: '0.72rem',
+                                        fontWeight: 700,
+                                        color: 'var(--color-primary)',
+                                        background: 'rgba(var(--color-primary-rgb, 190, 35, 213), 0.1)',
+                                        padding: '1px 5px',
+                                        borderRadius: '99px',
+                                        flexShrink: 0,
+                                    }}>
+                                        {totalQty}×
                                     </span>
                                 )}
                             </div>
 
+                            {/* Action row */}
+                            {currentUserId ? (
+                                myItem ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                        <button onClick={() => handleSet(cat.key, myItem.quantity - 1)} disabled={isPending} style={stepBtn} title={t('less')}>
+                                            <Minus size={10} />
+                                        </button>
+                                        <span style={{ minWidth: '16px', textAlign: 'center', fontWeight: 700, fontSize: '0.82rem', color: 'var(--color-primary)' }}>
+                                            {myItem.quantity}
+                                        </span>
+                                        <button onClick={() => handleSet(cat.key, myItem.quantity + 1)} disabled={isPending} style={stepBtn} title={t('more')}>
+                                            <Plus size={10} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleSet(cat.key, 0)}
+                                            disabled={isPending}
+                                            style={{ ...stepBtn, marginLeft: 'auto', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
+                                            title={t('remove')}
+                                        >
+                                            <X size={10} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleSet(cat.key, 1)}
+                                        disabled={isPending}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '3px',
+                                            padding: '3px 0',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: '1px dashed var(--color-border)',
+                                            background: 'transparent',
+                                            color: 'var(--color-text-dim)',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 500,
+                                            cursor: isPending ? 'not-allowed' : 'pointer',
+                                            opacity: isPending ? 0.5 : 1,
+                                            width: '100%',
+                                        }}
+                                    >
+                                        <Plus size={11} /> {t('iWillBring')}
+                                    </button>
+                                )
+                            ) : (
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', fontStyle: 'italic' }}>
+                                    {t('loginRequired')}
+                                </span>
+                            )}
+
                             {/* Contributors */}
                             {contributors.length > 0 && (
-                                <div style={{ marginTop: 'var(--spacing-2)', paddingLeft: '28px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                                     {contributors.map(c => (
                                         <span key={c.id} style={{
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.7rem',
                                             color: c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                             background: 'var(--color-surface)',
                                             border: `1px solid ${c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-border)'}`,
                                             borderRadius: '99px',
-                                            padding: '1px 7px',
+                                            padding: '1px 6px',
                                         }}>
                                             {c.userName} · {c.quantity}×
                                         </span>
@@ -196,8 +200,8 @@ const stepBtn: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '24px',
-    height: '24px',
+    width: '20px',
+    height: '20px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid var(--color-border)',
     background: 'var(--color-surface)',

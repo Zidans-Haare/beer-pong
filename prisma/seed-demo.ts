@@ -10,7 +10,7 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-const dbPath = path.join(process.cwd(), 'dev.db');
+const dbPath = path.join(process.cwd(), process.env.DEMO_DB ?? 'demo.db');
 const adapter = new PrismaBetterSqlite3({ url: dbPath });
 const prisma = new PrismaClient({ adapter });
 
@@ -87,21 +87,21 @@ async function main() {
     }
 
     const summerMatches = [
-        { p1: 0, p2: 1, s1: 10, s2: 7,  w: 0 },
-        { p1: 0, p2: 2, s1: 8,  s2: 10, w: 2 },
-        { p1: 0, p2: 3, s1: 10, s2: 5,  w: 0 },
-        { p1: 0, p2: 4, s1: 10, s2: 9,  w: 0 },
-        { p1: 0, p2: 5, s1: 7,  s2: 10, w: 5 },
-        { p1: 1, p2: 2, s1: 6,  s2: 10, w: 2 },
-        { p1: 1, p2: 3, s1: 10, s2: 4,  w: 1 },
-        { p1: 1, p2: 4, s1: 9,  s2: 10, w: 4 },
-        { p1: 1, p2: 5, s1: 10, s2: 8,  w: 1 },
-        { p1: 2, p2: 3, s1: 10, s2: 6,  w: 2 },
-        { p1: 2, p2: 4, s1: 10, s2: 7,  w: 2 },
-        { p1: 2, p2: 5, s1: 5,  s2: 10, w: 5 },
-        { p1: 3, p2: 4, s1: 10, s2: 8,  w: 3 },
-        { p1: 3, p2: 5, s1: 7,  s2: 10, w: 5 },
-        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4 },
+        { p1: 0, p2: 1, s1: 10, s2: 7,  w: 0, dur: 420 },
+        { p1: 0, p2: 2, s1: 8,  s2: 10, w: 2, dur: 510 },
+        { p1: 0, p2: 3, s1: 10, s2: 5,  w: 0, dur: 360 },
+        { p1: 0, p2: 4, s1: 10, s2: 9,  w: 0, dur: 600 },
+        { p1: 0, p2: 5, s1: 7,  s2: 10, w: 5, dur: 480 },
+        { p1: 1, p2: 2, s1: 6,  s2: 10, w: 2, dur: 390 },
+        { p1: 1, p2: 3, s1: 10, s2: 4,  w: 1, dur: 300 },
+        { p1: 1, p2: 4, s1: 9,  s2: 10, w: 4, dur: 540 },
+        { p1: 1, p2: 5, s1: 10, s2: 8,  w: 1, dur: 450 },
+        { p1: 2, p2: 3, s1: 10, s2: 6,  w: 2, dur: 420 },
+        { p1: 2, p2: 4, s1: 10, s2: 7,  w: 2, dur: 480 },
+        { p1: 2, p2: 5, s1: 5,  s2: 10, w: 5, dur: 510 },
+        { p1: 3, p2: 4, s1: 10, s2: 8,  w: 3, dur: 390 },
+        { p1: 3, p2: 5, s1: 7,  s2: 10, w: 5, dur: 420 },
+        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4, dur: 570 },
     ];
 
     for (let i = 0; i < summerMatches.length; i++) {
@@ -117,6 +117,8 @@ async function main() {
                 isPlayed: true,
                 round: 1,
                 position: i,
+                stage: 'LEAGUE',
+                durationSeconds: m.dur,
             },
         });
     }
@@ -145,7 +147,7 @@ async function main() {
     }
 
     // Semi-finals
-    const sf1 = await prisma.match.create({
+    await prisma.match.create({
         data: {
             tournamentId: newYearsCup.id,
             player1Id: nyPlayers[0].id,
@@ -153,9 +155,10 @@ async function main() {
             score1: 10, score2: 7,
             winnerId: nyPlayers[0].id,
             isPlayed: true, round: 1, position: 0,
+            stage: 'BRACKET', durationSeconds: 420,
         },
     });
-    const sf2 = await prisma.match.create({
+    await prisma.match.create({
         data: {
             tournamentId: newYearsCup.id,
             player1Id: nyPlayers[2].id,
@@ -163,6 +166,7 @@ async function main() {
             score1: 6, score2: 10,
             winnerId: nyPlayers[3].id,
             isPlayed: true, round: 1, position: 1,
+            stage: 'BRACKET', durationSeconds: 510,
         },
     });
     // Final
@@ -174,6 +178,7 @@ async function main() {
             score1: 10, score2: 8,
             winnerId: nyPlayers[0].id,
             isPlayed: true, round: 2, position: 0,
+            stage: 'BRACKET', durationSeconds: 540,
         },
     });
     console.log("✓ Completed tournament: New Year's Cup 2025");
@@ -203,12 +208,12 @@ async function main() {
 
     // Some played, some pending
     const springMatches = [
-        { p1: 0, p2: 1, s1: 10, s2: 6,  w: 0,  played: true },
-        { p1: 2, p2: 3, s1: 7,  s2: 10, w: 3,  played: true },
-        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4,  played: true },
-        { p1: 6, p2: 7, s1: 0,  s2: 0,  w: -1, played: false },
-        { p1: 0, p2: 2, s1: 0,  s2: 0,  w: -1, played: false },
-        { p1: 1, p2: 3, s1: 0,  s2: 0,  w: -1, played: false },
+        { p1: 0, p2: 1, s1: 10, s2: 6,  w: 0,  played: true,  dur: 390 },
+        { p1: 2, p2: 3, s1: 7,  s2: 10, w: 3,  played: true,  dur: 450 },
+        { p1: 4, p2: 5, s1: 10, s2: 9,  w: 4,  played: true,  dur: 540 },
+        { p1: 6, p2: 7, s1: 0,  s2: 0,  w: -1, played: false, dur: null },
+        { p1: 0, p2: 2, s1: 0,  s2: 0,  w: -1, played: false, dur: null },
+        { p1: 1, p2: 3, s1: 0,  s2: 0,  w: -1, played: false, dur: null },
     ];
 
     for (let i = 0; i < springMatches.length; i++) {
@@ -224,6 +229,8 @@ async function main() {
                 isPlayed: m.played,
                 round: 1,
                 position: i,
+                stage: 'LEAGUE',
+                durationSeconds: m.dur ?? undefined,
             },
         });
     }

@@ -1,27 +1,16 @@
-import Link from 'next/link';
-
 export default function DemoBanner() {
     return (
         <div style={{
-            background: 'linear-gradient(90deg, var(--color-primary), #f59e0b)',
-            color: '#000',
+            background: 'var(--color-primary-light)',
+            borderBottom: '1px solid rgba(190, 35, 213, 0.2)',
+            color: 'var(--color-primary)',
             textAlign: 'center',
-            padding: '8px 16px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            zIndex: 1000,
-            position: 'sticky',
-            top: 0,
+            padding: '6px 16px',
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            letterSpacing: '0.02em',
         }}>
-            Demo — Daten werden täglich zurückgesetzt.{' '}
-            <Link
-                href="https://github.com/Zidans-Haare/beer-pong"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#000', textDecoration: 'underline' }}
-            >
-                Selbst hosten →
-            </Link>
+            Demo Instance · Data resets daily
         </div>
     );
 }

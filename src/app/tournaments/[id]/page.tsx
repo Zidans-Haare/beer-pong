@@ -177,17 +177,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
 
             <Link
                 href="/tournaments"
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    marginBottom: 'var(--spacing-4)',
-                    color: 'var(--color-text-dim)',
-                    fontSize: '0.9rem',
-                    textDecoration: 'none'
-                }}
+                className="btn btn-secondary"
+                style={{ marginBottom: 'var(--spacing-4)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-                <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                 {t('allTournaments')}
             </Link>
 

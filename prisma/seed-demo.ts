@@ -273,7 +273,7 @@ async function main() {
     console.log('✓ Active tournament: Spring League 2026');
 
     // 7. Planned Tournament
-    await prisma.tournament.create({
+    const summerClash = await prisma.tournament.create({
         data: {
             name: 'Summer Clash 2026',
             date: new Date('2026-07-04T17:00:00Z'),
@@ -283,6 +283,20 @@ async function main() {
             isRanked: true,
         },
     });
+
+    const clashRsvps = [
+        { playerId: players[0].id, status: 'YES' },
+        { playerId: players[1].id, status: 'YES' },
+        { playerId: players[2].id, status: 'YES' },
+        { playerId: players[4].id, status: 'YES' },
+        { playerId: players[6].id, status: 'YES' },
+        { playerId: players[3].id, status: 'MAYBE' },
+        { playerId: players[5].id, status: 'MAYBE' },
+        { playerId: players[7].id, status: 'NO' },
+    ];
+    for (const rsvp of clashRsvps) {
+        await prisma.rSVP.create({ data: { tournamentId: summerClash.id, ...rsvp } });
+    }
     console.log('✓ Planned tournament: Summer Clash 2026');
 
     // 8. Simulated Chat Messages

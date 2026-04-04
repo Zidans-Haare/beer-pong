@@ -151,6 +151,35 @@
     "unknownDate": "Datum unbekannt",
     "aboutMe": "Über mich"
   },
+  "paceStats": {
+    "title": "Spieltempo",
+    "playStyle": "Spielstil",
+    "formula": "Formel",
+    "avgMatchTime": "Avg. Spielzeit",
+    "fastest": "Schnellster",
+    "slowest": "Längster",
+    "formulaTitle": "Spieltempo-Berechnung",
+    "avgLabel": "Ø Spielzeit",
+    "avgFormula": "Σ Matchdauern / {count} Spiele",
+    "globalAvg": "Globaler Ø",
+    "globalAvgFormula": "Ø aller Spieler (nur Liga)",
+    "ratio": "Verhältnis",
+    "classification": "Klassifizierung",
+    "youAreHere": "← du",
+    "labels": {
+      "Blitzschnell": "Blitzschnell",
+      "Schnellspieler": "Schnellspieler",
+      "Normal": "Normal",
+      "Genießer": "Genießer",
+      "Unbekannt": "Unbekannt"
+    },
+    "conditions": {
+      "Blitzschnell": "< 70% des Durchschnitts",
+      "Schnellspieler": "70–90% des Durchschnitts",
+      "Normal": "90–110% des Durchschnitts",
+      "Genießer": "> 110% des Durchschnitts"
+    }
+  },
   "join": {
     "title": "Turnier beitreten",
     "subtitle": "Gib den 6-stelligen Code ein oder scanne den QR-Code",

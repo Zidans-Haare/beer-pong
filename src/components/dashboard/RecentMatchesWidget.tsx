@@ -1,7 +1,8 @@
 
 import { prisma } from '@/lib/prisma';
 import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
+import { getTranslations } from 'next-intl/server';
 
 async function getRecentMatches() {
     return await prisma.match.findMany({
@@ -27,14 +28,14 @@ function getDisplayName(player: any, team: any) {
 }
 
 export default async function RecentMatchesWidget() {
-    const matches = await getRecentMatches();
+    const [matches, t] = await Promise.all([getRecentMatches(), getTranslations('home')]);
 
     if (matches.length === 0) return null;
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
             <div className="widget-header">
-                <span className="widget-title">Letzte Spiele</span>
+                <span className="widget-title">{t('recentMatches')}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-4)' }}>
@@ -90,7 +91,7 @@ export default async function RecentMatchesWidget() {
                                     {match.score1} : {match.score2}
                                 </div>
                                 <span style={{ fontSize: '0.65rem', color: 'var(--color-text-dim)' }}>
-                                    {formatDistanceToNow(new Date(match.updatedAt), { addSuffix: true, locale: de })}
+                                    {formatDistanceToNow(new Date(match.updatedAt), { addSuffix: true, locale: enUS })}
                                 </span>
                             </div>
 

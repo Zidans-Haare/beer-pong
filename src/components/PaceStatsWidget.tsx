@@ -6,61 +6,64 @@ import { Zap, Timer, Hourglass, Coffee, Sigma, X } from 'lucide-react';
 import type { PlayerPaceStats } from '@/lib/duration-utils';
 import { formatDuration } from '@/lib/duration-utils';
 import FormulaRow from '@/components/FormulaRow';
+import { useTranslations } from 'next-intl';
 
-const paceIconMap: Record<string, React.ElementType> = {
+type PaceKey = 'Blitzschnell' | 'Schnellspieler' | 'Normal' | 'Genießer' | 'Unbekannt';
+
+const paceIconMap: Record<PaceKey, React.ElementType> = {
     Blitzschnell: Zap,
     Schnellspieler: Timer,
     Normal: Hourglass,
     Genießer: Coffee,
+    Unbekannt: Timer,
 };
 
-const paceThresholds = [
-    { label: 'Blitzschnell', condition: '< 70% des Durchschnitts', factor: 0.7, color: '#06b6d4' },
-    { label: 'Schnellspieler', condition: '70–90% des Durchschnitts', factor: 0.9, color: '#22c55e' },
-    { label: 'Normal', condition: '90–110% des Durchschnitts', factor: 1.1, color: 'var(--color-text-dim)' },
-    { label: 'Genießer', condition: '> 110% des Durchschnitts', factor: null, color: '#f97316' },
-];
+const paceColors: Record<PaceKey, string> = {
+    Blitzschnell: '#06b6d4',
+    Schnellspieler: '#22c55e',
+    Normal: 'var(--color-text-dim)',
+    Genießer: '#f97316',
+    Unbekannt: 'var(--color-text-dim)',
+};
+
+const paceOrder: PaceKey[] = ['Blitzschnell', 'Schnellspieler', 'Normal', 'Genießer'];
 
 interface Props {
     paceStats: PlayerPaceStats;
 }
 
 export default function PaceStatsWidget({ paceStats }: Props) {
+    const t = useTranslations('paceStats');
     const [showFormula, setShowFormula] = useState(false);
 
-    const PaceIcon = paceIconMap[paceStats.paceLabel] ?? Timer;
+    const paceKey = paceStats.paceLabel as PaceKey;
+    const PaceIcon = paceIconMap[paceKey] ?? Timer;
+    const paceColor = paceColors[paceKey] ?? 'var(--color-primary)';
     const globalAvg = paceStats.globalAvgDuration ?? 720;
     const ratio = globalAvg > 0 ? (paceStats.averageDuration / globalAvg) : 1;
     const ratioPercent = Math.round(ratio * 100);
 
-    const activeThreshold = paceThresholds.find(t => t.label === paceStats.paceLabel);
-
     return (
         <div style={{ marginTop: 'var(--spacing-6)', width: '100%' }}>
             <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                <PaceIcon size={18} /> Spieltempo
+                <PaceIcon size={18} /> {t('title')}
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-4)' }}>
                 {/* PaceLabel card — clickable */}
-                <button
-                    onClick={() => setShowFormula(v => !v)}
-                    style={{ all: 'unset', cursor: 'pointer', display: 'block' }}
-                >
+                <button onClick={() => setShowFormula(v => !v)} style={{ all: 'unset', cursor: 'pointer', display: 'block' }}>
                     <div className="glass-panel" style={{
                         padding: 'var(--spacing-4)',
                         textAlign: 'center',
                         transition: 'all 0.2s ease',
-                        background: showFormula
-                            ? 'linear-gradient(135deg, rgba(190,35,213,0.10) 0%, rgba(147,51,234,0.05) 100%)'
-                            : undefined,
+                        background: showFormula ? 'linear-gradient(135deg, rgba(190,35,213,0.10) 0%, rgba(147,51,234,0.05) 100%)' : undefined,
                         border: showFormula ? '1px solid rgba(190,35,213,0.30)' : undefined,
                     }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: activeThreshold?.color ?? 'var(--color-primary)' }}>
-                            {paceStats.paceLabel}
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: paceColor }}>
+                            {t(`labels.${paceKey}`)}
                         </div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
-                            Spielstil
+                            {t('playStyle')}
                         </div>
                         <div style={{
                             marginTop: '6px',
@@ -69,7 +72,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                             color: showFormula ? 'var(--color-primary)' : 'var(--color-text-subtle)',
                             transition: 'color 0.2s',
                         }}>
-                            <Sigma size={11} /> Formel
+                            <Sigma size={11} /> {t('formula')}
                         </div>
                     </div>
                 </button>
@@ -80,7 +83,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                         {formatDuration(paceStats.averageDuration)}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)' }}>
-                        Avg. Spielzeit
+                        {t('avgMatchTime')}
                     </div>
                 </div>
             </div>
@@ -91,13 +94,13 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ECDC4' }}>
                         {formatDuration(paceStats.fastestMatch)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Schnellster</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{t('fastest')}</div>
                 </div>
                 <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#FF6B6B' }}>
                         {formatDuration(paceStats.slowestMatch)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Längster</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{t('slowest')}</div>
                 </div>
             </div>
 
@@ -121,37 +124,30 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Sigma size={15} color="var(--color-primary)" />
                                     <span style={{ fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
-                                        Spieltempo-Berechnung
+                                        {t('formulaTitle')}
                                     </span>
                                 </div>
-                                <button
-                                    onClick={() => setShowFormula(false)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-subtle)', padding: '2px', display: 'flex' }}
-                                >
+                                <button onClick={() => setShowFormula(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-subtle)', padding: '2px', display: 'flex' }}>
                                     <X size={14} />
                                 </button>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                {/* Step 1: avg duration */}
                                 <FormulaRow
-                                    label="Ø Spielzeit"
-                                    formula={`Σ Matchdauern / ${paceStats.totalMatches} Spiele`}
+                                    label={t('avgLabel')}
+                                    formula={t('avgFormula', { count: paceStats.totalMatches })}
                                     result={formatDuration(paceStats.averageDuration)}
                                 />
-                                {/* Step 2: global avg */}
                                 <FormulaRow
-                                    label="Globaler Ø"
-                                    formula="Ø aller Spieler (nur Liga)"
+                                    label={t('globalAvg')}
+                                    formula={t('globalAvgFormula')}
                                     result={formatDuration(globalAvg)}
                                 />
-                                {/* Step 3: ratio */}
                                 <FormulaRow
-                                    label="Verhältnis"
+                                    label={t('ratio')}
                                     formula={`${formatDuration(paceStats.averageDuration)} / ${formatDuration(globalAvg)} × 100`}
                                     result={`${ratioPercent}%`}
                                 />
-                                {/* Step 4: classification */}
                                 <div style={{
                                     marginTop: '8px',
                                     padding: '8px',
@@ -160,22 +156,22 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                     borderTop: '1px solid rgba(190,35,213,0.15)',
                                 }}>
                                     <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                                        Klassifizierung
+                                        {t('classification')}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                        {paceThresholds.map(t => (
-                                            <div key={t.label} style={{
+                                        {paceOrder.map(key => (
+                                            <div key={key} style={{
                                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                                 padding: '3px 6px',
                                                 borderRadius: '4px',
-                                                background: t.label === paceStats.paceLabel ? 'rgba(190,35,213,0.10)' : 'transparent',
-                                                fontWeight: t.label === paceStats.paceLabel ? 700 : 400,
+                                                background: key === paceKey ? 'rgba(190,35,213,0.10)' : 'transparent',
+                                                fontWeight: key === paceKey ? 700 : 400,
                                             }}>
                                                 <span style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>
-                                                    {t.condition}
+                                                    {t(`conditions.${key}`)}
                                                 </span>
-                                                <span style={{ fontSize: '0.8rem', color: t.label === paceStats.paceLabel ? (activeThreshold?.color ?? 'var(--color-primary)') : 'var(--color-text-subtle)' }}>
-                                                    {t.label} {t.label === paceStats.paceLabel ? '← du' : ''}
+                                                <span style={{ fontSize: '0.8rem', color: key === paceKey ? (paceColors[key] ?? 'var(--color-primary)') : 'var(--color-text-subtle)' }}>
+                                                    {t(`labels.${key}`)} {key === paceKey ? t('youAreHere') : ''}
                                                 </span>
                                             </div>
                                         ))}
@@ -189,4 +185,3 @@ export default function PaceStatsWidget({ paceStats }: Props) {
         </div>
     );
 }
-

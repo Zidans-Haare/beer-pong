@@ -32,7 +32,9 @@
     "noActiveTournament": "Kein aktives Turnier.",
     "startTournament": "Turnier Starten",
     "matchesPreparing": "Matches werden vorbereitet…",
-    "goToTournament": "Zum Turnier"
+    "goToTournament": "Zum Turnier",
+    "recentMatches": "Letzte Spiele",
+    "gameLabel": "Spiel {n}"
   },
   "tournaments": {
     "title": "Turniere",
@@ -150,6 +152,35 @@
     "noTournaments": "Noch keine Turniere gespielt.",
     "unknownDate": "Datum unbekannt",
     "aboutMe": "Über mich"
+  },
+  "paceStats": {
+    "title": "Spieltempo",
+    "playStyle": "Spielstil",
+    "formula": "Formel",
+    "avgMatchTime": "Avg. Spielzeit",
+    "fastest": "Schnellster",
+    "slowest": "Längster",
+    "formulaTitle": "Spieltempo-Berechnung",
+    "avgLabel": "Ø Spielzeit",
+    "avgFormula": "Σ Matchdauern / {count} Spiele",
+    "globalAvg": "Globaler Ø",
+    "globalAvgFormula": "Ø aller Spieler (nur Liga)",
+    "ratio": "Verhältnis",
+    "classification": "Klassifizierung",
+    "youAreHere": "← du",
+    "labels": {
+      "Blitzschnell": "Blitzschnell",
+      "Schnellspieler": "Schnellspieler",
+      "Normal": "Normal",
+      "Genießer": "Genießer",
+      "Unbekannt": "Unbekannt"
+    },
+    "conditions": {
+      "Blitzschnell": "< 70% des Durchschnitts",
+      "Schnellspieler": "70–90% des Durchschnitts",
+      "Normal": "90–110% des Durchschnitts",
+      "Genießer": "> 110% des Durchschnitts"
+    }
   },
   "join": {
     "title": "Turnier beitreten",
@@ -422,7 +453,8 @@
   "participants": {
     "available": "Verfügbare Spieler",
     "participants": "Teilnehmer",
-    "none": "Noch keine Teilnehmer. Teile den Link!"
+    "none": "Noch keine Teilnehmer. Teile den Link!",
+    "maybe": "Vielleicht"
   },
   "install": {
     "prompt": "Du nutzt die App noch nicht?",
@@ -466,6 +498,13 @@
     "groupRound": "Gruppenphase – Runde {round}",
     "koRound": "K.O.-Runde {round}"
   },
+  "liveTicker": {
+    "commentary": "AI Kommentator",
+    "scoreUpdate": "Update",
+    "matchEnd": "Ergebnis",
+    "info": "Info",
+    "noEvents": "Noch keine Ereignisse…"
+  },
   "liveInfo": {
     "end": "Ende",
     "formula": "Formel",
@@ -484,6 +523,34 @@
     "parallelFormula": "× 0.8 (Matches überlappen sich)",
     "netTime": "Restzeit netto",
     "endLabel": "Ende"
+  },
+  "lobbyDuration": {
+    "estimatedDuration": "Prognostizierte Dauer",
+    "formula": "Formel",
+    "forParticipants": "bei {count} Teilnehmern",
+    "estimatedEnd": "Voraussichtliches Ende",
+    "ifOnTime": "wenn es pünktlich losgeht",
+    "ifNow": "wenn es jetzt losgeht",
+    "table": "Tisch",
+    "tables": "Tische",
+    "players": "Spieler",
+    "total": "Gesamt",
+    "round": "Runde {n}",
+    "titles": {
+      "elimination": "K.O.-Simulation",
+      "roundRobin": "Jeder-gegen-Jeden",
+      "groups": "Gruppen + K.O.",
+      "estimate": "Schätzung"
+    },
+    "labels": {
+      "totalMatches": "Spiele gesamt",
+      "maxParallel": "Max. parallel",
+      "parallelRounds": "Parallele Runden",
+      "groupA": "Gruppe A",
+      "groupB": "Gruppe B",
+      "groupStage": "Gruppenphase",
+      "koPhase": "K.O.-Phase"
+    }
   },
   "successModal": {
     "title": "Turnier erfolgreich erstellt!",
@@ -519,7 +586,22 @@
     "skip": "Überspringen"
   },
   "bringList": {
-    "title": "Mitbringliste"
+    "title": "Mitbringliste",
+    "less": "Weniger",
+    "more": "Mehr",
+    "remove": "Entfernen",
+    "iWillBring": "Ich",
+    "loginRequired": "Login nötig",
+    "nobodyYet": "Noch niemand",
+    "you": "Du",
+    "addCustom": "Eigenes hinzufügen",
+    "customPlaceholder": "z.B. Snacks, Eis…",
+    "categories": {
+      "BEER": "Bier",
+      "TABLES": "Tische",
+      "CUPS": "Becher",
+      "BALLS": "Bälle"
+    }
   },
   "offline": {
     "title": "Du bist offline",

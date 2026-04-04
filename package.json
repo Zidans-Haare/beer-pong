@@ -18,7 +18,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "setup": "node scripts/setup/index.js",
-    "update": "bash scripts/update.sh"
+    "update": "bash scripts/update.sh",
+    "seed": "npx tsx prisma/seed.ts",
+    "seed:demo": "npx tsx prisma/seed-demo.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

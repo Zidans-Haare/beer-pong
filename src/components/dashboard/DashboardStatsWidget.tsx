@@ -4,8 +4,10 @@ import { PlayerStats } from '@/lib/stats';
 import { useMemo, useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Trophy } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }) {
+    const t = useTranslations('home');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -69,7 +71,7 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
                                     const pName = props.payload[`name${pIndex + 1}`];
                                     return [`${value}%`, pName];
                                 }}
-                                labelFormatter={(label) => `Spiel ${label}`}
+                                labelFormatter={(label) => t('gameLabel', { n: label })}
                             />
                             {/* Player 1 Area */}
                             {topPlayers[0] && (

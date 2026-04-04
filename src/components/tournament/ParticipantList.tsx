@@ -17,11 +17,12 @@ interface Guest {
 
 interface Props {
     players: Player[];
+    maybePlayers?: Player[];
     guests: Guest[];
     isTeamMode: boolean;
 }
 
-export default function ParticipantList({ players, guests, isTeamMode }: Props) {
+export default function ParticipantList({ players, maybePlayers = [], guests, isTeamMode }: Props) {
     const totalCount = players.length + guests.length;
     const t = useTranslations('participants');
 
@@ -76,23 +77,35 @@ export default function ParticipantList({ players, guests, isTeamMode }: Props) 
                             isGuest={true}
                         />
                     ))}
+
+                    {maybePlayers.map((player) => (
+                        <ParticipantCard
+                            key={player.id}
+                            name={player.name}
+                            image={player.image}
+                            isGuest={false}
+                            isMaybe={true}
+                            maybeLabel={t('maybe')}
+                        />
+                    ))}
                 </div>
             )}
         </section>
     );
 }
 
-function ParticipantCard({ name, image, isGuest }: { name: string; image?: string | null; isGuest: boolean }) {
+function ParticipantCard({ name, image, isGuest, isMaybe, maybeLabel }: { name: string; image?: string | null; isGuest: boolean; isMaybe?: boolean; maybeLabel?: string }) {
     return (
         <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-2) var(--spacing-3)',
-            background: isGuest ? 'rgba(155, 89, 182, 0.08)' : 'var(--color-surface-hover)',
-            border: `1px solid ${isGuest ? 'rgba(155, 89, 182, 0.3)' : 'var(--color-border)'}`,
+            background: isGuest ? 'rgba(155, 89, 182, 0.08)' : isMaybe ? 'rgba(255, 165, 0, 0.06)' : 'var(--color-surface-hover)',
+            border: `1px solid ${isGuest ? 'rgba(155, 89, 182, 0.3)' : isMaybe ? 'rgba(255, 165, 0, 0.35)' : 'var(--color-border)'}`,
             borderRadius: 'var(--radius-md)',
-            fontSize: '0.85rem'
+            fontSize: '0.85rem',
+            opacity: isMaybe ? 0.85 : 1,
         }}>
             <Avatar
                 src={isGuest ? null : image}
@@ -105,13 +118,13 @@ function ParticipantCard({ name, image, isGuest }: { name: string; image?: strin
                 {name}
             </span>
             {isGuest && (
-                <span style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    color: '#9b59b6',
-                    marginLeft: 'auto'
-                }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#9b59b6', marginLeft: 'auto' }}>
                     GAST
+                </span>
+            )}
+            {isMaybe && (
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'orange', marginLeft: 'auto' }}>
+                    ?
                 </span>
             )}
         </div>

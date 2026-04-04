@@ -49,6 +49,10 @@ export const viewport = {
 
 import { auth } from '@/auth';
 import { DrunkModeProvider } from '@/context/DrunkModeContext';
+import { isDemoMode } from '@/lib/demo';
+import DemoBanner from '@/components/DemoBanner';
+import DemoCtaPopup from '@/components/DemoCtaPopup';
+import DemoAlertOverride from '@/components/DemoAlertOverride';
 
 export default async function RootLayout({
   children,
@@ -78,6 +82,7 @@ export default async function RootLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
         <DrunkModeProvider>
+        {isDemoMode && <DemoBanner />}
         <div className="layout-shell">
           <Navbar />
           {/* Sidebar/Nav will go here later */}
@@ -90,6 +95,8 @@ export default async function RootLayout({
           <ServiceWorkerUpdate />
           <OfflineIndicator />
           <ServiceWorkerProvider />
+          {isDemoMode && <DemoCtaPopup />}
+        {isDemoMode && <DemoAlertOverride />}
         </div>
         </DrunkModeProvider>
         </NextIntlClientProvider>

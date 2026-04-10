@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { de } from 'date-fns/locale';
 import { MapPin, Calendar, Users, User, Trophy, Sparkles, Copy, Check, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import TournamentQRCode from '@/components/TournamentQRCode';
@@ -188,7 +188,7 @@ export default function TournamentHeader({
             }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={15} style={{ opacity: 0.7 }} />
-                    {format(new Date(tournament.date), "EEEE, MMMM d 'at' h:mm a", { locale: enUS })}
+                    {format(new Date(tournament.date), "EEEE, dd. MMMM 'um' HH:mm 'Uhr'", { locale: de })}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <MapPin size={15} style={{ opacity: 0.7 }} />

@@ -6,6 +6,7 @@ import ServiceWorkerUpdate from '@/components/ServiceWorkerUpdate';
 import ClientLayout from '@/components/ClientLayout';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
+import PWATracker from '@/components/PWATracker';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -95,6 +96,7 @@ export default async function RootLayout({
           <ServiceWorkerUpdate />
           <OfflineIndicator />
           <ServiceWorkerProvider />
+          <PWATracker />
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>

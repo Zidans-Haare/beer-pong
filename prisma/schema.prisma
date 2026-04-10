@@ -107,6 +107,7 @@ model User {
   notifyNewTournaments Boolean            @default(true)
   notifyUpdates        Boolean            @default(true)
   notifyLiveTicker     Boolean            @default(true)
+  pwaInstalled         Boolean            @default(false)
   accounts             Account[]
   bringItems           BringItem[]
   chatMessages         ChatMessage[]

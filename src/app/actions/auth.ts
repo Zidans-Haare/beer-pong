@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signIn } from '@/auth';
+import { signIn, auth } from '@/auth';
 import { AuthError } from 'next-auth';
 import { createNotificationForUser } from '@/app/actions/notifications';
 import { headers } from 'next/headers';
@@ -140,5 +140,20 @@ export async function authenticate(prevState: string | undefined, formData: Form
             }
         }
         throw error;
+    }
+}
+
+export async function updatePwaStatus(installed: boolean) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+
+    try {
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: { pwaInstalled: installed }
+        });
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Failed to update PWA status' };
     }
 }

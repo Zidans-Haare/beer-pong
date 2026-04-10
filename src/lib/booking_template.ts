@@ -11,6 +11,8 @@ export const getBookingTemplate = (
 <!doctype html>
 <html lang="de" xmlns="http://www.w3.org/1999/xhtml">
  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link  href="https://www.booking.com/confirmationmg.de.html" rel="canonical" />
   <title>🛄 Danke! Ihre Buchung ist bestätigt: ${hostName} (Privatzimmer) </title>
   <link  href="https://r-xx.bstatic.com/static/img/favicon.ico" rel="shortcut icon" />

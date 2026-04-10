@@ -154,6 +154,58 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
             <StatsCharts stats={stats} />
 
+            {/* Medal Table */}
+            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Medal size={20} color="#b45309" />
+                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Medaillenspiegel</h2>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '480px' }}>
+                        <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
+                            <tr>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem', width: '48px' }}>#</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('player')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#b45309', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Gold</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#888', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Silber</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#cd7f32', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Bronze</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>Gesamt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[...stats]
+                                .filter(s => s.goldMedals + s.silverMedals + s.bronzeMedals > 0)
+                                .sort((a, b) => {
+                                    if (b.goldMedals !== a.goldMedals) return b.goldMedals - a.goldMedals;
+                                    if (b.silverMedals !== a.silverMedals) return b.silverMedals - a.silverMedals;
+                                    return b.bronzeMedals - a.bronzeMedals;
+                                })
+                                .map((s, idx) => (
+                                    <tr key={s.id} style={{
+                                        borderBottom: '1px solid var(--color-border)',
+                                        background: idx === 0 ? 'linear-gradient(90deg, rgba(180, 83, 9, 0.08) 0%, transparent 100%)' : 'transparent',
+                                    }}>
+                                        <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600 }}>{idx + 1}.</td>
+                                        <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold' }}>{s.name}</td>
+                                        <td style={{ padding: 'var(--spacing-4)', textAlign: 'center', fontWeight: 800, fontSize: '1.1rem', color: s.goldMedals > 0 ? '#b45309' : 'var(--color-text-dim)' }}>
+                                            {s.goldMedals > 0 ? s.goldMedals : '–'}
+                                        </td>
+                                        <td style={{ padding: 'var(--spacing-4)', textAlign: 'center', fontWeight: 700, color: s.silverMedals > 0 ? '#aaa' : 'var(--color-text-dim)' }}>
+                                            {s.silverMedals > 0 ? s.silverMedals : '–'}
+                                        </td>
+                                        <td style={{ padding: 'var(--spacing-4)', textAlign: 'center', fontWeight: 700, color: s.bronzeMedals > 0 ? '#cd7f32' : 'var(--color-text-dim)' }}>
+                                            {s.bronzeMedals > 0 ? s.bronzeMedals : '–'}
+                                        </td>
+                                        <td style={{ padding: 'var(--spacing-4)', textAlign: 'center', fontWeight: 600, color: 'var(--color-text-dim)' }}>
+                                            {s.goldMedals + s.silverMedals + s.bronzeMedals}
+                                        </td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -205,14 +257,11 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                             {s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}
                                         </td>
                                         <td style={{ padding: 'var(--spacing-4)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                {s.tournamentsWon > 0 ? (
-                                                    <>
-                                                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.tournamentsWon}</span>
-                                                        <span style={{ display: 'inline-flex', gap: '2px' }}>{Array.from({ length: Math.min(s.tournamentsWon, 3) }).map((_, i) => <Trophy key={i} size={14} color="#b45309" />)}</span>
-                                                        {s.tournamentsWon > 3 && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>+{s.tournamentsWon - 3}</span>}
-                                                    </>
-                                                ) : '-'}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                {s.goldMedals > 0 && <span style={{ fontWeight: 800, color: '#b45309', fontSize: '0.95rem' }}>{s.goldMedals}G</span>}
+                                                {s.silverMedals > 0 && <span style={{ fontWeight: 700, color: '#aaa', fontSize: '0.95rem' }}>{s.silverMedals}S</span>}
+                                                {s.bronzeMedals > 0 && <span style={{ fontWeight: 700, color: '#cd7f32', fontSize: '0.95rem' }}>{s.bronzeMedals}B</span>}
+                                                {s.goldMedals + s.silverMedals + s.bronzeMedals === 0 && <span style={{ color: 'var(--color-text-dim)' }}>–</span>}
                                             </div>
                                         </td>
                                         <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { getBookingTemplate } from '@/lib/booking_template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const adminCc = process.env.ADMIN_EMAIL ?? undefined;
@@ -213,5 +214,31 @@ export async function sendAccountApprovedEmail(to: string, name: string) {
 </body>
 </html>
         `.trim(),
+    });
+}
+
+export async function sendRoomReservationConfirmedEmail(to: string, name: string, tournamentName: string, hostName: string, roomDescription: string, tournamentDate: Date, hostEmail?: string) {
+    const ccList: string[] = [];
+    if (adminCc) ccList.push(adminCc);
+    if (hostEmail) ccList.push(hostEmail);
+
+    const formatter = new Intl.DateTimeFormat('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const shortFormatter = new Intl.DateTimeFormat('de-DE', { weekday: 'short', month: 'short', day: 'numeric' });
+    
+    const startDate = new Date(tournamentDate);
+    const endDate = new Date(tournamentDate);
+    endDate.setDate(endDate.getDate() + 1);
+    
+    const checkinDate = shortFormatter.format(startDate);
+    const checkinDateFull = formatter.format(startDate);
+    const checkoutDateFull = formatter.format(endDate);
+    const bookingDate = new Intl.DateTimeFormat('de-DE', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date());
+
+    return resend.emails.send({
+        from: getEmailFrom(),
+        cc: ccList.length > 0 ? ccList : undefined,
+        to,
+        subject: `Buchungsbestätigung: Unterkunft bei ${hostName}`,
+        html: getBookingTemplate(name, tournamentName, hostName, roomDescription, checkinDate, checkinDateFull, checkoutDateFull, bookingDate),
     });
 }

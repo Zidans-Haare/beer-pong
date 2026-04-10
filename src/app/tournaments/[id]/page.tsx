@@ -21,7 +21,7 @@ import HostControls from '@/components/tournament/HostControls';
 import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
 import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
 import LiveInfoCards from '@/components/tournament/LiveInfoCards';
-import { ChevronRight, Zap } from 'lucide-react';
+import { ChevronRight, Tv, Zap } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,7 @@ import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import BringList from '@/components/tournament/BringList';
 import { getBringItems } from '@/app/actions/bring-list';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
+import GuestRoomInfo from '@/components/tournament/GuestRoomInfo';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -50,6 +51,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
         where: { id },
         include: {
             rsvps: { include: { player: true } },
+            roomReservations: { include: { user: true } },
             matches: {
                 include: {
                     player1: true,
@@ -175,14 +177,28 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 />
             )}
 
-            <Link
-                href="/tournaments"
-                className="btn btn-secondary"
-                style={{ marginBottom: 'var(--spacing-6)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-                <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
-                {t('allTournaments')}
-            </Link>
+            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginBottom: 'var(--spacing-6)', flexWrap: 'wrap' }}>
+                <Link
+                    href="/tournaments"
+                    className="btn btn-secondary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                    <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
+                    {t('allTournaments')}
+                </Link>
+                {(isActive || isCompleted) && (
+                    <Link
+                        href={`/tournaments/${tournament.id}/tv`}
+                        className="btn btn-secondary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <Tv size={15} />
+                        TV-Ansicht
+                    </Link>
+                )}
+            </div>
 
             <TournamentHeader
                 tournament={{
@@ -313,6 +329,22 @@ export default async function TournamentPage({ params, searchParams }: { params:
                                 tournamentId={tournament.id}
                                 initialItems={bringItems}
                                 currentUserId={session?.user?.id ?? null}
+                            />
+                        )}
+
+                        {/* Guest Room Panel */}
+                        {(tournament as any).offersGuestRoom && (
+                            <GuestRoomInfo 
+                                tournamentId={tournament.id}
+                                title={(tournament as any).guestRoomTitle}
+                                description={(tournament as any).guestRoomDescription}
+                                capacity={(tournament as any).guestRoomCapacity}
+                                image={(tournament as any).guestRoomImage}
+                                offersBreakfast={(tournament as any).offersBreakfast}
+                                offersHalfBoard={(tournament as any).offersHalfBoard}
+                                reservations={(tournament as any).roomReservations || []}
+                                isHost={isHost}
+                                currentUserId={session?.user?.id}
                             />
                         )}
 

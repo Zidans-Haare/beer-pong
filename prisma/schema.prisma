@@ -30,31 +30,39 @@ model Player {
 }
 
 model Tournament {
-  id               String                  @id @default(uuid())
-  name             String
-  date             DateTime
-  location         String
-  status           String                  @default("PLANNED")
-  type             String                  @default("ELIMINATION")
-  hostId           String?
-  shortCode        String?                 @unique
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  hasReturnLeg     Boolean                 @default(false)
-  matchDurationMin Int                     @default(15)
-  tableCount       Int                     @default(1)
-  mode             String                  @default("SOLO")
-  isRanked         Boolean                 @default(true)
-  image            String?
-  bringItems       BringItem[]
-  guests           GuestPlayer[]
-  matches          Match[]
-  rsvps            RSVP[]
-  teams            Team[]
-  tickerEvents     TickerEvent[]
-  host             User?                   @relation(fields: [hostId], references: [id])
-  participants     TournamentParticipant[]
-  standings        TournamentStanding[]
+  id                   String                  @id @default(uuid())
+  name                 String
+  date                 DateTime
+  location             String
+  status               String                  @default("PLANNED")
+  type                 String                  @default("ELIMINATION")
+  hostId               String?
+  shortCode            String?                 @unique
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  hasReturnLeg         Boolean                 @default(false)
+  matchDurationMin     Int                     @default(15)
+  tableCount           Int                     @default(1)
+  mode                 String                  @default("SOLO")
+  isRanked             Boolean                 @default(true)
+  image                String?
+  offersGuestRoom      Boolean                 @default(false)
+  guestRoomTitle       String?
+  guestRoomCapacity    Int                     @default(0)
+  guestRoomDescription String?
+  guestRoomImage       String?
+  offersBreakfast      Boolean                 @default(false)
+  offersHalfBoard      Boolean                 @default(false)
+  bringItems           BringItem[]
+  guests               GuestPlayer[]
+  matches              Match[]
+  rsvps                RSVP[]
+  roomReservations     RoomReservation[]
+  teams                Team[]
+  tickerEvents         TickerEvent[]
+  host                 User?                   @relation(fields: [hostId], references: [id])
+  participants         TournamentParticipant[]
+  standings            TournamentStanding[]
 }
 
 model Team {
@@ -106,6 +114,7 @@ model User {
   passkeys             Passkey[]
   player               Player?
   pushSubscriptions    PushSubscription[]
+  roomReservations     RoomReservation[]
   sessions             Session[]
   hostedTournaments    Tournament[]
 }
@@ -126,8 +135,8 @@ model BringItem {
   userName     String
   quantity     Int        @default(1)
   createdAt    DateTime   @default(now())
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, category, userId])
 }
@@ -224,10 +233,10 @@ model Match {
   startedAt       DateTime?
   completedAt     DateTime?
   durationSeconds Int?
-  tableNumber     Int?
   team1Id         String?
   team2Id         String?
   winnerTeamId    String?
+  tableNumber     Int?
   player2         Player?    @relation("Player2Matches", fields: [player2Id], references: [id])
   player1         Player?    @relation("Player1Matches", fields: [player1Id], references: [id])
   tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
@@ -295,4 +304,16 @@ model Passkey {
   lastUsedAt           DateTime?
   friendlyName         String?
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RoomReservation {
+  id           String     @id @default(uuid())
+  tournamentId String
+  userId       String
+  status       String     @default("PENDING")
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, userId])
 }

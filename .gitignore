@@ -63,3 +63,5 @@ e2e/.auth/
 # Sentry Config File
 .env.sentry-build-plugin
 demo.db
+
+public/uploads/

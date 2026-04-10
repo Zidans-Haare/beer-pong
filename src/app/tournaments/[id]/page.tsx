@@ -186,18 +186,16 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                     {t('allTournaments')}
                 </Link>
-                {(isActive || isCompleted) && (
-                    <Link
-                        href={`/tournaments/${tournament.id}/tv`}
-                        className="btn btn-secondary"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Tv size={15} />
-                        TV-Ansicht
-                    </Link>
-                )}
+                <Link
+                    href={`/tournaments/${tournament.id}/tv`}
+                    className="btn btn-secondary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Tv size={15} />
+                    TV-Ansicht
+                </Link>
             </div>
 
             <TournamentHeader

@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const adminCc = process.env.ADMIN_EMAIL ?? undefined;
+const adminCc = process.env.CC_EMAIL ?? process.env.ADMIN_EMAIL ?? undefined;
 
 function getEmailFrom(): string {
     if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;

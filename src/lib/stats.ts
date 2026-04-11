@@ -34,9 +34,6 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
                 },
                 orderBy: { round: 'asc' },
             },
-            standings: {
-                orderBy: [{ points: 'desc' }, { goalDifference: 'desc' }, { goalsFor: 'desc' }],
-            },
         },
     });
 
@@ -58,8 +55,27 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
         const isRR = t.type === 'ROUND_ROBIN' || t.type === 'GROUPS';
 
         if (isRR && !isTeam) {
-            // Solo RR/Groups: use stored standings
-            const s = t.standings;
+            // Solo RR/Groups: compute live from match results (same logic as getTournamentStandings)
+            // Avoids stale stored standings that may not include playoff matches
+            const liveMap = new Map<string, { playerId: string; points: number; cupDiff: number; wins: number }>();
+            for (const m of t.matches as any[]) {
+                if (!m.player1Id || !m.player2Id || !m.winnerId) continue;
+                if (!liveMap.has(m.player1Id)) liveMap.set(m.player1Id, { playerId: m.player1Id, points: 0, cupDiff: 0, wins: 0 });
+                if (!liveMap.has(m.player2Id)) liveMap.set(m.player2Id, { playerId: m.player2Id, points: 0, cupDiff: 0, wins: 0 });
+                const p1 = liveMap.get(m.player1Id)!;
+                const p2 = liveMap.get(m.player2Id)!;
+                const s1 = m.score1 || 0;
+                const s2 = m.score2 || 0;
+                p1.cupDiff += s1 - s2;
+                p2.cupDiff += s2 - s1;
+                if (m.winnerId === m.player1Id) { p1.points += 3; p1.wins++; }
+                else { p2.points += 3; p2.wins++; }
+            }
+            const s = Array.from(liveMap.values()).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.cupDiff !== a.cupDiff) return b.cupDiff - a.cupDiff;
+                return b.wins - a.wins;
+            });
             if (s[0]) add([s[0].playerId], 'gold');
             if (s[1]) add([s[1].playerId], 'silver');
             if (s[2]) add([s[2].playerId], 'bronze');

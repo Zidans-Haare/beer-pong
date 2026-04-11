@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { sendRoomReservationConfirmedEmail } from '@/lib/email';
 
-export async function requestRoom(tournamentId: string) {
+export async function requestRoom(tournamentId: string, wantsBreakfast = false, wantsHalfBoard = false) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Nicht eingeloggt' };
@@ -42,7 +42,9 @@ export async function requestRoom(tournamentId: string) {
             data: {
                 tournamentId: tournamentId,
                 userId: session.user.id,
-                status: 'PENDING'
+                status: 'PENDING',
+                wantsBreakfast,
+                wantsHalfBoard
             }
         });
 

@@ -194,46 +194,55 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
             allMatches = allMatches.slice(-5);
         }
 
+        // Group matches by tournament so each chart data point = one tournament event
+        const tournamentGroups = new Map<string, { date: Date; matches: typeof allMatches }>();
+        for (const m of allMatches) {
+            if (!tournamentGroups.has(m.tournamentId)) {
+                tournamentGroups.set(m.tournamentId, {
+                    date: new Date(m.tournament.date),
+                    matches: [],
+                });
+            }
+            tournamentGroups.get(m.tournamentId)!.matches.push(m);
+        }
+        const sortedGroups = Array.from(tournamentGroups.values())
+            .sort((a, b) => a.date.getTime() - b.date.getTime());
+
         let matchesWon = 0;
         let cupsHit = 0;
         let cupsReceived = 0;
+        let totalMatchCount = 0;
         const history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[] = [];
 
-        allMatches.forEach((m, index) => {
-            const isWinner = m.winnerId === p.id;
-            if (isWinner) matchesWon++;
+        for (const group of sortedGroups) {
+            const groupDurations: number[] = [];
+            for (const m of group.matches) {
+                totalMatchCount++;
+                if (m.winnerId === p.id) matchesWon++;
+                cupsHit += m.isP1 ? (m.score1 || 0) : (m.score2 || 0);
+                cupsReceived += m.isP1 ? (m.score2 || 0) : (m.score1 || 0);
 
-            const myScore = m.isP1 ? m.score1 : m.score2;
-            const oppScore = m.isP1 ? m.score2 : m.score1;
-
-            cupsHit += myScore;
-            cupsReceived += oppScore;
-
-            // Calculate duration in seconds
-            // Priority: durationSeconds -> completedAt - startedAt -> 12 min default (720s)
-            let duration = 0;
-            if (m.durationSeconds) {
-                duration = m.durationSeconds;
-            } else if (m.completedAt && m.startedAt) {
-                const start = new Date(m.startedAt).getTime();
-                const end = new Date(m.completedAt).getTime();
-                duration = Math.floor((end - start) / 1000);
+                let duration = 0;
+                if (m.durationSeconds) {
+                    duration = m.durationSeconds;
+                } else if (m.completedAt && m.startedAt) {
+                    duration = Math.floor((new Date(m.completedAt).getTime() - new Date(m.startedAt).getTime()) / 1000);
+                }
+                if (duration >= 60 && duration <= 1800) groupDurations.push(duration);
             }
-
-            // For the chart: only use real durations. 0 = no real data (will be filtered out in chart)
-            if (duration < 60 || duration > 1800) duration = 0;
-
             history.push({
-                date: new Date(m.updatedAt).toLocaleDateString(),
-                timestamp: new Date(m.updatedAt).getTime(),
-                winRate: Math.round((matchesWon / (index + 1)) * 100),
-                cupsHit: cupsHit,
+                date: group.date.toLocaleDateString(),
+                timestamp: group.date.getTime(),
+                winRate: Math.round((matchesWon / totalMatchCount) * 100),
+                cupsHit,
                 cupDiff: cupsHit - cupsReceived,
-                duration: duration
+                duration: groupDurations.length > 0
+                    ? Math.round(groupDurations.reduce((a, b) => a + b, 0) / groupDurations.length)
+                    : 0,
             });
-        });
+        }
 
-        const matchesPlayed = allMatches.length;
+        const matchesPlayed = totalMatchCount;
 
         // Count tournament wins (1st place finishes)
         let tournamentsWon = 0;

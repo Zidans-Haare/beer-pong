@@ -25,6 +25,7 @@ export async function getUsers() {
                 email: true,
                 image: true,
                 emailVerified: true,
+                pwaInstalled: true,
                 _count: {
                     select: {
                         hostedTournaments: true,

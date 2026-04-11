@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUsers, resetUserPassword, deleteUser } from '@/app/actions/admin';
-import { Search, Key, Trash2 } from 'lucide-react';
+import { Search, Key, Trash2, Smartphone } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import { useTranslations } from 'next-intl';
 
@@ -11,6 +11,7 @@ type User = {
     name: string | null;
     email: string | null;
     image: string | null;
+    pwaInstalled: boolean;
     _count: { hostedTournaments: number };
 };
 
@@ -118,7 +119,10 @@ export default function UsersPage() {
                                                 size={40}
                                             />
                                             <div>
-                                                <div style={{ fontWeight: 500 }}>{user.name}</div>
+                                                <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    {user.name}
+                                                    {user.pwaInstalled && <span title="Nutzt PWA" style={{ display: 'flex' }}><Smartphone size={14} color="var(--color-primary)" /></span>}
+                                                </div>
                                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{user.email}</div>
                                             </div>
                                         </div>

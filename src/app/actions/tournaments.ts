@@ -1,6 +1,9 @@
 'use server';
 
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import fs from 'fs/promises';
+import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { generateSingleEliminationBracket, generateRoundRobinMatches, generateGroupStageMatches } from '@/lib/brackets';
 import { auth } from '@/auth';
@@ -34,6 +37,29 @@ export async function createTournament(formData: FormData) {
     const startImmediately = formData.get('startImmediately') === 'on';
     const mode = (formData.get('mode') as string) || 'SOLO';  // SOLO or TEAM
     const isRanked = formData.get('isRanked') !== 'false';    // Default true
+
+    const offersGuestRoom = formData.get('offersGuestRoom') === 'on' || formData.get('offersGuestRoom') === 'true';
+    const guestRoomTitle = formData.get('guestRoomTitle') as string || null;
+    const guestRoomCapacity = parseInt(formData.get('guestRoomCapacity') as string) || 1;
+    const guestRoomDescription = formData.get('guestRoomDescription') as string || null;
+    const offersBreakfast = formData.get('offersBreakfast') === 'true';
+    const offersHalfBoard = formData.get('offersHalfBoard') === 'true';
+
+    let guestRoomImagePath = null;
+    if (offersGuestRoom) {
+        const guestRoomImageFile = formData.get('guestRoomImage') as File | null;
+        if (guestRoomImageFile && guestRoomImageFile.size > 0) {
+            const bytes = await guestRoomImageFile.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+            const ext = path.extname(guestRoomImageFile.name) || '.jpg';
+            const fileName = `room_${Date.now()}${ext}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            
+            await fs.mkdir(uploadDir, { recursive: true });
+            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            guestRoomImagePath = `/uploads/${fileName}`;
+        }
+    }
 
     const participantIds = formData.getAll('participants') as string[];
 
@@ -88,7 +114,14 @@ export async function createTournament(formData: FormData) {
                     matchDurationMin,
                     tableCount,
                     mode,      // SOLO or TEAM
-                    isRanked   // false for Spaß-Turniere
+                    isRanked,   // false for Spaß-Turniere
+                    offersGuestRoom,
+                    guestRoomTitle,
+                    guestRoomCapacity,
+                    guestRoomDescription,
+                    guestRoomImage: guestRoomImagePath,
+                    offersBreakfast,
+                    offersHalfBoard
                 },
             });
 

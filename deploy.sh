@@ -20,6 +20,21 @@ npx prisma generate
 npx prisma migrate deploy
 echo "Dependencies & Migrationen fertig."
 
+# 2.5 Bump SW CACHE_VERSION
+echo "Bumping Service Worker Cache Version..."
+CURRENT=$(grep "CACHE_VERSION" public/sw.js | grep -oE "[0-9]+")
+if [ -n "$CURRENT" ]; then
+    NEXT=$((CURRENT + 1))
+    if [ "$(uname)" = "Darwin" ]; then
+        sed -i '' "s/CACHE_VERSION = 'v${CURRENT}'/CACHE_VERSION = 'v${NEXT}'/" public/sw.js
+    else
+        sed -i "s/CACHE_VERSION = 'v${CURRENT}'/CACHE_VERSION = 'v${NEXT}'/" public/sw.js
+    fi
+    echo "SW Cache Version bumped to v${NEXT}"
+else
+    echo "Warning: CACHE_VERSION not found in sw.js"
+fi
+
 # 3. Build
 npm run build
 echo "Build fertig."

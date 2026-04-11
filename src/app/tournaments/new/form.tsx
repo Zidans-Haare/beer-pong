@@ -23,7 +23,9 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
     const [tableCount, setTableCount] = useState(1);
     const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));
     const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>(hostPlayerId ? [hostPlayerId] : []);
+    const [guestRoomCapacity, setGuestRoomCapacity] = useState(1);
     const [playerSearch, setPlayerSearch] = useState('');
+    const [offersGuestRoom, setOffersGuestRoom] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -312,6 +314,109 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                     tableCount={tableCount}
                     startDate={startImmediately ? undefined : new Date(customDate)}
                 />
+
+                {/* Gästezimmer (Guest Room) Optional Section */}
+                <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: offersGuestRoom ? 'var(--spacing-3)' : 0 }}>
+                        <div
+                            onClick={() => setOffersGuestRoom(!offersGuestRoom)}
+                            style={{
+                                position: 'relative', width: '40px', height: '24px',
+                                backgroundColor: offersGuestRoom ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                                borderRadius: '24px', cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0
+                            }}>
+                            <div style={{
+                                position: 'absolute', top: '4px', left: '4px', width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%',
+                                transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                                transform: offersGuestRoom ? 'translateX(16px)' : 'translateX(0)', boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                            }} />
+                            {offersGuestRoom && <input type="hidden" name="offersGuestRoom" value="on" />}
+                        </div>
+                        <label style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }} onClick={() => setOffersGuestRoom(!offersGuestRoom)}>
+                            Gästezimmer für Übernachtung anbieten
+                        </label>
+                    </div>
+
+                    {offersGuestRoom && (
+                        <div className="animate-fadeIn" style={{ display: 'grid', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-3)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Zimmername (z.B. Hotel Salzburger Hof)</label>
+                                <input
+                                    type="text"
+                                    name="guestRoomTitle"
+                                    required={offersGuestRoom}
+                                    placeholder="Hotel Mama"
+                                    style={{
+                                        width: '100%', padding: '12px', background: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-md)'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Beschreibung (z.B. Couch, Luftmatratze)</label>
+                                <input
+                                    type="text"
+                                    name="guestRoomDescription"
+                                    required={offersGuestRoom}
+                                    placeholder="Das 5-Sterne Sofa im Wohnzimmer"
+                                    style={{
+                                        width: '100%', padding: '12px', background: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-md)'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Zimmerbild (Optional)</label>
+                                <input
+                                    type="file"
+                                    name="guestRoomImage"
+                                    accept="image/*"
+                                    style={{
+                                        width: '100%', padding: '10px', background: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-md)',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Kapazität (Personen)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setGuestRoomCapacity(Math.max(1, guestRoomCapacity - 1))}
+                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', border: 'none', color: 'var(--color-text)', fontSize: '1.2rem'}}
+                                    >
+                                        -
+                                    </button>
+                                    <input 
+                                        type="text"
+                                        name="guestRoomCapacity"
+                                        value={guestRoomCapacity}
+                                        readOnly
+                                        style={{ width: '40px', background: 'transparent', border: 'none', color: 'inherit', textAlign: 'center', fontWeight: 'bold', fontSize: '1.2rem', outline: 'none', padding: 0, margin: 0 }}
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setGuestRoomCapacity(Math.min(10, guestRoomCapacity + 1))}
+                                        style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', border: 'none', color: 'var(--color-text)', fontSize: '1.2rem'}}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                                    <input type="checkbox" name="offersBreakfast" value="true" />
+                                    Frühstück zubuchbar
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                                    <input type="checkbox" name="offersHalfBoard" value="true" />
+                                    Halbpension zubuchbar
+                                </label>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Player Picker */}
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>

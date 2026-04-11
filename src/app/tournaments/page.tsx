@@ -2,7 +2,7 @@ import { getTournaments } from '@/app/actions/tournaments';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Calendar, MapPin, Gamepad2, Plus, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Gamepad2, Plus, ArrowRight, BedDouble } from 'lucide-react';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import { getTranslations } from 'next-intl/server';
@@ -205,6 +205,12 @@ function TournamentCard({ t, planned, translations }: { t: any; planned?: boolea
                     <Gamepad2 size={16} />
                     <span>{getTournamentTypeLabel(t.type)}</span>
                 </div>
+                {t.offersGuestRoom && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#10b981', fontWeight: 600, marginTop: '4px' }}>
+                        <BedDouble size={16} />
+                        <span>Übernachtung {t.offersBreakfast ? '+ Frühstück' : ''} {t.offersHalfBoard ? '+ HP' : ''}</span>
+                    </div>
+                )}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-4)', display: 'flex', justifyContent: 'flex-end' }}>

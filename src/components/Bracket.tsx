@@ -6,7 +6,7 @@ import MatchEditForm from './MatchEditForm';
 import { getTeamDisplayName } from '@/lib/team-utils';
 import { useTranslations } from 'next-intl';
 
-export default function Bracket({ matches, tableCount }: { matches: any[], tableCount: number }) {
+export default function Bracket({ matches, tableCount, readOnly = false }: { matches: any[], tableCount: number, readOnly?: boolean }) {
     const t = useTranslations('bracket');
     const [editingMatch, setEditingMatch] = useState<any>(null);
 
@@ -100,7 +100,7 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                                         transform: isActive ? 'scale(1.05)' : 'scale(1)',
                                         zIndex: isActive ? 10 : 1
                                     }}
-                                    onClick={() => setEditingMatch(match)}
+                                    onClick={() => !readOnly && setEditingMatch(match)}
                                 >
                                     {isActive && (
                                         <div style={{
@@ -136,7 +136,7 @@ export default function Bracket({ matches, tableCount }: { matches: any[], table
                     </div>
                 ))}
             </div>
-            {editingMatch && <MatchEditForm match={editingMatch} onClose={() => setEditingMatch(null)} />}
+            {!readOnly && editingMatch && <MatchEditForm match={editingMatch} onClose={() => setEditingMatch(null)} />}
         </>
     );
 }

@@ -11,6 +11,113 @@ export interface PlayerStats {
     cupDiff: number; // Total cups hit - Total cups received
     winRate: number;
     history: { date: string; timestamp: number; winRate: number; cupsHit: number; cupDiff: number; duration: number }[];
+    goldMedals: number;
+    silverMedals: number;
+    bronzeMedals: number;
+}
+
+export interface PlayerMedals {
+    gold: number;
+    silver: number;
+    bronze: number;
+}
+
+export async function getPlayerMedals(onlyRanked = true): Promise<Record<string, PlayerMedals>> {
+    const tournaments = await prisma.tournament.findMany({
+        where: { status: 'COMPLETED', ...(onlyRanked ? { isRanked: true } : {}) },
+        include: {
+            matches: {
+                where: { isPlayed: true },
+                include: {
+                    team1: { include: { player1: { select: { id: true } }, player2: { select: { id: true } } } },
+                    team2: { include: { player1: { select: { id: true } }, player2: { select: { id: true } } } },
+                },
+                orderBy: { round: 'asc' },
+            },
+        },
+    });
+
+    const medals: Record<string, PlayerMedals> = {};
+
+    const add = (ids: (string | null | undefined)[], type: keyof PlayerMedals) => {
+        for (const id of ids) {
+            if (!id) continue;
+            if (!medals[id]) medals[id] = { gold: 0, silver: 0, bronze: 0 };
+            medals[id][type]++;
+        }
+    };
+
+    const teamPlayerIds = (team: any): string[] =>
+        [team?.player1?.id, team?.player2?.id].filter(Boolean);
+
+    for (const t of tournaments) {
+        const isTeam = t.mode === 'TEAM';
+        const isRR = t.type === 'ROUND_ROBIN' || t.type === 'GROUPS';
+
+        if (isRR && !isTeam) {
+            // Solo RR/Groups: compute live from match results (same logic as getTournamentStandings)
+            // Avoids stale stored standings that may not include playoff matches
+            const liveMap = new Map<string, { playerId: string; points: number; cupDiff: number; wins: number }>();
+            for (const m of t.matches as any[]) {
+                if (!m.player1Id || !m.player2Id || !m.winnerId) continue;
+                if (!liveMap.has(m.player1Id)) liveMap.set(m.player1Id, { playerId: m.player1Id, points: 0, cupDiff: 0, wins: 0 });
+                if (!liveMap.has(m.player2Id)) liveMap.set(m.player2Id, { playerId: m.player2Id, points: 0, cupDiff: 0, wins: 0 });
+                const p1 = liveMap.get(m.player1Id)!;
+                const p2 = liveMap.get(m.player2Id)!;
+                const s1 = m.score1 || 0;
+                const s2 = m.score2 || 0;
+                p1.cupDiff += s1 - s2;
+                p2.cupDiff += s2 - s1;
+                if (m.winnerId === m.player1Id) { p1.points += 3; p1.wins++; }
+                else { p2.points += 3; p2.wins++; }
+            }
+            const s = Array.from(liveMap.values()).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.cupDiff !== a.cupDiff) return b.cupDiff - a.cupDiff;
+                return b.wins - a.wins;
+            });
+            if (s[0]) add([s[0].playerId], 'gold');
+            if (s[1]) add([s[1].playerId], 'silver');
+            if (s[2]) add([s[2].playerId], 'bronze');
+        } else {
+            // Elimination (solo or team): derive from match results
+            const played = t.matches;
+            if (played.length === 0) continue;
+            const maxRound = Math.max(...played.map((m: any) => m.round));
+            const finals = played.filter((m: any) => m.round === maxRound);
+
+            for (const final of finals as any[]) {
+                if (isTeam) {
+                    if (!final.winnerTeamId) continue;
+                    const winTeam = final.team1Id === final.winnerTeamId ? final.team1 : final.team2;
+                    const loseTeam = final.team1Id === final.winnerTeamId ? final.team2 : final.team1;
+                    add(teamPlayerIds(winTeam), 'gold');
+                    add(teamPlayerIds(loseTeam), 'silver');
+                } else {
+                    add([final.winnerId], 'gold');
+                    const loserId = final.player1Id !== final.winnerId ? final.player1Id : final.player2Id;
+                    add([loserId], 'silver');
+                }
+            }
+
+            // Bronze = semi-final losers (maxRound - 1), only if there's a semi
+            if (maxRound > 1) {
+                const semis = played.filter((m: any) => m.round === maxRound - 1) as any[];
+                for (const semi of semis) {
+                    if (isTeam) {
+                        if (!semi.winnerTeamId) continue;
+                        const loseTeam = semi.team1Id === semi.winnerTeamId ? semi.team2 : semi.team1;
+                        add(teamPlayerIds(loseTeam), 'bronze');
+                    } else {
+                        const loserId = semi.player1Id !== semi.winnerId ? semi.player1Id : semi.player2Id;
+                        add([loserId], 'bronze');
+                    }
+                }
+            }
+        }
+    }
+
+    return medals;
 }
 
 export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';
@@ -22,7 +129,8 @@ export function getPeriodStartDate(period: StatsPeriod): Date | undefined {
     return undefined;
 }
 
-export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all'): Promise<PlayerStats[]> {
+export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all', medals?: Record<string, PlayerMedals>): Promise<PlayerStats[]> {
+    if (!medals) medals = await getPlayerMedals(onlyRanked);
     const since = getPeriodStartDate(period);
     // For 'last5', fetch all and filter per-player afterwards
     const tournamentFilter = {
@@ -183,6 +291,7 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
             }
         }
 
+        const m = medals![p.id] ?? { gold: 0, silver: 0, bronze: 0 };
         return {
             id: p.id,
             name: p.name,
@@ -192,14 +301,17 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
             tournamentsWon,
             cupDiff: cupsHit - cupsReceived,
             winRate: matchesPlayed > 0 ? (matchesWon / matchesPlayed) : 0,
-            history
+            history,
+            goldMedals: m.gold,
+            silverMedals: m.silver,
+            bronzeMedals: m.bronze,
         };
     }).sort((a: any, b: any) => {
-        // 1. Sort by tournament wins (trophies) - most important
-        if (b.tournamentsWon !== a.tournamentsWon) return b.tournamentsWon - a.tournamentsWon;
-        // 2. Sort by match wins
+        // Medal ranking: gold → silver → bronze → match wins → cup diff
+        if (b.goldMedals !== a.goldMedals) return b.goldMedals - a.goldMedals;
+        if (b.silverMedals !== a.silverMedals) return b.silverMedals - a.silverMedals;
+        if (b.bronzeMedals !== a.bronzeMedals) return b.bronzeMedals - a.bronzeMedals;
         if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
-        // 3. Sort by cup difference as tie-breaker
         return b.cupDiff - a.cupDiff;
     });
 }

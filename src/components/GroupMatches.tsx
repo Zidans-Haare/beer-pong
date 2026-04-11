@@ -12,7 +12,7 @@ type MatchWithPlayers = Match & {
     tableNumber?: number;
 };
 
-export default function GroupMatches({ matches, tableCount }: { matches: MatchWithPlayers[], tableCount: number }) {
+export default function GroupMatches({ matches, tableCount, readOnly = false }: { matches: MatchWithPlayers[], tableCount: number, readOnly?: boolean }) {
     const t = useTranslations('bracket');
     const [editingMatch, setEditingMatch] = useState<MatchWithPlayers | null>(null);
 
@@ -77,7 +77,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
                                         return (
                                             <div
                                                 key={match.id}
-                                                onClick={() => setEditingMatch(match)}
+                                                onClick={() => !readOnly && setEditingMatch(match)}
                                                 style={{
                                                     padding: 'var(--spacing-2)',
                                                     background: 'var(--color-surface-hover)',
@@ -147,7 +147,7 @@ export default function GroupMatches({ matches, tableCount }: { matches: MatchWi
                     </div>
                 </div>
             </div>
-            {editingMatch && <MatchEditForm match={editingMatch} onClose={() => setEditingMatch(null)} />}
+            {!readOnly && editingMatch && <MatchEditForm match={editingMatch} onClose={() => setEditingMatch(null)} />}
         </>
     );
 }

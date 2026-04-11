@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
   experimental: {
     outputFileTracingIncludes: {
       '/**/*': ['./messages/**/*'],

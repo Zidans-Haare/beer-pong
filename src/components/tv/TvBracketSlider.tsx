@@ -47,7 +47,7 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
                 });
                 setFading(false);
             }, 500);
-        }, 5000);
+        }, 10000);
         return () => clearInterval(id);
     }, [rounds.length]);
 

@@ -308,13 +308,15 @@ model Passkey {
 }
 
 model RoomReservation {
-  id           String     @id @default(uuid())
-  tournamentId String
-  userId       String
-  status       String     @default("PENDING")
-  createdAt    DateTime   @default(now())
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  id              String     @id @default(uuid())
+  tournamentId    String
+  userId          String
+  status          String     @default("PENDING")
+  wantsBreakfast  Boolean    @default(false)
+  wantsHalfBoard  Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, userId])
 }

@@ -21,14 +21,21 @@ export async function requestRoom(tournamentId: string) {
         }
 
         const existingRequest = await prisma.roomReservation.findFirst({
-            where: {
-                tournamentId: tournamentId,
-                userId: session.user.id
-            }
+            where: { tournamentId, userId: session.user.id }
         });
-
         if (existingRequest) {
             return { success: false, error: 'Du hast bereits eine Anfrage gestellt' };
+        }
+
+        // Capacity check: count confirmed reservations
+        const capacity = (tournament as any).guestRoomCapacity ?? 0;
+        if (capacity > 0) {
+            const confirmed = await prisma.roomReservation.count({
+                where: { tournamentId, status: 'CONFIRMED' }
+            });
+            if (confirmed >= capacity) {
+                return { success: false, error: 'Das Zimmer ist bereits ausgebucht' };
+            }
         }
 
         await prisma.roomReservation.create({
@@ -79,9 +86,9 @@ export async function acceptRoomRequest(reservationId: string) {
         if (reservation.user.email) {
             const baseDescription = (reservation.tournament as any).guestRoomDescription || 'Privatzimmer';
             let extrasStr = '';
-            if (reservation.wantsBreakfast && reservation.wantsHalfBoard) extrasStr = ' (Inkl. Frühstück & Halbpension)';
-            else if (reservation.wantsHalfBoard) extrasStr = ' (Inkl. Halbpension)';
-            else if (reservation.wantsBreakfast) extrasStr = ' (Inkl. Frühstück)';
+            if (reservation.wantsBreakfast && reservation.wantsHalfBoard) extrasStr = ' (inkl. Frühstück & Halbpension)';
+            else if (reservation.wantsHalfBoard) extrasStr = ' (inkl. Halbpension)';
+            else if (reservation.wantsBreakfast) extrasStr = ' (inkl. Frühstück)';
 
             await sendRoomReservationConfirmedEmail(
                 reservation.user.email,

@@ -24,8 +24,14 @@ type Round = {
     matches: Match[];
 };
 
+// Global state to survive Next.js router.refresh() remounts
+let globalSavedRound = 0;
+
 export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
-    const [currentRound, setCurrentRound] = useState(0);
+    const [currentRound, setCurrentRound] = useState(() => {
+        if (rounds.length > 0 && globalSavedRound >= rounds.length) return 0;
+        return globalSavedRound;
+    });
     const [fading, setFading] = useState(false);
 
     // Show each round for 5 seconds, then smoothly fade to next
@@ -34,7 +40,11 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
         const id = setInterval(() => {
             setFading(true);
             setTimeout(() => {
-                setCurrentRound(r => (r + 1) % rounds.length);
+                setCurrentRound(r => {
+                    const next = (r + 1) % rounds.length;
+                    globalSavedRound = next;
+                    return next;
+                });
                 setFading(false);
             }, 500);
         }, 5000);
@@ -49,7 +59,7 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {/* Round indicator dots */}
             {rounds.length > 1 && (
-                <div style={{ display: 'flex', gap: '6px', marginBottom: 'clamp(10px, 1.5vw, 18px)', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '6px', marginBottom: 'clamp(6px, 1vw, 12px)', alignItems: 'center' }}>
                     {rounds.map((r, i) => (
                         <div key={r.round} style={{
                             width: i === currentRound ? 'clamp(20px, 2.5vw, 32px)' : 'clamp(6px, 0.8vw, 10px)',
@@ -65,18 +75,19 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
                 </div>
             )}
             {rounds.length === 1 && (
-                <div style={{ fontSize: 'clamp(0.7rem, 1.1vw, 1rem)', fontWeight: 700, color: 'var(--color-text-dim)', marginBottom: 'clamp(10px, 1.5vw, 18px)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ fontSize: 'clamp(0.7rem, 1.1vw, 1rem)', fontWeight: 700, color: 'var(--color-text-dim)', marginBottom: 'clamp(6px, 1vw, 12px)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     {round.label}
                 </div>
             )}
 
             {/* Matches */}
             <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'clamp(8px, 1.2vw, 18px)',
+                display: 'grid',
+                gridTemplateColumns: round.matches.length > 4 ? '1fr 1fr' : '1fr',
+                gap: 'clamp(6px, 1vw, 12px) clamp(10px, 1.5vw, 20px)',
                 opacity: fading ? 0 : 1,
                 transition: 'opacity 0.4s ease',
+                alignContent: 'start',
                 flex: 1,
             }}>
                 {round.matches.map(match => (
@@ -96,7 +107,7 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
                             const isLoser = match.winnerId && match.winnerId !== p.id;
                             return (
                                 <div key={i} style={{
-                                    padding: 'clamp(10px, 1.3vw, 20px) clamp(14px, 1.8vw, 26px)',
+                                    padding: 'clamp(6px, 1vw, 14px) clamp(10px, 1.5vw, 20px)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
@@ -104,7 +115,7 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
                                     borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
                                 }}>
                                     <span style={{
-                                        fontSize: 'clamp(1rem, 1.8vw, 1.8rem)',
+                                        fontSize: 'clamp(0.9rem, 1.5vw, 1.5rem)',
                                         fontWeight: isWinner ? 800 : isLoser ? 400 : 600,
                                         color: isLoser ? 'var(--color-text-dim)' : 'var(--color-text)',
                                         overflow: 'hidden',
@@ -116,7 +127,7 @@ export default function TvBracketSlider({ rounds }: { rounds: Round[] }) {
                                     </span>
                                     {(p.score !== null && p.score !== undefined) && (
                                         <span style={{
-                                            fontSize: 'clamp(1rem, 1.8vw, 1.8rem)',
+                                            fontSize: 'clamp(0.9rem, 1.5vw, 1.5rem)',
                                             fontWeight: 800,
                                             color: isWinner ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                             marginLeft: 'clamp(8px, 1vw, 16px)',

@@ -96,7 +96,7 @@ export default async function RootLayout({
           <ServiceWorkerUpdate />
           <OfflineIndicator />
           <ServiceWorkerProvider />
-          <PWATracker />
+          {session?.user?.id && <PWATracker userId={session.user.id} />}
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>

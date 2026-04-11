@@ -42,7 +42,10 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>
             {/* Win Rate Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('winRateTrend')}</h3>
+                <div style={{ marginBottom: 'var(--spacing-6)' }}>
+                    <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('winRateTrend')}</h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>1 Punkt = 1 Turnier</p>
+                </div>
                 <div style={{ height: '300px' }}>
                     {mounted && (
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -52,14 +55,16 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     dataKey="timestamp"
                                     type="number"
                                     domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
+                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
                                     stroke="var(--color-text-dim)"
                                     tick={{ fontSize: 12 }}
+                                    tickCount={6}
                                 />
-                                <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} />
+                                <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} domain={[0, 100]} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                                    labelFormatter={(label) => new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    formatter={(value: any, name: string | undefined) => [`${value}%`, name]}
                                 />
                                 {processedData.topWinRate.map((p, i) => (
                                     <Line
@@ -67,11 +72,11 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                         data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
                                         dataKey="winRate"
                                         name={p.name}
-                                        type="monotone"
+                                        type="linear"
                                         stroke={NEON_COLORS[i % NEON_COLORS.length]}
                                         strokeWidth={2}
-                                        activeDot={{ r: 6, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length] }}
-                                        dot={false}
+                                        dot={{ r: 4, fill: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 0 }}
+                                        activeDot={{ r: 7, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 2 }}
                                     />
                                 ))}
                             </LineChart>
@@ -82,7 +87,10 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
 
             {/* Game Duration Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('gameDurationTrend')}</h3>
+                <div style={{ marginBottom: 'var(--spacing-6)' }}>
+                    <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('gameDurationTrend')}</h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Ø Spieldauer pro Turnier</p>
+                </div>
                 <div style={{ height: '300px' }}>
                     {mounted && (
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -92,30 +100,30 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     dataKey="timestamp"
                                     type="number"
                                     domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit' })}
+                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
                                     stroke="var(--color-text-dim)"
                                     tick={{ fontSize: 12 }}
+                                    tickCount={6}
                                 />
                                 <YAxis stroke="var(--color-text-dim)" unit="m" tick={{ fontSize: 12 }} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                                    labelFormatter={(label) => new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
                                     formatter={(value: any, name: string | undefined) => [`${Number(value).toFixed(1)} min`, name ?? t('duration')]}
                                 />
                                 {processedData.topDuration.map((p, i) => (
                                     <Line
                                         key={p.id}
                                         data={p.filteredHistory
-                                            // Filter out 0 duration games if any, just to be cleaner, or keep them to show anomalies
                                             .filter(h => h.duration > 0)
                                             .map((h) => ({ timestamp: h.timestamp, duration: h.duration / 60 }))}
                                         dataKey="duration"
                                         name={p.name}
-                                        type="monotone"
+                                        type="linear"
                                         stroke={NEON_COLORS[i % NEON_COLORS.length]}
                                         strokeWidth={2}
-                                        activeDot={{ r: 6, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length] }}
-                                        dot={false}
+                                        dot={{ r: 4, fill: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 0 }}
+                                        activeDot={{ r: 7, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 2 }}
                                         connectNulls={true}
                                     />
                                 ))}

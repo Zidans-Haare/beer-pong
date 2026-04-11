@@ -101,11 +101,11 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                                 layout: { type: 'spring', stiffness: 400, damping: 35 },
                                 backgroundColor: { duration: 2.5 },
                             }}
-                            style={{
+                             style={{
                                 display: 'grid',
                                 gridTemplateColumns: '40px 1fr 44px 44px 44px 60px 60px',
                                 gap: '4px',
-                                padding: 'clamp(8px, 1.1vw, 14px) clamp(10px, 1.5vw, 18px)',
+                                padding: standings.length > 8 ? '8px clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1.1vw, 14px) clamp(10px, 1.5vw, 18px)',
                                 borderBottom: '1px solid var(--color-border)',
                                 borderLeft: isTop ? '3px solid var(--color-success)' : isFirst ? '3px solid var(--color-primary)' : '3px solid transparent',
                                 alignItems: 'center',
@@ -114,13 +114,13 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                         >
                             {/* Rank */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ fontSize: 'clamp(0.85rem, 1.2vw, 1.1rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
+                                <span style={{ fontSize: standings.length > 8 ? 'clamp(0.75rem, 1.1vw, 1rem)' : 'clamp(0.85rem, 1.2vw, 1.1rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
                             </div>
 
                             {/* Name + delta indicator */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                                 <span style={{
-                                    fontSize: 'clamp(0.9rem, 1.6vw, 1.5rem)',
+                                    fontSize: standings.length > 8 ? 'clamp(0.85rem, 1.5vw, 1.4rem)' : 'clamp(0.9rem, 1.6vw, 1.5rem)',
                                     fontWeight: isFirst ? 800 : 600,
                                     color: isFirst ? 'var(--color-text)' : 'var(--color-text)',
                                     overflow: 'hidden',

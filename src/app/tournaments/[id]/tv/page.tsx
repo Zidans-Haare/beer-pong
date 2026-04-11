@@ -135,13 +135,14 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
     // For round robin / group tournaments: all matches grouped by round as a slider
     const rrRoundNumbers = hasStandings
         ? [...new Set(schedule
-            .filter(m => ((m as any).player1Id || (m as any).team1Id) && ((m as any).player2Id || (m as any).team2Id))
+            .filter(m => m.stage !== 'BRACKET' && ((m as any).player1Id || (m as any).team1Id) && ((m as any).player2Id || (m as any).team2Id))
             .map(m => m.round)
           )].sort((a, b) => a - b)
         : [];
 
     const rrMatchesByRound = rrRoundNumbers.reduce((acc, r) => {
         acc[r] = schedule.filter(m =>
+            m.stage !== 'BRACKET' &&
             m.round === r &&
             ((m as any).player1Id || (m as any).team1Id) &&
             ((m as any).player2Id || (m as any).team2Id)

@@ -344,31 +344,45 @@ export async function setTournamentLiveStreamUrl(tournamentId: string, url: stri
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Nicht eingeloggt' };
 
+    const userId = session.user.id;
+    const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
+
     try {
         const tournament = await prisma.tournament.findUnique({
             where: { id: tournamentId },
-            include: { participants: true }
+            include: { participants: { include: { player: true } } }
         });
 
         if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
 
-        // Allow Host or any Participant to start the stream
-        const isHost = tournament.hostId === session.user.id;
-        const isParticipant = tournament.participants.some(p => p.player?.userId === session.user.id);
+        const isHost = tournament.hostId === userId;
+        const isParticipant = tournament.participants.some(p => p.player?.userId === userId);
 
-        if (!isHost && !isParticipant && session.user.email !== process.env.ADMIN_EMAIL) {
+        if (!isHost && !isParticipant && !isAdmin) {
             return { success: false, error: 'Keine Berechtigung den Stream zu steuern.' };
         }
 
+        // Stopping: only the person who started it (or admin) may stop
+        if (url === null) {
+            const current = tournament.liveStreamUrl ?? '';
+            const startedBy = current.startsWith('__webrtc__:') ? current.split(':')[1] : null;
+            if (startedBy && startedBy !== userId && !isAdmin) {
+                return { success: false, error: 'Nur derjenige der den Stream gestartet hat kann ihn beenden.' };
+            }
+        }
+
+        // Starting: embed userId so we know who started
+        const storeUrl = url === '__webrtc__' ? `__webrtc__:${userId}` : url;
+
         await prisma.tournament.update({
             where: { id: tournamentId },
-            data: { liveStreamUrl: url },
+            data: { liveStreamUrl: storeUrl },
         });
 
         revalidatePath(`/tournaments/${tournamentId}`);
         revalidatePath(`/tournaments/${tournamentId}/tv`);
         revalidatePath('/admin/tournaments');
-        
+
         return { success: true };
     } catch (error) {
         console.error('setTournamentLiveStreamUrl error:', error);

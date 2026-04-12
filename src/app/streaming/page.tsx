@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import Link from 'next/link';
-import { Tv2, Radio, Tv } from 'lucide-react';
+import { Tv2, Radio } from 'lucide-react';
 import LiveStreamControl from '@/app/tournaments/[id]/LiveStreamControl';
 
 export const dynamic = 'force-dynamic';
@@ -21,14 +21,17 @@ export default async function StreamingPage() {
     });
 
     // Tournaments where user is host or participant (and not already live)
+    // Admin sees all; others see tournaments where they're host or participant
     const myTournaments = userId ? await prisma.tournament.findMany({
-        where: {
-            status: { in: ['PLANNED', 'ACTIVE'] },
-            OR: [
-                { hostId: userId },
-                { participants: { some: { player: { userId } } } },
-            ],
-        },
+        where: isAdmin
+            ? { status: { in: ['PLANNED', 'ACTIVE'] } }
+            : {
+                status: { in: ['PLANNED', 'ACTIVE'] },
+                OR: [
+                    { hostId: userId },
+                    { participants: { some: { player: { userId } } } },
+                ],
+            },
         select: {
             id: true,
             name: true,
@@ -38,6 +41,12 @@ export default async function StreamingPage() {
         },
         orderBy: { date: 'desc' },
     }) : [];
+
+    // Helper: check if userId started this stream
+    function didStart(liveStreamUrl: string | null) {
+        if (!userId || !liveStreamUrl) return false;
+        return liveStreamUrl === `__webrtc__:${userId}` || isAdmin;
+    }
 
     // All active/planned tournaments (for TV access without stream)
     const allTournaments = await prisma.tournament.findMany({
@@ -93,10 +102,12 @@ export default async function StreamingPage() {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                         {liveStreams.map(t => {
-                            const isHost = t.hostId === userId;
+                            const isMine = myTournaments.some(m => m.id === t.id);
+                            const canStart = isMine || isAdmin;
+                            const canStop = didStart(t.liveStreamUrl) || isAdmin;
+                            const isWebRTC = t.liveStreamUrl?.startsWith('__webrtc__') ?? false;
                             return (
                                 <div key={t.id} className="glass-panel" style={cardStyle}>
-                                    {/* Top row: icon + name + live badge */}
                                     <div style={topRowStyle}>
                                         <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: 'var(--radius-md)', background: 'var(--color-error)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <Radio size={20} color="#fff" />
@@ -106,23 +117,17 @@ export default async function StreamingPage() {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: 'var(--color-error)', fontWeight: 600, marginTop: '2px' }}>
                                                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', boxShadow: '0 0 5px var(--color-error)' }} />
                                                 LIVE
-                                                {t.liveStreamUrl === WEBRTC_FLAG && <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>}
+                                                {isWebRTC && <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>}
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Button row */}
-                                    <div style={btnRowStyle}>
-                                        <LiveStreamControl
-                                            tournamentId={t.id}
-                                            initialUrl={t.liveStreamUrl}
-                                            isHost={isHost}
-                                            isAdmin={isAdmin}
-                                        />
-                                        <Link href={`/tournaments/${t.id}/tv`} target="_blank" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '7px 14px' }}>
-                                            <Tv size={14} />
-                                            TV
-                                        </Link>
-                                    </div>
+                                    <LiveStreamControl
+                                        tournamentId={t.id}
+                                        initialUrl={t.liveStreamUrl}
+                                        canStart={canStart}
+                                        canStop={canStop}
+                                        tvHref={`/tournaments/${t.id}/tv`}
+                                    />
                                 </div>
                             );
                         })}
@@ -137,38 +142,28 @@ export default async function StreamingPage() {
                         Stream starten
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-                        {myNotLive.map(t => {
-                            const isHost = t.hostId === userId;
-                            return (
-                                <div key={t.id} className="glass-panel" style={cardStyle}>
-                                    {/* Top row: icon + name + status */}
-                                    <div style={topRowStyle}>
-                                        <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: 'var(--radius-md)', background: 'var(--color-surface-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Tv2 size={20} color="var(--color-text-dim)" />
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
-                                            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', marginTop: '2px' }}>
-                                                {t.status === 'ACTIVE' ? 'Aktiv' : 'Geplant'}
-                                            </div>
-                                        </div>
+                        {myNotLive.map(t => (
+                            <div key={t.id} className="glass-panel" style={cardStyle}>
+                                <div style={topRowStyle}>
+                                    <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: 'var(--radius-md)', background: 'var(--color-surface-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Tv2 size={20} color="var(--color-text-dim)" />
                                     </div>
-                                    {/* Button row */}
-                                    <div style={btnRowStyle}>
-                                        <LiveStreamControl
-                                            tournamentId={t.id}
-                                            initialUrl={t.liveStreamUrl}
-                                            isHost={isHost}
-                                            isAdmin={isAdmin}
-                                        />
-                                        <Link href={`/tournaments/${t.id}/tv`} target="_blank" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '7px 14px' }}>
-                                            <Tv size={14} />
-                                            TV
-                                        </Link>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)', marginTop: '2px' }}>
+                                            {t.status === 'ACTIVE' ? 'Aktiv' : 'Geplant'}
+                                        </div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                                <LiveStreamControl
+                                    tournamentId={t.id}
+                                    initialUrl={t.liveStreamUrl}
+                                    canStart={true}
+                                    canStop={didStart(t.liveStreamUrl) || isAdmin}
+                                    tvHref={`/tournaments/${t.id}/tv`}
+                                />
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}
@@ -191,9 +186,8 @@ export default async function StreamingPage() {
                                         {t.status === 'ACTIVE' ? 'Aktiv' : 'Geplant'}
                                     </div>
                                 </div>
-                                <Link href={`/tournaments/${t.id}/tv`} target="_blank" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '7px 14px', flexShrink: 0 }}>
-                                    <Tv size={14} />
-                                    TV
+                                <Link href={`/tournaments/${t.id}/tv`} target="_blank" className={t.liveStreamUrl ? 'btn btn-primary' : 'btn btn-secondary'} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '7px 14px', flexShrink: 0 }}>
+                                    TV {t.liveStreamUrl && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />}
                                 </Link>
                             </div>
                         ))}

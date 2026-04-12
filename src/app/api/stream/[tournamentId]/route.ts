@@ -69,8 +69,9 @@ export async function GET(
     return Response.json(state);
 }
 
-// Actions that require auth (broadcaster side)
-const BROADCASTER_ACTIONS = new Set(['set-offer', 'add-offer-candidate', 'clear']);
+// Only 'clear' (stop stream) requires auth — offer/candidates are public
+// because window.open() on iOS doesn't reliably send session cookies
+const BROADCASTER_ACTIONS = new Set(['clear']);
 
 export async function POST(
     req: Request,

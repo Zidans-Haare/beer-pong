@@ -79,6 +79,7 @@ export async function POST(
 ) {
     const { tournamentId } = await params;
     const body = await req.json();
+    console.log('[stream POST]', tournamentId, body.action);
 
     // Only broadcaster actions need auth; TV responses (set-answer, add-answer-candidate) are public
     if (BROADCASTER_ACTIONS.has(body.action)) {

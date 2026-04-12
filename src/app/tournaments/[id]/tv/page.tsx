@@ -290,16 +290,27 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
   overflow: hidden;
 }
 @media (max-height: 520px) and (orientation: landscape) {
+  /* Horizontal snap-scroll: each panel = one full-screen slide */
   .tv-default-grid {
-    grid-template-columns: 1fr 1fr;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: scroll !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: unset !important;
   }
   .tv-default-left, .tv-default-right {
+    min-width: 100vw !important;
+    width: 100vw !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: start !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
     padding: 10px 14px !important;
-    /* show content naturally — no flex-column clipping */
     display: block !important;
+    border-right: none !important;
   }
   /* Bracket: release flex-fill so all matches render in scroll */
   .tv-default-right .tv-bracket-slider {
@@ -428,7 +439,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 <div className="tv-broadcast-grid">
                     {/* Main: Stream */}
                     <div style={{ position: 'relative' }}>
-                         {tournament.liveStreamUrl === WEBRTC_FLAG
+                         {tournament.liveStreamUrl?.startsWith(WEBRTC_FLAG)
                              ? <TvWebRTC tournamentId={tournament.id} />
                              : <TvLivestream roomName={tournament.liveStreamUrl!} />
                          }

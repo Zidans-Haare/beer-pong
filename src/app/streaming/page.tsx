@@ -118,7 +118,7 @@ export default async function StreamingPage() {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: 'var(--color-error)', fontWeight: 600, marginTop: '2px' }}>
                                                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', boxShadow: '0 0 5px var(--color-error)' }} />
                                                 LIVE
-                                                {isWebRTC && <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>}
+                                                <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>
                                             </div>
                                         </div>
                                     </div>

@@ -22,7 +22,7 @@ import HostControls from '@/components/tournament/HostControls';
 import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
 import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
 import LiveInfoCards from '@/components/tournament/LiveInfoCards';
-import { ChevronRight, Tv, Zap } from 'lucide-react';
+import { ChevronRight, Zap } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
@@ -190,22 +190,6 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                     {t('allTournaments')}
                 </Link>
-                <Link
-                    href={`/tournaments/${tournament.id}/tv`}
-                    className="btn btn-secondary"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <Tv size={15} />
-                    TV-Ansicht
-                </Link>
-                <LiveStreamControl 
-                    tournamentId={tournament.id}
-                    initialUrl={tournament.liveStreamUrl}
-                    isParticipant={tournament.participants.some(p => p.player?.userId === session?.user?.id)}
-                    isAdmin={session?.user?.email === process.env.ADMIN_EMAIL}
-                />
             </div>
 
             <TournamentHeader

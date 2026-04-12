@@ -340,3 +340,38 @@ export async function sendTournamentInviteEmails(tournamentId: string) {
         return { success: false, error: 'Fehler beim Senden' };
     }
 }
+export async function setTournamentLiveStreamUrl(tournamentId: string, url: string | null) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Nicht eingeloggt' };
+
+    try {
+        const tournament = await prisma.tournament.findUnique({
+            where: { id: tournamentId },
+            include: { participants: true }
+        });
+
+        if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+
+        // Allow Host or any Participant to start the stream
+        const isHost = tournament.hostId === session.user.id;
+        const isParticipant = tournament.participants.some(p => p.player?.userId === session.user.id);
+
+        if (!isHost && !isParticipant && session.user.email !== process.env.ADMIN_EMAIL) {
+            return { success: false, error: 'Keine Berechtigung den Stream zu steuern.' };
+        }
+
+        await prisma.tournament.update({
+            where: { id: tournamentId },
+            data: { liveStreamUrl: url },
+        });
+
+        revalidatePath(`/tournaments/${tournamentId}`);
+        revalidatePath(`/tournaments/${tournamentId}/tv`);
+        revalidatePath('/admin/tournaments');
+        
+        return { success: true };
+    } catch (error) {
+        console.error('setTournamentLiveStreamUrl error:', error);
+        return { success: false, error: 'Fehler beim Speichern des Stream-Status' };
+    }
+}

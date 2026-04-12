@@ -14,6 +14,7 @@ import TournamentSummary from '@/components/TournamentSummary';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
+import LiveStreamControl from './LiveStreamControl';
 import TeamAssignment from '@/components/TeamAssignment';
 import TeamList from '@/components/tournament/TeamList';
 import ParticipantList from '@/components/tournament/ParticipantList';
@@ -85,6 +86,9 @@ export default async function TournamentPage({ params, searchParams }: { params:
             },
             guests: {
                 where: { expiresAt: { gt: new Date() } }
+            },
+            participants: {
+                include: { player: { select: { userId: true } } }
             }
         }
     });
@@ -177,7 +181,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 />
             )}
 
-            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginBottom: 'var(--spacing-6)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginBottom: 'var(--spacing-6)', flexWrap: 'wrap', alignItems: 'center' }}>
                 <Link
                     href="/tournaments"
                     className="btn btn-secondary"
@@ -196,6 +200,12 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <Tv size={15} />
                     TV-Ansicht
                 </Link>
+                <LiveStreamControl 
+                    tournamentId={tournament.id}
+                    initialUrl={tournament.liveStreamUrl}
+                    isParticipant={tournament.participants.some(p => p.player?.userId === session?.user?.id)}
+                    isAdmin={session?.user?.email === process.env.ADMIN_EMAIL}
+                />
             </div>
 
             <TournamentHeader

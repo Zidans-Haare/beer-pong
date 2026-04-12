@@ -1,7 +1,7 @@
 import { getAllTournaments, getPlannedTournaments, getRegisteredPlayers } from '@/app/actions/admin';
 import { Trophy, Calendar, Users } from 'lucide-react';
 import { AdminTournamentManager } from './AdminTournamentManager';
-import { StatusBadge, StatusButton, DeleteButton } from './StatusButton';
+import { StatusBadge, StatusButton, DeleteButton, LiveStreamButton } from './StatusButton';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
@@ -76,8 +76,11 @@ export default async function AdminTournamentsPage() {
                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
                                             <StatusBadge status={t.status} />
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
-                                            <StatusButton tournamentId={t.id} currentStatus={t.status} />
+                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                <StatusButton tournamentId={t.id} currentStatus={t.status} />
+                                                <LiveStreamButton tournamentId={t.id} currentUrl={(t as any).liveStreamUrl} />
+                                            </div>
                                         </td>
                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
                                             <DeleteButton tournamentId={t.id} tournamentName={t.name} />

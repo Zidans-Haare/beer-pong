@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { setTournamentStatus, adminDeleteTournament } from '@/app/actions/admin';
+import { setTournamentLiveStreamUrl } from '@/app/actions/tournaments';
 import { useTranslations } from 'next-intl';
+import { Video, VideoOff } from 'lucide-react';
 
 const STATUS_KEYS = ['PLANNED', 'ACTIVE', 'COMPLETED'] as const;
 
@@ -120,5 +122,45 @@ export function StatusButton({ tournamentId, currentStatus }: { tournamentId: st
                 </button>
             ))}
         </div>
+    );
+}
+export function LiveStreamButton({ tournamentId, currentUrl }: { tournamentId: string; currentUrl: string | null }) {
+    const [loading, setLoading] = useState(false);
+    
+    async function handleToggle() {
+        setLoading(true);
+        if (currentUrl) {
+            await setTournamentLiveStreamUrl(tournamentId, null);
+        } else {
+            // Generate a default room name if none exists
+            const roomName = `beerpong-tournament-${tournamentId.slice(0, 8)}`;
+            await setTournamentLiveStreamUrl(tournamentId, roomName);
+        }
+        setLoading(false);
+    }
+
+    return (
+        <button
+            onClick={handleToggle}
+            disabled={loading}
+            title={currentUrl ? 'Livestream beenden' : 'Livestream starten'}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: `1px solid ${currentUrl ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                background: currentUrl ? 'rgba(78, 205, 196, 0.1)' : 'transparent',
+                color: currentUrl ? 'var(--color-primary)' : 'var(--color-text-dim)',
+                opacity: loading ? 0.5 : 1,
+                transition: 'all 0.15s',
+            }}
+        >
+            {currentUrl ? <Video size={14} /> : <VideoOff size={14} />}
+        </button>
     );
 }

@@ -10,6 +10,10 @@ import TvControls from '@/components/tv/TvControls';
 import TvBracketSlider from '@/components/tv/TvBracketSlider';
 import TvAutoRefresh from '@/components/tv/TvAutoRefresh';
 import TvResultOverlay from '@/components/tv/TvResultOverlay';
+import TvLivestream from '@/components/tv/TvLivestream';
+import TvWebRTC from '@/components/tv/TvWebRTC';
+
+const WEBRTC_FLAG = '__webrtc__';
 
 export const dynamic = 'force-dynamic';
 
@@ -223,6 +227,20 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
     const statusBorder = tournament.status === 'ACTIVE' ? 'var(--color-lobby-border)'
         : 'var(--color-border)';
 
+    const tvCss = [
+        '@keyframes ticker {',
+        '0% { transform: translateX(0); }',
+        '100% { transform: translateX(-50%); }',
+        '}',
+        '.section-header {',
+        'color: var(--color-primary);',
+        'text-transform: uppercase;',
+        'letter-spacing: 0.1em;',
+        'font-weight: 800;',
+        'margin-bottom: 12px;',
+        '}',
+    ].join('\n');
+
     return (
         <div style={{
             position: 'fixed',
@@ -235,6 +253,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
             display: 'flex',
             flexDirection: 'column',
         }}>
+            <style dangerouslySetInnerHTML={{ __html: tvCss }} />
             <TvAutoRefresh intervalMs={10000} />
             <TvResultOverlay results={overlayResults} />
 
@@ -243,49 +262,143 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: 'clamp(14px, 2vw, 28px) clamp(20px, 4vw, 56px)',
-                borderBottom: '1px solid var(--color-border)',
-                background: 'var(--color-surface)',
+                padding: tournament.liveStreamUrl ? '10px 30px' : 'clamp(14px, 2vw, 28px) clamp(20px, 4vw, 56px)',
+                borderBottom: '2px solid #e5e7eb',
+                background: '#ffffff',
                 flexShrink: 0,
+                zIndex: 10,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{
+                        width: '32px',
+                        height: '32px',
+                        background: 'var(--color-primary)',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: '18px',
+                        color: '#000'
+                    }}>B</div>
                     <div>
-                        <div style={{ fontSize: 'clamp(0.65rem, 1vw, 0.9rem)', color: 'var(--color-text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '2px' }}>
-                            {appName}
+                        <div style={{ fontSize: '0.65rem', color: '#6b7280', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1px' }}>
+                            {appName} {tournament.liveStreamUrl && '• LIVE'}
                         </div>
-                        <h1 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 3rem)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        <h1 style={{ fontSize: tournament.liveStreamUrl ? '1.5rem' : 'clamp(1.4rem, 3.5vw, 3rem)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1, color: '#111827' }}>
                             {tournament.name}
                         </h1>
-                        {tournament.location && (
-                            <div style={{ fontSize: 'clamp(0.8rem, 1.5vw, 1.2rem)', color: 'var(--color-text-dim)', marginTop: '2px' }}>
-                                {tournament.location}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <div style={{
+                        padding: '4px 12px',
+                        borderRadius: '4px',
+                        background: tournament.status === 'ACTIVE' ? '#ef4444' : '#f3f4f6',
+                        color: tournament.status === 'ACTIVE' ? '#fff' : '#6b7280',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                    }}>
+                        {tournament.status === 'ACTIVE' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 8px rgba(255,255,255,0.8)' }} />}
+                        {statusLabel}
+                    </div>
+                    <TvControls />
+                </div>
+            </div>
+
+            {/* ── Content Area ── */}
+            {tournament.liveStreamUrl ? (
+                /* UNIFIED BROADCAST LAYOUT */
+                <div style={{
+                    flex: 1,
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) 350px',
+                    gridTemplateRows: '1fr',
+                    gap: '20px',
+                    padding: '20px',
+                    overflow: 'hidden',
+                }}>
+                    {/* Main: Stream */}
+                    <div style={{ position: 'relative' }}>
+                         {tournament.liveStreamUrl === WEBRTC_FLAG
+                             ? <TvWebRTC tournamentId={tournament.id} />
+                             : <TvLivestream roomName={tournament.liveStreamUrl!} />
+                         }
+                    </div>
+
+                    {/* Sidebar: Standings (RR/Groups) or Bracket (Elimination) */}
+                    <div style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--color-border)',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px',
+                        overflow: 'hidden',
+                    }}>
+                        {hasGroupMatches && standingsA && standingsB && (
+                            <>
+                                <div>
+                                    <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Gruppe A</div>
+                                    <TvStandingsTable standings={standingsA} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} compact maxVisible={6} />
+                                </div>
+                                <div>
+                                    <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Gruppe B</div>
+                                    <TvStandingsTable standings={standingsB} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} compact maxVisible={6} />
+                                </div>
+                            </>
+                        )}
+                        {hasRoundRobin && standings && (
+                            <div>
+                                <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Tabelle</div>
+                                <TvStandingsTable standings={standings} label={isTeamMode ? 'Team' : 'Spieler'} compact maxVisible={6} />
+                            </div>
+                        )}
+                        {hasStandings && rrRounds.length > 0 && (
+                            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                                <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Runden</div>
+                                <TvBracketSlider rounds={rrRounds} compact />
+                            </div>
+                        )}
+                        {!hasStandings && bracketRounds.length > 0 && (
+                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Bracket</div>
+                                <TvBracketSlider rounds={bracketRounds} />
+                            </div>
+                        )}
+                        {!hasStandings && bracketRounds.length === 0 && recentMatches.length > 0 && (
+                            <div>
+                                <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Zuletzt gespielt</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {recentMatches.map(m => {
+                                        const { name1, name2 } = getEntityName(m);
+                                        return (
+                                            <div key={m.id} style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <span style={{ flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name1}</span>
+                                                <span style={{ fontWeight: 700, color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>{(m as any).score1}:{(m as any).score2}</span>
+                                                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name2}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
                     </div>
-                    <div style={{
-                        padding: 'clamp(5px, 0.8vw, 10px) clamp(12px, 1.5vw, 22px)',
-                        borderRadius: '999px',
-                        background: statusBg,
-                        border: `1px solid ${statusBorder}`,
-                        color: statusColor,
-                        fontSize: 'clamp(0.75rem, 1.2vw, 1rem)',
-                        fontWeight: 700,
-                        letterSpacing: '0.05em',
-                    }}>
-                        {statusLabel}
-                    </div>
                 </div>
-                <TvControls />
-            </div>
-
-            {/* ── Main Content ── */}
-            <div style={{
-                flex: 1,
-                display: 'grid',
-                gridTemplateColumns: '1fr 1.4fr',
-                gap: 0,
-                overflow: 'hidden',
-            }}>
+            ) : (
+                /* DEFAULT MULTI-VIEW LAYOUT */
+                <div style={{
+                    flex: 1,
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1.4fr',
+                    gap: 0,
+                    overflow: 'hidden',
+                }}>
 
                 {/* ── Left: Round Slider (RR/Groups) or Live + Upcoming + Recent (Elimination) ── */}
                 <div style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
@@ -491,6 +604,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 }

@@ -53,6 +53,8 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 - **Admin Dashboard** — approve players, override scores, manage tournaments
 - **Maintenance Mode** — zero-downtime via nginx flag file
 - **Multilingual** — English and German, selected during setup (changeable via `NEXT_PUBLIC_LOCALE` in `.env`)
+- **TV View** — fullscreen broadcast display with live standings, round slider, and auto-cycling bracket
+- **WebRTC Livestream** — self-hosted peer-to-peer camera stream from phone to TV view, no external service required (optional Cloudflare TURN for internet-wide connectivity)
 
 ---
 
@@ -77,6 +79,7 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 | Maps | Google Maps Platform |
 | Email | [Resend](https://resend.com) |
 | Error Tracking | [Sentry](https://sentry.io) |
+| Streaming | WebRTC (built-in signaling) + optional [Cloudflare TURN](https://developers.cloudflare.com/calls/turn/) |
 
 ---
 

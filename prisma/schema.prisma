@@ -63,6 +63,7 @@ model Tournament {
   host                 User?                   @relation(fields: [hostId], references: [id])
   participants         TournamentParticipant[]
   standings            TournamentStanding[]
+  liveStreamUrl        String?
 }
 
 model Team {

@@ -17,12 +17,30 @@ interface Props {
     standings: Standing[];
     highlightTop?: number;
     label?: string;
+    compact?: boolean;
+    maxVisible?: number; // max rows; auto-paginates if standings exceed this
 }
 
-
-export default function TvStandingsTable({ standings, highlightTop = 0, label = 'Spieler' }: Props) {
+export default function TvStandingsTable({ standings, highlightTop = 0, label = 'Spieler', compact = false, maxVisible }: Props) {
     const prevPositions = useRef<Record<string, number>>({});
     const [deltas, setDeltas] = useState<Record<string, number>>({});
+    const [page, setPage] = useState(0);
+
+    const effectiveMax = maxVisible ?? standings.length;
+    const totalPages = Math.ceil(standings.length / effectiveMax);
+
+    // Auto-advance pages every 6s when there are more rows than fit
+    useEffect(() => {
+        if (totalPages <= 1) return;
+        const id = setInterval(() => {
+            setPage(p => (p + 1) % totalPages);
+        }, 6000);
+        return () => clearInterval(id);
+    }, [totalPages]);
+
+    const visibleStandings = totalPages > 1
+        ? standings.slice(page * effectiveMax, (page + 1) * effectiveMax)
+        : standings;
 
     useEffect(() => {
         const newPositions: Record<string, number> = {};
@@ -50,14 +68,31 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
 
     return (
         <div style={{ width: '100%' }}>
+            {/* Pagination indicator */}
+            {totalPages > 1 && (
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--color-text-subtle)', marginRight: '4px' }}>
+                        Plätze {page * effectiveMax + 1}–{Math.min((page + 1) * effectiveMax, standings.length)}
+                    </span>
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                        <div key={i} style={{
+                            width: i === page ? 12 : 5,
+                            height: 5,
+                            borderRadius: '999px',
+                            background: i === page ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                            transition: 'all 0.3s ease',
+                        }} />
+                    ))}
+                </div>
+            )}
             {/* Header */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '40px 1fr 44px 44px 44px 60px 60px',
-                gap: '4px',
-                padding: 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)',
+                gridTemplateColumns: compact ? '30px 1fr 30px 30px 30px 40px 45px' : '40px 1fr 44px 44px 44px 60px 60px',
+                gap: compact ? '2px' : '4px',
+                padding: compact ? '4px 8px' : 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)',
                 borderBottom: '2px solid var(--color-border)',
-                fontSize: 'clamp(0.6rem, 0.85vw, 0.8rem)',
+                fontSize: compact ? '10px' : 'clamp(0.6rem, 0.85vw, 0.8rem)',
                 fontWeight: 700,
                 color: 'var(--color-text-subtle)',
                 textTransform: 'uppercase',
@@ -74,7 +109,8 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
 
             {/* Rows — AnimatePresence for enter/exit, layout for position changes */}
             <AnimatePresence initial={false}>
-                {standings.map((s, i) => {
+                {visibleStandings.map((s, pageIdx) => {
+                    const i = page * effectiveMax + pageIdx; // absolute rank
                     const isTop = highlightTop > 0 && i < highlightTop;
                     const isFirst = i === 0;
                     const delta = deltas[s.playerId] ?? 0;
@@ -103,9 +139,9 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                             }}
                              style={{
                                 display: 'grid',
-                                gridTemplateColumns: '40px 1fr 44px 44px 44px 60px 60px',
-                                gap: '4px',
-                                padding: standings.length > 8 ? '8px clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1.1vw, 14px) clamp(10px, 1.5vw, 18px)',
+                                gridTemplateColumns: compact ? '30px 1fr 30px 30px 30px 40px 45px' : '40px 1fr 44px 44px 44px 60px 60px',
+                                gap: compact ? '2px' : '4px',
+                                padding: compact ? '6px 8px' : (standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? '8px clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1.1vw, 14px) clamp(10px, 1.5vw, 18px)'),
                                 borderBottom: '1px solid var(--color-border)',
                                 borderLeft: isTop ? '3px solid var(--color-success)' : isFirst ? '3px solid var(--color-primary)' : '3px solid transparent',
                                 alignItems: 'center',
@@ -114,14 +150,14 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                         >
                             {/* Rank */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ fontSize: standings.length > 8 ? 'clamp(0.75rem, 1.1vw, 1rem)' : 'clamp(0.85rem, 1.2vw, 1.1rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
+                                <span style={{ fontSize: standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? 'clamp(0.75rem, 1.1vw, 1rem)' : 'clamp(0.85rem, 1.2vw, 1.1rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
                             </div>
 
                             {/* Name + delta indicator */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                                 <span style={{
-                                    fontSize: standings.length > 8 ? 'clamp(0.85rem, 1.5vw, 1.4rem)' : 'clamp(0.9rem, 1.6vw, 1.5rem)',
-                                    fontWeight: isFirst ? 800 : 600,
+                                    fontSize: compact ? '0.9rem' : (standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? 'clamp(0.85rem, 1.5vw, 1.4rem)' : 'clamp(0.9rem, 1.6vw, 1.5rem)'),
+                                    fontWeight: isFirst ? 800 : 700,
                                     color: isFirst ? 'var(--color-text)' : 'var(--color-text)',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
@@ -152,14 +188,14 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                                 </AnimatePresence>
                             </div>
 
-                            {/* Stats */}
-                            <span style={{ textAlign: 'center', fontSize: 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-text-dim)' }}>{s.matchesPlayed}</span>
-                            <span style={{ textAlign: 'center', fontSize: 'clamp(0.8rem, 1.2vw, 1.1rem)', fontWeight: 700, color: 'var(--color-success)' }}>{s.wins}</span>
-                            <span style={{ textAlign: 'center', fontSize: 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-error)' }}>{s.losses}</span>
-                            <span style={{ textAlign: 'center', fontSize: 'clamp(0.8rem, 1.2vw, 1.1rem)', color: s.cupDiff > 0 ? 'var(--color-success)' : s.cupDiff < 0 ? 'var(--color-error)' : 'var(--color-text-dim)' }}>
+                             {/* Stats */}
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-text-dim)' }}>{s.matchesPlayed}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', fontWeight: 700, color: 'var(--color-success)' }}>{s.wins}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-error)' }}>{s.losses}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: s.cupDiff > 0 ? 'var(--color-success)' : s.cupDiff < 0 ? 'var(--color-error)' : 'var(--color-text-dim)' }}>
                                 {s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}
                             </span>
-                            <span style={{ textAlign: 'right', fontSize: 'clamp(0.9rem, 1.4vw, 1.3rem)', fontWeight: 800, color: 'var(--color-primary)' }}>{s.points}</span>
+                            <span style={{ textAlign: 'right', fontSize: compact ? '0.9rem' : 'clamp(0.9rem, 1.4vw, 1.3rem)', fontWeight: 800, color: 'var(--color-primary)' }}>{s.points}</span>
                         </motion.div>
                     );
                 })}

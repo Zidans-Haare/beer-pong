@@ -15,6 +15,7 @@ import TvLivestream from '@/components/tv/TvLivestream';
 import TvWebRTC from '@/components/tv/TvWebRTC';
 import TvChat from '@/components/tv/TvChat';
 import TvDefaultGrid from '@/components/tv/TvDefaultGrid';
+import TvBroadcastGrid from '@/components/tv/TvBroadcastGrid';
 
 const WEBRTC_FLAG = '__webrtc__';
 
@@ -397,16 +398,16 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
             {/* ── Content Area ── */}
             {tournament.liveStreamUrl ? (
                 /* UNIFIED BROADCAST LAYOUT */
-                <div className="tv-broadcast-grid">
-                    {/* Main: Stream */}
+                <TvBroadcastGrid
+                    stream={
                     <div style={{ position: 'relative', height: '100%', minHeight: 0, overflow: 'hidden' }}>
                          {tournament.liveStreamUrl?.startsWith(WEBRTC_FLAG)
                              ? <TvWebRTC tournamentId={tournament.id} />
                              : <TvLivestream roomName={tournament.liveStreamUrl!} />
                          }
                     </div>
-
-                    {/* Sidebar: Standings (RR/Groups) or Bracket (Elimination) */}
+                    }
+                    sidebar={
                     <div style={{
                         background: 'rgba(255,255,255,0.03)',
                         borderRadius: 'var(--radius-lg)',
@@ -471,7 +472,8 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                             <TvChat />
                         </div>
                     </div>
-                </div>
+                    }
+                />
             ) : (
                 /* DEFAULT MULTI-VIEW LAYOUT */
                 <TvDefaultGrid

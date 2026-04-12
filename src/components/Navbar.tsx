@@ -26,7 +26,7 @@ export default async function Navbar() {
                 <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{t('join')}</Link>
                 <Link href="/players" className="nav-link">{t('players')}</Link>
                 <Link href="/stats" className="nav-link">{t('stats')}</Link>
-                {session?.user && <Link href="/chat" className="nav-link">{t('chat')}</Link>}
+                <Link href="/streaming" className="nav-link">Streaming</Link>
                 {session?.user?.email === process.env.ADMIN_EMAIL && (
                     <Link href="/admin/broadcast" className="nav-link">Admin</Link>
                 )}

@@ -35,6 +35,8 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
     const [zoom, setZoom] = useState(1);
 
     const [quality, setQuality] = useState<Quality>('medium');
+    const [controlsVisible, setControlsVisible] = useState(true);
+    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -42,6 +44,17 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => { params.then(p => setTournamentId(p.id)); }, [params]);
+
+    const resetHideTimer = useCallback(() => {
+        setControlsVisible(true);
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = setTimeout(() => setControlsVisible(false), 4000);
+    }, []);
+
+    useEffect(() => {
+        resetHideTimer();
+        return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
+    }, [resetHideTimer]);
 
     const signal = useCallback(async (action: string, data: unknown) => {
         if (!tournamentId) return;
@@ -221,11 +234,14 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
     const isRunning = status === 'connecting' || status === 'connected';
 
     return (
-        <div style={{
-            position: 'fixed', inset: 0, background: '#000',
-            display: 'flex', flexDirection: 'column',
-            fontFamily: 'system-ui, sans-serif', color: '#fff', userSelect: 'none',
-        }}>
+        <div
+            onPointerDown={resetHideTimer}
+            style={{
+                position: 'fixed', inset: 0, background: '#000',
+                display: 'flex', flexDirection: 'column',
+                fontFamily: 'system-ui, sans-serif', color: '#fff', userSelect: 'none',
+            }}
+        >
             {/* Camera preview */}
             <div style={{ flex: 1, overflow: 'hidden', position: 'relative', background: '#111' }}>
                 <video ref={videoRef} autoPlay playsInline muted style={{
@@ -242,6 +258,9 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
                 padding: '14px 16px',
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                opacity: controlsVisible ? 1 : 0,
+                transition: 'opacity 0.4s ease',
+                pointerEvents: controlsVisible ? 'auto' : 'none',
             }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusColor }}>
                     {statusLabel}
@@ -258,6 +277,9 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
                 padding: '12px 16px 32px',
                 background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+                opacity: controlsVisible ? 1 : 0,
+                transition: 'opacity 0.4s ease',
+                pointerEvents: controlsVisible ? 'auto' : 'none',
             }}>
                 {/* Row 0: quality */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -21,6 +21,7 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const connectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [status, setStatus] = useState<'waiting' | 'connecting' | 'connected' | 'retrying'>('waiting');
+    const [muted, setMuted] = useState(true);
 
     useEffect(() => {
         let offerApplied = false;
@@ -62,6 +63,9 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
             pc.ontrack = ({ streams }) => {
                 if (videoRef.current && streams[0]) {
                     videoRef.current.srcObject = streams[0];
+                    // Muted autoplay is always allowed; unmute after user gesture via overlay
+                    videoRef.current.muted = true;
+                    videoRef.current.play().catch(() => {});
                 }
             };
 
@@ -167,14 +171,43 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
         ? 'Öffne die Kamera-Seite auf dem Streamer-Gerät'
         : null;
 
+    function handleUnmute() {
+        if (videoRef.current) {
+            videoRef.current.muted = false;
+            setMuted(false);
+        }
+    }
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <video
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
+            {/* Unmute overlay — shown when stream is live but muted */}
+            {status === 'connected' && muted && (
+                <button
+                    onClick={handleUnmute}
+                    style={{
+                        position: 'absolute', bottom: '16px', right: '16px',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '8px 14px',
+                        background: 'rgba(0,0,0,0.7)',
+                        border: '1px solid rgba(255,255,255,0.25)',
+                        borderRadius: '20px',
+                        color: '#fff',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(8px)',
+                    }}
+                >
+                    🔇 Ton aktivieren
+                </button>
+            )}
             {label && (
                 <div style={{
                     position: 'absolute', inset: 0,

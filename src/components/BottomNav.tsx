@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, MessageCircle } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, Tv2 } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
@@ -31,6 +31,9 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
     }, [isLoggedIn]);
 
     const handleNavClick = () => haptic.light();
+
+    // ── Broadcast page: hide nav entirely ─────────────────────────────────
+    if (pathname.includes('/broadcast')) return null;
 
     // ── Logged-out: floating QR pill ──────────────────────────────────────
     if (!isLoggedIn) {
@@ -83,7 +86,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
         { href: '/notifications', icon: Bell,          label: t('notifications'),  drunkVisible: false, badge: unreadCount },
         { href: '/players',       icon: Users,         label: t('players'),        drunkVisible: false },
         { href: '/stats',         icon: BarChart2,     label: t('stats'),          drunkVisible: false },
-        { href: '/chat',          icon: MessageCircle, label: t('chat'),           drunkVisible: false },
+        { href: '/streaming',     icon: Tv2,           label: 'Streaming',         drunkVisible: false },
         ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',           drunkVisible: false, badge: 0 }] : []),
     ];
     const navItems = isDrunk ? allNavItems.filter(i => i.drunkVisible) : allNavItems;

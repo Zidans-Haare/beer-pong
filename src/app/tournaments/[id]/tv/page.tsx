@@ -8,10 +8,12 @@ import { getTournamentStandings } from '@/lib/stats';
 import { getTeamDisplayName } from '@/lib/team-utils';
 import TvControls from '@/components/tv/TvControls';
 import TvBracketSlider from '@/components/tv/TvBracketSlider';
+import TvBracketSliderWrapper from '@/components/tv/TvBracketSliderWrapper';
 import TvAutoRefresh from '@/components/tv/TvAutoRefresh';
 import TvResultOverlay from '@/components/tv/TvResultOverlay';
 import TvLivestream from '@/components/tv/TvLivestream';
 import TvWebRTC from '@/components/tv/TvWebRTC';
+import TvChat from '@/components/tv/TvChat';
 
 const WEBRTC_FLAG = '__webrtc__';
 
@@ -227,19 +229,112 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
     const statusBorder = tournament.status === 'ACTIVE' ? 'var(--color-lobby-border)'
         : 'var(--color-border)';
 
-    const tvCss = [
-        '@keyframes ticker {',
-        '0% { transform: translateX(0); }',
-        '100% { transform: translateX(-50%); }',
-        '}',
-        '.section-header {',
-        'color: var(--color-primary);',
-        'text-transform: uppercase;',
-        'letter-spacing: 0.1em;',
-        'font-weight: 800;',
-        'margin-bottom: 12px;',
-        '}',
-    ].join('\n');
+    const tvCss = `
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.section-header {
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+/* ── Portrait gate: shown only in portrait on small screens ── */
+.tv-portrait-gate { display: none; }
+@media (orientation: portrait) and (max-width: 1024px) {
+  .tv-portrait-gate {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: #000;
+    color: #fff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: center;
+    padding: 40px;
+  }
+}
+
+/* ── Broadcast layout (stream + sidebar) ── */
+.tv-broadcast-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .tv-broadcast-grid {
+    grid-template-columns: minmax(0, 1fr) clamp(160px, 26vw, 280px);
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+/* ── Default layout (left + right panels) ── */
+.tv-default-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0;
+  overflow: hidden;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .tv-default-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tv-default-left, .tv-default-right {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 14px !important;
+    /* show content naturally — no flex-column clipping */
+    display: block !important;
+  }
+  /* Bracket: release flex-fill so all matches render in scroll */
+  .tv-default-right .tv-bracket-slider {
+    flex: none !important;
+    overflow: visible !important;
+  }
+  .tv-default-right .tv-bracket-slider .tv-bracket-matches {
+    overflow: visible !important;
+    flex: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+  }
+  /* Extra-small match cards on mobile */
+  .tv-default-right .tv-bracket-slider .tv-bracket-match {
+    font-size: 0.72rem !important;
+  }
+  .tv-default-right .tv-bracket-slider .tv-bracket-match-row {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* ── Header compact on mobile landscape ── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .tv-header {
+    padding: 6px 16px !important;
+  }
+  .tv-header h1 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* ── Chat hidden on mobile landscape ── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .tv-broadcast-chat { display: none !important; }
+}
+`;
 
     return (
         <div style={{
@@ -257,8 +352,22 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
             <TvAutoRefresh intervalMs={10000} />
             <TvResultOverlay results={overlayResults} />
 
+            {/* ── Portrait gate (mobile only) ── */}
+            <div className="tv-portrait-gate">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                    <line x1="12" y1="18" x2="12.01" y2="18"/>
+                    <path d="M5 12 L2 9 L5 6" />
+                    <path d="M19 12 L22 9 L19 6" />
+                </svg>
+                <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>Gerät drehen</div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.55, maxWidth: '260px', lineHeight: 1.5 }}>
+                    Die TV-Ansicht ist für Querformat optimiert. Bitte Gerät drehen.
+                </div>
+            </div>
+
             {/* ── Header ── */}
-            <div style={{
+            <div className="tv-header" style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -313,15 +422,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
             {/* ── Content Area ── */}
             {tournament.liveStreamUrl ? (
                 /* UNIFIED BROADCAST LAYOUT */
-                <div style={{
-                    flex: 1,
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1fr) 350px',
-                    gridTemplateRows: '1fr',
-                    gap: '20px',
-                    padding: '20px',
-                    overflow: 'hidden',
-                }}>
+                <div className="tv-broadcast-grid">
                     {/* Main: Stream */}
                     <div style={{ position: 'relative' }}>
                          {tournament.liveStreamUrl === WEBRTC_FLAG
@@ -388,24 +489,24 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                 </div>
                             </div>
                         )}
+
+                        {/* Chat (Twitch-style) — hidden on mobile via CSS */}
+                        <div className="tv-broadcast-chat" style={{ flex: 1, minHeight: 0, borderTop: '1px solid var(--color-border)', paddingTop: '16px', display: 'flex', flexDirection: 'column' }}>
+                            <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Chat</div>
+                            <TvChat />
+                        </div>
                     </div>
                 </div>
             ) : (
                 /* DEFAULT MULTI-VIEW LAYOUT */
-                <div style={{
-                    flex: 1,
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1.4fr',
-                    gap: 0,
-                    overflow: 'hidden',
-                }}>
+                <div className="tv-default-grid">
 
                 {/* ── Left: Round Slider (RR/Groups) or Live + Upcoming + Recent (Elimination) ── */}
-                <div style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
+                <div className="tv-default-left" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
 
                     {/* Round robin / groups: show all rounds as slider */}
                     {hasStandings && rrRounds.length > 0 && (
-                        <TvBracketSlider rounds={rrRounds} />
+                        <TvBracketSliderWrapper rounds={rrRounds} />
                     )}
 
                     {/* Elimination: show active / upcoming / recent */}
@@ -567,7 +668,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 </div>
 
                 {/* ── Right: Standings + Bracket ── */}
-                <div style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 40px)' }}>
+                <div className="tv-default-right" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 40px)' }}>
 
                     {/* Round Robin: Standings */}
                     {hasRoundRobin && standings && standings.length > 0 && (
@@ -593,7 +694,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
 
                     {/* Elimination: Auto-cycling Bracket Slider */}
                     {!hasStandings && bracketMatches.length > 0 && (
-                        <TvBracketSlider rounds={bracketRounds} />
+                        <TvBracketSliderWrapper rounds={bracketRounds} />
                     )}
 
                     {/* Empty state */}

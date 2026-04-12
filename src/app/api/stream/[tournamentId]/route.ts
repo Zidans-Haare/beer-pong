@@ -64,28 +64,28 @@ export async function GET(
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
-    
-    // Auth check
-    if (!(await checkAccess(tournamentId))) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // Public read — SDP/ICE data is not sensitive and TV screens are unauthenticated
     const state = getOrCreate(tournamentId);
     return Response.json(state);
 }
+
+// Actions that require auth (broadcaster side)
+const BROADCASTER_ACTIONS = new Set(['set-offer', 'add-offer-candidate', 'clear']);
 
 export async function POST(
     req: Request,
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
+    const body = await req.json();
 
-    // Auth check
-    if (!(await checkAccess(tournamentId))) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Only broadcaster actions need auth; TV responses (set-answer, add-answer-candidate) are public
+    if (BROADCASTER_ACTIONS.has(body.action)) {
+        if (!(await checkAccess(tournamentId))) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
     }
 
-    const body = await req.json();
     const state = getOrCreate(tournamentId);
 
     switch (body.action) {

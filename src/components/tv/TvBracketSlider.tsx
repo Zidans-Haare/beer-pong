@@ -29,7 +29,7 @@ let globalSavedRound = 0;
 
 const PAGE_SIZE = 4; // max matches visible at once in compact mode
 
-export default function TvBracketSlider({ rounds, compact = false }: { rounds: Round[]; compact?: boolean }) {
+export default function TvBracketSlider({ rounds, compact = false, showAll = false }: { rounds: Round[]; compact?: boolean; showAll?: boolean }) {
     const [currentRound, setCurrentRound] = useState(() => {
         if (rounds.length > 0 && globalSavedRound >= rounds.length) return 0;
         return globalSavedRound;
@@ -72,14 +72,14 @@ export default function TvBracketSlider({ rounds, compact = false }: { rounds: R
 
     if (rounds.length === 0 || !round) return null;
 
-    const visibleMatches = compact
+    const visibleMatches = (compact && !showAll)
         ? round.matches.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
         : round.matches;
 
     const cols = !compact && round.matches.length > 4 ? '1fr 1fr' : '1fr';
 
     return (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+        <div className="tv-bracket-slider" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
             {/* Header: label + dots */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: compact ? '8px' : 'clamp(6px, 1vw, 12px)', flexShrink: 0 }}>
                 <span style={{
@@ -112,7 +112,7 @@ export default function TvBracketSlider({ rounds, compact = false }: { rounds: R
             </div>
 
             {/* Matches */}
-            <div style={{
+            <div className="tv-bracket-matches" style={{
                 display: 'grid',
                 gridTemplateColumns: cols,
                 gap: compact ? '6px' : 'clamp(6px, 1vw, 12px) clamp(10px, 1.5vw, 20px)',
@@ -132,7 +132,7 @@ export default function TvBracketSlider({ rounds, compact = false }: { rounds: R
                     if (compact && !hasScore && !match.isActive) {
                         // Unplayed compact: clean single-row "Name1 vs Name2"
                         return (
-                            <div key={match.id} style={{
+                            <div key={match.id} className="tv-bracket-match" style={{
                                 background: 'var(--color-surface)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-md)',
@@ -164,7 +164,7 @@ export default function TvBracketSlider({ rounds, compact = false }: { rounds: R
 
                     // Played or active: two-row layout with scores
                     return (
-                        <div key={match.id} style={{
+                        <div key={match.id} className="tv-bracket-match" style={{
                             background: 'var(--color-surface)',
                             border: match.isActive ? '2px solid var(--color-lobby-border)' : '1px solid var(--color-border)',
                             borderRadius: 'var(--radius-md)',
@@ -176,7 +176,7 @@ export default function TvBracketSlider({ rounds, compact = false }: { rounds: R
                                 { name: match.name1, id: p1id, score: match.score1, won: p1won },
                                 { name: match.name2, id: p2id, score: match.score2, won: p2won },
                             ].map((p, i) => (
-                                <div key={i} style={{
+                                <div key={i} className="tv-bracket-match-row" style={{
                                     padding: compact ? '5px 10px' : 'clamp(6px, 1vw, 14px) clamp(10px, 1.5vw, 20px)',
                                     display: 'flex',
                                     justifyContent: 'space-between',

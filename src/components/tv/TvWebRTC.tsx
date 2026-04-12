@@ -20,8 +20,12 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
     const pcRef = useRef<RTCPeerConnection | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const connectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Stable client ID for viewer-count tracking (one per tab, lives as long as component)
+    const clientIdRef = useRef<string>(Math.random().toString(36).slice(2));
     const [status, setStatus] = useState<'waiting' | 'connecting' | 'connected' | 'retrying'>('waiting');
     const [muted, setMuted] = useState(true);
+    const [videoTransform, setVideoTransform] = useState({ rotation: 0, zoom: 1, mirrored: false });
+    const [viewerCount, setViewerCount] = useState(0);
 
     useEffect(() => {
         let offerApplied = false;
@@ -124,7 +128,7 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
 
         pollRef.current = setInterval(async () => {
             try {
-                const res = await fetch(`/api/stream/${tournamentId}`);
+                const res = await fetch(`/api/stream/${tournamentId}?viewer=${clientIdRef.current}`);
                 const state = await res.json();
 
                 // New offer arrived (or first offer)
@@ -141,6 +145,12 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
                     setStatus('waiting');
                     resetState();
                 }
+
+                // Sync video transform from broadcaster
+                if (state.videoTransform) setVideoTransform(state.videoTransform);
+
+                // Update viewer count
+                if (typeof state.viewerCount === 'number') setViewerCount(state.viewerCount);
 
                 // Apply new offer-side candidates
                 if (offerApplied && state.offerCandidates.length > knownOfferCandidates) {
@@ -185,8 +195,37 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
                 autoPlay
                 playsInline
                 muted
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transform: `rotate(${videoTransform.rotation}deg) scaleX(${videoTransform.mirrored ? -1 : 1}) scale(${videoTransform.zoom})`,
+                    transformOrigin: 'center center',
+                }}
             />
+            {/* Viewer count badge — shown when connected */}
+            {status === 'connected' && (
+                <div style={{
+                    position: 'absolute', top: '12px', left: '12px',
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    padding: '5px 10px',
+                    background: 'rgba(0,0,0,0.55)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '16px',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    backdropFilter: 'blur(6px)',
+                    pointerEvents: 'none',
+                }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    {viewerCount}
+                </div>
+            )}
+
             {/* Unmute overlay — shown when stream is live but muted */}
             {status === 'connected' && muted && (
                 <button

@@ -10,7 +10,9 @@ interface StreamState {
     answer: RTCSessionDescriptionInit | null;
     offerCandidates: RTCIceCandidateInit[];
     answerCandidates: RTCIceCandidateInit[];
-    answerVersion: number; // increments each time TV sends a new answer
+    answerVersion: number;
+    videoTransform: { rotation: number; zoom: number; mirrored: boolean };
+    viewers: Record<string, number>; // clientId -> lastSeen timestamp
     updatedAt: number;
 }
 
@@ -54,19 +56,34 @@ async function checkAccess(tournamentId: string) {
 function getOrCreate(id: string): StreamState {
     cleanupStore(); // minor cleanup on every getOrCreate call
     if (!store.has(id)) {
-        store.set(id, { offer: null, answer: null, offerCandidates: [], answerCandidates: [], answerVersion: 0, updatedAt: Date.now() });
+        store.set(id, { offer: null, answer: null, offerCandidates: [], answerCandidates: [], answerVersion: 0, videoTransform: { rotation: 0, zoom: 1, mirrored: false }, viewers: {}, updatedAt: Date.now() });
     }
     return store.get(id)!;
 }
 
 export async function GET(
-    _req: Request,
+    req: Request,
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
     // Public read — SDP/ICE data is not sensitive and TV screens are unauthenticated
     const state = getOrCreate(tournamentId);
-    return Response.json(state);
+
+    // Register viewer heartbeat if clientId supplied
+    const viewerClientId = new URL(req.url).searchParams.get('viewer');
+    if (viewerClientId) {
+        state.viewers[viewerClientId] = Date.now();
+    }
+
+    // Prune stale viewers (> 30 s without heartbeat)
+    const now = Date.now();
+    for (const cid of Object.keys(state.viewers)) {
+        if (now - state.viewers[cid] > 30_000) delete state.viewers[cid];
+    }
+    const viewerCount = Object.keys(state.viewers).length;
+
+    const { viewers, ...rest } = state;
+    return Response.json({ ...rest, viewerCount });
 }
 
 // Only 'clear' (stop stream) requires auth — offer/candidates are public
@@ -107,6 +124,9 @@ export async function POST(
             break;
         case 'add-answer-candidate':
             state.answerCandidates.push(body.data);
+            break;
+        case 'set-transform':
+            state.videoTransform = body.data;
             break;
         case 'clear':
             store.delete(tournamentId);

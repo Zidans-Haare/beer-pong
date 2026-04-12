@@ -36,12 +36,14 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
     const [quality, setQuality] = useState<Quality>('medium');
     const [controlsVisible, setControlsVisible] = useState(true);
+    const [viewerCount, setViewerCount] = useState(0);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const transformTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => { params.then(p => setTournamentId(p.id)); }, [params]);
 
@@ -73,6 +75,19 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
             const text = await res.text().catch(() => res.status.toString());
             throw new Error(`Signal ${action} failed: ${res.status} ${text}`);
         }
+    }, [tournamentId]);
+
+    // Debounced: send transform to server so TV can mirror it
+    const signalTransform = useCallback((rotation: number, zoom: number, mirrored: boolean) => {
+        if (!tournamentId) return;
+        if (transformTimerRef.current) clearTimeout(transformTimerRef.current);
+        transformTimerRef.current = setTimeout(() => {
+            fetch(`/api/stream/${tournamentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set-transform', data: { rotation, zoom, mirrored } }),
+            }).catch(() => {});
+        }, 150);
     }, [tournamentId]);
 
     const start = useCallback(async () => {
@@ -157,11 +172,20 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
                     const res = await fetch(`/api/stream/${tournamentId}`);
                     const state = await res.json();
 
-                    // Apply answer (or re-apply if TV retried and sent a new answer version)
+                    if (typeof state.viewerCount === 'number') setViewerCount(state.viewerCount);
+
+                    // Apply answer — or ICE-restart if a new viewer arrived after a prior connection
                     if (state.answer && state.answerVersion !== appliedAnswerVersion && !isRestarting) {
-                        await pc.setRemoteDescription(new RTCSessionDescription(state.answer));
-                        appliedAnswerVersion = state.answerVersion;
-                        knownAnswerCandidates = 0;
+                        if (appliedAnswerVersion >= 0) {
+                            // New TV viewer joined while we already had an active session.
+                            // Can't setRemoteDescription(answer) without a fresh offer —
+                            // trigger ICE restart so both sides exchange new candidates.
+                            doIceRestart();
+                        } else {
+                            await pc.setRemoteDescription(new RTCSessionDescription(state.answer));
+                            appliedAnswerVersion = state.answerVersion;
+                            knownAnswerCandidates = 0;
+                        }
                     }
                     if (appliedAnswerVersion >= 0 && state.answerCandidates.length > knownAnswerCandidates) {
                         for (const c of state.answerCandidates.slice(knownAnswerCandidates)) {
@@ -236,7 +260,8 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
         : status === 'error' ? '#ef4444'
         : 'rgba(255,255,255,0.5)';
 
-    const statusLabel = status === 'connected' ? '● Live — TV empfängt'
+    const statusLabel = status === 'connected'
+        ? `● Live${viewerCount > 0 ? ` · ${viewerCount} Zuschauer` : ' — TV empfängt'}`
         : status === 'connecting' ? '◌ Warte auf TV…'
         : status === 'error' ? '✕ Fehler'
         : 'Bereit';
@@ -247,7 +272,7 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
         <div
             onPointerDown={resetHideTimer}
             style={{
-                position: 'fixed', inset: 0, background: '#000',
+                position: 'fixed', inset: 0, zIndex: 9999, background: '#000',
                 display: 'flex', flexDirection: 'column',
                 fontFamily: 'system-ui, sans-serif', color: '#fff', userSelect: 'none',
             }}
@@ -317,22 +342,22 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
                 {/* Row 1: zoom + rotate */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button onClick={() => setZoom(z => Math.max(1, +(z - 0.25).toFixed(2)))} style={iconBtn(false)} title="Rauszoomen">
+                    <button onClick={() => setZoom(z => { const n = Math.max(1, +(z - 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title="Rauszoomen">
                         <ZoomOut size={20} />
                     </button>
                     <span style={{ fontSize: '0.8rem', fontWeight: 700, minWidth: '38px', textAlign: 'center', color: 'rgba(255,255,255,0.8)' }}>
                         {zoom.toFixed(2)}x
                     </span>
-                    <button onClick={() => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)))} style={iconBtn(false)} title="Reinzoomen">
+                    <button onClick={() => setZoom(z => { const n = Math.min(4, +(z + 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title="Reinzoomen">
                         <ZoomIn size={20} />
                     </button>
 
                     <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
 
-                    <button onClick={() => setRotation(r => ((r + 90) % 360) as 0|90|180|270)} style={iconBtn(false)} title="Drehen">
+                    <button onClick={() => setRotation(r => { const n = ((r + 90) % 360) as 0|90|180|270; signalTransform(n, zoom, mirrored); return n; })} style={iconBtn(false)} title="Drehen">
                         <RotateCw size={20} />
                     </button>
-                    <button onClick={() => setMirrored(m => !m)} style={iconBtn(mirrored)} title="Spiegeln">
+                    <button onClick={() => setMirrored(m => { signalTransform(rotation, zoom, !m); return !m; })} style={iconBtn(mirrored)} title="Spiegeln">
                         <FlipHorizontal size={20} />
                     </button>
                     {hasMultipleCams && (

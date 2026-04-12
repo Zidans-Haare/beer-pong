@@ -458,11 +458,11 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     }}>
                         {hasGroupMatches && standingsA && standingsB && (
                             <>
-                                <div>
+                                <div style={{ maxHeight: '28%', overflow: 'auto', flexShrink: 1 }}>
                                     <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Gruppe A</div>
                                     <TvStandingsTable standings={standingsA} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} compact maxVisible={6} />
                                 </div>
-                                <div>
+                                <div style={{ maxHeight: '28%', overflow: 'auto', flexShrink: 1 }}>
                                     <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Gruppe B</div>
                                     <TvStandingsTable standings={standingsB} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} compact maxVisible={6} />
                                 </div>
@@ -505,7 +505,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                         )}
 
                         {/* Chat (Twitch-style) — hidden on mobile via CSS */}
-                        <div className="tv-broadcast-chat" style={{ flex: 1, minHeight: 0, borderTop: '1px solid var(--color-border)', paddingTop: '16px', display: 'flex', flexDirection: 'column' }}>
+                        <div className="tv-broadcast-chat" style={{ flex: 1, minHeight: '140px', borderTop: '1px solid var(--color-border)', paddingTop: '16px', display: 'flex', flexDirection: 'column' }}>
                             <div className="section-header" style={{ fontSize: '0.7rem', marginBottom: '10px' }}>Chat</div>
                             <TvChat />
                         </div>

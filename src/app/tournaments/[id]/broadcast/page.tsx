@@ -56,6 +56,12 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
         return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
     }, [resetHideTimer]);
 
+    // Auto-start stream as soon as tournamentId is available
+    useEffect(() => {
+        if (tournamentId) start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tournamentId]);
+
     const signal = useCallback(async (action: string, data: unknown) => {
         if (!tournamentId) return;
         await fetch(`/api/stream/${tournamentId}`, {

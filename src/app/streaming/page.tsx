@@ -87,7 +87,7 @@ export default async function StreamingPage() {
                                             {t.liveStreamUrl === WEBRTC_FLAG && <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '200px' }}>
                                         {(isParticipant || isAdmin) && (
                                             <LiveStreamControl
                                                 tournamentId={t.id}

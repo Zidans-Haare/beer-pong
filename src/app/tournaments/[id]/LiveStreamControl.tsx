@@ -28,11 +28,7 @@ export default function LiveStreamControl({
     const isActive = !!activeUrl;
 
     function openBroadcastWindow() {
-        window.open(
-            `/tournaments/${tournamentId}/broadcast`,
-            'beer-pong-broadcast',
-            'width=480,height=800,toolbar=0,menubar=0,location=0,status=0,resizable=1'
-        );
+        window.open(`/tournaments/${tournamentId}/broadcast`, '_blank');
     }
 
     function handleStart() {

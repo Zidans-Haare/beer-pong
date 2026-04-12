@@ -286,6 +286,9 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
   gap: 0;
   overflow: hidden;
 }
+.tv-default-left, .tv-default-right {
+  overflow: hidden;
+}
 @media (max-height: 520px) and (orientation: landscape) {
   .tv-default-grid {
     grid-template-columns: 1fr 1fr;
@@ -502,7 +505,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 <div className="tv-default-grid">
 
                 {/* ── Left: Round Slider (RR/Groups) or Live + Upcoming + Recent (Elimination) ── */}
-                <div className="tv-default-left" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
+                <div className="tv-default-left" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
 
                     {/* Round robin / groups: show all rounds as slider */}
                     {hasStandings && rrRounds.length > 0 && (
@@ -668,7 +671,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 </div>
 
                 {/* ── Right: Standings + Bracket ── */}
-                <div className="tv-default-right" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 40px)' }}>
+                <div className="tv-default-right" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 40px)' }}>
 
                     {/* Round Robin: Standings */}
                     {hasRoundRobin && standings && standings.length > 0 && (

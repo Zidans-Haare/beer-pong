@@ -58,9 +58,10 @@ export default async function StreamingPage() {
     // My tournaments not yet streaming
     const myNotLive = myTournaments.filter(t => !t.liveStreamUrl);
 
-    // All non-live tournaments for TV access
+    // All non-live tournaments for TV access — exclude those already shown in "Stream starten"
     const liveIds = new Set(liveStreams.map(t => t.id));
-    const otherTournaments = allTournaments.filter(t => !liveIds.has(t.id));
+    const myNotLiveIds = new Set(myNotLive.map(t => t.id));
+    const otherTournaments = allTournaments.filter(t => !liveIds.has(t.id) && !myNotLiveIds.has(t.id));
 
     const cardStyle: React.CSSProperties = {
         display: 'flex',

@@ -43,13 +43,16 @@ export default function LiveStreamControl({
 
     function handleStart() {
         setError(null);
+        // Open the broadcast window SYNCHRONOUSLY on the user click event
+        // (iOS Safari blocks window.open() when called after an async gap)
+        const win = window.open(`/tournaments/${tournamentId}/broadcast`, '_blank');
         startTransition(async () => {
             const result = await setTournamentLiveStreamUrl(tournamentId, WEBRTC_FLAG);
             if (!result.success) {
+                win?.close();
                 setError(result.error || 'Fehler beim Starten');
             } else {
                 setActiveUrl(WEBRTC_FLAG);
-                openBroadcastWindow();
             }
         });
     }

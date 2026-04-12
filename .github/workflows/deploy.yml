@@ -102,8 +102,9 @@ jobs:
             # App stoppen (sicher während npm ci läuft)
             pm2 stop beer-pong || true
 
-            # Code + Deps aktualisieren
-            git pull origin main
+            # Code + Deps aktualisieren (reset --hard verhindert Divergenz-Fehler)
+            git fetch origin main
+            git reset --hard origin/main
 
             # Maintenance-Msg mit aktuellem Commit-Namen schreiben
             COMMIT_MSG=$(git log -1 --pretty=%s)

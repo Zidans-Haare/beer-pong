@@ -50,10 +50,9 @@ export default async function StreamingPage() {
     // Separate: my tournaments that are not yet streaming
     const myNotLive = myTournaments.filter(t => !t.liveStreamUrl);
 
-    // All tournaments not already shown in live section and not in myNotLive
-    const myIds = new Set(myTournaments.map(t => t.id));
+    // All non-live tournaments for TV access (includes user's own)
     const liveIds = new Set(liveStreams.map(t => t.id));
-    const otherTournaments = allTournaments.filter(t => !liveIds.has(t.id) && !myIds.has(t.id));
+    const otherTournaments = allTournaments.filter(t => !liveIds.has(t.id));
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto', padding: 'var(--spacing-6) var(--spacing-4)' }}>
@@ -117,7 +116,7 @@ export default async function StreamingPage() {
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                         {myNotLive.map(t => {
-                            const isParticipant = t.participants.some(p => p.player?.userId === userId);
+                            const isParticipant = t.hostId === userId || t.participants.some(p => p.player?.userId === userId);
                             return (
                                 <div key={t.id} className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: 'var(--spacing-4)' }}>
                                     <div style={{ width: '44px', height: '44px', flexShrink: 0, borderRadius: 'var(--radius-md)', background: 'var(--color-surface-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

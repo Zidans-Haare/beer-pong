@@ -14,6 +14,7 @@ import TvResultOverlay from '@/components/tv/TvResultOverlay';
 import TvLivestream from '@/components/tv/TvLivestream';
 import TvWebRTC from '@/components/tv/TvWebRTC';
 import TvChat from '@/components/tv/TvChat';
+import TvDefaultGrid from '@/components/tv/TvDefaultGrid';
 
 const WEBRTC_FLAG = '__webrtc__';
 
@@ -266,9 +267,11 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 350px;
+  grid-template-rows: 1fr;
   gap: 20px;
   padding: 20px;
   overflow: hidden;
+  min-height: 0;
 }
 @media (max-height: 520px) and (orientation: landscape) {
   .tv-broadcast-grid {
@@ -278,60 +281,18 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
   }
 }
 
-/* ── Default layout (left + right panels) ── */
+/* ── Default layout (left + right panels, desktop only) ── */
 .tv-default-grid {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1.4fr;
   gap: 0;
   overflow: hidden;
+  min-height: 0;
 }
 .tv-default-left, .tv-default-right {
   overflow: hidden;
-}
-@media (max-height: 520px) and (orientation: landscape) {
-  /* Horizontal snap-scroll: each panel = one full-screen slide */
-  .tv-default-grid {
-    display: flex !important;
-    flex-direction: row !important;
-    overflow-x: scroll !important;
-    overflow-y: hidden !important;
-    scroll-snap-type: x mandatory !important;
-    -webkit-overflow-scrolling: touch;
-    grid-template-columns: unset !important;
-  }
-  .tv-default-left, .tv-default-right {
-    min-width: 100vw !important;
-    width: 100vw !important;
-    flex-shrink: 0 !important;
-    scroll-snap-align: start !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    padding: 10px 14px !important;
-    display: block !important;
-    border-right: none !important;
-  }
-  /* Bracket: release flex-fill so all matches render in scroll */
-  .tv-default-right .tv-bracket-slider {
-    flex: none !important;
-    overflow: visible !important;
-  }
-  .tv-default-right .tv-bracket-slider .tv-bracket-matches {
-    overflow: visible !important;
-    flex: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 5px !important;
-  }
-  /* Extra-small match cards on mobile */
-  .tv-default-right .tv-bracket-slider .tv-bracket-match {
-    font-size: 0.72rem !important;
-  }
-  .tv-default-right .tv-bracket-slider .tv-bracket-match-row {
-    padding: 4px 8px !important;
-    font-size: 0.72rem !important;
-  }
+  min-height: 0;
 }
 
 /* ── Header compact on mobile landscape ── */
@@ -438,7 +399,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 /* UNIFIED BROADCAST LAYOUT */
                 <div className="tv-broadcast-grid">
                     {/* Main: Stream */}
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'relative', height: '100%', minHeight: 0, overflow: 'hidden' }}>
                          {tournament.liveStreamUrl?.startsWith(WEBRTC_FLAG)
                              ? <TvWebRTC tournamentId={tournament.id} />
                              : <TvLivestream roomName={tournament.liveStreamUrl!} />
@@ -513,9 +474,8 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 </div>
             ) : (
                 /* DEFAULT MULTI-VIEW LAYOUT */
-                <div className="tv-default-grid">
-
-                {/* ── Left: Round Slider (RR/Groups) or Live + Upcoming + Recent (Elimination) ── */}
+                <TvDefaultGrid
+                    left={
                 <div className="tv-default-left" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
 
                     {/* Round robin / groups: show all rounds as slider */}
@@ -680,8 +640,8 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                         </div>
                     )}
                 </div>
-
-                {/* ── Right: Standings + Bracket ── */}
+                    }
+                    right={
                 <div className="tv-default-right" style={{ padding: 'clamp(16px, 2.5vw, 32px) clamp(20px, 3vw, 40px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px, 3vw, 40px)' }}>
 
                     {/* Round Robin: Standings */}
@@ -718,7 +678,8 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                         </div>
                     )}
                 </div>
-            </div>
+                    }
+                />
             )}
         </div>
     );

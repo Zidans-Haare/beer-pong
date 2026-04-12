@@ -2,6 +2,8 @@
  * In-memory WebRTC signaling store.
  * Works for single-server deployments (local tournament setup).
  */
+import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
 
 interface StreamState {
     offer: RTCSessionDescriptionInit | null;
@@ -17,7 +19,40 @@ const g = globalThis as any;
 if (!g.__streamStore) g.__streamStore = new Map<string, StreamState>();
 const store: Map<string, StreamState> = g.__streamStore;
 
+// Cleanup: remove inactive streams (> 2h old)
+function cleanupStore() {
+    const now = Date.now();
+    const TTL = 2 * 60 * 60 * 1000; // 2 hours
+    for (const [id, state] of store.entries()) {
+        if (now - state.updatedAt > TTL) {
+            store.delete(id);
+        }
+    }
+}
+
+async function checkAccess(tournamentId: string) {
+    const session = await auth();
+    if (!session?.user?.id) return false;
+
+    // Admin override
+    // @ts-ignore
+    if (session.user.email === process.env.ADMIN_EMAIL) return true;
+
+    const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+        include: { participants: true }
+    });
+
+    if (!tournament) return false;
+
+    const isHost = tournament.hostId === session.user.id;
+    const isParticipant = tournament.participants.some((p: any) => p.player?.userId === session.user.id);
+
+    return isHost || isParticipant;
+}
+
 function getOrCreate(id: string): StreamState {
+    cleanupStore(); // minor cleanup on every getOrCreate call
     if (!store.has(id)) {
         store.set(id, { offer: null, answer: null, offerCandidates: [], answerCandidates: [], answerVersion: 0, updatedAt: Date.now() });
     }
@@ -29,6 +64,12 @@ export async function GET(
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
+    
+    // Auth check
+    if (!(await checkAccess(tournamentId))) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const state = getOrCreate(tournamentId);
     return Response.json(state);
 }
@@ -38,6 +79,12 @@ export async function POST(
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
+
+    // Auth check
+    if (!(await checkAccess(tournamentId))) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const state = getOrCreate(tournamentId);
 
@@ -75,6 +122,12 @@ export async function DELETE(
     { params }: { params: Promise<{ tournamentId: string }> }
 ) {
     const { tournamentId } = await params;
+
+    // Auth check
+    if (!(await checkAccess(tournamentId))) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     store.delete(tournamentId);
     return Response.json({ ok: true });
 }

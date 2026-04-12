@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, CameraOff, FlipHorizontal, Loader2, RefreshCw, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 const POLL_MS = 1500;
@@ -57,7 +57,7 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
         setError(null);
         setStatus('connecting');
 
-        const preset = QUALITY_PRESETS[quality];
+        const preset = (QUALITY_PRESETS as any)[quality];
 
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
@@ -79,7 +79,7 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
             const pc = new RTCPeerConnection({ iceServers });
             pcRef.current = pc;
 
-            stream.getTracks().forEach(t => pc.addTrack(t, stream));
+            stream.getTracks().forEach((t: any) => pc.addTrack(t, stream));
 
             // Apply max bitrate to video sender
             pc.onnegotiationneeded = async () => {
@@ -206,7 +206,7 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
         } catch {}
     }, [status, facingMode]);
 
-    useEffect(() => () => { stop(); }, []);
+    useEffect(() => () => { stop(); }, [stop]);
 
     const statusColor = status === 'connected' ? '#4ade80'
         : status === 'connecting' ? 'orange'
@@ -248,7 +248,7 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
                 </span>
 
                 <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
-                    {QUALITY_PRESETS[quality].height}p
+                    {(QUALITY_PRESETS as any)[quality].height}p
                 </span>
             </div>
 

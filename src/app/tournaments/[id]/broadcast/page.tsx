@@ -64,11 +64,15 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
     const signal = useCallback(async (action: string, data: unknown) => {
         if (!tournamentId) return;
-        await fetch(`/api/stream/${tournamentId}`, {
+        const res = await fetch(`/api/stream/${tournamentId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action, data }),
         });
+        if (!res.ok) {
+            const text = await res.text().catch(() => res.status.toString());
+            throw new Error(`Signal ${action} failed: ${res.status} ${text}`);
+        }
     }, [tournamentId]);
 
     const start = useCallback(async () => {

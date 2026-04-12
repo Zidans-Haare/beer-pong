@@ -40,7 +40,7 @@ async function checkAccess(tournamentId: string) {
 
     const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
-        include: { participants: true }
+        include: { participants: { include: { player: true } } }
     });
 
     if (!tournament) return false;

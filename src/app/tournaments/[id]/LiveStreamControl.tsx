@@ -7,23 +7,24 @@ import { Video, VideoOff, Loader2, ExternalLink } from 'lucide-react';
 interface LiveStreamControlProps {
     tournamentId: string;
     initialUrl: string | null;
-    isParticipant: boolean;
+    isHost: boolean;
     isAdmin: boolean;
 }
 
 const WEBRTC_FLAG = '__webrtc__';
 
-
 export default function LiveStreamControl({
     tournamentId,
     initialUrl,
-    isParticipant,
+    isHost,
     isAdmin,
 }: LiveStreamControlProps) {
     const [isPending, startTransition] = useTransition();
     const [activeUrl, setActiveUrl] = useState<string | null>(initialUrl);
     const [error, setError] = useState<string | null>(null);
-    if (!isParticipant && !isAdmin) return null;
+
+    const canControl = isHost || isAdmin;
+    if (!canControl) return null;
 
     const isActive = !!activeUrl;
 
@@ -60,22 +61,8 @@ export default function LiveStreamControl({
     if (isActive) {
         return (
             <>
-                <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '0 12px',
-                    height: '36px',
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.35)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.85rem',
-                    color: 'var(--color-error)',
-                    fontWeight: 600,
-                }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', boxShadow: '0 0 6px var(--color-error)' }} />
-                    Live
-                </div>
                 <button
-                    onClick={() => openBroadcastWindow()}
+                    onClick={openBroadcastWindow}
                     className="btn btn-secondary"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
@@ -86,19 +73,18 @@ export default function LiveStreamControl({
                     onClick={handleStop}
                     disabled={isPending}
                     className="btn btn-secondary"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-error)' }}
                 >
                     {isPending ? <Loader2 size={15} className="animate-spin" /> : <VideoOff size={15} />}
                     Beenden
                 </button>
-                {error && <span style={{ color: 'var(--color-error)', fontSize: '0.75rem', alignSelf: 'center' }}>{error}</span>}
+                {error && <span style={{ color: 'var(--color-error)', fontSize: '0.75rem' }}>{error}</span>}
             </>
         );
     }
 
     return (
         <>
-
             <button
                 onClick={handleStart}
                 disabled={isPending}
@@ -108,7 +94,7 @@ export default function LiveStreamControl({
                 {isPending ? <Loader2 size={15} className="animate-spin" /> : <Video size={15} />}
                 Stream starten
             </button>
-            {error && <span style={{ color: 'var(--color-error)', fontSize: '0.75rem', alignSelf: 'center' }}>{error}</span>}
+            {error && <span style={{ color: 'var(--color-error)', fontSize: '0.75rem' }}>{error}</span>}
         </>
     );
 }

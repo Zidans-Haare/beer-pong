@@ -16,4 +16,5 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 });
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+// captureRouterTransitionStart was added in a newer Sentry version — guard against undefined
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart ?? (() => {});

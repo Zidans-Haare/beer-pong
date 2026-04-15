@@ -13,9 +13,9 @@ export default async function StreamingPage() {
     const userId = session?.user?.id ?? null;
     const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
 
-    // Active live streams
+    // Active live streams (include PLANNED too — stream can start before tournament is ACTIVE)
     const liveStreams = await prisma.tournament.findMany({
-        where: { liveStreamUrl: { not: null }, status: 'ACTIVE' },
+        where: { liveStreamUrl: { not: null }, status: { in: ['PLANNED', 'ACTIVE'] } },
         select: { id: true, name: true, liveStreamUrl: true, hostId: true },
         orderBy: { date: 'desc' },
     });
@@ -43,9 +43,14 @@ export default async function StreamingPage() {
     }) : [];
 
     // Helper: check if userId started this stream
-    function didStart(liveStreamUrl: string | null) {
+    function didStart(liveStreamUrl: string | null, hostId?: string) {
         if (!userId || !liveStreamUrl) return false;
-        return liveStreamUrl === `__webrtc__:${userId}` || isAdmin;
+        if (isAdmin) return true;
+        // New format: __webrtc__:<userId>
+        if (liveStreamUrl === `__webrtc__:${userId}`) return true;
+        // Legacy format: __webrtc__ without userId — fall back to host check
+        if (liveStreamUrl === '__webrtc__' && hostId === userId) return true;
+        return false;
     }
 
     // All active/planned tournaments (for TV access without stream)
@@ -123,7 +128,7 @@ export default async function StreamingPage() {
                         {liveStreams.map(t => {
                             const isMine = myTournaments.some(m => m.id === t.id);
                             const canStart = isMine || isAdmin;
-                            const canStop = didStart(t.liveStreamUrl) || isAdmin;
+                            const canStop = didStart(t.liveStreamUrl, t.hostId);
                             const isWebRTC = t.liveStreamUrl?.startsWith('__webrtc__') ?? false;
                             return (
                                 <div key={t.id} className="glass-panel" style={cardStyle}>
@@ -181,7 +186,7 @@ export default async function StreamingPage() {
                                     tournamentId={t.id}
                                     initialUrl={t.liveStreamUrl}
                                     canStart={true}
-                                    canStop={didStart(t.liveStreamUrl) || isAdmin}
+                                    canStop={didStart(t.liveStreamUrl, t.hostId)}
                                     tvHref={`/tournaments/${t.id}/tv`}
                                 />
                             </div>

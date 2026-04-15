@@ -365,9 +365,16 @@ export async function setTournamentLiveStreamUrl(tournamentId: string, url: stri
         // Stopping: only the person who started it (or admin) may stop
         if (url === null) {
             const current = tournament.liveStreamUrl ?? '';
-            const startedBy = current.startsWith('__webrtc__:') ? current.split(':')[1] : null;
-            if (startedBy && startedBy !== userId && !isAdmin) {
-                return { success: false, error: 'Nur derjenige der den Stream gestartet hat kann ihn beenden.' };
+            if (current.startsWith('__webrtc__:')) {
+                const startedBy = current.split(':')[1];
+                if (startedBy !== userId && !isAdmin) {
+                    return { success: false, error: 'Nur derjenige der den Stream gestartet hat kann ihn beenden.' };
+                }
+            } else if (current === '__webrtc__') {
+                // Legacy: no userId stored — only host or admin may stop
+                if (tournament.hostId !== userId && !isAdmin) {
+                    return { success: false, error: 'Nur derjenige der den Stream gestartet hat kann ihn beenden.' };
+                }
             }
         }
 

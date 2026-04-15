@@ -425,16 +425,26 @@ export async function getAllTournaments() {
 export async function setTournamentStatus(tournamentId: string, status: 'PLANNED' | 'ACTIVE' | 'COMPLETED') {
     await checkAdmin();
     try {
-        await prisma.tournament.update({
-            where: { id: tournamentId },
-            data: { status },
-        });
+        const current = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+        if (!current) return { success: false, error: 'Turnier nicht gefunden.' };
+
+        // When activating from PLANNED, use TournamentService to also generate the bracket
+        if (status === 'ACTIVE' && current.status === 'PLANNED') {
+            const { TournamentService } = await import('@/lib/services/TournamentService');
+            await TournamentService.startTournament(tournamentId);
+        } else {
+            await prisma.tournament.update({
+                where: { id: tournamentId },
+                data: { status },
+            });
+        }
+
         revalidatePath('/admin/tournaments');
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };
     } catch (error) {
         console.error('Failed to update tournament status:', error);
-        return { success: false, error: 'Status konnte nicht geändert werden.' };
+        return { success: false, error: error instanceof Error ? error.message : 'Status konnte nicht geändert werden.' };
     }
 }
 

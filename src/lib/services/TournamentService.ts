@@ -176,7 +176,7 @@ export class TournamentService {
             matches.forEach(m => {
                 if (m.stage === 'GROUP_1') {
                     if (m.player1Id) group1Players.add(m.player1Id);
-                    if (m.player2Id) group2Players.add(m.player2Id);
+                    if (m.player2Id) group1Players.add(m.player2Id);
                 } else if (m.stage === 'GROUP_2') {
                     if (m.player1Id) group2Players.add(m.player1Id);
                     if (m.player2Id) group2Players.add(m.player2Id);

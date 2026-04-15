@@ -34,8 +34,10 @@ export default function LiveStreamControl({
     const [isPending, startTransition] = useTransition();
     const [activeUrl, setActiveUrl] = useState<string | null>(initialUrl);
     const [error, setError] = useState<string | null>(null);
+    const [iStartedHere, setIStartedHere] = useState(false);
 
     const isActive = !!activeUrl;
+    const effectiveCanStop = canStop || iStartedHere;
 
     function openBroadcastWindow() {
         window.open(`/tournaments/${tournamentId}/broadcast`, '_blank');
@@ -53,6 +55,7 @@ export default function LiveStreamControl({
                 setError(result.error || 'Fehler beim Starten');
             } else {
                 setActiveUrl(WEBRTC_FLAG);
+                setIStartedHere(true);
             }
         });
     }
@@ -86,7 +89,7 @@ export default function LiveStreamControl({
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                 {/* Row 1: Kamera (only for starter) + Beenden (only for stopper) */}
-                {(canStop) && (
+                {(effectiveCanStop) && (
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button
                             onClick={openBroadcastWindow}

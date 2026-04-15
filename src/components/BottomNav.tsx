@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDrunkMode } from '@/context/DrunkModeContext';
 import { useTranslations } from 'next-intl';
 
-export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; isLoggedIn?: boolean }) {
+export default function BottomNav({ isAdmin, isLoggedIn, hasLiveStream }: { isAdmin?: boolean; isLoggedIn?: boolean; hasLiveStream?: boolean }) {
     const t = useTranslations('nav');
     const pathname = usePathname();
     const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
@@ -86,7 +86,7 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
         { href: '/notifications', icon: Bell,          label: t('notifications'),  drunkVisible: false, badge: unreadCount },
         { href: '/players',       icon: Users,         label: t('players'),        drunkVisible: false },
         { href: '/stats',         icon: BarChart2,     label: t('stats'),          drunkVisible: false },
-        { href: '/streaming',     icon: Tv2,           label: 'Streaming',         drunkVisible: false },
+        { href: '/streaming',     icon: Tv2,           label: 'Streaming',         drunkVisible: false, liveDot: hasLiveStream },
         ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',           drunkVisible: false, badge: 0 }] : []),
     ];
     const navItems = isDrunk ? allNavItems.filter(i => i.drunkVisible) : allNavItems;
@@ -160,6 +160,28 @@ export default function BottomNav({ isAdmin, isLoggedIn }: { isAdmin?: boolean; 
                                             </motion.span>
                                         )}
                                     </AnimatePresence>
+                                </div>
+                            ) : item.liveDot ? (
+                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                                    <span className="nav-icon-glow" style={{ display: 'flex' }}><item.icon size={24} /></span>
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        right: 0,
+                                        width: '9px',
+                                        height: '9px',
+                                        borderRadius: '50%',
+                                        background: 'var(--color-error)',
+                                        border: '2px solid rgba(255,255,255,0.92)',
+                                        animation: 'liveDotPulse 1.4s ease-in-out infinite',
+                                        zIndex: 10,
+                                    }} />
+                                    <style>{`
+                                        @keyframes liveDotPulse {
+                                            0%, 100% { opacity: 1; transform: scale(1); }
+                                            50% { opacity: 0.6; transform: scale(0.8); }
+                                        }
+                                    `}</style>
                                 </div>
                             ) : (
                                 <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={24} /></span>

@@ -93,9 +93,27 @@ export default async function StreamingPage() {
 
             {/* ── Live jetzt ── */}
             <section style={{ marginBottom: 'var(--spacing-6)' }}>
-                <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 'var(--spacing-3)' }}>
-                    Live jetzt
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-3)' }}>
+                    {liveStreams.length > 0 && (
+                        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', animation: 'livePulse 1.4s ease-in-out infinite' }} />
+                            <span style={{ position: 'absolute', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-error)', opacity: 0, animation: 'liveRing 1.4s ease-out infinite' }} />
+                        </span>
+                    )}
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: liveStreams.length > 0 ? 'var(--color-error)' : 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+                        Live jetzt {liveStreams.length > 0 && `(${liveStreams.length})`}
+                    </p>
+                </div>
+                <style>{`
+                    @keyframes livePulse {
+                        0%, 100% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(0.85); opacity: 0.7; }
+                    }
+                    @keyframes liveRing {
+                        0% { transform: scale(1); opacity: 0.7; }
+                        100% { transform: scale(2.8); opacity: 0; }
+                    }
+                `}</style>
                 {liveStreams.length === 0 ? (
                     <div className="glass-panel" style={{ textAlign: 'center', padding: 'var(--spacing-6)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
                         Kein aktiver Stream gerade.
@@ -116,7 +134,10 @@ export default async function StreamingPage() {
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: 'var(--color-error)', fontWeight: 600, marginTop: '2px' }}>
-                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', boxShadow: '0 0 5px var(--color-error)' }} />
+                                                <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block', animation: 'livePulse 1.4s ease-in-out infinite' }} />
+                                                    <span style={{ position: 'absolute', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--color-error)', opacity: 0, animation: 'liveRing 1.4s ease-out infinite' }} />
+                                                </span>
                                                 LIVE
                                                 <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>· WebRTC</span>
                                             </div>

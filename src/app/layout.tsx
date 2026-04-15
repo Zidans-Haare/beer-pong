@@ -49,6 +49,7 @@ export const viewport = {
 };
 
 import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
 import { DrunkModeProvider } from '@/context/DrunkModeContext';
 import { isDemoMode } from '@/lib/demo';
 import DemoBanner from '@/components/DemoBanner';
@@ -64,6 +65,10 @@ export default async function RootLayout({
   const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
   const locale = await getLocale();
   const messages = await getMessages();
+  const liveStreamCount = await prisma.tournament.count({
+    where: { liveStreamUrl: { not: null }, status: 'ACTIVE' },
+  });
+  const hasLiveStream = liveStreamCount > 0;
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -92,7 +97,7 @@ export default async function RootLayout({
               {children}
             </ClientLayout>
           </main>
-          <BottomNav isAdmin={isAdmin} isLoggedIn={!!session?.user} />
+          <BottomNav isAdmin={isAdmin} isLoggedIn={!!session?.user} hasLiveStream={hasLiveStream} />
           <ServiceWorkerUpdate />
           <OfflineIndicator />
           <ServiceWorkerProvider />

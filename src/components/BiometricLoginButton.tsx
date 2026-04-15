@@ -24,23 +24,15 @@ export default function BiometricLoginButton({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if WebAuthn is supported
-    const checkSupport = async () => {
-      if (
-        typeof window !== 'undefined' &&
-        'PublicKeyCredential' in window &&
-        'get' in PublicKeyCredential
-      ) {
-        try {
-          const available =
-            await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-          setIsSupported(available);
-        } catch {
-          setIsSupported(false);
-        }
-      }
-    };
-    checkSupport();
+    // Check if WebAuthn API exists — don't gate on platform authenticator check,
+    // which can return false on iOS PWAs even when Face ID is available.
+    if (
+      typeof window !== 'undefined' &&
+      'PublicKeyCredential' in window &&
+      'get' in PublicKeyCredential
+    ) {
+      setIsSupported(true);
+    }
   }, []);
 
   const handleLogin = async () => {

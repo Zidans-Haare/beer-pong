@@ -21,23 +21,15 @@ export default function PasskeyRegisterButton({
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // Check if WebAuthn is supported
-    const checkSupport = async () => {
-      if (
-        typeof window !== 'undefined' &&
-        'PublicKeyCredential' in window &&
-        'create' in PublicKeyCredential
-      ) {
-        try {
-          const available =
-            await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-          setIsSupported(available);
-        } catch {
-          setIsSupported(false);
-        }
-      }
-    };
-    checkSupport();
+    // Check if WebAuthn API exists — don't gate on platform authenticator check,
+    // which can return false on iOS PWAs even when Face ID is available.
+    if (
+      typeof window !== 'undefined' &&
+      'PublicKeyCredential' in window &&
+      'create' in PublicKeyCredential
+    ) {
+      setIsSupported(true);
+    }
   }, []);
 
   const handleRegister = async () => {

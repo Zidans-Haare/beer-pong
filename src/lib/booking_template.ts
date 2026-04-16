@@ -17,6 +17,7 @@ export const getBookingTemplate = (
     checkinDateFull: string,
     checkoutDateFull: string,
     bookingDate: string,
+    qrCodeDataUrl?: string,
 ): string => `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -84,15 +85,15 @@ export const getBookingTemplate = (
             </p>
 
             <!-- Digital Check-In QR -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0;background: #f9f5ff;border: 1px dashed #e9d5ff;border-radius: 12px;">
+            ${qrCodeDataUrl ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0;background: #f9f5ff;border: 1px dashed #e9d5ff;border-radius: 12px;">
               <tr>
                 <td align="center" style="padding: 24px;">
                   <p style="margin:0 0 12px;font-size:12px;color:#7c3aed;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Digitaler Check-In</p>
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.youtube.com/watch?v=dQw4w9WgXcQ" alt="Check-In" width="150" height="150" style="display:block;border-radius:8px;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.08);" />
-                  <p style="margin:16px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">Diesen QR-Code bitte beim Check-In vorzeigen, dann kommt das Rick Roll Video von YT :)</p>
+                  <img src="${qrCodeDataUrl}" alt="Check-In QR-Code" width="150" height="150" style="display:block;border-radius:8px;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.08);" />
+                  <p style="margin:16px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">Diesen QR-Code bitte beim Check-In vorzeigen.</p>
                 </td>
               </tr>
-            </table>
+            </table>` : ''}
 
             <p style="margin:0;font-size:15px;line-height:1.6;color:#374151;">
               Viele Grüße,<br />

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import QRCode from 'qrcode';
 import { getBookingTemplate } from '@/lib/booking_template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -234,11 +235,16 @@ export async function sendRoomReservationConfirmedEmail(to: string, name: string
     const checkoutDateFull = formatter.format(endDate);
     const bookingDate = new Intl.DateTimeFormat('de-DE', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date());
 
+    let qrCodeDataUrl: string | undefined;
+    try {
+        qrCodeDataUrl = await QRCode.toDataURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { width: 150, margin: 1 });
+    } catch { /* QR generation failed, skip it */ }
+
     return resend.emails.send({
         from: getEmailFrom(),
         cc: ccList.length > 0 ? ccList : undefined,
         to,
         subject: `Buchungsbestätigung: Unterkunft bei ${hostName}`,
-        html: getBookingTemplate(name, tournamentName, hostName, roomDescription, checkinDate, checkinDateFull, checkoutDateFull, bookingDate),
+        html: getBookingTemplate(name, tournamentName, hostName, roomDescription, checkinDate, checkinDateFull, checkoutDateFull, bookingDate, qrCodeDataUrl),
     });
 }

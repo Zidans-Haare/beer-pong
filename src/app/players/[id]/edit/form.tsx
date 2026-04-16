@@ -7,7 +7,7 @@ import { useState } from 'react';
 import ProfileImagePicker from '@/components/ProfileImagePicker';
 import { useTranslations } from 'next-intl';
 
-export default function EditPlayerForm({ player }: { player: Player }) {
+export default function EditPlayerForm({ player, demoMode = false }: { player: Player; demoMode?: boolean }) {
     const t = useTranslations('players');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -36,13 +36,18 @@ export default function EditPlayerForm({ player }: { player: Player }) {
     return (
         <form action={clientAction} className="glass-panel" style={{ padding: 'var(--spacing-6)', display: 'grid', gap: 'var(--spacing-4)' }}>
             {/* Profile Image Picker */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--spacing-4)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--spacing-4)', gap: 'var(--spacing-2)' }}>
                 <ProfileImagePicker
                     currentImage={imageData}
                     name={name}
                     onImageChange={setImageData}
                     size={140}
                 />
+                {demoMode && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center', maxWidth: '260px' }}>
+                        Bilder werden in der Demo nicht gespeichert.
+                    </p>
+                )}
             </div>
 
             <div>

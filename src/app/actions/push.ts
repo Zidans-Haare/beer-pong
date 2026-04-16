@@ -10,8 +10,14 @@ export async function saveSubscription(subscription: PushSubscriptionJSON) {
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
 
     try {
-        await (prisma as any).pushSubscription.create({
-            data: {
+        await (prisma as any).pushSubscription.upsert({
+            where: { endpoint: subscription.endpoint! },
+            update: {
+                p256dh: subscription.keys!.p256dh,
+                auth: subscription.keys!.auth,
+                userId: session.user.id,
+            },
+            create: {
                 userId: session.user.id,
                 endpoint: subscription.endpoint!,
                 p256dh: subscription.keys!.p256dh,

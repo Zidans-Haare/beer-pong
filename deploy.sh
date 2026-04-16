@@ -45,7 +45,7 @@ cp -r .next/static .next/standalone/.next/static
 echo "Assets kopiert."
 
 # 5. PM2 Neustart mit absolutem DB-Pfad
-DATABASE_URL="file:/home/htw/beer-pong/prisma/dev.db" pm2 restart beer-pong --update-env
+DATABASE_URL="file:/home/htw/beer-pong/prisma/dev.db" VAPID_CONTACT="mailto:nickolomek@icloud.com" pm2 restart beer-pong --update-env
 pm2 save
 echo "App neu gestartet!"
 

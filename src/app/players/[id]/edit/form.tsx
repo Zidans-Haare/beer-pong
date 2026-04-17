@@ -45,7 +45,7 @@ export default function EditPlayerForm({ player, demoMode = false }: { player: P
                 />
                 {demoMode && (
                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textAlign: 'center', maxWidth: '260px' }}>
-                        Bilder werden in der Demo nicht gespeichert.
+                        {t('demoImageHint')}
                     </p>
                 )}
             </div>

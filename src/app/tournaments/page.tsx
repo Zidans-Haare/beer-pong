@@ -208,7 +208,7 @@ function TournamentCard({ t, planned, translations }: { t: any; planned?: boolea
                 {t.offersGuestRoom && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#10b981', fontWeight: 600, marginTop: '4px' }}>
                         <BedDouble size={16} />
-                        <span>Übernachtung {t.offersBreakfast ? '+ Frühstück' : ''} {t.offersHalfBoard ? '+ HP' : ''}</span>
+                        <span>{translations('accommodation')}{t.offersBreakfast ? ' ' + translations('withBreakfast') : ''}{t.offersHalfBoard ? ' ' + translations('withHalfBoard') : ''}</span>
                     </div>
                 )}
             </div>

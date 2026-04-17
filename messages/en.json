@@ -119,7 +119,19 @@
     "archiveTitle": "Archive",
     "archivedCount": "{count} completed tournaments",
     "noArchived": "No completed tournaments yet.",
-    "results": "Results"
+    "results": "Results",
+    "accommodation": "Accommodation",
+    "withBreakfast": "+ Breakfast",
+    "withHalfBoard": "+ Half Board",
+    "guestRoomOffer": "Offer overnight accommodation",
+    "guestRoomName": "Room name (e.g. Hotel Salzburger Hof)",
+    "guestRoomNamePlaceholder": "Hotel Mama",
+    "guestRoomDesc": "Description (e.g. couch, airbed)",
+    "guestRoomDescPlaceholder": "The 5-star couch in the living room",
+    "guestRoomImage": "Room image (optional)",
+    "guestRoomCapacity": "Capacity (persons)",
+    "offersBreakfast": "Breakfast add-on",
+    "offersHalfBoard": "Half board add-on"
   },
   "rsvp": {
     "question": "Are you in?",
@@ -148,6 +160,7 @@
     "saving": "Saving...",
     "save": "Save",
     "error": "Error: ",
+    "demoImageHint": "Images are not saved in the demo.",
     "tournamentHistory": "Tournament History",
     "noTournaments": "No tournaments played yet.",
     "unknownDate": "Unknown date",
@@ -256,7 +269,9 @@
       "completed": "Completed",
       "confirmDelete": "Really delete tournament \"{name}\"? This action cannot be undone.",
       "deleteError": "Error deleting",
-      "delete": "Delete"
+      "delete": "Delete",
+      "startStream": "Start Livestream",
+      "stopStream": "Stop Livestream"
     },
     "manager": {
       "selectTournament": "Select Tournament",
@@ -308,7 +323,8 @@
       "cancel": "Cancel",
       "saving": "Saving...",
       "done": "Done!",
-      "save": "Save"
+      "save": "Save",
+      "usesPwa": "Uses PWA"
     },
     "guests": {
       "title": "Guest Players",
@@ -708,6 +724,29 @@
     "last24h": "Last 24h",
     "days": "days",
     "hours": "hrs",
-    "min": "min"
+    "min": "min",
+    "medalTable": "Medal Table",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
+    "totalMedals": "Total"
+  },
+  "guestRoom": {
+    "title": "Guest Room Available",
+    "defaultDescription": "A cozy sleeping spot",
+    "capacity": "Capacity: {confirmed} / {total} occupied",
+    "statusConfirmed": "Your bed is reserved!",
+    "statusPending": "Request is pending...",
+    "statusRejected": "Request unfortunately rejected",
+    "extras": "Add-ons:",
+    "breakfast": "Breakfast included",
+    "halfBoard": "Half board (dinner)",
+    "requesting": "Requesting...",
+    "full": "Fully booked",
+    "requestSpot": "Request a spot",
+    "manageRequests": "Manage Requests",
+    "errorRequest": "Error requesting",
+    "errorAccept": "Error accepting",
+    "errorReject": "Error rejecting"
   }
 }

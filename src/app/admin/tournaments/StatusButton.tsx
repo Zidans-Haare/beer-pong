@@ -126,6 +126,7 @@ export function StatusButton({ tournamentId, currentStatus }: { tournamentId: st
 }
 export function LiveStreamButton({ tournamentId, currentUrl }: { tournamentId: string; currentUrl: string | null }) {
     const [loading, setLoading] = useState(false);
+    const t = useTranslations('admin.statusButton');
     
     async function handleToggle() {
         setLoading(true);
@@ -143,7 +144,7 @@ export function LiveStreamButton({ tournamentId, currentUrl }: { tournamentId: s
         <button
             onClick={handleToggle}
             disabled={loading}
-            title={currentUrl ? 'Livestream beenden' : 'Livestream starten'}
+            title={currentUrl ? t('stopStream') : t('startStream')}
             style={{
                 display: 'flex',
                 alignItems: 'center',

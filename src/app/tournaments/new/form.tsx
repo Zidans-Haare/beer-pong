@@ -333,19 +333,19 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             {offersGuestRoom && <input type="hidden" name="offersGuestRoom" value="on" />}
                         </div>
                         <label style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }} onClick={() => setOffersGuestRoom(!offersGuestRoom)}>
-                            Gästezimmer für Übernachtung anbieten
+                            {t('guestRoomOffer')}
                         </label>
                     </div>
 
                     {offersGuestRoom && (
                         <div className="animate-fadeIn" style={{ display: 'grid', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-3)' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
-                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Zimmername (z.B. Hotel Salzburger Hof)</label>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{t('guestRoomName')}</label>
                                 <input
                                     type="text"
                                     name="guestRoomTitle"
                                     required={offersGuestRoom}
-                                    placeholder="Hotel Mama"
+                                    placeholder={t('guestRoomNamePlaceholder')}
                                     style={{
                                         width: '100%', padding: '12px', background: 'var(--color-surface)',
                                         border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-md)'
@@ -353,12 +353,12 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                 />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
-                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Beschreibung (z.B. Couch, Luftmatratze)</label>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{t('guestRoomDesc')}</label>
                                 <input
                                     type="text"
                                     name="guestRoomDescription"
                                     required={offersGuestRoom}
-                                    placeholder="Das 5-Sterne Sofa im Wohnzimmer"
+                                    placeholder={t('guestRoomDescPlaceholder')}
                                     style={{
                                         width: '100%', padding: '12px', background: 'var(--color-surface)',
                                         border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-md)'
@@ -366,7 +366,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                 />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-2)' }}>
-                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Zimmerbild (Optional)</label>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{t('guestRoomImage')}</label>
                                 <input
                                     type="file"
                                     name="guestRoomImage"
@@ -379,7 +379,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                 />
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>Kapazität (Personen)</label>
+                                <label style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{t('guestRoomCapacity')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
                                     <button 
                                         type="button"
@@ -407,11 +407,11 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
                                     <input type="checkbox" name="offersBreakfast" value="true" />
-                                    Frühstück zubuchbar
+                                    {t('offersBreakfast')}
                                 </label>
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
                                     <input type="checkbox" name="offersHalfBoard" value="true" />
-                                    Halbpension zubuchbar
+                                    {t('offersHalfBoard')}
                                 </label>
                             </div>
                         </div>

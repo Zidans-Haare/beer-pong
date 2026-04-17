@@ -119,7 +119,19 @@
     "archiveTitle": "Archiv",
     "archivedCount": "{count} beendete Turniere",
     "noArchived": "Noch keine beendeten Turniere.",
-    "results": "Ergebnisse"
+    "results": "Ergebnisse",
+    "accommodation": "Übernachtung",
+    "withBreakfast": "+ Frühstück",
+    "withHalfBoard": "+ HP",
+    "guestRoomOffer": "Gästezimmer für Übernachtung anbieten",
+    "guestRoomName": "Zimmername (z.B. Hotel Salzburger Hof)",
+    "guestRoomNamePlaceholder": "Hotel Mama",
+    "guestRoomDesc": "Beschreibung (z.B. Couch, Luftmatratze)",
+    "guestRoomDescPlaceholder": "Das 5-Sterne Sofa im Wohnzimmer",
+    "guestRoomImage": "Zimmerbild (Optional)",
+    "guestRoomCapacity": "Kapazität (Personen)",
+    "offersBreakfast": "Frühstück zubuchbar",
+    "offersHalfBoard": "Halbpension zubuchbar"
   },
   "rsvp": {
     "question": "Bist du dabei?",
@@ -148,6 +160,7 @@
     "saving": "Speichere...",
     "save": "Speichern",
     "error": "Fehler: ",
+    "demoImageHint": "Bilder werden in der Demo nicht gespeichert.",
     "tournamentHistory": "Turnier Historie",
     "noTournaments": "Noch keine Turniere gespielt.",
     "unknownDate": "Datum unbekannt",
@@ -256,7 +269,9 @@
       "completed": "Abgeschlossen",
       "confirmDelete": "Turnier \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       "deleteError": "Fehler beim Löschen",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "startStream": "Livestream starten",
+      "stopStream": "Livestream beenden"
     },
     "manager": {
       "selectTournament": "Turnier auswählen",
@@ -308,7 +323,8 @@
       "cancel": "Abbrechen",
       "saving": "Speichere...",
       "done": "Erledigt!",
-      "save": "Speichern"
+      "save": "Speichern",
+      "usesPwa": "Nutzt PWA"
     },
     "guests": {
       "title": "Gast-Spieler",
@@ -708,6 +724,29 @@
     "last24h": "Letzte 24h",
     "days": "Tage",
     "hours": "Std.",
-    "min": "Min."
+    "min": "Min.",
+    "medalTable": "Medaillenspiegel",
+    "gold": "Gold",
+    "silver": "Silber",
+    "bronze": "Bronze",
+    "totalMedals": "Gesamt"
+  },
+  "guestRoom": {
+    "title": "Gästezimmer angeboten",
+    "defaultDescription": "Ein gemütlicher Schlafplatz",
+    "capacity": "Kapazität: {confirmed} / {total} belegt",
+    "statusConfirmed": "Dein Bett ist reserviert!",
+    "statusPending": "Anfrage ist ausstehend...",
+    "statusRejected": "Anfrage leider abgelehnt",
+    "extras": "Zusatzleistungen:",
+    "breakfast": "Frühstück inklusive",
+    "halfBoard": "Halbpension (Dinner)",
+    "requesting": "Wird angefragt...",
+    "full": "Voll belegt",
+    "requestSpot": "Schlafplatz anfragen",
+    "manageRequests": "Anfragen verwalten",
+    "errorRequest": "Fehler beim Anfragen",
+    "errorAccept": "Fehler beim Bestätigen",
+    "errorReject": "Fehler beim Ablehnen"
   }
 }

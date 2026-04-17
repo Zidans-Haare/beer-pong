@@ -131,7 +131,8 @@
     "guestRoomImage": "Room image (optional)",
     "guestRoomCapacity": "Capacity (persons)",
     "offersBreakfast": "Breakfast add-on",
-    "offersHalfBoard": "Half board add-on"
+    "offersHalfBoard": "Half board add-on",
+    "usePaypal": "Enable PayPal payment links for cost splitting"
   },
   "rsvp": {
     "question": "Are you in?",
@@ -161,6 +162,9 @@
     "save": "Save",
     "error": "Error: ",
     "demoImageHint": "Images are not saved in the demo.",
+    "paypalMe": "PayPal.Me (for cost splitting)",
+    "paypalMePlaceholder": "YourUsername",
+    "paypalMeHint": "Optional — used for payment links when splitting tournament costs.",
     "tournamentHistory": "Tournament History",
     "noTournaments": "No tournaments played yet.",
     "unknownDate": "Unknown date",
@@ -612,6 +616,8 @@
     "you": "You",
     "addCustom": "Add item",
     "customPlaceholder": "e.g. Snacks, Ice…",
+    "pricePlaceholder": "0.00 €",
+    "totalCost": "Σ {amount} €",
     "categories": {
       "BEER": "Beer",
       "TABLES": "Tables",

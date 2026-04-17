@@ -131,7 +131,8 @@
     "guestRoomImage": "Zimmerbild (Optional)",
     "guestRoomCapacity": "Kapazität (Personen)",
     "offersBreakfast": "Frühstück zubuchbar",
-    "offersHalfBoard": "Halbpension zubuchbar"
+    "offersHalfBoard": "Halbpension zubuchbar",
+    "usePaypal": "PayPal-Zahlungslinks für Kostenaufteilung aktivieren"
   },
   "rsvp": {
     "question": "Bist du dabei?",
@@ -161,6 +162,9 @@
     "save": "Speichern",
     "error": "Fehler: ",
     "demoImageHint": "Bilder werden in der Demo nicht gespeichert.",
+    "paypalMe": "PayPal.Me (für Kostenaufteilung)",
+    "paypalMePlaceholder": "DeinBenutzername",
+    "paypalMeHint": "Optional — wird für Zahlungslinks bei der Turnierkostenaufteilung verwendet.",
     "tournamentHistory": "Turnier Historie",
     "noTournaments": "Noch keine Turniere gespielt.",
     "unknownDate": "Datum unbekannt",
@@ -612,6 +616,8 @@
     "you": "Du",
     "addCustom": "Eigenes hinzufügen",
     "customPlaceholder": "z.B. Snacks, Eis…",
+    "pricePlaceholder": "0,00 €",
+    "totalCost": "Σ {amount} €",
     "categories": {
       "BEER": "Bier",
       "TABLES": "Tische",

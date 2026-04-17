@@ -74,10 +74,18 @@ export class TournamentService {
                 });
             }
 
+            // Freeze cost per person at start
+            const bringItems = await prisma.bringItem.findMany({ where: { tournamentId } });
+            const totalCost = bringItems.reduce((s: number, i: any) => s + (i.price ?? 0), 0);
+            const participantCount = tournament.rsvps.length + tournament.guests.length;
+            const costPerPerson = totalCost > 0 && participantCount > 0
+                ? Math.round((totalCost / participantCount) * 100) / 100
+                : null;
+
             // Update status
             await prisma.tournament.update({
                 where: { id: tournamentId },
-                data: { status: "ACTIVE" },
+                data: { status: "ACTIVE", costPerPerson },
             });
 
             // Mark all playable matches as started

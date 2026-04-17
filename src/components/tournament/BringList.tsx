@@ -1,13 +1,13 @@
 'use client';
 
-import { useTransition, useState, useEffect } from 'react';
-import { setBringItem } from '@/app/actions/bring-list';
+import { useTransition, useState, useEffect, useRef } from 'react';
+import { setBringItem, setBringItemPrice } from '@/app/actions/bring-list';
 import { BRING_CATEGORIES } from '@/lib/bring-categories';
 import { useRouter } from 'next/navigation';
-import { Droplets, Table2, CupSoda, CircleDot, ShoppingBag, Minus, Plus, X, Package } from 'lucide-react';
+import { Droplets, Table2, CupSoda, CircleDot, ShoppingBag, Minus, Plus, X, Package, Euro } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number };
+type BringItemData = { id: string; category: string; userId: string; userName: string; quantity: number; price: number | null };
 
 const PREDEFINED_KEYS: Set<string> = new Set(BRING_CATEGORIES.map(c => c.key));
 
@@ -54,11 +54,23 @@ export default function BringList({
                 userId: currentUserId,
                 userName: t('you'),
                 quantity,
+                price: existing?.price ?? null,
             }];
         });
 
         startTransition(async () => {
-            await setBringItem(tournamentId, category, quantity);
+            const myItem = items.find(i => i.category === category && i.userId === currentUserId);
+            await setBringItem(tournamentId, category, quantity, myItem?.price);
+            router.refresh();
+        });
+    }
+
+    function handlePriceChange(category: string, price: number | null) {
+        setItems(prev => prev.map(i =>
+            i.category === category && i.userId === currentUserId ? { ...i, price } : i
+        ));
+        startTransition(async () => {
+            await setBringItemPrice(tournamentId, category, price);
             router.refresh();
         });
     }
@@ -70,14 +82,15 @@ export default function BringList({
         handleSet(label, 1);
     }
 
-    // Custom categories: any category not in the predefined set
     const customCategories = [...new Set(
         items.filter(i => !PREDEFINED_KEYS.has(i.category)).map(i => i.category)
     )];
 
+    // Total cost across all items with a price
+    const totalCost = items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+
     return (
         <div>
-            {/* Section label */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -89,9 +102,21 @@ export default function BringList({
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {t('title')}
                 </span>
+                {totalCost > 0 && (
+                    <span style={{
+                        marginLeft: 'auto',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: 'var(--color-primary)',
+                        background: 'rgba(190,35,213,0.1)',
+                        padding: '1px 7px',
+                        borderRadius: '99px',
+                    }}>
+                        {t('totalCost', { amount: totalCost.toFixed(2) })}
+                    </span>
+                )}
             </div>
 
-            {/* 2×2 predefined grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
                 {BRING_CATEGORIES.map(cat => (
                     <CategoryCard
@@ -105,11 +130,11 @@ export default function BringList({
                         isPending={isPending}
                         t={t}
                         onSet={handleSet}
+                        onPriceChange={handlePriceChange}
                     />
                 ))}
             </div>
 
-            {/* Custom categories (added by any participant) */}
             {customCategories.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
                     {customCategories.map(cat => (
@@ -124,13 +149,13 @@ export default function BringList({
                             isPending={isPending}
                             t={t}
                             onSet={handleSet}
+                            onPriceChange={handlePriceChange}
                             fullWidth
                         />
                     ))}
                 </div>
             )}
 
-            {/* Add custom input */}
             {currentUserId && (
                 <div style={{ display: 'flex', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
                     <input
@@ -178,7 +203,7 @@ export default function BringList({
 }
 
 function CategoryCard({
-    categoryKey, label, icon, items, myItem, currentUserId, isPending, t, onSet, fullWidth,
+    categoryKey, label, icon, items, myItem, currentUserId, isPending, t, onSet, onPriceChange, fullWidth,
 }: {
     categoryKey: string;
     label: string;
@@ -187,12 +212,25 @@ function CategoryCard({
     myItem: BringItemData | undefined;
     currentUserId: string | null;
     isPending: boolean;
-    t: (key: string) => string;
+    t: ReturnType<typeof useTranslations<'bringList'>>;
     onSet: (category: string, quantity: number) => void;
+    onPriceChange: (category: string, price: number | null) => void;
     fullWidth?: boolean;
 }) {
     const contributors = items.filter(i => i.category === categoryKey);
     const totalQty = contributors.reduce((s, i) => s + i.quantity, 0);
+    const totalPrice = contributors.reduce((s, i) => s + (i.price ?? 0), 0);
+    const priceInputRef = useRef<HTMLInputElement>(null);
+    const [priceInput, setPriceInput] = useState(myItem?.price != null ? String(myItem.price) : '');
+
+    useEffect(() => {
+        setPriceInput(myItem?.price != null ? String(myItem.price) : '');
+    }, [myItem?.price]);
+
+    function commitPrice() {
+        const val = parseFloat(priceInput.replace(',', '.'));
+        onPriceChange(categoryKey, isNaN(val) || val <= 0 ? null : Math.round(val * 100) / 100);
+    }
 
     return (
         <div style={{
@@ -207,7 +245,7 @@ function CategoryCard({
             flexDirection: 'column',
             gap: 'var(--spacing-2)',
         }}>
-            {/* Row: icon + label + total */}
+            {/* Row: icon + label + total qty + total price */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', display: 'flex', flexShrink: 0 }}>
                     {icon}
@@ -228,29 +266,62 @@ function CategoryCard({
                         {totalQty}×
                     </span>
                 )}
+                {totalPrice > 0 && (
+                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#10b981', flexShrink: 0 }}>
+                        {totalPrice.toFixed(2)}€
+                    </span>
+                )}
             </div>
 
             {/* Action */}
             {currentUserId ? (
                 myItem ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <button onClick={() => onSet(categoryKey, myItem.quantity - 1)} disabled={isPending} style={stepBtn} title={t('less')}>
-                            <Minus size={10} />
-                        </button>
-                        <span style={{ minWidth: '16px', textAlign: 'center', fontWeight: 700, fontSize: '0.82rem', color: 'var(--color-primary)' }}>
-                            {myItem.quantity}
-                        </span>
-                        <button onClick={() => onSet(categoryKey, myItem.quantity + 1)} disabled={isPending} style={stepBtn} title={t('more')}>
-                            <Plus size={10} />
-                        </button>
-                        <button
-                            onClick={() => onSet(categoryKey, 0)}
-                            disabled={isPending}
-                            style={{ ...stepBtn, marginLeft: 'auto', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
-                            title={t('remove')}
-                        >
-                            <X size={10} />
-                        </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <button onClick={() => onSet(categoryKey, myItem.quantity - 1)} disabled={isPending} style={stepBtn} title={t('less')}>
+                                <Minus size={10} />
+                            </button>
+                            <span style={{ minWidth: '16px', textAlign: 'center', fontWeight: 700, fontSize: '0.82rem', color: 'var(--color-primary)' }}>
+                                {myItem.quantity}
+                            </span>
+                            <button onClick={() => onSet(categoryKey, myItem.quantity + 1)} disabled={isPending} style={stepBtn} title={t('more')}>
+                                <Plus size={10} />
+                            </button>
+                            <button
+                                onClick={() => onSet(categoryKey, 0)}
+                                disabled={isPending}
+                                style={{ ...stepBtn, marginLeft: 'auto', borderColor: 'rgba(255,107,107,0.4)', color: 'var(--color-accent)' }}
+                                title={t('remove')}
+                            >
+                                <X size={10} />
+                            </button>
+                        </div>
+                        {/* Price input */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Euro size={10} style={{ color: 'var(--color-text-dim)', flexShrink: 0 }} />
+                            <input
+                                ref={priceInputRef}
+                                type="number"
+                                min="0"
+                                step="0.50"
+                                value={priceInput}
+                                onChange={e => setPriceInput(e.target.value)}
+                                onBlur={commitPrice}
+                                onKeyDown={e => e.key === 'Enter' && priceInputRef.current?.blur()}
+                                placeholder={t('pricePlaceholder')}
+                                style={{
+                                    flex: 1,
+                                    padding: '2px 6px',
+                                    fontSize: '0.75rem',
+                                    background: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    color: 'var(--color-text)',
+                                    outline: 'none',
+                                    width: '100%',
+                                }}
+                            />
+                        </div>
                     </div>
                 ) : (
                     <button
@@ -294,7 +365,7 @@ function CategoryCard({
                             borderRadius: '99px',
                             padding: '1px 6px',
                         }}>
-                            {c.userName} · {c.quantity}×
+                            {c.userName} · {c.quantity}×{c.price != null ? ` · ${c.price.toFixed(2)}€` : ''}
                         </span>
                     ))}
                 </div>

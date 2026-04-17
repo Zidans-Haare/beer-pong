@@ -53,6 +53,8 @@ model Tournament {
   guestRoomImage       String?
   offersBreakfast      Boolean                 @default(false)
   offersHalfBoard      Boolean                 @default(false)
+  usePaypal            Boolean                 @default(false)
+  costPerPerson        Float?
   bringItems           BringItem[]
   guests               GuestPlayer[]
   matches              Match[]
@@ -109,6 +111,7 @@ model User {
   notifyUpdates        Boolean            @default(true)
   notifyLiveTicker     Boolean            @default(true)
   pwaInstalled         Boolean            @default(false)
+  paypalMeUrl          String?
   accounts             Account[]
   bringItems           BringItem[]
   chatMessages         ChatMessage[]
@@ -136,6 +139,7 @@ model BringItem {
   userId       String
   userName     String
   quantity     Int        @default(1)
+  price        Float?
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import ProfileImagePicker from '@/components/ProfileImagePicker';
 import { useTranslations } from 'next-intl';
 
-export default function EditPlayerForm({ player, demoMode = false }: { player: Player; demoMode?: boolean }) {
+export default function EditPlayerForm({ player, demoMode = false, paypalMeUrl = null }: { player: Player; demoMode?: boolean; paypalMeUrl?: string | null }) {
     const t = useTranslations('players');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -80,6 +80,21 @@ export default function EditPlayerForm({ player, demoMode = false }: { player: P
             <div>
                 <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('bio')}</label>
                 <textarea name="bio" rows={4} defaultValue={player.bio || ''} style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }} />
+            </div>
+
+            <div>
+                <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('paypalMe')}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>paypal.me/</span>
+                    <input
+                        type="text"
+                        name="paypalMeUrl"
+                        defaultValue={paypalMeUrl?.replace('https://paypal.me/', '').replace('paypal.me/', '') || ''}
+                        placeholder={t('paypalMePlaceholder')}
+                        style={{ flex: 1, padding: 'var(--spacing-3)', background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)' }}
+                    />
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '4px' }}>{t('paypalMeHint')}</p>
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-4)' }}>

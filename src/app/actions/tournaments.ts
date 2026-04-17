@@ -45,6 +45,7 @@ export async function createTournament(formData: FormData) {
     const guestRoomDescription = formData.get('guestRoomDescription') as string || null;
     const offersBreakfast = formData.get('offersBreakfast') === 'true';
     const offersHalfBoard = formData.get('offersHalfBoard') === 'true';
+    const usePaypal = formData.get('usePaypal') === 'on';
 
     let guestRoomImagePath = null;
     if (offersGuestRoom && !isDemoMode) {
@@ -122,7 +123,8 @@ export async function createTournament(formData: FormData) {
                     guestRoomDescription,
                     guestRoomImage: guestRoomImagePath,
                     offersBreakfast,
-                    offersHalfBoard
+                    offersHalfBoard,
+                    usePaypal,
                 },
             });
 

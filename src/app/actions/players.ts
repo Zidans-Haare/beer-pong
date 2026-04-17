@@ -73,6 +73,8 @@ export async function updatePlayer(id: string, formData: FormData) {
     const email = formData.get('email') as string;
     const bio = formData.get('bio') as string;
     const motto = formData.get('motto') as string;
+    const paypalHandle = (formData.get('paypalMeUrl') as string | null)?.trim() || null;
+    const paypalMeUrl = paypalHandle ? `https://paypal.me/${paypalHandle}` : null;
 
     const imageFile = formData.get('image');
     const imageData = formData.get('imageData') as string | null;
@@ -177,6 +179,14 @@ export async function updatePlayer(id: string, formData: FormData) {
                 motto: motto || null,
             }
         });
+
+        // Save PayPal URL to the linked User
+        if (player.userId) {
+            await prisma.user.update({
+                where: { id: player.userId },
+                data: { paypalMeUrl },
+            });
+        }
         revalidatePath(`/players/${id}`);
         revalidatePath('/players');
         return { success: true };

@@ -1,13 +1,13 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { authenticate } from '@/app/actions/auth';
 import BiometricLoginButton from '@/components/BiometricLoginButton';
 import { useTranslations } from 'next-intl';
 
 export default function LoginForm() {
     const t = useTranslations('auth');
-    const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+    const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px' }}>

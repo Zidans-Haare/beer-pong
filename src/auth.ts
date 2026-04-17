@@ -9,6 +9,7 @@ import { z } from 'zod'; // We might need zod, or handle validation manually.
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import { isDemoMode, DEMO_USER_EMAIL } from '@/lib/demo';
 
 async function getUser(email: string) {
     try {
@@ -33,7 +34,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 const email = credentials.email as string;
                 const password = credentials.password as string;
 
-                if (!email || !password) return null;
+                if (!email) return null;
+
+                // Demo mode: allow the demo user in without password verification
+                if (isDemoMode && email === DEMO_USER_EMAIL) {
+                    const user = await getUser(email);
+                    return user?.status === 'ACTIVE' ? user : null;
+                }
+
+                if (!password) return null;
 
                 const user = await getUser(email);
                 if (!user || !user.password) return null;

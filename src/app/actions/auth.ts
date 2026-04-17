@@ -15,8 +15,7 @@ export async function demoLogin() {
     if (!isDemoMode) return;
     await signIn('credentials', {
         email: DEMO_USER_EMAIL,
-        password: process.env.DEMO_USER_PASSWORD ?? '',
-        redirectTo: '/',
+redirectTo: '/',
     });
 }
 

@@ -22,8 +22,7 @@ export default async function LoginPage() {
                 </div>
             )}
             <div style={{ width: '100%', maxWidth: '400px' }}>
-                {isDemoMode && <DemoLoginButton />}
-                <LoginForm />
+                {isDemoMode ? <DemoLoginButton /> : <LoginForm />}
             </div>
         </div>
     );

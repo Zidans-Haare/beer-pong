@@ -78,7 +78,7 @@ export default function DemoBanner() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        background: 'rgba(0,0,0,0.45)',
+                        background: 'rgba(255,255,255,0.9)',
                         border: '1px solid rgba(190,35,213,0.35)',
                         borderLeft: 'none',
                         borderRadius: '0 6px 6px 0',
@@ -92,7 +92,7 @@ export default function DemoBanner() {
                     <code style={{
                         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                         fontSize: '0.78rem',
-                        color: '#ffffff',
+                        color: '#1a1a1a',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',

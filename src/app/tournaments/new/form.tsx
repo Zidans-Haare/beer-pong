@@ -26,6 +26,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
     const [guestRoomCapacity, setGuestRoomCapacity] = useState(1);
     const [playerSearch, setPlayerSearch] = useState('');
     const [offersGuestRoom, setOffersGuestRoom] = useState(false);
+    const [usePaypal, setUsePaypal] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
@@ -421,16 +422,16 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 {/* PayPal */}
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div
-                        onClick={() => (document.getElementById('usePaypalToggle') as HTMLInputElement)?.click()}
+                        onClick={() => setUsePaypal(p => !p)}
                         style={{
                             width: '36px', height: '20px', borderRadius: '10px', cursor: 'pointer', position: 'relative', flexShrink: 0,
-                            background: 'var(--color-border-strong)', transition: 'background 0.2s',
+                            background: usePaypal ? 'var(--color-primary)' : 'var(--color-border-strong)', transition: 'background 0.2s',
                         }}
                     >
-                        <input type="checkbox" id="usePaypalToggle" name="usePaypal" value="on" style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
-                        <div style={{ position: 'absolute', top: '2px', left: '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+                        {usePaypal && <input type="hidden" name="usePaypal" value="on" />}
+                        <div style={{ position: 'absolute', top: '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transition: 'left 0.2s', left: usePaypal ? '18px' : '2px' }} />
                     </div>
-                    <label htmlFor="usePaypalToggle" style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }}>
+                    <label onClick={() => setUsePaypal(p => !p)} style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }}>
                         {t('usePaypal')}
                     </label>
                 </div>

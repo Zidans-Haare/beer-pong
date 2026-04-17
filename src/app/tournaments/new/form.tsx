@@ -420,20 +420,26 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 </div>
 
                 {/* PayPal */}
-                <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                        onClick={() => setUsePaypal(p => !p)}
-                        style={{
-                            width: '36px', height: '20px', borderRadius: '10px', cursor: 'pointer', position: 'relative', flexShrink: 0,
-                            background: usePaypal ? 'var(--color-primary)' : 'var(--color-border-strong)', transition: 'background 0.2s',
-                        }}
-                    >
-                        {usePaypal && <input type="hidden" name="usePaypal" value="on" />}
-                        <div style={{ position: 'absolute', top: '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transition: 'left 0.2s', left: usePaypal ? '18px' : '2px' }} />
+                <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div
+                            onClick={() => setUsePaypal(p => !p)}
+                            style={{
+                                position: 'relative', width: '40px', height: '24px',
+                                backgroundColor: usePaypal ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                                borderRadius: '24px', cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0,
+                            }}>
+                            <div style={{
+                                position: 'absolute', top: '4px', left: '4px', width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%',
+                                transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                                transform: usePaypal ? 'translateX(16px)' : 'translateX(0)', boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                            }} />
+                            {usePaypal && <input type="hidden" name="usePaypal" value="on" />}
+                        </div>
+                        <label style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }} onClick={() => setUsePaypal(p => !p)}>
+                            {t('usePaypal')}
+                        </label>
                     </div>
-                    <label onClick={() => setUsePaypal(p => !p)} style={{ cursor: 'pointer', fontWeight: '600', color: 'var(--color-text)' }}>
-                        {t('usePaypal')}
-                    </label>
                 </div>
 
                 {/* Player Picker */}

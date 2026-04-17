@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   serverActions: {
     bodySizeLimit: '10mb',
   },
+  serverExternalPackages: ['pino', 'pino-pretty'],
   experimental: {
     outputFileTracingIncludes: {
       '/**/*': ['./messages/**/*'],

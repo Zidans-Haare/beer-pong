@@ -738,6 +738,12 @@
     "bronze": "Bronze",
     "totalMedals": "Total"
   },
+  "demo": {
+    "modeLabel": "Demo Mode",
+    "featureUnavailable": "Feature unavailable",
+    "featureBody": "This is a demo instance. A dedicated deployment is required for this feature.",
+    "ok": "Got it"
+  },
   "guestRoom": {
     "title": "Guest Room Available",
     "defaultDescription": "A cozy sleeping spot",

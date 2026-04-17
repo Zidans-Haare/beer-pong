@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { Zap, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function DemoAlertOverride() {
+    const t = useTranslations('demo');
     const [message, setMessage] = useState<string | null>(null);
 
     useEffect(() => {
@@ -63,10 +65,10 @@ export default function DemoAlertOverride() {
                         </div>
                         <div>
                             <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-primary)', marginBottom: '2px' }}>
-                                Demo Mode
+                                {t('modeLabel')}
                             </div>
                             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text)' }}>
-                                Funktion nicht verfügbar
+                                {t('featureUnavailable')}
                             </div>
                         </div>
                     </div>
@@ -87,7 +89,7 @@ export default function DemoAlertOverride() {
 
                 {/* Body */}
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', lineHeight: 1.55, margin: 0 }}>
-                    Dies ist eine Demo-Instanz. Für diese Funktion ist ein eigenes Deployment notwendig.
+                    {t('featureBody')}
                 </p>
 
                 {/* Close button */}
@@ -96,7 +98,7 @@ export default function DemoAlertOverride() {
                     onClick={() => setMessage(null)}
                     style={{ width: '100%', justifyContent: 'center' }}
                 >
-                    Alles klar
+                    {t('ok')}
                 </button>
             </div>
         </div>

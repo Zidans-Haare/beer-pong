@@ -619,6 +619,8 @@
     "pricePlaceholder": "0.00 €",
     "totalCost": "Σ {amount} €",
     "addPrice": "Add price",
+    "removePrice": "Remove",
+    "savePrice": "Save",
     "categories": {
       "BEER": "Beer",
       "TABLES": "Tables",
@@ -737,6 +739,17 @@
     "silver": "Silver",
     "bronze": "Bronze",
     "totalMedals": "Total"
+  },
+  "costSplit": {
+    "settlement": "Cost Settlement",
+    "preview": "Cost Preview",
+    "frozen": "frozen at tournament start",
+    "total": "Total",
+    "perPerson": "Per Person ({count})",
+    "noCosts": "No costs entered.",
+    "youOwe": "You owe {name}",
+    "owesYou": "{name} owes you",
+    "owes": "{from} → {to}"
   },
   "demo": {
     "modeLabel": "Demo Mode",

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Receipt, Users, Euro, ExternalLink } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type BringItem = {
     userId: string;
@@ -24,6 +25,7 @@ export type CostSplitProps = {
 export default function CostSplitWidget({
     items, participantCount, participantUserIds, currentUserId, costPerPerson, isActive, paypalHandles,
 }: CostSplitProps) {
+    const t = useTranslations('costSplit');
     const { totalCost, perPersonEstimate, debts } = useMemo(() => {
         const total = items.reduce((s, i) => s + (i.price ?? 0), 0);
         const count = isActive ? participantCount : Math.max(participantCount, 1);
@@ -88,11 +90,11 @@ export default function CostSplitWidget({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-3)' }}>
                 <Receipt size={16} color="var(--color-primary)" />
                 <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                    {isActive ? 'Kostenabrechnung' : 'Kosten-Vorschau'}
+                    {isActive ? t('settlement') : t('preview')}
                 </span>
                 {!isActive && (
                     <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', marginLeft: 'auto' }}>
-                        wird bei Turnierstart eingefroren
+                        {t('frozen')}
                     </span>
                 )}
             </div>
@@ -101,7 +103,7 @@ export default function CostSplitWidget({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)', marginBottom: 'var(--spacing-3)' }}>
                 <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', padding: 'var(--spacing-3)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text-dim)', fontSize: '0.72rem' }}>
-                        <Euro size={11} /> Gesamt
+                        <Euro size={11} /> {t('total')}
                     </div>
                     <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>
                         {totalCost.toFixed(2)} €
@@ -109,7 +111,7 @@ export default function CostSplitWidget({
                 </div>
                 <div style={{ background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', padding: 'var(--spacing-3)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text-dim)', fontSize: '0.72rem' }}>
-                        <Users size={11} /> Pro Person ({participantCount})
+                        <Users size={11} /> {t('perPerson', { count: participantCount })}
                     </div>
                     <span style={{ fontWeight: 700, fontSize: '1.1rem', color: perPersonEstimate > 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>
                         {perPersonEstimate > 0 ? `${perPersonEstimate.toFixed(2)} €` : '—'}
@@ -146,7 +148,7 @@ export default function CostSplitWidget({
 
             {totalCost === 0 && isActive && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: 0 }}>
-                    Keine Kosten eingetragen.
+                    {t('noCosts')}
                 </p>
             )}
         </div>
@@ -154,6 +156,7 @@ export default function CostSplitWidget({
 }
 
 function DebtRow({ debt, direction, paypalUrl }: { debt: Debt; direction: 'owe' | 'receive' | 'other'; paypalUrl: string | null }) {
+    const t = useTranslations('costSplit');
     const isOwe = direction === 'owe';
     const isReceive = direction === 'receive';
 
@@ -173,13 +176,9 @@ function DebtRow({ debt, direction, paypalUrl }: { debt: Debt; direction: 'owe' 
             marginBottom: '4px',
         }}>
             <span style={{ flex: 1, fontSize: '0.82rem' }}>
-                {isOwe ? (
-                    <>Du schuldest <strong>{debt.toName}</strong></>
-                ) : isReceive ? (
-                    <><strong>{debt.fromName}</strong> schuldet dir</>
-                ) : (
-                    <><strong>{debt.fromName}</strong> → <strong>{debt.toName}</strong></>
-                )}
+                {isOwe ? t('youOwe', { name: debt.toName })
+                    : isReceive ? t('owesYou', { name: debt.fromName })
+                    : t('owes', { from: debt.fromName, to: debt.toName })}
             </span>
             <span style={{
                 fontWeight: 700,

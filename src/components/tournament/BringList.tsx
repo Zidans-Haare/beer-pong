@@ -25,6 +25,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
     onSave: (price: number | null) => void;
     onClose: () => void;
 }) {
+    const t = useTranslations('bringList');
     const [value, setValue] = useState(currentPrice != null ? String(currentPrice) : '');
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,7 +102,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
                                 fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer',
                             }}
                         >
-                            Entfernen
+                            {t('removePrice')}
                         </button>
                     )}
                     <button
@@ -113,7 +114,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                         }}
                     >
-                        <Check size={18} /> Speichern
+                        <Check size={18} /> {t('savePrice')}
                     </button>
                 </div>
             </div>

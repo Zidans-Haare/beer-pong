@@ -341,7 +341,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                                     currentUserId={session?.user?.id ?? null}
                                     costPerPerson={(tournament as any).costPerPerson ?? null}
                                     isActive={isActive || isCompleted}
-                                    paypalHandles={paypalHandles}
+                                    paypalHandles={(tournament as any).usePaypal ? paypalHandles : {}}
                                 />
                                 <BringList
                                     tournamentId={tournament.id}

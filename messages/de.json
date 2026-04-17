@@ -618,6 +618,7 @@
     "customPlaceholder": "z.B. Snacks, Eis…",
     "pricePlaceholder": "0,00 €",
     "totalCost": "Σ {amount} €",
+    "addPrice": "Preis hinzufügen",
     "categories": {
       "BEER": "Bier",
       "TABLES": "Tische",

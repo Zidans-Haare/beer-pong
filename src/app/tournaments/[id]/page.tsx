@@ -41,7 +41,7 @@ import BringList from '@/components/tournament/BringList';
 import { getBringItems } from '@/app/actions/bring-list';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import GuestRoomInfo from '@/components/tournament/GuestRoomInfo';
-import CostSplitWidget from '@/components/tournament/CostSplitWidget';
+import CostEmailButton from '@/components/tournament/CostEmailButton';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -110,21 +110,6 @@ export default async function TournamentPage({ params, searchParams }: { params:
         tournament.status === 'ACTIVE' ? new Date() : tournament.date,
         duration,
         tableCount
-    );
-
-    // Fetch PayPal URLs for all participants
-    const participantUserIds = tournament.participants
-        .map((p: any) => p.player?.userId)
-        .filter(Boolean) as string[];
-
-    const paypalUsers = participantUserIds.length > 0
-        ? await prisma.user.findMany({
-            where: { id: { in: participantUserIds }, paypalMeUrl: { not: null } },
-            select: { id: true, paypalMeUrl: true },
-          })
-        : [];
-    const paypalHandles: Record<string, string> = Object.fromEntries(
-        paypalUsers.map((u: any) => [u.id, u.paypalMeUrl as string])
     );
 
     const currentPlayer = session?.user?.id ? players.find((p: any) => p.userId === session?.user?.id) : null;
@@ -333,22 +318,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         )}
 
                         {!isInstantTournament && (
-                            <>
-                                <CostSplitWidget
-                                    items={bringItems}
-                                    participantCount={yesCount + guestCount}
-                                    participantUserIds={participantUserIds}
-                                    currentUserId={session?.user?.id ?? null}
-                                    costPerPerson={(tournament as any).costPerPerson ?? null}
-                                    isActive={isActive || isCompleted}
-                                    paypalHandles={(tournament as any).usePaypal ? paypalHandles : {}}
-                                />
-                                <BringList
-                                    tournamentId={tournament.id}
-                                    initialItems={bringItems}
-                                    currentUserId={session?.user?.id ?? null}
-                                />
-                            </>
+                            <BringList
+                                tournamentId={tournament.id}
+                                initialItems={bringItems}
+                                currentUserId={session?.user?.id ?? null}
+                            />
                         )}
 
                         {/* Guest Room Panel */}
@@ -470,6 +444,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         )}
                         <Bracket matches={schedule as any} tableCount={tableCount} />
                     </section>
+
+                    {/* Cost email — host only, when costs exist */}
+                    {isHost && bringItems.some(i => i.price != null && i.price > 0) && (
+                        <CostEmailButton tournamentId={tournament.id} />
+                    )}
 
                     {/* Host Controls */}
                     {isHost && (

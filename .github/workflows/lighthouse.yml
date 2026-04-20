@@ -21,7 +21,7 @@ jobs:
           for i in $(seq 1 40); do
             status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://bier.olomek.com/ || echo "000")
             echo "Versuch $i: HTTP $status"
-            if [ "$status" = "200" ] || [ "$status" = "302" ] || [ "$status" = "301" ]; then
+            if [ "$status" = "200" ] || [ "$status" = "307" ] || [ "$status" = "302" ] || [ "$status" = "301" ]; then
               echo "Seite erreichbar, starte Lighthouse."
               exit 0
             fi

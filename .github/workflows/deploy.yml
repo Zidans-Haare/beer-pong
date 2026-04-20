@@ -112,7 +112,7 @@ jobs:
             echo '{"msg":"Automatisches Update: '"$COMMIT_MSG"'","start":"'"$DEPLOY_START"'","end":"'"$DEPLOY_END"'"}' > public/maintenance-msg.txt
             npm ci
             npx prisma generate
-            npx prisma migrate deploy
+            DATABASE_URL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"') npx prisma migrate deploy
 
             # Build
             npm run build

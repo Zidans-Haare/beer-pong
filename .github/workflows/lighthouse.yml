@@ -16,7 +16,19 @@ jobs:
 
       - name: Warten bis Deploy abgeschlossen ist
         if: github.event_name == 'push'
-        run: sleep 600
+        run: |
+          echo "Warte auf gesunden Response von bier.olomek.com..."
+          for i in $(seq 1 40); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://bier.olomek.com/ || echo "000")
+            echo "Versuch $i: HTTP $status"
+            if [ "$status" = "200" ] || [ "$status" = "302" ] || [ "$status" = "301" ]; then
+              echo "Seite erreichbar, starte Lighthouse."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "Timeout: Seite nach 20 Minuten nicht erreichbar."
+          exit 1
 
       - name: Lighthouse auf Produktion ausführen
         uses: treosh/lighthouse-ci-action@v12

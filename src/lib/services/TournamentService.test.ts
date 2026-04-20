@@ -12,6 +12,9 @@ vi.mock('@/lib/prisma', () => ({
             create: vi.fn(),
             findMany: vi.fn(),
         },
+        bringItem: {
+            findMany: vi.fn(),
+        },
         player: {
             findFirst: vi.fn(),
             create: vi.fn(),
@@ -67,6 +70,9 @@ const mockPrisma = prisma as unknown as {
         create: Mock;
         findMany: Mock;
     };
+    bringItem: {
+        findMany: Mock;
+    };
     player: {
         findFirst: Mock;
         create: Mock;
@@ -90,6 +96,7 @@ const mockAdvanceWinner = MatchService.advanceWinner as Mock;
 describe('TournamentService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockPrisma.bringItem.findMany.mockResolvedValue([]);
     });
 
     describe('startTournament - Solo Mode', () => {
@@ -159,7 +166,7 @@ describe('TournamentService', () => {
             expect(mockPrisma.match.createMany).toHaveBeenCalled();
             expect(mockPrisma.tournament.update).toHaveBeenCalledWith({
                 where: { id: 'tournament-1' },
-                data: { status: 'ACTIVE' },
+                data: { status: 'ACTIVE', costPerPerson: null },
             });
         });
 
@@ -370,7 +377,7 @@ describe('TournamentService', () => {
 
             expect(mockPrisma.tournament.update).toHaveBeenCalledWith({
                 where: { id: 'tournament-1' },
-                data: { status: 'ACTIVE' },
+                data: { status: 'ACTIVE', costPerPerson: null },
             });
         });
 

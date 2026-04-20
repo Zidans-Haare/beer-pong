@@ -223,10 +223,18 @@ export class TournamentService {
             });
         }
 
+        // Freeze cost per person at start
+        const bringItemsSolo = await prisma.bringItem.findMany({ where: { tournamentId } });
+        const totalCostSolo = bringItemsSolo.reduce((s: number, i: any) => s + (i.price ?? 0), 0);
+        const participantCountSolo = allPlayerIds.length;
+        const costPerPersonSolo = totalCostSolo > 0 && participantCountSolo > 0
+            ? Math.round((totalCostSolo / participantCountSolo) * 100) / 100
+            : null;
+
         // Update status
         await prisma.tournament.update({
             where: { id: tournamentId },
-            data: { status: "ACTIVE" },
+            data: { status: "ACTIVE", costPerPerson: costPerPersonSolo },
         });
 
         // Handle Bye-Matches

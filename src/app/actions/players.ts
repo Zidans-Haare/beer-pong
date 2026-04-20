@@ -74,6 +74,9 @@ export async function updatePlayer(id: string, formData: FormData) {
     const bio = formData.get('bio') as string;
     const motto = formData.get('motto') as string;
     const paypalHandle = (formData.get('paypalMeUrl') as string | null)?.trim() || null;
+    if (paypalHandle && !/^[\w.-]{1,50}$/.test(paypalHandle)) {
+        return { success: false, error: 'Ungültiger PayPal-Benutzername.' };
+    }
     const paypalMeUrl = paypalHandle ? `https://paypal.me/${paypalHandle}` : null;
 
     const imageFile = formData.get('image');

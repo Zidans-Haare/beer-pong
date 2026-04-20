@@ -277,8 +277,9 @@ export async function sendCostSummaryEmail(opts: {
         }
         const rows = [
             ...myDebts.map(d => {
-                const paypalBtn = d.paypalUrl
-                    ? `<a href="${d.paypalUrl}/${d.amount.toFixed(2)}EUR" style="display:inline-block;margin-left:12px;padding:4px 12px;background:#003087;color:#fff;border-radius:6px;text-decoration:none;font-size:0.8rem;font-weight:700;">PayPal →</a>`
+                const safePaypalUrl = d.paypalUrl?.match(/^https:\/\/paypal\.me\/[\w.-]{1,50}$/) ? d.paypalUrl : null;
+                const paypalBtn = safePaypalUrl
+                    ? `<a href="${safePaypalUrl}/${d.amount.toFixed(2)}EUR" style="display:inline-block;margin-left:12px;padding:4px 12px;background:#003087;color:#fff;border-radius:6px;text-decoration:none;font-size:0.8rem;font-weight:700;">PayPal →</a>`
                     : '';
                 return `<div style="background:#3a1a1a;border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                     <span>Du schuldest <strong>${d.toName}</strong></span>

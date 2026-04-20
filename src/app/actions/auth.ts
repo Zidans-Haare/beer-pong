@@ -15,7 +15,7 @@ export async function demoLogin() {
     if (!isDemoMode) return;
     await signIn('credentials', {
         email: DEMO_USER_EMAIL,
-redirectTo: '/',
+        redirectTo: '/',
     });
 }
 

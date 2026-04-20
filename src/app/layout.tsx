@@ -84,6 +84,8 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
         {/* Splash Screen for iOS */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* Cloudflare Web Analytics */}
+        <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "a9f2e384cfc2463e918d51c485fd7de4"}' />
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>

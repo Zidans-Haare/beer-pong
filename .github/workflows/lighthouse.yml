@@ -22,7 +22,8 @@ jobs:
             status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://bier.olomek.com/ || echo "000")
             echo "Versuch $i: HTTP $status"
             if [ "$status" = "200" ] || [ "$status" = "307" ] || [ "$status" = "302" ] || [ "$status" = "301" ]; then
-              echo "Seite erreichbar, starte Lighthouse."
+              echo "Seite erreichbar, warte 30s zur Stabilisierung..."
+              sleep 30
               exit 0
             fi
             sleep 30

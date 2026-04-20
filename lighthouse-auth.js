@@ -17,10 +17,12 @@ module.exports = async (browser) => {
   await page.type('input[name="email"]', process.env.E2E_USER_EMAIL || '');
   await page.type('input[name="password"]', process.env.E2E_USER_PASSWORD || '');
 
-  await Promise.all([
-    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }),
-    page.click('button[type="submit"]'),
-  ]);
+  await page.click('button[type="submit"]');
+  // Server Actions don't trigger a classic navigation — wait for URL to leave /login
+  await page.waitForFunction(
+    () => !window.location.pathname.startsWith('/login'),
+    { timeout: 30000 },
+  );
 
   await page.close();
 };

@@ -88,7 +88,6 @@ jobs:
                 rm -rf .next/standalone
                 mv .next/standalone.bak .next/standalone
               fi
-              set -a; [ -f .env ] && . .env; set +a
               # Rogue-Prozesse auf Port 3000 beenden (nicht durch PM2 verwaltet)
               fuser -k 3000/tcp 2>/dev/null || true
               pm2 restart beer-pong --update-env || true

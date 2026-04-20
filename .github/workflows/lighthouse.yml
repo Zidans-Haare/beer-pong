@@ -39,3 +39,5 @@ jobs:
         with:
           configPath: .lighthouserc.js
           uploadArtifacts: true
+          serverBaseUrl: 'https://lighthouse.olomek.com'
+          serverToken: ${{ secrets.LHCI_TOKEN }}

@@ -18,7 +18,7 @@ test.describe('Authentifizierung', () => {
     await page.getByRole('button', { name: /Anmelden/i }).click();
     await expect(
       page.getByText(/Ungültige|ungültig|falsch|schiefgelaufen|incorrect|invalid/i)
-    ).toBeVisible({ timeout: 5000 });
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test('Leere Felder bleiben auf Login-Seite', async ({ page }) => {

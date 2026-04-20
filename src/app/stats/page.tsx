@@ -158,7 +158,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Medal size={20} color="#b45309" />
-                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Medaillenspiegel</h2>
+                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('medalTable')}</h2>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '480px' }}>
@@ -166,10 +166,10 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                             <tr>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem', width: '48px' }}>#</th>
                                 <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('player')}</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: '#b45309', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Gold</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: '#888', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Silber</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: '#cd7f32', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>Bronze</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>Gesamt</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#b45309', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>{t('gold')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#888', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>{t('silver')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: '#cd7f32', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}>{t('bronze')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>{t('totalMedals')}</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -121,7 +121,7 @@ export default function UsersPage() {
                                             <div>
                                                 <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                     {user.name}
-                                                    {user.pwaInstalled && <span title="Nutzt PWA" style={{ display: 'flex' }}><Smartphone size={14} color="var(--color-primary)" /></span>}
+                                                    {user.pwaInstalled && <span title={t('usesPwa')} style={{ display: 'flex' }}><Smartphone size={14} color="var(--color-primary)" /></span>}
                                                 </div>
                                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>{user.email}</div>
                                             </div>

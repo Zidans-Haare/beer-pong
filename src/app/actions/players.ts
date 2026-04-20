@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { getUploadDir } from '@/lib/uploads';
+import { isDemoMode } from '@/lib/demo';
 
 export async function getPlayers() {
     try {
@@ -72,13 +73,24 @@ export async function updatePlayer(id: string, formData: FormData) {
     const email = formData.get('email') as string;
     const bio = formData.get('bio') as string;
     const motto = formData.get('motto') as string;
+    const paypalHandle = (formData.get('paypalMeUrl') as string | null)?.trim() || null;
+    if (paypalHandle && !/^[\w.-]{1,50}$/.test(paypalHandle)) {
+        return { success: false, error: 'Ungültiger PayPal-Benutzername.' };
+    }
+    const paypalMeUrl = paypalHandle ? `https://paypal.me/${paypalHandle}` : null;
 
     const imageFile = formData.get('image');
     const imageData = formData.get('imageData') as string | null;
     let imagePath = player.image;
 
+    // Demo mode: silently discard any uploaded image. The DB never receives
+    // a new path, so no filesystem writes happen. The client-side picker
+    // keeps a session-local copy for UX (see ProfileImagePicker).
+    if (isDemoMode && (imageFile || imageData)) {
+        // fall through without touching imagePath
+    }
     // Handle base64 image data from camera
-    if (imageData) {
+    else if (imageData) {
         if (imageData === '') {
             // Image was removed
             imagePath = null;
@@ -170,6 +182,14 @@ export async function updatePlayer(id: string, formData: FormData) {
                 motto: motto || null,
             }
         });
+
+        // Save PayPal URL to the linked User
+        if (player.userId) {
+            await prisma.user.update({
+                where: { id: player.userId },
+                data: { paypalMeUrl },
+            });
+        }
         revalidatePath(`/players/${id}`);
         revalidatePath('/players');
         return { success: true };

@@ -56,6 +56,14 @@ export default function DemoCtaPopup() {
                 >
                     Self-host your own instance →
                 </Link>
+                <Link
+                    href="/demo/wizard"
+                    className="btn btn-secondary"
+                    style={{ textAlign: 'center', fontSize: '0.8rem', textDecoration: 'none' }}
+                    onClick={() => setDismissed(true)}
+                >
+                    See the setup wizard in action
+                </Link>
             </div>
         </div>
     );

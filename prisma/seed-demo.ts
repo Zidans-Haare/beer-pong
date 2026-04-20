@@ -10,7 +10,33 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-const dbPath = path.join(process.cwd(), process.env.DEMO_DB ?? 'demo.db');
+// ========================================================================
+// SAFETY GUARDS — multiple independent checks to prevent running on prod
+// ========================================================================
+
+if (process.env.DEMO_MODE !== 'true') {
+    console.error('❌ ABORT: DEMO_MODE must be set to "true" to run this script.');
+    console.error('   This script WIPES the database and must never run on production.');
+    process.exit(1);
+}
+
+const dbFile = process.env.DEMO_DB ?? 'demo.db';
+
+const FORBIDDEN_DB_NAMES = ['dev.db', 'prod.db', 'production.db'];
+if (FORBIDDEN_DB_NAMES.includes(path.basename(dbFile))) {
+    console.error(`❌ ABORT: DEMO_DB cannot be "${dbFile}" — refusing to wipe production DB.`);
+    process.exit(1);
+}
+
+if (!dbFile.includes('demo')) {
+    console.error(`❌ ABORT: DEMO_DB filename must contain "demo" (got "${dbFile}").`);
+    console.error('   This is a safety check to prevent accidentally wiping the wrong DB.');
+    process.exit(1);
+}
+
+const dbPath = path.join(process.cwd(), dbFile);
+console.log(`✓ Safety checks passed. Target DB: ${dbPath}`);
+
 const adapter = new PrismaBetterSqlite3({ url: dbPath });
 const prisma = new PrismaClient({ adapter });
 

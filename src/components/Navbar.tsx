@@ -3,6 +3,7 @@ import { auth, signOut } from '@/auth';
 import DesktopNotificationLink from './DesktopNotificationLink';
 import LogoEasterEgg from './LogoEasterEgg';
 import { getTranslations } from 'next-intl/server';
+import { isDemoMode } from '@/lib/demo';
 
 export default async function Navbar() {
     const session = await auth();
@@ -50,11 +51,13 @@ export default async function Navbar() {
                             </button>
                         </form>
                     </>
-                ) : (
+                ) : !isDemoMode ? (
                     <>
                         <Link href="/login" className="nav-link" style={{ fontSize: '0.9rem' }}>Login</Link>
                         <Link href="/register" className="btn btn-primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: '0.9rem' }}>Sign Up</Link>
                     </>
+                ) : (
+                    <Link href="/login" className="btn btn-primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: '0.9rem' }}>Try Demo</Link>
                 )}
             </div>
         </nav>

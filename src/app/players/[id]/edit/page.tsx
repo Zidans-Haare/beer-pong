@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
 import EditPlayerForm from './form';
+import { isDemoMode } from '@/lib/demo';
 
 export default async function EditPlayerPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -27,10 +28,12 @@ export default async function EditPlayerPage({ params }: { params: Promise<{ id:
         );
     }
 
+    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { paypalMeUrl: true } });
+
     return (
         <div className="container" style={{ maxWidth: '600px' }}>
             <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-8)' }}>Profil Bearbeiten</h1>
-            <EditPlayerForm player={player} />
+            <EditPlayerForm player={player} demoMode={isDemoMode} paypalMeUrl={user?.paypalMeUrl ?? null} />
         </div>
     );
 }

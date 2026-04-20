@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
     '/rules',
     '/join',
     '/offline',
+    '/demo',
 ];
 
 export const authConfig = {
@@ -23,8 +24,11 @@ export const authConfig = {
                 return true;
             }
 
-            // Allow static assets and uploads
+            // Allow static assets, uploads, and root-level public files (sw.js, manifest.json, etc.)
             if (path.startsWith('/uploads') || path.startsWith('/_next')) {
+                return true;
+            }
+            if (/^\/(sw\.js|manifest\.json|favicon\.ico|robots\.txt|sitemap\.xml)$/.test(path)) {
                 return true;
             }
 

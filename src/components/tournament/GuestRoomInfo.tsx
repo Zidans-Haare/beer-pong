@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { requestRoom, acceptRoomRequest, rejectRoomRequest } from '@/app/actions/reservations';
 import { BedDouble, Check, X, Clock, Info, Coffee, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export default function GuestRoomInfo({ tournamentId, title, description, capacity, image, offersBreakfast, offersHalfBoard, reservations, isHost, currentUserId }: any) {
     const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -11,11 +12,12 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const [wantsBreakfast, setWantsBreakfast] = useState(false);
     const [wantsHalfBoard, setWantsHalfBoard] = useState(false);
     const router = useRouter();
+    const t = useTranslations('guestRoom');
 
     const handleRequest = async () => {
         setIsRequesting(true);
         const res = await requestRoom(tournamentId, wantsBreakfast, wantsHalfBoard);
-        if (!res.success) alert(res.error || 'Fehler beim Anfragen');
+        if (!res.success) alert(res.error || t('errorRequest'));
         setIsRequesting(false);
         router.refresh();
     };
@@ -23,7 +25,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleAccept = async (id: string) => {
         setLoadingId(id);
         const res = await acceptRoomRequest(id);
-        if (!res.success) alert(res.error || 'Fehler beim Bestätigen');
+        if (!res.success) alert(res.error || t('errorAccept'));
         setLoadingId(null);
         router.refresh();
     };
@@ -31,7 +33,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleReject = async (id: string) => {
         setLoadingId(id);
         const res = await rejectRoomRequest(id);
-        if (!res.success) alert(res.error || 'Fehler beim Ablehnen');
+        if (!res.success) alert(res.error || t('errorReject'));
         setLoadingId(null);
         router.refresh();
     };
@@ -43,7 +45,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
         <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', marginBottom: 'var(--spacing-4)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-3)' }}>
                 <BedDouble size={20} color="var(--color-primary)" />
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>{title || 'Gästezimmer angeboten'}</h3>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>{title || t('title')}</h3>
             </div>
             
             {image && (
@@ -54,12 +56,12 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
             )}
             
             <p style={{ margin: '0 0 var(--spacing-3)', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                {description || 'Ein gemütlicher Schlafplatz'}
+                {description || t('defaultDescription')}
             </p>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-4)', fontSize: '0.85rem' }}>
                 <Info size={14} color="var(--color-text-dim)" />
-                <span>Kapazität: <strong>{confirmedCount} / {capacity}</strong> belegt</span>
+                <span>{t('capacity', { confirmed: confirmedCount, total: capacity })}</span>
             </div>
 
             {!isHost && currentUserId && (
@@ -70,24 +72,24 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
                             {currentUserReservation.status === 'PENDING' && <Clock size={16} />}
                             {currentUserReservation.status === 'REJECTED' && <X size={16} />}
                             <span>
-                                {currentUserReservation.status === 'CONFIRMED' ? 'Dein Bett ist reserviert!' : currentUserReservation.status === 'PENDING' ? 'Anfrage ist ausstehend...' : 'Anfrage leider abgelehnt'}
+                                {currentUserReservation.status === 'CONFIRMED' ? t('statusConfirmed') : currentUserReservation.status === 'PENDING' ? t('statusPending') : t('statusRejected')}
                             </span>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
                             {(offersBreakfast || offersHalfBoard) && (
                                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                                    <p style={{ margin: '0 0 var(--spacing-2)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-dim)' }}>Zusatzleistungen:</p>
+                                    <p style={{ margin: '0 0 var(--spacing-2)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-dim)' }}>{t('extras')}</p>
                                     {offersBreakfast && (
                                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '8px' }}>
                                             <input type="checkbox" checked={wantsBreakfast} onChange={e => setWantsBreakfast(e.target.checked)} />
-                                            <Coffee size={14} /> Frühstück inklusive
+                                            <Coffee size={14} /> {t('breakfast')}
                                         </label>
                                     )}
                                     {offersHalfBoard && (
                                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
                                             <input type="checkbox" checked={wantsHalfBoard} onChange={e => setWantsHalfBoard(e.target.checked)} />
-                                            <Utensils size={14} /> Halbpension (Dinner)
+                                            <Utensils size={14} /> {t('halfBoard')}
                                         </label>
                                     )}
                                 </div>
@@ -98,7 +100,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
                                 className="btn btn-primary"
                                 style={{ width: '100%' }}
                             >
-                                {isRequesting ? 'Wird angefragt...' : confirmedCount >= capacity ? 'Voll belegt' : 'Schlafplatz anfragen'}
+                                {isRequesting ? t('requesting') : confirmedCount >= capacity ? t('full') : t('requestSpot')}
                             </button>
                         </div>
                     )}
@@ -107,7 +109,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
 
             {isHost && reservations.length > 0 && (
                 <div style={{ marginTop: 'var(--spacing-4)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-3)' }}>
-                    <h4 style={{ margin: '0 0 var(--spacing-2)', fontSize: '0.9rem', fontWeight: 600 }}>Anfragen verwalten</h4>
+                    <h4 style={{ margin: '0 0 var(--spacing-2)', fontSize: '0.9rem', fontWeight: 600 }}>{t('manageRequests')}</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {reservations.map((r: any) => (
                             <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--spacing-2)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)' }}>

@@ -41,6 +41,7 @@ import BringList from '@/components/tournament/BringList';
 import { getBringItems } from '@/app/actions/bring-list';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import GuestRoomInfo from '@/components/tournament/GuestRoomInfo';
+import CostEmailButton from '@/components/tournament/CostEmailButton';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -443,6 +444,11 @@ export default async function TournamentPage({ params, searchParams }: { params:
                         )}
                         <Bracket matches={schedule as any} tableCount={tableCount} />
                     </section>
+
+                    {/* Cost email — host only, when costs exist */}
+                    {isHost && bringItems.some(i => i.price != null && i.price > 0) && (
+                        <CostEmailButton tournamentId={tournament.id} />
+                    )}
 
                     {/* Host Controls */}
                     {isHost && (

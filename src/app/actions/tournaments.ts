@@ -9,6 +9,7 @@ import { generateSingleEliminationBracket, generateRoundRobinMatches, generateGr
 import { auth } from '@/auth';
 import { broadcastNotification } from './notifications';
 import { generateShortCode } from '@/lib/qrcode';
+import { isDemoMode } from '@/lib/demo';
 
 
 export async function getTournaments() {
@@ -44,9 +45,10 @@ export async function createTournament(formData: FormData) {
     const guestRoomDescription = formData.get('guestRoomDescription') as string || null;
     const offersBreakfast = formData.get('offersBreakfast') === 'true';
     const offersHalfBoard = formData.get('offersHalfBoard') === 'true';
+    const usePaypal = formData.get('usePaypal') === 'on';
 
     let guestRoomImagePath = null;
-    if (offersGuestRoom) {
+    if (offersGuestRoom && !isDemoMode) {
         const guestRoomImageFile = formData.get('guestRoomImage') as File | null;
         if (guestRoomImageFile && guestRoomImageFile.size > 0) {
             const bytes = await guestRoomImageFile.arrayBuffer();
@@ -54,7 +56,7 @@ export async function createTournament(formData: FormData) {
             const ext = path.extname(guestRoomImageFile.name) || '.jpg';
             const fileName = `room_${Date.now()}${ext}`;
             const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-            
+
             await fs.mkdir(uploadDir, { recursive: true });
             await fs.writeFile(path.join(uploadDir, fileName), buffer);
             guestRoomImagePath = `/uploads/${fileName}`;
@@ -121,7 +123,8 @@ export async function createTournament(formData: FormData) {
                     guestRoomDescription,
                     guestRoomImage: guestRoomImagePath,
                     offersBreakfast,
-                    offersHalfBoard
+                    offersHalfBoard,
+                    usePaypal,
                 },
             });
 

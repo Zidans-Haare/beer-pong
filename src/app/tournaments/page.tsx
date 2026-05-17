@@ -21,7 +21,9 @@ export default async function TournamentsPage() {
     const lobbyTournaments = allTournaments.filter(tr => tr.status === 'PLANNED' && new Date(tr.date) <= todayEnd);
     const plannedTournaments = allTournaments.filter(tr => tr.status === 'PLANNED' && new Date(tr.date) > todayEnd);
     const activeTournaments = allTournaments.filter(tr => tr.status === 'ACTIVE');
-    const completedTournaments = allTournaments.filter(tr => tr.status === 'COMPLETED');
+    const completedTournaments = allTournaments
+        .filter(tr => tr.status === 'COMPLETED')
+        .sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime());
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>

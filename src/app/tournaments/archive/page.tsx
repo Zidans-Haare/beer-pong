@@ -1,4 +1,4 @@
-import { getTournaments } from '@/app/actions/tournaments';
+import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
@@ -9,10 +9,13 @@ import { getTranslations } from 'next-intl/server';
 export const dynamic = 'force-dynamic';
 
 export default async function TournamentsArchivePage() {
-    const [allTournaments, t] = await Promise.all([getTournaments(), getTranslations('tournaments')]);
-    const completedTournaments = allTournaments
-        .filter(tournament => tournament.status === 'COMPLETED')
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const [completedTournaments, t] = await Promise.all([
+        prisma.tournament.findMany({
+            where: { status: 'COMPLETED' },
+            orderBy: { date: 'desc' },
+        }),
+        getTranslations('tournaments'),
+    ]);
 
     return (
         <div className="container" style={{ paddingBottom: '100px' }}>

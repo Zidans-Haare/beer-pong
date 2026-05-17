@@ -45,6 +45,7 @@ model Tournament {
   tableCount           Int                     @default(1)
   mode                 String                  @default("SOLO")
   isRanked             Boolean                 @default(true)
+  isHistorical         Boolean                 @default(false)
   image                String?
   offersGuestRoom      Boolean                 @default(false)
   guestRoomTitle       String?

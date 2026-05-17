@@ -24,7 +24,13 @@ export interface PlayerMedals {
 
 export async function getPlayerMedals(onlyRanked = true): Promise<Record<string, PlayerMedals>> {
     const tournaments = await prisma.tournament.findMany({
-        where: { status: 'COMPLETED', ...(onlyRanked ? { isRanked: true } : {}) },
+        where: {
+            status: 'COMPLETED',
+            OR: [
+                { isHistorical: true },
+                ...(onlyRanked ? [{ isRanked: true, isHistorical: false }] : [{ isHistorical: false }]),
+            ],
+        },
         include: {
             matches: {
                 where: { isPlayed: true },
@@ -55,30 +61,62 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
         const isRR = t.type === 'ROUND_ROBIN' || t.type === 'GROUPS';
 
         if (isRR && !isTeam) {
-            // Solo RR/Groups: compute live from match results (same logic as getTournamentStandings)
-            // Avoids stale stored standings that may not include playoff matches
-            const liveMap = new Map<string, { playerId: string; points: number; cupDiff: number; wins: number }>();
-            for (const m of t.matches as any[]) {
-                if (!m.player1Id || !m.player2Id || !m.winnerId) continue;
-                if (!liveMap.has(m.player1Id)) liveMap.set(m.player1Id, { playerId: m.player1Id, points: 0, cupDiff: 0, wins: 0 });
-                if (!liveMap.has(m.player2Id)) liveMap.set(m.player2Id, { playerId: m.player2Id, points: 0, cupDiff: 0, wins: 0 });
-                const p1 = liveMap.get(m.player1Id)!;
-                const p2 = liveMap.get(m.player2Id)!;
-                const s1 = m.score1 || 0;
-                const s2 = m.score2 || 0;
-                p1.cupDiff += s1 - s2;
-                p2.cupDiff += s2 - s1;
-                if (m.winnerId === m.player1Id) { p1.points += 3; p1.wins++; }
-                else { p2.points += 3; p2.wins++; }
+            const bracketMatches = (t.matches as any[]).filter((m: any) => m.stage === 'BRACKET');
+
+            if (bracketMatches.length > 0) {
+                // RR with playoffs: medals from bracket final, not points table
+                const maxBracketRound = Math.max(...bracketMatches.map((m: any) => m.round));
+                const finalRoundMatches = bracketMatches.filter((m: any) => m.round === maxBracketRound);
+
+                if (maxBracketRound > 1) {
+                    // Distinguish final (semi-winners) from 3rd place match (semi-losers)
+                    const semiMatches = bracketMatches.filter((m: any) => m.round === maxBracketRound - 1);
+                    const semiWinnerIds = new Set(semiMatches.map((m: any) => m.winnerId).filter(Boolean));
+
+                    for (const match of finalRoundMatches as any[]) {
+                        if (!match.winnerId) continue;
+                        const loserId = match.player1Id !== match.winnerId ? match.player1Id : match.player2Id;
+                        const isFinal = semiWinnerIds.has(match.player1Id) && semiWinnerIds.has(match.player2Id);
+                        if (isFinal) {
+                            add([match.winnerId], 'gold');
+                            add([loserId], 'silver');
+                        } else {
+                            add([match.winnerId], 'bronze');
+                        }
+                    }
+                } else {
+                    for (const match of finalRoundMatches as any[]) {
+                        if (!match.winnerId) continue;
+                        add([match.winnerId], 'gold');
+                        const loserId = match.player1Id !== match.winnerId ? match.player1Id : match.player2Id;
+                        add([loserId], 'silver');
+                    }
+                }
+            } else {
+                // Pure round-robin (no bracket): compute live from match results
+                const liveMap = new Map<string, { playerId: string; points: number; cupDiff: number; wins: number }>();
+                for (const m of t.matches as any[]) {
+                    if (!m.player1Id || !m.player2Id || !m.winnerId) continue;
+                    if (!liveMap.has(m.player1Id)) liveMap.set(m.player1Id, { playerId: m.player1Id, points: 0, cupDiff: 0, wins: 0 });
+                    if (!liveMap.has(m.player2Id)) liveMap.set(m.player2Id, { playerId: m.player2Id, points: 0, cupDiff: 0, wins: 0 });
+                    const p1 = liveMap.get(m.player1Id)!;
+                    const p2 = liveMap.get(m.player2Id)!;
+                    const s1 = m.score1 || 0;
+                    const s2 = m.score2 || 0;
+                    p1.cupDiff += s1 - s2;
+                    p2.cupDiff += s2 - s1;
+                    if (m.winnerId === m.player1Id) { p1.points += 3; p1.wins++; }
+                    else { p2.points += 3; p2.wins++; }
+                }
+                const s = Array.from(liveMap.values()).sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.cupDiff !== a.cupDiff) return b.cupDiff - a.cupDiff;
+                    return b.wins - a.wins;
+                });
+                if (s[0]) add([s[0].playerId], 'gold');
+                if (s[1]) add([s[1].playerId], 'silver');
+                if (s[2]) add([s[2].playerId], 'bronze');
             }
-            const s = Array.from(liveMap.values()).sort((a, b) => {
-                if (b.points !== a.points) return b.points - a.points;
-                if (b.cupDiff !== a.cupDiff) return b.cupDiff - a.cupDiff;
-                return b.wins - a.wins;
-            });
-            if (s[0]) add([s[0].playerId], 'gold');
-            if (s[1]) add([s[1].playerId], 'silver');
-            if (s[2]) add([s[2].playerId], 'bronze');
         } else {
             // Elimination (solo or team): derive from match results
             const played = t.matches;
@@ -135,6 +173,7 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
     // For 'last5', fetch all and filter per-player afterwards
     const tournamentFilter = {
         status: 'COMPLETED',
+        isHistorical: false,
         ...(onlyRanked ? { isRanked: true } : {}),
         ...(since ? { date: { gte: since } } : {}),
     };

@@ -165,7 +165,7 @@ export default function TournamentSummary({
             )}
 
             {/* Podium */}
-            {effectiveStandings.length >= 3 && (
+            {topThree.filter(Boolean).length >= 2 && (
                 <div style={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -210,6 +210,7 @@ export default function TournamentSummary({
                     </div>
 
                     {/* 3rd Place */}
+                    {topThree[2] && (
                     <div className="glass-panel" style={{
                         padding: 'var(--spacing-6)',
                         textAlign: 'center',
@@ -225,6 +226,7 @@ export default function TournamentSummary({
                             {topThree[2]?.points} {t('points')}
                         </div>
                     </div>
+                    )}
                 </div>
             )}
 

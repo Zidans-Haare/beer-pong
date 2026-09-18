@@ -18,7 +18,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
     const [mode, setMode] = useState<'SOLO' | 'TEAM'>('SOLO');
     const [isRanked, setIsRanked] = useState(true);
     const [hasReturnLeg, setHasReturnLeg] = useState(false);
-    const [type, setType] = useState('SINGLE_ELIMINATION');
+    const [type, setType] = useState('ROUND_ROBIN');
     const [systemMatchDuration, setSystemMatchDuration] = useState(15);
     const [tableCount, setTableCount] = useState(1);
     const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 16));

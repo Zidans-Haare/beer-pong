@@ -53,7 +53,8 @@ export default function SeasonAwardsTable({ awards, headers, noData }: {
     });
 
     return (
-        <div style={{ overflowX: 'auto' }}>
+        // containerType lets the expanded ranking size itself to the visible width (100cqw)
+        <div style={{ overflowX: 'auto', containerType: 'inline-size' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
                 <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <tr>
@@ -87,12 +88,15 @@ export default function SeasonAwardsTable({ awards, headers, noData }: {
                                 </tr>
                                 {isOpen && (
                                     <tr>
-                                        <td colSpan={3} style={{ padding: '0 var(--spacing-4) var(--spacing-4) 40px' }}>
+                                        <td colSpan={3} style={{ padding: 0 }}>
+                                            {/* Pinned to the visible area with its own horizontal scroll, like the other tables */}
+                                            <div style={{ position: 'sticky', left: 0, width: '100cqw', boxSizing: 'border-box', padding: '0 var(--spacing-4) var(--spacing-4)' }}>
                                             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: '0 0 var(--spacing-2) 0' }}>{a.rule}</p>
                                             {a.rows.length === 0 ? (
                                                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>{noData}</p>
                                             ) : (
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)' }}>
+                                                <div style={{ overflowX: 'auto', overscrollBehaviorX: 'contain' }}>
+                                                <table style={{ width: '100%', minWidth: '480px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)' }}>
                                                     <thead>
                                                         <tr>
                                                             <th style={{ ...subTh, width: '40px' }}>#</th>
@@ -113,10 +117,12 @@ export default function SeasonAwardsTable({ awards, headers, noData }: {
                                                         ))}
                                                     </tbody>
                                                 </table>
+                                                </div>
                                             )}
                                             {a.note && (
                                                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-2) 0 0 0' }}>{a.note}</p>
                                             )}
+                                            </div>
                                         </td>
                                     </tr>
                                 )}

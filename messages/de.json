@@ -155,7 +155,6 @@
     "wins": "Siege",
     "games": "Spiele",
     "winRate": "Win Rate",
-    "nickname": "Spitzname",
     "emailNotif": "Email (für Benachrichtigungen)",
     "bio": "Über mich",
     "saving": "Speichere...",
@@ -738,7 +737,25 @@
     "gold": "Gold",
     "silver": "Silber",
     "bronze": "Bronze",
-    "totalMedals": "Gesamt"
+    "totalMedals": "Gesamt",
+    "awardsTitle": "Saison-Preise",
+    "awardsSubtitle": "Aktuelle Titelträger – nur Liga-Turniere, Arm & Wand ab {min} Spielen",
+    "awardTitle": "Titel",
+    "awardHolder": "Inhaber",
+    "awardReason": "Erklärung",
+    "awardOpen": "Noch nicht vergeben",
+    "awards": {
+      "bierDor": "Bier d'Or",
+      "bierDorDetail": "Platz 1 im Medaillenspiegel: {gold}× Gold, {silver}× Silber, {bronze}× Bronze",
+      "goldenArm": "Goldener Arm",
+      "goldenArmDetail": "Bester Angreifer: Ø {avg, number} getroffene Becher pro Spiel ({matches} Spiele)",
+      "goldenWall": "Goldene Wand",
+      "goldenWallDetail": "Bester Verteidiger: nur Ø {avg, number} kassierte Becher pro Spiel ({matches} Spiele)",
+      "comeback": "Mr. Comeback",
+      "comebackDetail": "Nach der Liga nur Platz {rank} von {field} – trotzdem Turniersieg beim {tournament}{debut, select, yes { (erstes Turnier!)} other {}}",
+      "goldenRound": "Goldene Runde",
+      "goldenRoundDetail": "Höchster Sieg: {score} gegen {opponent} – {tournament} ({stage, select, bracket {Playoffs} other {Liga}})"
+    }
   },
   "costSplit": {
     "settlement": "Kostenabrechnung",

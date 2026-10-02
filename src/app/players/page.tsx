@@ -8,7 +8,7 @@ import { getTranslations } from 'next-intl/server';
 export const dynamic = 'force-dynamic';
 
 export default async function PlayersPage() {
-    const players = await getPlayers();
+    const players = (await getPlayers()).filter(p => !p.isGuest);
     const t = await getTranslations('players');
 
     return (

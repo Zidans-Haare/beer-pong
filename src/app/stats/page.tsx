@@ -1,8 +1,9 @@
 import { getAllPlayerStats } from '@/lib/stats';
+import { getSeasonAwards, AWARD_MIN_MATCHES } from '@/lib/awards';
 import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import StatsExportButton from '@/components/StatsExportButton';
-import { Trophy, Medal, Crown, Zap } from 'lucide-react';
+import { Trophy, Medal, Crown, Zap, Award } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
@@ -105,9 +106,12 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
     const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
-        getPlayers(),
+        getPlayers().then(ps => ps.filter(p => !p.isGuest)),
         syncAndGetUptimeData(),
     ]);
+
+    // Season awards always use ranked all-time stats, independent of the filters
+    const awards = await getSeasonAwards(onlyRanked && activePeriod === 'all' ? allStats : await getAllPlayerStats(true, 'all'));
 
     let stats = selectedPlayerIds.length > 0
         ? allStats.filter(s => selectedPlayerIds.includes(s.id))
@@ -314,6 +318,45 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                     </tr>
                                 )
                             })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Season Awards */}
+            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
+                    <Award size={22} color="#b45309" />
+                    <div>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('awardsTitle')}</h2>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>
+                            {t('awardsSubtitle', { min: AWARD_MIN_MATCHES })}
+                        </p>
+                    </div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '520px' }}>
+                        <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
+                            <tr>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardTitle')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardHolder')}</th>
+                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardReason')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {awards.map(a => (
+                                <tr key={a.key} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={{ padding: 'var(--spacing-4)', fontWeight: 800, color: '#b45309', whiteSpace: 'nowrap' }}>
+                                        {t(`awards.${a.key}`)}
+                                    </td>
+                                    <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                                        {a.holder ?? <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>–</span>}
+                                    </td>
+                                    <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                                        {a.detail ? t(`awards.${a.key}Detail`, a.detail) : t('awardOpen')}
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

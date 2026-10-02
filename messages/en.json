@@ -155,7 +155,6 @@
     "wins": "Wins",
     "games": "Games",
     "winRate": "Win Rate",
-    "nickname": "Nickname",
     "emailNotif": "Email (for notifications)",
     "bio": "About me",
     "saving": "Saving...",
@@ -738,7 +737,25 @@
     "gold": "Gold",
     "silver": "Silver",
     "bronze": "Bronze",
-    "totalMedals": "Total"
+    "totalMedals": "Total",
+    "awardsTitle": "Season Awards",
+    "awardsSubtitle": "Current title holders – ranked tournaments only, Arm & Wall from {min} games",
+    "awardTitle": "Title",
+    "awardHolder": "Holder",
+    "awardReason": "Reason",
+    "awardOpen": "Not awarded yet",
+    "awards": {
+      "bierDor": "Bier d'Or",
+      "bierDorDetail": "#1 in the medal table: {gold}× gold, {silver}× silver, {bronze}× bronze",
+      "goldenArm": "Golden Arm",
+      "goldenArmDetail": "Best attacker: avg. {avg, number} cups hit per game ({matches} games)",
+      "goldenWall": "Golden Wall",
+      "goldenWallDetail": "Best defender: only avg. {avg, number} cups conceded per game ({matches} games)",
+      "comeback": "Mr. Comeback",
+      "comebackDetail": "Only #{rank} of {field} after the league – still won {tournament}{debut, select, yes { (first tournament!)} other {}}",
+      "goldenRound": "Golden Round",
+      "goldenRoundDetail": "Biggest win: {score} vs. {opponent} – {tournament} ({stage, select, bracket {playoffs} other {league}})"
+    }
   },
   "costSplit": {
     "settlement": "Cost Settlement",

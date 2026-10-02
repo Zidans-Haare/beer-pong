@@ -23,6 +23,11 @@ export interface PlayerMedals {
 }
 
 export async function getPlayerMedals(onlyRanked = true): Promise<Record<string, PlayerMedals>> {
+    return (await computePlacements(onlyRanked)).medals;
+}
+
+// Medals per player plus the gold winner(s) of each tournament (bracket final beats league table)
+async function computePlacements(onlyRanked: boolean): Promise<{ medals: Record<string, PlayerMedals>; winnersByTournament: Map<string, Set<string>> }> {
     const tournaments = await prisma.tournament.findMany({
         where: {
             status: 'COMPLETED',
@@ -44,12 +49,18 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
     });
 
     const medals: Record<string, PlayerMedals> = {};
+    const winnersByTournament = new Map<string, Set<string>>();
+    let currentTournamentId = '';
 
     const add = (ids: (string | null | undefined)[], type: keyof PlayerMedals) => {
         for (const id of ids) {
             if (!id) continue;
             if (!medals[id]) medals[id] = { gold: 0, silver: 0, bronze: 0 };
             medals[id][type]++;
+            if (type === 'gold') {
+                if (!winnersByTournament.has(currentTournamentId)) winnersByTournament.set(currentTournamentId, new Set());
+                winnersByTournament.get(currentTournamentId)!.add(id);
+            }
         }
     };
 
@@ -57,6 +68,7 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
         [team?.player1?.id, team?.player2?.id].filter(Boolean);
 
     for (const t of tournaments) {
+        currentTournamentId = t.id;
         const isTeam = t.mode === 'TEAM';
         const isRR = t.type === 'ROUND_ROBIN' || t.type === 'GROUPS';
 
@@ -155,7 +167,7 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
         }
     }
 
-    return medals;
+    return { medals, winnersByTournament };
 }
 
 export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';
@@ -167,8 +179,8 @@ export function getPeriodStartDate(period: StatsPeriod): Date | undefined {
     return undefined;
 }
 
-export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all', medals?: Record<string, PlayerMedals>): Promise<PlayerStats[]> {
-    if (!medals) medals = await getPlayerMedals(onlyRanked);
+export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all'): Promise<PlayerStats[]> {
+    const { medals, winnersByTournament } = await computePlacements(onlyRanked);
     const since = getPeriodStartDate(period);
     // For 'last5', fetch all and filter per-player afterwards
     const tournamentFilter = {
@@ -179,6 +191,7 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
     };
 
     const players = await prisma.player.findMany({
+        where: { isGuest: false },
         include: {
             matchesAsPlayer1: {
                 where: {
@@ -199,24 +212,6 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
                     tournament: tournamentFilter
                 },
                 include: { tournament: true }
-            },
-            standings: {
-                where: {
-                    tournament: tournamentFilter
-                },
-                include: {
-                    tournament: {
-                        include: {
-                            standings: {
-                                orderBy: [
-                                    { points: 'desc' },
-                                    { goalDifference: 'desc' },
-                                    { goalsFor: 'desc' }
-                                ]
-                            }
-                        }
-                    }
-                }
             }
         }
     });
@@ -283,9 +278,6 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
 
         const matchesPlayed = totalMatchCount;
 
-        // Count tournament wins (1st place finishes)
-        let tournamentsWon = 0;
-
         // For last5: derive which tournaments appear in the last 5 matches
         const last5TournamentIds = period === 'last5'
             ? new Set(allMatches.map((m: any) => m.tournamentId))
@@ -294,21 +286,8 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
         const relevantTournaments = last5TournamentIds
             ? p.tournaments.filter((tp: any) => last5TournamentIds.has(tp.tournamentId))
             : p.tournaments;
-        const relevantStandings = last5TournamentIds
-            ? p.standings.filter((s: any) => last5TournamentIds.has(s.tournamentId))
-            : p.standings;
 
-        // Method 1: Check standings (for Round-Robin and Group tournaments)
-        relevantStandings.forEach((standing: any) => {
-            // Check if this player is first in their tournament's standings
-            const tournamentStandings = standing.tournament.standings;
-            if (tournamentStandings.length > 0 && tournamentStandings[0].playerId === p.id) {
-                tournamentsWon++;
-            }
-        });
-
-        // Method 2: Check completed tournaments where this player won the final match (for Elimination tournaments)
-        // Get all completed tournaments this player participated in (via matches OR TournamentParticipant)
+        // All completed tournaments this player took part in (via matches OR TournamentParticipant)
         const completedTournamentIds = new Set<string>(allMatches.map((m: any) => m.tournamentId));
         relevantTournaments.forEach((tp: any) => {
             if (tp.tournament?.status === 'COMPLETED') {
@@ -316,30 +295,13 @@ export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod =
             }
         });
 
-        // For each completed tournament, check if player won the final/highest round match
+        // Tournament wins = gold placements (same logic as medals: playoff final if present, else league table)
+        let tournamentsWon = 0;
         for (const tournamentId of completedTournamentIds) {
-            // Skip if we already counted this tournament via standings
-            const alreadyCounted = relevantStandings.some((s: any) => s.tournamentId === tournamentId);
-            if (alreadyCounted) continue;
-
-            // Find the highest round match in this tournament
-            const tournamentMatches = [...p.matchesAsPlayer1, ...p.matchesAsPlayer2]
-                .filter((m: any) => m.tournamentId === tournamentId && m.isPlayed);
-
-            if (tournamentMatches.length === 0) continue;
-
-            // Find the match with the highest round number (the final)
-            const finalMatch = tournamentMatches.reduce((highest: any, current: any) =>
-                (current.round > highest.round) ? current : highest
-            );
-
-            // If this player won the final match, they won the tournament
-            if (finalMatch.winnerId === p.id) {
-                tournamentsWon++;
-            }
+            if (winnersByTournament.get(tournamentId)?.has(p.id)) tournamentsWon++;
         }
 
-        const m = medals![p.id] ?? { gold: 0, silver: 0, bronze: 0 };
+        const m = medals[p.id] ?? { gold: 0, silver: 0, bronze: 0 };
         return {
             id: p.id,
             name: p.name,

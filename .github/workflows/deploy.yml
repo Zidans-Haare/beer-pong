@@ -112,7 +112,15 @@ jobs:
             echo '{"msg":"Automatisches Update: '"$COMMIT_MSG"'","start":"'"$DEPLOY_START"'","end":"'"$DEPLOY_END"'"}' > public/maintenance-msg.txt
             npm ci
             npx prisma generate
-            DATABASE_URL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"') npx prisma migrate deploy
+            # Prisma's schema engine fails sporadically with "input contains invalid characters"
+            # (~1 in 8 runs, not reproducible on demand) — retry before giving up
+            DB_URL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"')
+            for attempt in 1 2 3; do
+              if DATABASE_URL="$DB_URL" npx prisma migrate deploy; then break; fi
+              if [ "$attempt" = 3 ]; then echo "prisma migrate deploy nach 3 Versuchen fehlgeschlagen"; exit 1; fi
+              echo "prisma migrate deploy fehlgeschlagen (Versuch $attempt) — neuer Versuch in 5s"
+              sleep 5
+            done
 
             # Build
             npm run build

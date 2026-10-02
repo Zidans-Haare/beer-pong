@@ -53,9 +53,10 @@ export default function SeasonAwardsTable({ awards, headers, noData }: {
     });
 
     return (
-        // containerType lets the expanded ranking size itself to the visible width (100cqw)
-        <div style={{ overflowX: 'auto', containerType: 'inline-size' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+        // The summary never scrolls sideways; only the expanded rankings do.
+        // containerType lets an expanded ranking size itself to the visible width (100cqw).
+        <div style={{ overflowX: 'hidden', containerType: 'inline-size' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <tr>
                         <th style={{ ...th, paddingLeft: '40px' }}>{headers.title}</th>
@@ -82,15 +83,15 @@ export default function SeasonAwardsTable({ awards, headers, noData }: {
                                     <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                                         {a.holder ?? <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>–</span>}
                                     </td>
-                                    <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                                    <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem', overflowWrap: 'anywhere' }}>
                                         {a.explanation}
                                     </td>
                                 </tr>
                                 {isOpen && (
                                     <tr>
                                         <td colSpan={3} style={{ padding: 0 }}>
-                                            {/* Pinned to the visible area with its own horizontal scroll, like the other tables */}
-                                            <div style={{ position: 'sticky', left: 0, width: '100cqw', boxSizing: 'border-box', padding: '0 var(--spacing-4) var(--spacing-4)' }}>
+                                            {/* Sized to the visible width with its own horizontal scroll */}
+                                            <div style={{ width: '100cqw', boxSizing: 'border-box', padding: '0 var(--spacing-4) var(--spacing-4)' }}>
                                             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: '0 0 var(--spacing-2) 0' }}>{a.rule}</p>
                                             {a.rows.length === 0 ? (
                                                 <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>{noData}</p>

@@ -752,9 +752,40 @@
       "goldenWall": "Golden Wall",
       "goldenWallDetail": "Best defender: only avg. {avg, number} cups conceded per game ({matches} games)",
       "comeback": "Mr. Comeback",
-      "comebackDetail": "Only #{rank} of {field} after the league – still won {tournament}{debut, select, yes { (first tournament!)} other {}}",
+      "comebackDetail": "Started with {losses, plural, one {a loss} other {# straight losses}} – still won {medal, select, gold {gold} silver {silver} other {bronze}} at {tournament}",
       "goldenRound": "Golden Round",
-      "goldenRoundDetail": "Biggest win: {score} vs. {opponent} – {tournament} ({stage, select, bracket {playoffs} other {league}})"
+      "goldenRoundDetail": "Biggest win: {score} vs. {opponent} – {tournament} ({stage, select, bracket {playoffs} other {league}})",
+      "bierDorRule": "Same order as the medal table: gold → silver → bronze → games won → cup difference.",
+      "goldenArmRule": "Cups hit per game across all ranked tournaments. Ties go to more games. Counts from {min} games.",
+      "goldenArmIneligible": "Greyed out: fewer than {min} games, not ranked (yet).",
+      "goldenWallRule": "Cups conceded per game across all ranked tournaments – lower is better. Ties go to more games. Counts from {min} games.",
+      "goldenWallIneligible": "Greyed out: fewer than {min} games, not ranked (yet).",
+      "comebackRule": "Every podium finish with the number of straight losses at the start of the tournament (league, then playoffs). Worse start = bigger comeback; ties go to the better medal, then the more recent tournament.",
+      "comebackIneligible": "Greyed out: reached the podium without a bad start – no comeback.",
+      "goldenRoundRule": "Each player's biggest win (largest cup difference). Ties go to a playoff game over a league game, then the more recent tournament."
+    },
+    "awardNoData": "No data yet.",
+    "awardCols": {
+      "player": "Player",
+      "gold": "Gold",
+      "silver": "Silver",
+      "bronze": "Bronze",
+      "total": "Total",
+      "avgHit": "Avg. hit",
+      "cupsHit": "Cups hit",
+      "avgReceived": "Avg. conceded",
+      "cupsReceived": "Cups conceded",
+      "games": "Games",
+      "openingLosses": "Losses at start",
+      "medal": "Medal",
+      "tournament": "Tournament",
+      "score": "Score",
+      "opponent": "Opponent",
+      "stage": "Stage"
+    },
+    "awardCells": {
+      "bracket": "Playoffs",
+      "league": "League"
     }
   },
   "costSplit": {

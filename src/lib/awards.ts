@@ -1,21 +1,33 @@
 import { prisma } from '@/lib/prisma';
-import type { PlayerStats } from '@/lib/stats';
+import { computePlacements, type PlayerStats } from '@/lib/stats';
 
 // Minimum games for the per-game awards (Goldener Arm / Goldene Wand)
 export const AWARD_MIN_MATCHES = 10;
 
 export type AwardKey = 'bierDor' | 'goldenArm' | 'goldenWall' | 'comeback' | 'goldenRound';
 
-// `detail` feeds the translation string stats.awards.<key>Detail
+// A cell is a plain value or a translation key (stats.awardCells.<t>)
+export type AwardCell = string | number | { t: string };
+
+export interface AwardRankingRow {
+    player: string;
+    cells: AwardCell[];
+    // Shown greyed out without a rank (e.g. too few games)
+    ineligible?: boolean;
+}
+
 export interface Award {
     key: AwardKey;
     holder: string | null;
+    // Feeds the translation string stats.awards.<key>Detail
     detail: Record<string, string | number> | null;
+    // Full ranking behind the award; column headers are stats.awardCols.<column>
+    columns: string[];
+    rows: AwardRankingRow[];
 }
 
-const empty = (key: AwardKey): Award => ({ key, holder: null, detail: null });
-
 const round1 = (n: number) => Math.round(n * 10) / 10;
+const medalIcon = { gold: '🥇', silver: '🥈', bronze: '🥉' } as const;
 
 /**
  * Season awards ("Preise"): current holder of each title, based on ranked tournaments only.
@@ -26,7 +38,6 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
         where: { status: 'COMPLETED', isRanked: true, isHistorical: false, mode: 'SOLO' },
         orderBy: { date: 'asc' },
         include: {
-            participants: { select: { playerId: true } },
             matches: {
                 where: { isPlayed: true, winnerId: { not: null }, player1Id: { not: null }, player2Id: { not: null } },
                 include: {
@@ -40,10 +51,18 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
     const awards: Award[] = [];
 
     // 1. Bier d'Or — #1 of the medal table
-    const top = rankedStats.find(s => s.goldMedals + s.silverMedals + s.bronzeMedals > 0);
-    awards.push(top
-        ? { key: 'bierDor', holder: top.name, detail: { gold: top.goldMedals, silver: top.silverMedals, bronze: top.bronzeMedals } }
-        : empty('bierDor'));
+    const medalists = rankedStats.filter(s => s.goldMedals + s.silverMedals + s.bronzeMedals > 0);
+    const top = medalists[0];
+    awards.push({
+        key: 'bierDor',
+        holder: top?.name ?? null,
+        detail: top ? { gold: top.goldMedals, silver: top.silverMedals, bronze: top.bronzeMedals } : null,
+        columns: ['player', 'gold', 'silver', 'bronze', 'total'],
+        rows: medalists.map(s => ({
+            player: s.name,
+            cells: [s.goldMedals, s.silverMedals, s.bronzeMedals, s.goldMedals + s.silverMedals + s.bronzeMedals],
+        })),
+    });
 
     // Per-player cups hit / received
     const cups = new Map<string, { name: string; hit: number; received: number; matches: number }>();
@@ -57,90 +76,105 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
             }
         }
     }
-    const eligible = [...cups.values()].filter(c => c.matches >= AWARD_MIN_MATCHES);
+    const perGameAward = (key: 'goldenArm' | 'goldenWall', value: (c: { hit: number; received: number }) => number, higherIsBetter: boolean): Award => {
+        const sorted = [...cups.values()].sort((a, b) => {
+            const eligibleDiff = Number(b.matches >= AWARD_MIN_MATCHES) - Number(a.matches >= AWARD_MIN_MATCHES);
+            const diff = value(a) / a.matches - value(b) / b.matches;
+            return eligibleDiff || (higherIsBetter ? -diff : diff) || b.matches - a.matches;
+        });
+        const best = sorted[0]?.matches >= AWARD_MIN_MATCHES ? sorted[0] : null;
+        return {
+            key,
+            holder: best?.name ?? null,
+            detail: best ? { avg: round1(value(best) / best.matches), matches: best.matches } : null,
+            columns: ['player', key === 'goldenArm' ? 'avgHit' : 'avgReceived', key === 'goldenArm' ? 'cupsHit' : 'cupsReceived', 'games'],
+            rows: sorted.map(c => ({
+                player: c.name,
+                cells: [round1(value(c) / c.matches), value(c), c.matches],
+                ineligible: c.matches < AWARD_MIN_MATCHES,
+            })),
+        };
+    };
 
     // 2. Goldener Arm — most cups hit per game
-    const bestArm = [...eligible].sort((a, b) => b.hit / b.matches - a.hit / a.matches || b.matches - a.matches)[0];
-    awards.push(bestArm
-        ? { key: 'goldenArm', holder: bestArm.name, detail: { avg: round1(bestArm.hit / bestArm.matches), matches: bestArm.matches } }
-        : empty('goldenArm'));
-
+    awards.push(perGameAward('goldenArm', c => c.hit, true));
     // 3. Goldene Wand — fewest cups received per game
-    const bestWall = [...eligible].sort((a, b) => a.received / a.matches - b.received / b.matches || b.matches - a.matches)[0];
-    awards.push(bestWall
-        ? { key: 'goldenWall', holder: bestWall.name, detail: { avg: round1(bestWall.received / bestWall.matches), matches: bestWall.matches } }
-        : empty('goldenWall'));
+    awards.push(perGameAward('goldenWall', c => c.received, false));
 
-    // 4. Mr. Comeback — tournament winner with the worst league placement before the playoffs
-    let comeback: { leagueRank: number; award: Award } | null = null;
-    const seenPlayers = new Set<string>();
+    // 4. Mr. Comeback — longest losing streak at the start of a tournament that still ended on the podium
+    const { podiumByTournament } = await computePlacements(true);
+    const medalOrder = { gold: 3, silver: 2, bronze: 1 } as const;
+    const comebacks: { name: string; losses: number; medal: keyof typeof medalOrder; tournament: string; date: number }[] = [];
     for (const t of tournaments) {
-        const league = t.matches.filter(m => m.stage === 'LEAGUE');
-        const bracket = t.matches.filter(m => m.stage === 'BRACKET');
-        if (league.length > 0 && bracket.length > 0) {
-            const maxRound = Math.max(...bracket.map(m => m.round));
-            const semiWinners = new Set(bracket.filter(m => m.round === maxRound - 1).map(m => m.winnerId));
-            const final = bracket.find(m => m.round === maxRound && (maxRound === 1 || (semiWinners.has(m.player1Id) && semiWinners.has(m.player2Id))));
-
-            const table = new Map<string, { points: number; diff: number; wins: number }>();
-            for (const m of league) {
-                for (const [id, own, opp] of [[m.player1Id!, m.score1, m.score2], [m.player2Id!, m.score2, m.score1]] as const) {
-                    const row = table.get(id) ?? { points: 0, diff: 0, wins: 0 };
-                    row.diff += own - opp;
-                    if (m.winnerId === id) { row.points += 3; row.wins++; }
-                    table.set(id, row);
-                }
-            }
-            const ranking = [...table.entries()]
-                .sort(([, a], [, b]) => b.points - a.points || b.diff - a.diff || b.wins - a.wins)
-                .map(([id]) => id);
-            const winner = final ? (final.winnerId === final.player1Id ? final.player1 : final.player2) : null;
-            const leagueRank = winner ? ranking.indexOf(winner.id) + 1 : 0;
-
-            // >= so that on equal rank the more recent tournament wins
-            if (winner && !winner.isGuest && leagueRank > 1 && leagueRank >= (comeback?.leagueRank ?? 0)) {
-                comeback = {
-                    leagueRank,
-                    award: {
-                        key: 'comeback', holder: winner.name,
-                        detail: { rank: leagueRank, field: ranking.length, tournament: t.name.trim(), debut: seenPlayers.has(winner.id) ? 'no' : 'yes' },
-                    },
-                };
-            }
+        const podium = podiumByTournament.get(t.id);
+        if (!podium) continue;
+        // League games first, then playoffs, each by round
+        const ordered = [...t.matches].sort((x, y) =>
+            (x.stage === 'BRACKET' ? 1 : 0) - (y.stage === 'BRACKET' ? 1 : 0) || x.round - y.round || x.position - y.position);
+        for (const [playerId, medal] of podium) {
+            const games = ordered.filter(m => m.player1Id === playerId || m.player2Id === playerId);
+            const player = games[0] && (games[0].player1Id === playerId ? games[0].player1! : games[0].player2!);
+            if (!player || player.isGuest) continue;
+            const firstWin = games.findIndex(m => m.winnerId === playerId);
+            comebacks.push({
+                name: player.name, losses: firstWin === -1 ? games.length : firstWin, medal,
+                tournament: t.name.trim(), date: t.date.getTime(),
+            });
         }
-        for (const p of t.participants) seenPlayers.add(p.playerId);
-        for (const m of t.matches) { seenPlayers.add(m.player1Id!); seenPlayers.add(m.player2Id!); }
     }
-    awards.push(comeback?.award ?? empty('comeback'));
+    comebacks.sort((a, b) => b.losses - a.losses || medalOrder[b.medal] - medalOrder[a.medal] || b.date - a.date);
+    const comeback = comebacks[0]?.losses > 0 ? comebacks[0] : null;
+    awards.push({
+        key: 'comeback',
+        holder: comeback?.name ?? null,
+        detail: comeback ? { losses: comeback.losses, medal: comeback.medal, tournament: comeback.tournament } : null,
+        columns: ['player', 'openingLosses', 'medal', 'tournament'],
+        rows: comebacks.map(c => ({
+            player: c.name,
+            cells: [c.losses, medalIcon[c.medal], c.tournament],
+            ineligible: c.losses === 0,
+        })),
+    });
 
-    // 5. Goldene Runde — biggest winning margin in a single game (ties: playoff game, then most recent)
-    let best: { margin: number; bracket: boolean; date: number; award: Award } | null = null;
+    // 5. Goldene Runde — biggest winning margin in a single game (ties: playoff game, then most recent).
+    // Ranking shows each player's best win.
+    const bestWins = new Map<string, { name: string; margin: number; bracket: boolean; date: number; score: string; opponent: string; tournament: string }>();
     for (const t of tournaments) {
         for (const m of t.matches) {
             const p1Won = m.winnerId === m.player1Id;
             const winner = p1Won ? m.player1! : m.player2!;
             const loser = p1Won ? m.player2! : m.player1!;
             if (winner.isGuest) continue;
-            const margin = Math.abs(m.score1 - m.score2);
-            const bracket = m.stage === 'BRACKET';
-            const date = t.date.getTime();
-            const better = !best || margin > best.margin
-                || (margin === best.margin && (bracket && !best.bracket || (bracket === best.bracket && date >= best.date)));
-            if (better) {
-                best = {
-                    margin, bracket, date,
-                    award: {
-                        key: 'goldenRound', holder: winner.name,
-                        detail: {
-                            score: p1Won ? `${m.score1}:${m.score2}` : `${m.score2}:${m.score1}`,
-                            opponent: loser.name.trim(), tournament: t.name.trim(), stage: bracket ? 'bracket' : 'league',
-                        },
-                    },
-                };
-            }
+            const win = {
+                name: winner.name,
+                margin: Math.abs(m.score1 - m.score2),
+                bracket: m.stage === 'BRACKET',
+                date: t.date.getTime(),
+                score: p1Won ? `${m.score1}:${m.score2}` : `${m.score2}:${m.score1}`,
+                opponent: loser.name.trim(),
+                tournament: t.name.trim(),
+            };
+            const prev = bestWins.get(winner.id);
+            if (!prev || compareWins(win, prev) < 0) bestWins.set(winner.id, win);
         }
     }
-    awards.push(best?.award ?? empty('goldenRound'));
+    const wins = [...bestWins.values()].sort(compareWins);
+    const best = wins[0];
+    awards.push({
+        key: 'goldenRound',
+        holder: best?.name ?? null,
+        detail: best ? { score: best.score, opponent: best.opponent, tournament: best.tournament, stage: best.bracket ? 'bracket' : 'league' } : null,
+        columns: ['player', 'score', 'opponent', 'tournament', 'stage'],
+        rows: wins.map(w => ({
+            player: w.name,
+            cells: [w.score, w.opponent, w.tournament, { t: w.bracket ? 'bracket' : 'league' }],
+        })),
+    });
 
     return awards;
+}
+
+// Negative when `a` is the better win: bigger margin, then playoff game, then more recent
+function compareWins(a: { margin: number; bracket: boolean; date: number }, b: { margin: number; bracket: boolean; date: number }) {
+    return b.margin - a.margin || Number(b.bracket) - Number(a.bracket) || b.date - a.date;
 }

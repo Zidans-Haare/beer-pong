@@ -752,9 +752,40 @@
       "goldenWall": "Goldene Wand",
       "goldenWallDetail": "Bester Verteidiger: nur Ø {avg, number} kassierte Becher pro Spiel ({matches} Spiele)",
       "comeback": "Mr. Comeback",
-      "comebackDetail": "Nach der Liga nur Platz {rank} von {field} – trotzdem Turniersieg beim {tournament}{debut, select, yes { (erstes Turnier!)} other {}}",
+      "comebackDetail": "Startete mit {losses, plural, one {einer Niederlage} other {# Niederlagen in Folge}} – und holte trotzdem {medal, select, gold {Gold} silver {Silber} other {Bronze}} beim {tournament}",
       "goldenRound": "Goldene Runde",
-      "goldenRoundDetail": "Höchster Sieg: {score} gegen {opponent} – {tournament} ({stage, select, bracket {Playoffs} other {Liga}})"
+      "goldenRoundDetail": "Höchster Sieg: {score} gegen {opponent} – {tournament} ({stage, select, bracket {Playoffs} other {Liga}})",
+      "bierDorRule": "Reihenfolge wie im Medaillenspiegel: Gold → Silber → Bronze → gewonnene Spiele → Becher-Differenz.",
+      "goldenArmRule": "Getroffene Becher pro Spiel über alle Liga-Turniere. Bei Gleichstand zählen mehr Spiele. Wertung ab {min} Spielen.",
+      "goldenArmIneligible": "Ausgegraut: weniger als {min} Spiele, (noch) nicht in der Wertung.",
+      "goldenWallRule": "Kassierte Becher pro Spiel über alle Liga-Turniere – weniger ist besser. Bei Gleichstand zählen mehr Spiele. Wertung ab {min} Spielen.",
+      "goldenWallIneligible": "Ausgegraut: weniger als {min} Spiele, (noch) nicht in der Wertung.",
+      "comebackRule": "Alle Podiumsplätze mit der Anzahl Niederlagen in Folge zum Turnierstart (Liga, dann Playoffs). Mehr Fehlstart = größeres Comeback; bei Gleichstand zählt die bessere Medaille, dann das neuere Turnier.",
+      "comebackIneligible": "Ausgegraut: ohne Fehlstart aufs Podium – kein Comeback.",
+      "goldenRoundRule": "Höchster Sieg jedes Spielers (größte Becher-Differenz). Bei Gleichstand zählt ein Playoff-Spiel vor einem Ligaspiel, dann das neuere Turnier."
+    },
+    "awardNoData": "Noch keine Daten.",
+    "awardCols": {
+      "player": "Spieler",
+      "gold": "Gold",
+      "silver": "Silber",
+      "bronze": "Bronze",
+      "total": "Gesamt",
+      "avgHit": "Ø Treffer",
+      "cupsHit": "Becher getroffen",
+      "avgReceived": "Ø kassiert",
+      "cupsReceived": "Becher kassiert",
+      "games": "Spiele",
+      "openingLosses": "Niederlagen zum Start",
+      "medal": "Medaille",
+      "tournament": "Turnier",
+      "score": "Ergebnis",
+      "opponent": "Gegner",
+      "stage": "Phase"
+    },
+    "awardCells": {
+      "bracket": "Playoffs",
+      "league": "Liga"
     }
   },
   "costSplit": {

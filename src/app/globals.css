@@ -445,6 +445,7 @@ input[type="checkbox"] {
 
 /* Collapsible details arrow */
 details[open] summary svg { transform: rotate(90deg); }
+summary::-webkit-details-marker { display: none; }
 
 /* Hide bottom nav on chat page */
 body.chat-open .bottom-nav { display: none !important; }

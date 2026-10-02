@@ -26,8 +26,15 @@ export async function getPlayerMedals(onlyRanked = true): Promise<Record<string,
     return (await computePlacements(onlyRanked)).medals;
 }
 
-// Medals per player plus the gold winner(s) of each tournament (bracket final beats league table)
-async function computePlacements(onlyRanked: boolean): Promise<{ medals: Record<string, PlayerMedals>; winnersByTournament: Map<string, Set<string>> }> {
+export interface Placements {
+    medals: Record<string, PlayerMedals>;
+    winnersByTournament: Map<string, Set<string>>;
+    // tournamentId -> playerId -> medal won in that tournament
+    podiumByTournament: Map<string, Map<string, keyof PlayerMedals>>;
+}
+
+// Medals per player plus the podium of each tournament (bracket final beats league table)
+export async function computePlacements(onlyRanked: boolean): Promise<Placements> {
     const tournaments = await prisma.tournament.findMany({
         where: {
             status: 'COMPLETED',
@@ -50,6 +57,7 @@ async function computePlacements(onlyRanked: boolean): Promise<{ medals: Record<
 
     const medals: Record<string, PlayerMedals> = {};
     const winnersByTournament = new Map<string, Set<string>>();
+    const podiumByTournament = new Map<string, Map<string, keyof PlayerMedals>>();
     let currentTournamentId = '';
 
     const add = (ids: (string | null | undefined)[], type: keyof PlayerMedals) => {
@@ -57,6 +65,8 @@ async function computePlacements(onlyRanked: boolean): Promise<{ medals: Record<
             if (!id) continue;
             if (!medals[id]) medals[id] = { gold: 0, silver: 0, bronze: 0 };
             medals[id][type]++;
+            if (!podiumByTournament.has(currentTournamentId)) podiumByTournament.set(currentTournamentId, new Map());
+            podiumByTournament.get(currentTournamentId)!.set(id, type);
             if (type === 'gold') {
                 if (!winnersByTournament.has(currentTournamentId)) winnersByTournament.set(currentTournamentId, new Set());
                 winnersByTournament.get(currentTournamentId)!.add(id);
@@ -167,7 +177,7 @@ async function computePlacements(onlyRanked: boolean): Promise<{ medals: Record<
         }
     }
 
-    return { medals, winnersByTournament };
+    return { medals, winnersByTournament, podiumByTournament };
 }
 
 export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';

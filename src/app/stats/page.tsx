@@ -3,7 +3,7 @@ import { getSeasonAwards, AWARD_MIN_MATCHES } from '@/lib/awards';
 import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import StatsExportButton from '@/components/StatsExportButton';
-import { Trophy, Medal, Crown, Zap, Award } from 'lucide-react';
+import { Trophy, Medal, Crown, Zap, Award, ChevronRight } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
@@ -11,7 +11,7 @@ import UptimeGraph from '@/components/UptimeGraph';
 import { prisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 
 async function syncAndGetUptimeData() {
     const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
@@ -97,12 +97,15 @@ async function syncAndGetUptimeData() {
 
 export const dynamic = 'force-dynamic';
 
+const AWARD_GRID = '190px 140px 1fr';
+
 export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string; period?: string; players?: string }> }) {
     const { ranked, period, players: playersParam } = await searchParams;
     const onlyRanked = ranked !== 'false';
     const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
     const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
     const t = await getTranslations('stats');
+    const locale = await getLocale();
 
     const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
@@ -323,7 +326,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                 </div>
             </div>
 
-            {/* Season Awards */}
+            {/* Season Awards — click a title to see the full ranking behind it */}
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
                 <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
                     <Award size={22} color="#b45309" />
@@ -335,34 +338,83 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     </div>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '520px' }}>
-                        <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
-                            <tr>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardTitle')}</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardHolder')}</th>
-                                <th style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>{t('awardReason')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {awards.map(a => (
-                                <tr key={a.key} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                    <td style={{ padding: 'var(--spacing-4)', fontWeight: 800, color: '#b45309', whiteSpace: 'nowrap' }}>
-                                        {t(`awards.${a.key}`)}
-                                    </td>
-                                    <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                                        {a.holder ?? <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>–</span>}
-                                    </td>
-                                    <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
-                                        {a.detail ? t(`awards.${a.key}Detail`, a.detail) : t('awardOpen')}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div style={{ minWidth: '560px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: AWARD_GRID, background: 'rgba(255,255,255,0.03)', color: 'var(--color-text-dim)', fontWeight: 600, fontSize: '0.85rem' }}>
+                            <span style={{ padding: 'var(--spacing-4)', paddingLeft: '40px' }}>{t('awardTitle')}</span>
+                            <span style={{ padding: 'var(--spacing-4)' }}>{t('awardHolder')}</span>
+                            <span style={{ padding: 'var(--spacing-4)' }}>{t('awardReason')}</span>
+                        </div>
+                        {awards.map(a => {
+                            let rank = 0;
+                            return (
+                                <details key={a.key} style={{ borderTop: '1px solid var(--color-border)' }}>
+                                    <summary style={{ display: 'grid', gridTemplateColumns: AWARD_GRID, alignItems: 'center', cursor: 'pointer', listStyle: 'none', userSelect: 'none' }}>
+                                        <span style={{ padding: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#b45309', whiteSpace: 'nowrap' }}>
+                                            <ChevronRight size={16} style={{ transition: 'transform 0.2s', flexShrink: 0 }} />
+                                            {t(`awards.${a.key}`)}
+                                        </span>
+                                        <span style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                                            {a.holder ?? <span style={{ color: 'var(--color-text-dim)', fontWeight: 400 }}>–</span>}
+                                        </span>
+                                        <span style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>
+                                            {a.detail ? t(`awards.${a.key}Detail`, a.detail) : t('awardOpen')}
+                                        </span>
+                                    </summary>
+                                    <div style={{ padding: '0 var(--spacing-4) var(--spacing-4) 40px' }}>
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', margin: '0 0 var(--spacing-2) 0' }}>
+                                            {t(`awards.${a.key}Rule`, { min: AWARD_MIN_MATCHES })}
+                                        </p>
+                                        {a.rows.length === 0 ? (
+                                            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>{t('awardNoData')}</p>
+                                        ) : (
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th style={{ padding: 'var(--spacing-2) var(--spacing-3)', color: 'var(--color-text-dim)', fontWeight: 600, width: '40px' }}>#</th>
+                                                        {a.columns.map(c => (
+                                                            <th key={c} style={{ padding: 'var(--spacing-2) var(--spacing-3)', color: 'var(--color-text-dim)', fontWeight: 600 }}>{t(`awardCols.${c}`)}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {a.rows.map((row, i) => {
+                                                        if (!row.ineligible) rank++;
+                                                        const isHolder = i === 0 && !row.ineligible && a.holder !== null;
+                                                        return (
+                                                            <tr key={i} style={{
+                                                                borderTop: '1px solid var(--color-border)',
+                                                                opacity: row.ineligible ? 0.45 : 1,
+                                                                background: isHolder ? 'linear-gradient(90deg, rgba(180, 83, 9, 0.1) 0%, transparent 100%)' : 'transparent',
+                                                            }}>
+                                                                <td style={{ padding: 'var(--spacing-2) var(--spacing-3)', color: 'var(--color-text-dim)', fontWeight: 600 }}>{row.ineligible ? '–' : `${rank}.`}</td>
+                                                                <td style={{ padding: 'var(--spacing-2) var(--spacing-3)', fontWeight: isHolder ? 800 : 600 }}>{row.player}</td>
+                                                                {row.cells.map((cell, j) => (
+                                                                    <td key={j} style={{ padding: 'var(--spacing-2) var(--spacing-3)' }}>
+                                                                        {typeof cell === 'object' ? t(`awardCells.${cell.t}`) : typeof cell === 'number' ? cell.toLocaleString(locale) : cell}
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                        {a.rows.some(r => r.ineligible) && (
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-2) 0 0 0' }}>
+                                                {t(`awards.${a.key}Ineligible`, { min: AWARD_MIN_MATCHES })}
+                                            </p>
+                                        )}
+                                    </div>
+                                </details>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
-            <StatsCharts stats={stats} />
+            <div style={{ marginTop: 'var(--spacing-12)' }}>
+                <StatsCharts stats={stats} />
+            </div>
 
             {/* Special Stats: Tournament Efficiency */}
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>

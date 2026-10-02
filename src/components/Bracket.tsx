@@ -86,6 +86,7 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                                         <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }} />
                                     )}
                                 <div
+                                    id={`match-${match.id}`}
                                     className="glass-panel"
                                     style={{
                                         padding: 'var(--spacing-3)',

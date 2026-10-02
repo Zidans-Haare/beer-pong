@@ -1,21 +1,25 @@
 name: Lighthouse CI
 
+# Erst nach erfolgreichem Deploy starten — parallel zum Deploy lief Lighthouse
+# in den Neustart der App (503) und schlug fehl.
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Deploy auf Server"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   lighthouse:
     name: Lighthouse Performance-Check
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Warten bis Deploy abgeschlossen ist
-        if: github.event_name == 'push'
+      - name: Warten bis die Seite erreichbar ist
+        if: github.event_name == 'workflow_run'
         run: |
           echo "Warte auf gesunden Response von bier.olomek.com..."
           for i in $(seq 1 40); do

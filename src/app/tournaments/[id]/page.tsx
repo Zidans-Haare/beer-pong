@@ -12,6 +12,7 @@ import { getPublicSystemSettings } from '@/app/actions/admin';
 import AutoRefresh from '@/components/AutoRefresh';
 import TournamentSummary from '@/components/TournamentSummary';
 import TournamentClientFeatures from '@/components/TournamentClientFeatures';
+import MatchHighlighter from '@/components/MatchHighlighter';
 import { getTournamentForecast } from '@/lib/duration';
 import TournamentHeader from '@/components/tournament/TournamentHeader';
 import LiveStreamControl from './LiveStreamControl';
@@ -46,7 +47,7 @@ import CostEmailButton from '@/components/tournament/CostEmailButton';
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
     const { id } = await params;
-    const { newlyCreated } = await searchParams;
+    const { newlyCreated, match: matchParam } = await searchParams;
     const session = await auth();
 
     const tournament = await prisma.tournament.findUnique({
@@ -165,6 +166,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
 
     return (
         <div className="container" style={{ paddingBottom: '120px' }}>
+            {typeof matchParam === 'string' && <MatchHighlighter matchParam={matchParam} />}
             <TournamentClientFeatures
                 tournamentId={tournament.id}
                 tournamentStatus={tournament.status}

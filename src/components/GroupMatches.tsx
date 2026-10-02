@@ -77,6 +77,7 @@ export default function GroupMatches({ matches, tableCount, readOnly = false }: 
                                         return (
                                             <div
                                                 key={match.id}
+                                                id={`match-${match.id}`}
                                                 onClick={() => !readOnly && setEditingMatch(match)}
                                                 style={{
                                                     padding: 'var(--spacing-2)',

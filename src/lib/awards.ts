@@ -6,8 +6,12 @@ export const AWARD_MIN_MATCHES = 10;
 
 export type AwardKey = 'bierDor' | 'goldenArm' | 'goldenWall' | 'comeback' | 'goldenRound';
 
-// A cell is a plain value or a translation key (stats.awardCells.<t>)
-export type AwardCell = string | number | { t: string };
+// A cell is a plain value, a translation key (stats.awardCells.<t>), a link or a medal
+export type AwardCell = string | number | { t: string } | { text: string; href: string } | { medal: 'gold' | 'silver' | 'bronze' };
+
+// Tournament page link that scrolls to and flashes the given matches
+const matchLink = (tournamentId: string, matchIds: string[]) =>
+    `/tournaments/${tournamentId}${matchIds.length ? `?match=${matchIds.join(',')}` : ''}`;
 
 export interface AwardRankingRow {
     player: string;
@@ -27,7 +31,6 @@ export interface Award {
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
-const medalIcon = { gold: '🥇', silver: '🥈', bronze: '🥉' } as const;
 
 /**
  * Season awards ("Preise"): current holder of each title, based on ranked tournaments only.
@@ -104,7 +107,7 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
     // 4. Mr. Comeback — longest losing streak at the start of a tournament that still ended on the podium
     const { podiumByTournament } = await computePlacements(true);
     const medalOrder = { gold: 3, silver: 2, bronze: 1 } as const;
-    const comebacks: { name: string; losses: number; medal: keyof typeof medalOrder; tournament: string; date: number }[] = [];
+    const comebacks: { name: string; losses: number; medal: keyof typeof medalOrder; tournament: string; href: string; date: number }[] = [];
     for (const t of tournaments) {
         const podium = podiumByTournament.get(t.id);
         if (!podium) continue;
@@ -116,9 +119,11 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
             const player = games[0] && (games[0].player1Id === playerId ? games[0].player1! : games[0].player2!);
             if (!player || player.isGuest) continue;
             const firstWin = games.findIndex(m => m.winnerId === playerId);
+            const losses = firstWin === -1 ? games.length : firstWin;
             comebacks.push({
-                name: player.name, losses: firstWin === -1 ? games.length : firstWin, medal,
-                tournament: t.name.trim(), date: t.date.getTime(),
+                name: player.name, losses, medal, tournament: t.name.trim(),
+                href: matchLink(t.id, games.slice(0, losses).map(m => m.id)),
+                date: t.date.getTime(),
             });
         }
     }
@@ -131,14 +136,14 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
         columns: ['player', 'openingLosses', 'medal', 'tournament'],
         rows: comebacks.map(c => ({
             player: c.name,
-            cells: [c.losses, medalIcon[c.medal], c.tournament],
+            cells: [c.losses, { medal: c.medal }, { text: c.tournament, href: c.href }],
             ineligible: c.losses === 0,
         })),
     });
 
     // 5. Goldene Runde — biggest winning margin in a single game (ties: playoff game, then most recent).
     // Ranking shows each player's best win.
-    const bestWins = new Map<string, { name: string; margin: number; bracket: boolean; date: number; score: string; opponent: string; tournament: string }>();
+    const bestWins = new Map<string, { name: string; margin: number; bracket: boolean; date: number; score: string; opponent: string; tournament: string; href: string }>();
     for (const t of tournaments) {
         for (const m of t.matches) {
             const p1Won = m.winnerId === m.player1Id;
@@ -153,6 +158,7 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
                 score: p1Won ? `${m.score1}:${m.score2}` : `${m.score2}:${m.score1}`,
                 opponent: loser.name.trim(),
                 tournament: t.name.trim(),
+                href: matchLink(t.id, [m.id]),
             };
             const prev = bestWins.get(winner.id);
             if (!prev || compareWins(win, prev) < 0) bestWins.set(winner.id, win);
@@ -167,7 +173,7 @@ export async function getSeasonAwards(rankedStats: PlayerStats[]): Promise<Award
         columns: ['player', 'score', 'opponent', 'tournament', 'stage'],
         rows: wins.map(w => ({
             player: w.name,
-            cells: [w.score, w.opponent, w.tournament, { t: w.bracket ? 'bracket' : 'league' }],
+            cells: [w.score, w.opponent, { text: w.tournament, href: w.href }, { t: w.bracket ? 'bracket' : 'league' }],
         })),
     });
 

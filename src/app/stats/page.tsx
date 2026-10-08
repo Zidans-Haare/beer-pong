@@ -1,10 +1,8 @@
 import { getAllPlayerStats } from '@/lib/stats';
-import { getSeasonAwards, AWARD_MIN_MATCHES, type AwardCell } from '@/lib/awards';
-import SeasonAwardsTable, { type AwardView, type AwardViewCell } from '@/components/SeasonAwardsTable';
 import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import StatsExportButton from '@/components/StatsExportButton';
-import { Trophy, Medal, Crown, Zap, Award } from 'lucide-react';
+import { Trophy, Medal, Crown, Zap } from 'lucide-react';
 import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsFilterBar from '@/components/StatsFilterBar';
 import { getPlayers } from '@/app/actions/players';
@@ -12,7 +10,7 @@ import UptimeGraph from '@/components/UptimeGraph';
 import { prisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 
 async function syncAndGetUptimeData() {
     const url = process.env.UPTIME_KUMA_URL ?? 'http://localhost:3001';
@@ -104,45 +102,12 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
     const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
     const t = await getTranslations('stats');
-    const locale = await getLocale();
 
     const [allStats, allPlayers, uptimeData] = await Promise.all([
         getAllPlayerStats(onlyRanked, activePeriod),
         getPlayers().then(ps => ps.filter(p => !p.isGuest)),
         syncAndGetUptimeData(),
     ]);
-
-    // Season awards always use ranked all-time stats, independent of the filters
-    const awards = await getSeasonAwards(onlyRanked && activePeriod === 'all' ? allStats : await getAllPlayerStats(true, 'all'));
-    // Translate everything server-side; the table itself is a client component (expand/collapse)
-    const formatCell = (cell: AwardCell): AwardViewCell =>
-        typeof cell === 'number' ? cell.toLocaleString(locale)
-            : typeof cell === 'string' ? cell
-            : 'href' in cell ? cell
-            : 'medal' in cell ? { medal: cell.medal, label: t(cell.medal) }
-            : t(`awardCells.${cell.t}`);
-    const awardViews: AwardView[] = awards.map(a => {
-        let rank = 0;
-        return {
-            key: a.key,
-            title: t(`awards.${a.key}`),
-            holder: a.holder,
-            explanation: a.detail ? t(`awards.${a.key}Detail`, a.detail) : t('awardOpen'),
-            rule: t(`awards.${a.key}Rule`, { min: AWARD_MIN_MATCHES }),
-            note: a.rows.some(r => r.ineligible) ? t(`awards.${a.key}Ineligible`, { min: AWARD_MIN_MATCHES }) : null,
-            columns: a.columns.map(c => t(`awardCols.${c}`)),
-            rows: a.rows.map((row, i) => {
-                if (!row.ineligible) rank++;
-                return {
-                    rank: row.ineligible ? '–' : `${rank}.`,
-                    player: row.player,
-                    cells: row.cells.map(formatCell),
-                    ineligible: !!row.ineligible,
-                    isHolder: i === 0 && !row.ineligible && a.holder !== null,
-                };
-            }),
-        };
-    });
 
     let stats = selectedPlayerIds.length > 0
         ? allStats.filter(s => selectedPlayerIds.includes(s.id))
@@ -352,24 +317,6 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            {/* Season Awards — click a title to see the full ranking behind it */}
-            <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0' }}>
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
-                    <Award size={22} color="#b45309" />
-                    <div>
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('awardsTitle')}</h2>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 'var(--spacing-1) 0 0 0' }}>
-                            {t('awardsSubtitle', { min: AWARD_MIN_MATCHES })}
-                        </p>
-                    </div>
-                </div>
-                <SeasonAwardsTable
-                    awards={awardViews}
-                    headers={{ title: t('awardTitle'), holder: t('awardHolder'), reason: t('awardReason') }}
-                    noData={t('awardNoData')}
-                />
             </div>
 
             <div style={{ marginTop: 'var(--spacing-12)' }}>

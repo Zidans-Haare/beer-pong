@@ -21,109 +21,161 @@ export interface DrunkSceneModel {
     hiccupLabel: string;
 }
 
-const PICTURE = { x: 300, y: 600, w: 250, h: 310 };
+const PICTURE = { x: 285, y: 650, w: 290, h: 390 };
 
-// gerahmtes Porträt mit Namensschild; nach dem Treffer hängt es schief und schaut verärgert
+// Fotoabzug an der Wand, dem echten Foto nachempfunden: nach vorn gebeugt, Kopf geneigt, lange blonde
+// Haare mit verwehten Strähnen, ärmelloses dunkles Oberteil, weiß getünchte Holzbretter.
+// Nach dem Treffer hängt das Foto schief und schaut genervt.
 function drawPicture(ctx: CanvasRenderingContext2D, time: number, name: string) {
     const hit = ramp(time, HIT_AT, 900);
     // pendelt aus und bleibt schief hängen
     const tilt = hit > 0 ? 0.3 * easeOutBack(clamp(hit * 1.6)) + Math.sin(hit * 22) * 0.16 * (1 - hit) : 0;
     const annoyed = clamp(hit * 3);
+    const { w, h } = PICTURE;
     ctx.save();
-    // Aufhängung oben in der Mitte: darum dreht sich das Bild
-    ctx.translate(PICTURE.x, PICTURE.y - PICTURE.h / 2 - 40);
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
+    // an einer Nadel oben in der Mitte aufgehängt: darum dreht sich das Foto
+    ctx.translate(PICTURE.x, PICTURE.y - h / 2 - 6);
     ctx.rotate(tilt);
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-PICTURE.w / 2 + 30, 40); ctx.moveTo(0, 0); ctx.lineTo(PICTURE.w / 2 - 30, 40); ctx.stroke();
-    ctx.translate(0, 40 + PICTURE.h / 2);
+    ctx.translate(0, 6 + h / 2);
 
-    // Rahmen
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    roundRect(ctx, -PICTURE.w / 2 + 10, -PICTURE.h / 2 + 14, PICTURE.w, PICTURE.h, 14); ctx.fill();
-    ctx.fillStyle = '#c9972b';
-    roundRect(ctx, -PICTURE.w / 2, -PICTURE.h / 2, PICTURE.w, PICTURE.h, 14); ctx.fill();
-    ctx.fillStyle = '#f4ead7';
-    roundRect(ctx, -PICTURE.w / 2 + 20, -PICTURE.h / 2 + 20, PICTURE.w - 40, PICTURE.h - 40, 6); ctx.fill();
+    // Abzug mit hellem, abgegriffenem Rand
+    ctx.fillStyle = 'rgba(0,0,0,0.32)';
+    roundRect(ctx, -w / 2 + 10, -h / 2 + 14, w, h, 12); ctx.fill();
+    ctx.fillStyle = '#ece4d6';
+    roundRect(ctx, -w / 2, -h / 2, w, h, 12); ctx.fill();
 
-    // Porträt: blonde lange Haare vor einer Holzwand, Kopf leicht geneigt, dunkles Oberteil
+    const m = 10; // Randbreite
     ctx.save();
-    roundRect(ctx, -PICTURE.w / 2 + 20, -PICTURE.h / 2 + 20, PICTURE.w - 40, PICTURE.h - 40, 6);
+    roundRect(ctx, -w / 2 + m, -h / 2 + m, w - m * 2, h - m * 2, 6);
     ctx.clip();
-    // Holzbretter
-    ctx.fillStyle = '#8b6b58';
-    ctx.fillRect(-PICTURE.w / 2, -PICTURE.h / 2, PICTURE.w, PICTURE.h);
-    ctx.strokeStyle = 'rgba(60,40,30,0.55)'; ctx.lineWidth = 3;
-    for (const x of [-62, -8, 48]) { ctx.beginPath(); ctx.moveTo(x, -PICTURE.h / 2); ctx.lineTo(x, PICTURE.h / 2); ctx.stroke(); }
-    ctx.fillStyle = 'rgba(255,255,255,0.10)';
-    ctx.fillRect(-6, -PICTURE.h / 2, 30, PICTURE.h);
 
+    // Holzbretter, ungleichmäßig weiß getüncht
+    ctx.fillStyle = '#84695c';
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    const boards = [-w / 2, -92, -34, 26, 84, w / 2];
+    for (let i = 0; i < boards.length - 1; i++) {
+        const x0 = boards[i], bw = boards[i + 1] - boards[i];
+        const wash = ctx.createLinearGradient(x0, 0, x0 + bw, 0);
+        wash.addColorStop(0, `rgba(240,228,220,${0.10 + rand(i, 21) * 0.14})`);
+        wash.addColorStop(0.5, `rgba(250,240,232,${0.30 + rand(i, 22) * 0.22})`);
+        wash.addColorStop(1, `rgba(240,228,220,${0.08 + rand(i, 23) * 0.12})`);
+        ctx.fillStyle = wash;
+        ctx.fillRect(x0, -h / 2, bw, h);
+        ctx.fillStyle = 'rgba(48,30,24,0.6)';
+        ctx.fillRect(x0 + bw - 2, -h / 2, 3, h);
+    }
+
+    const blond = '#ead3a2', blondMid = '#d6b77c', blondDark = '#b08e5c';
+    const skin = '#f0c9a2', skinShade = '#dba983';
+
+    // Haare hinter Kopf und Schultern, lang bis unten aus dem Bild
+    ctx.fillStyle = blondMid;
+    ctx.beginPath();
+    ctx.moveTo(-96, -96); ctx.quadraticCurveTo(-20, -168, 66, -112);
+    ctx.quadraticCurveTo(100, -40, 80, 40); ctx.quadraticCurveTo(40, 90, -20, h / 2);
+    ctx.lineTo(-118, h / 2); ctx.quadraticCurveTo(-126, 40, -96, -96); ctx.closePath(); ctx.fill();
+
+    // Körper: nach vorn gebeugt, ärmelloses dunkles Oberteil, rechte Schulter und Arm frei
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.moveTo(40, 96); ctx.quadraticCurveTo(128, 100, 140, 190); ctx.lineTo(140, h / 2); ctx.lineTo(70, h / 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#1b1a1f';
+    ctx.beginPath(); ctx.moveTo(-60, 84); ctx.quadraticCurveTo(20, 60, 78, 92); ctx.quadraticCurveTo(112, 150, 96, h / 2); ctx.lineTo(-110, h / 2); ctx.quadraticCurveTo(-112, 130, -60, 84); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2c2a31';
+    ctx.beginPath(); ctx.moveTo(-36, 130); ctx.quadraticCurveTo(10, 170, 60, 132); ctx.lineTo(70, h / 2); ctx.lineTo(-60, h / 2); ctx.closePath(); ctx.fill();
+
+    // Kopf, deutlich zur Seite geneigt
     ctx.save();
-    ctx.rotate(-0.12); // geneigter Kopf
-    const blond = '#e6c98d', blondDark = '#c5a064';
-    // Haare hinter dem Kopf, lang über die Schultern
-    ctx.fillStyle = blond;
-    roundRect(ctx, -82, -92, 164, 270, 74); ctx.fill();
-    // dunkles Oberteil
-    ctx.fillStyle = '#1f1d22';
-    roundRect(ctx, -86, 78, 176, 130, 46); ctx.fill();
-    // Hals und Gesicht
-    ctx.fillStyle = '#f2cfa6';
-    roundRect(ctx, -20, 40, 40, 56, 14); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(0, -4, 54, 62, 0, 0, Math.PI * 2); ctx.fill();
-    // Scheitel mit dunklerem Ansatz
+    ctx.translate(-14, -58);
+    ctx.rotate(-0.24);
+    ctx.fillStyle = skinShade;
+    roundRect(ctx, -24, 56, 52, 70, 18); ctx.fill(); // Hals
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.ellipse(0, 0, 66, 80, 0, 0, Math.PI * 2); ctx.fill();
+    // Mittelscheitel: Haar fällt zu beiden Seiten, Ansatz dunkler
     ctx.fillStyle = blondDark;
-    ctx.beginPath(); ctx.ellipse(0, -30, 60, 46, 0, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-70, -6); ctx.quadraticCurveTo(-70, -92, 0, -90); ctx.quadraticCurveTo(70, -92, 70, -6); ctx.quadraticCurveTo(40, -62, 2, -64); ctx.quadraticCurveTo(-40, -62, -70, -6); ctx.closePath(); ctx.fill();
     ctx.fillStyle = blond;
-    ctx.beginPath(); ctx.moveTo(-58, -34); ctx.quadraticCurveTo(-30, -74, 6, -62); ctx.quadraticCurveTo(-34, -48, -52, -4); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(58, -34); ctx.quadraticCurveTo(34, -72, 6, -62); ctx.quadraticCurveTo(40, -44, 54, 0); ctx.closePath(); ctx.fill();
-    // Strähnen, die über Schulter und Oberteil fallen
-    ctx.strokeStyle = blond; ctx.lineWidth = 9; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-50, 20); ctx.quadraticCurveTo(-64, 90, -40, 170); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(50, 16); ctx.quadraticCurveTo(70, 80, 52, 168); ctx.stroke();
-    // vom Wind verwehte Strähnen quer nach rechts
-    ctx.lineWidth = 5; ctx.strokeStyle = blondDark;
-    ctx.beginPath(); ctx.moveTo(-44, 40); ctx.quadraticCurveTo(20, 74, 92, 58); ctx.stroke();
-    ctx.strokeStyle = blond;
-    ctx.beginPath(); ctx.moveTo(-40, 60); ctx.quadraticCurveTo(24, 100, 96, 96); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(40, -30); ctx.quadraticCurveTo(78, -10, 100, 22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2, -84); ctx.quadraticCurveTo(-58, -78, -74, 10); ctx.quadraticCurveTo(-80, 80, -66, 150); ctx.quadraticCurveTo(-44, 60, -50, 0); ctx.quadraticCurveTo(-40, -54, 2, -66); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(2, -84); ctx.quadraticCurveTo(60, -78, 76, 6); ctx.quadraticCurveTo(84, 70, 70, 140); ctx.quadraticCurveTo(50, 56, 54, 2); ctx.quadraticCurveTo(44, -54, 2, -66); ctx.closePath(); ctx.fill();
+    // geflochtene Strähne am Ansatz
+    ctx.strokeStyle = blondDark; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(-40 + i * 7, -70 + i * 6); ctx.lineTo(-33 + i * 7, -62 + i * 6); ctx.stroke(); }
+
+    // Gesicht: Blick in die Kamera, leicht geöffneter Mund
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.ellipse(-25, -6, 13, 7 - annoyed * 2, 0, 0, Math.PI * 2); ctx.ellipse(25, -6, 13, 7 - annoyed * 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#5b4a2e';
+    ctx.beginPath(); ctx.arc(-24, -6, 6, 0, Math.PI * 2); ctx.arc(26, -6, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#6b4f2c'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-39, -8); ctx.quadraticCurveTo(-25, -17, -11, -8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(11, -8); ctx.quadraticCurveTo(25, -17, 39, -8); ctx.stroke();
+    // Augenbrauen: entspannt bis genervt
+    ctx.strokeStyle = '#a07f4c'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(-42, -26 - annoyed * 4); ctx.quadraticCurveTo(-26, -32 + annoyed * 4, -10, -26 + annoyed * 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(42, -26 - annoyed * 4); ctx.quadraticCurveTo(26, -32 + annoyed * 4, 10, -26 + annoyed * 10); ctx.stroke();
+    // Nase
+    ctx.strokeStyle = skinShade; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(2, 2); ctx.quadraticCurveTo(10, 22, -2, 26); ctx.stroke();
+    // Mund
+    if (annoyed < 0.5) {
+        ctx.fillStyle = '#b4574f';
+        ctx.beginPath(); ctx.moveTo(-20, 44); ctx.quadraticCurveTo(0, 38, 20, 44); ctx.quadraticCurveTo(0, 62, -20, 44); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.moveTo(-12, 45); ctx.quadraticCurveTo(0, 42, 12, 45); ctx.quadraticCurveTo(0, 50, -12, 45); ctx.closePath(); ctx.fill();
+    } else {
+        ctx.strokeStyle = '#b4574f'; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(-18, 50); ctx.quadraticCurveTo(0, 40, 18, 50); ctx.stroke();
+    }
     // Ohrstecker
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-52, 14, 4, 0, Math.PI * 2); ctx.fill();
-    // Augen
-    ctx.fillStyle = '#3a2c1c';
-    ctx.beginPath(); ctx.arc(-20, -6, 6, 0, Math.PI * 2); ctx.arc(20, -6, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#7a5a34'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-    // Augenbrauen: freundlich bis genervt
-    ctx.beginPath(); ctx.moveTo(-32, -24 - annoyed * 4); ctx.lineTo(-10, -24 + annoyed * 9); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(32, -24 - annoyed * 4); ctx.lineTo(10, -24 + annoyed * 9); ctx.stroke();
-    // Mund: leichtes Lächeln bis schmaler Strich nach unten
-    ctx.strokeStyle = '#b5584f';
-    ctx.beginPath(); ctx.moveTo(-16, 24); ctx.quadraticCurveTo(0, 24 + lerp(12, -10, annoyed), 16, 24); ctx.stroke();
-    ctx.restore();
+    ctx.beginPath(); ctx.arc(-62, 22, 5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    // Sprung im Glas
+    // vom Wind verwehte Strähnen: quer über Oberteil und Schulter nach rechts
+    ctx.lineCap = 'round';
+    const strands: [number, number, number, number, number, number, string, number][] = [
+        [-88, 70, -10, 96, 132, 78, blond, 7],
+        [-92, 104, 0, 150, 138, 128, blondMid, 6],
+        [-84, 140, 10, 196, 132, 176, blond, 5],
+        [-70, 30, 40, 40, 130, 30, blondMid, 4],
+        [-60, 176, 30, 232, 120, 220, blondDark, 4],
+        [40, -110, 96, -90, 128, -50, blond, 4],
+    ];
+    for (const [x0, y0, cx, cy, x1, y1, color, width] of strands) {
+        ctx.strokeStyle = color; ctx.lineWidth = width;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1); ctx.stroke();
+    }
+    // lange Strähnen, die links gerade herunterfallen
+    ctx.strokeStyle = blond; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(-86, 40); ctx.quadraticCurveTo(-104, 120, -92, h / 2); ctx.stroke();
+    ctx.strokeStyle = blondDark; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-70, 60); ctx.quadraticCurveTo(-84, 130, -72, h / 2); ctx.stroke();
+    ctx.restore();
+
+    // Sprung quer über das Foto
     if (hit > 0) {
-        ctx.strokeStyle = `rgba(255,255,255,${0.9 * clamp(hit * 4)})`; ctx.lineWidth = 3;
-        for (let i = 0; i < 7; i++) {
-            const angle = (i / 7) * Math.PI * 2 + 0.4;
-            const length = (40 + rand(i, 3) * 70) * easeOut(clamp(hit * 3));
-            ctx.beginPath(); ctx.moveTo(30, -40);
-            ctx.lineTo(30 + Math.cos(angle) * length * 0.5 + rand(i, 5) * 12, -40 + Math.sin(angle) * length * 0.5);
-            ctx.lineTo(30 + Math.cos(angle) * length, -40 + Math.sin(angle) * length);
+        ctx.strokeStyle = `rgba(255,255,255,${0.92 * clamp(hit * 4)})`; ctx.lineWidth = 3;
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + 0.4;
+            const length = (50 + rand(i, 3) * 90) * easeOut(clamp(hit * 3));
+            ctx.beginPath(); ctx.moveTo(30, -50);
+            ctx.lineTo(30 + Math.cos(angle) * length * 0.5 + rand(i, 5) * 12, -50 + Math.sin(angle) * length * 0.5);
+            ctx.lineTo(30 + Math.cos(angle) * length, -50 + Math.sin(angle) * length);
             ctx.stroke();
         }
     }
 
-    // Namensschild
+    // Stecknadel und Namensschild
+    ctx.fillStyle = '#c33131';
+    ctx.beginPath(); ctx.arc(0, -h / 2 + 6, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath(); ctx.arc(-3, -h / 2 + 3, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#2b2118';
-    roundRect(ctx, -84, PICTURE.h / 2 - 8, 168, 46, 8); ctx.fill();
+    roundRect(ctx, -84, h / 2 + 8, 168, 46, 8); ctx.fill();
     ctx.fillStyle = '#f4d58a';
     ctx.textAlign = 'center';
     fitFont(ctx, name.toUpperCase(), HEADING, 36, 20, 150);
-    ctx.fillText(name.toUpperCase(), 0, PICTURE.h / 2 + 26);
+    ctx.fillText(name.toUpperCase(), 0, h / 2 + 42);
     ctx.restore();
 }
 
@@ -167,7 +219,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
 
     // Ball: fliegt in Schlangenlinien am Tisch vorbei aufs Bild und fällt dann herunter
     const k = ramp(time, THROW_AT, THROW_MS);
-    const target = { x: PICTURE.x + 30, y: PICTURE.y - 40 };
+    const target = { x: PICTURE.x + 30, y: PICTURE.y - 50 };
     if (k > 0 && k < 1) {
         const x = lerp(CENTER_X + 150, target.x, k) + Math.sin(k * 11) * 46 * (1 - k);
         const y = lerp(1650, target.y, k) - Math.sin(k * Math.PI) * 260;

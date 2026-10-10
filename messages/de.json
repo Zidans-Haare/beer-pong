@@ -680,6 +680,11 @@
     "add": "Hinzufügen"
   },
   "drunk": {
+    "pictureName": "Josie",
+    "miss": "DANEBEN!",
+    "sorry": "Ups … sorry, {name}!",
+    "hiccup": "Hicks!",
+    "skip": "Überspringen",
     "on": "Ich bin betrunken",
     "off": "Ich bin nüchtern"
   },

@@ -916,3 +916,32 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 }
 
 .wrapped-preview-link { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ---- Betrunken-Modus: Szene und Rausch-Effekt ---- */
+.drunk-intro { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; background: #070b09; overflow: hidden; transition: opacity 0.5s ease; }
+.drunk-intro.is-leaving { opacity: 0; }
+.drunk-intro-skip { position: absolute; right: 14px; bottom: max(16px, env(safe-area-inset-bottom)); min-height: 44px; padding: 8px 16px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 0.9rem; font-weight: 600; }
+
+/* Schleier über der Seite: verschwimmt in Wellen mit klaren Momenten dazwischen.
+   Als eigener Layer, damit fest positionierte Elemente der Seite an ihrem Platz bleiben. */
+.drunk-fx { position: fixed; inset: 0; z-index: 900; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, rgba(234, 88, 12, 0.12)); -webkit-backdrop-filter: blur(0.4px); backdrop-filter: blur(0.4px); animation: drunk-blur 6.5s ease-in-out infinite; }
+@keyframes drunk-blur {
+  0%, 100% { -webkit-backdrop-filter: blur(0.3px); backdrop-filter: blur(0.3px); }
+  28% { -webkit-backdrop-filter: blur(2.4px); backdrop-filter: blur(2.4px); }
+  42% { -webkit-backdrop-filter: blur(0.5px); backdrop-filter: blur(0.5px); }
+  68% { -webkit-backdrop-filter: blur(3.2px) hue-rotate(8deg); backdrop-filter: blur(3.2px) hue-rotate(8deg); }
+  84% { -webkit-backdrop-filter: blur(0.2px); backdrop-filter: blur(0.2px); }
+}
+/* Karten, Überschriften und Buttons schwanken leicht gegeneinander */
+@keyframes drunk-sway { 0%, 100% { transform: rotate(-0.8deg) translate(-3px, 1px) skewX(0.5deg); } 50% { transform: rotate(0.9deg) translate(3px, -2px) skewX(-0.6deg); } }
+@keyframes drunk-sway-alt { 0%, 100% { transform: rotate(0.7deg) translate(2px, -1px) skewY(0.3deg); } 50% { transform: rotate(-0.9deg) translate(-3px, 2px) skewY(-0.4deg); } }
+/* Doppelbild auf dem Text */
+@keyframes drunk-double { 0%, 100% { text-shadow: 0 0 0 transparent; } 30% { text-shadow: 3px 1px 0 rgba(24, 28, 32, 0.28); } 55% { text-shadow: -2px 0 0 rgba(24, 28, 32, 0.18); } 75% { text-shadow: 4px -1px 1px rgba(24, 28, 32, 0.3); } }
+body.drunk-mode .main-content { animation: drunk-double 4.5s ease-in-out infinite; }
+body.drunk-mode .main-content .glass-panel, body.drunk-mode .main-content .card, body.drunk-mode .main-content .stats-section, body.drunk-mode .main-content .live-tournament,
+body.drunk-mode .main-content h1, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner { animation: drunk-sway 5.5s ease-in-out infinite; }
+body.drunk-mode .main-content .glass-panel:nth-of-type(2n), body.drunk-mode .main-content .stats-section:nth-of-type(2n), body.drunk-mode .main-content h2, body.drunk-mode .main-content .btn { animation: drunk-sway-alt 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .drunk-fx { animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body.drunk-mode .main-content, body.drunk-mode .main-content *, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner { animation: none; }
+}

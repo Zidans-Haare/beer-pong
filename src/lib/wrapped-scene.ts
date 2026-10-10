@@ -45,26 +45,27 @@ export function segmentStarts(model: SceneModel): number[] {
 export const totalDuration = (model: SceneModel) => model.segments.reduce((sum, s) => sum + SEGMENT_MS[s.key], 0);
 
 // ---- Hilfen ----
-const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+export const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 // 0..1 zwischen start und start+dur
-const ramp = (t: number, start: number, dur: number) => clamp((t - start) / dur);
-const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const easeOutBack = (t: number) => { if (t <= 0) return 0; if (t >= 1) return 1; const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+export const ramp = (t: number, start: number, dur: number) => clamp((t - start) / dur);
+export const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+export const easeOutBack = (t: number) => { if (t <= 0) return 0; if (t >= 1) return 1; const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
 // feste Pseudo-Zufallszahl 0..1 je Index
-const rand = (i: number, salt = 0) => { const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453; return x - Math.floor(x); };
+export const rand = (i: number, salt = 0) => { const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453; return x - Math.floor(x); };
 
 function hexToRgb(hex: string): [number, number, number] {
     const h = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex.slice(1) : '006b50';
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
-const shade = (hex: string, factor: number) => `rgb(${hexToRgb(hex).map(v => Math.round(Math.min(255, v * factor))).join(',')})`;
+export const shade = (hex: string, factor: number) => `rgb(${hexToRgb(hex).map(v => Math.round(Math.min(255, v * factor))).join(',')})`;
 
 // ---- Tisch-Perspektive ----
-const NEAR_Y = 1650, FAR_Y = 960, NEAR_HALF = 440, FAR_HALF = 232, CENTER_X = 540;
+const NEAR_Y = 1650, FAR_Y = 960, NEAR_HALF = 440, FAR_HALF = 232;
+export const CENTER_X = 540;
 // u: -1..1 quer, v: 0 (bei mir) .. 1 (beim Gegner)
-function tablePoint(u: number, v: number) {
+export function tablePoint(u: number, v: number) {
     const f = Math.pow(v, 0.85);
     return { x: CENTER_X + u * lerp(NEAR_HALF, FAR_HALF, f), y: lerp(NEAR_Y, FAR_Y, f), scale: lerp(1, 0.54, f) };
 }
@@ -82,11 +83,11 @@ function formation(side: 'me' | 'opponent'): CupSpot[] {
     return spots;
 }
 const MY_CUPS = formation('me');
-const OPP_CUPS = formation('opponent');
+export const OPP_CUPS = formation('opponent');
 // Reihenfolge der Treffer: Spitze, zweite Reihe, dann Mitte der dritten
 const HIT_ORDER = [9, 7, 8, 5];
 
-function drawCup(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, opts: { alpha?: number; rotate?: number; pop?: number } = {}) {
+export function drawCup(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, opts: { alpha?: number; rotate?: number; pop?: number } = {}) {
     const pop = opts.pop ?? 1;
     // zu kleine Becher gar nicht zeichnen; die Größe läuft über scale(), damit keine Maße negativ werden
     if (pop < 0.03 || (opts.alpha ?? 1) <= 0) return;
@@ -116,13 +117,13 @@ function drawCup(ctx: CanvasRenderingContext2D, x: number, y: number, s: number,
     ctx.restore();
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     ctx.beginPath();
     ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+export function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
     const lines: string[] = [];
     let line = '';
     for (const word of text.split(/\s+/)) {
@@ -133,15 +134,15 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     return lines;
 }
 
-function fitFont(ctx: CanvasRenderingContext2D, text: string, family: string, max: number, min: number, width: number) {
+export function fitFont(ctx: CanvasRenderingContext2D, text: string, family: string, max: number, min: number, width: number) {
     let size = max;
     ctx.font = `700 ${size}px ${family}`;
     while (ctx.measureText(text).width > width && size > min) { size -= 6; ctx.font = `700 ${size}px ${family}`; }
     return size;
 }
 
-const HEADING = '"Barlow Condensed", sans-serif';
-const BODY = '"Manrope", sans-serif';
+export const HEADING = '"Barlow Condensed", sans-serif';
+export const BODY = '"Manrope", sans-serif';
 
 // Statistik-Block oben; `local` = Zeit seit Abschnittsbeginn in ms
 function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: number, startAt: number, accent: string) {
@@ -247,7 +248,7 @@ function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number
 }
 
 // Ich, von hinten gesehen; throwPhase 0..1 = Ausholen bis Loslassen
-function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number, cheer: number, time: number, primary: string) {
+export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number, cheer: number, time: number, primary: string) {
     if (enter <= 0) return;
     const jump = cheer > 0 ? Math.abs(Math.sin(time / 190)) * 46 * cheer : 0;
     const y = 1800 + (1 - easeOut(enter)) * 420 - jump;
@@ -347,7 +348,7 @@ function camera(time: number, tl: SceneTimeline) {
     return { scale, ox, oy };
 }
 
-function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 1) {
+export function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 1) {
     if (r <= 0 || alpha <= 0) return;
     ctx.save();
     ctx.globalAlpha *= alpha;

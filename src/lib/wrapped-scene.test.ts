@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { drawWrappedFrame, totalDuration, segmentStarts, type SceneModel, type SceneKey } from './wrapped-scene';
+import { drawWrappedFrame, totalDuration, segmentStarts, sceneTimeline, type SceneModel, type SceneKey } from './wrapped-scene';
 
 // Zeichenfläche, die jeden Aufruf annimmt und ungültige Maße wie ein Browser ablehnt
 function fakeContext() {
@@ -22,7 +22,7 @@ function fakeContext() {
 
 const keys: SceneKey[] = ['table', 'setup', 'throw', 'rally', 'win', 'final'];
 const model: SceneModel = {
-    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50',
+    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50', winLabel: 'SIEG!',
     segments: keys.map(key => ({ key, eyebrow: 'Eyebrow', value: '42', countTo: 42, title: 'Titel der Folie', lines: ['Zeile eins', 'Zeile zwei'] })),
 };
 
@@ -47,5 +47,17 @@ describe('drawWrappedFrame', () => {
         expect(starts[0]).toBe(0);
         expect(starts).toHaveLength(6);
         expect(totalDuration(model)).toBeGreaterThan(starts[5]);
+    });
+
+    it('hält die Handlung in der richtigen Reihenfolge', () => {
+        const tl = sceneTimeline(model);
+        // erst meine Becher, dann der Gegner und seine Becher, dann die Würfe, dann fällt alles um
+        expect(Math.max(...tl.myCupPops)).toBeLessThan(tl.oppEnter);
+        expect(tl.oppEnter).toBeLessThan(Math.min(...tl.oppCupPops));
+        expect(Math.max(...tl.oppCupPops)).toBeLessThan(tl.throws[0].start);
+        expect(tl.throws.map(t => t.start)).toEqual([...tl.throws.map(t => t.start)].sort((a, b) => a - b));
+        expect(tl.throws[tl.throws.length - 1].start).toBeLessThan(tl.topple);
+        expect(tl.topple).toBeLessThan(tl.stamp);
+        expect(tl.total).toBeLessThanOrEqual(60000); // Instagram-Storys: höchstens 60 Sekunden
     });
 });

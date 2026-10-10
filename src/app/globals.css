@@ -559,7 +559,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .btn-quiet:hover { background: var(--color-surface-secondary); }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex: 0 0 48px; border-radius: 6px; position: relative; color: var(--color-text-dim); transition: background var(--motion-fast); }
 .icon-button:hover { background: var(--color-surface-hover); color: var(--color-primary); }
-.icon-button[data-tooltip]:hover::after, .icon-button[data-tooltip]:focus-visible::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--color-text); color: white; font-size: 0.75rem; padding: 5px 9px; border-radius: 4px; white-space: nowrap; z-index: 20; pointer-events: none; }
+.icon-button[data-tooltip]:hover::after, .icon-button[data-tooltip]:focus-visible::after { content: attr(data-tooltip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--color-text); color: white; font-size: 0.75rem; padding: 5px 9px; border-radius: 4px; white-space: nowrap; z-index: 20; pointer-events: none; }
+.app-header-actions .icon-button[data-tooltip]::after, .page-header-actions .icon-button[data-tooltip]::after, .sheet-header .icon-button[data-tooltip]::after { left: auto; right: 0; transform: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 800; line-height: 1.4; background: var(--color-surface-secondary); color: var(--color-text-dim); }
 .app-header { position: sticky; top: 0; z-index: 100; height: var(--header-height); display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 0 20px; background: var(--color-bg); border-bottom: 1px solid var(--color-border); }
@@ -671,6 +672,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .bracket-scroll { display: flex; overflow-x: auto; gap: 24px; padding: 20px 4px; min-width: 0; width: 100%; }
 .bracket-match { min-height: 112px; }
 .new-tournament-button { background: var(--color-primary); color: white; }
+.new-tournament-button:hover { background: var(--color-primary); color: white; filter: brightness(1.12); }
 .auth-page { padding-top: 40px; padding-bottom: 32px; max-width: 460px; }
 .auth-heading { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid var(--color-primary); }
 .auth-heading h1 { font-size: 2.75rem; }
@@ -862,15 +864,25 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .wrapped-button:disabled { opacity: 0.6; cursor: progress; }
 .wrapped-button:focus-visible, .wrapped-icon:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-.wrapped-banner { position: relative; display: flex; align-items: center; gap: 14px; margin: 16px 0; padding: 16px 18px; border-radius: 8px; color: #fff; text-decoration: none; overflow: hidden; background: linear-gradient(120deg, var(--color-primary), #1d2a24 55%, var(--color-secondary)); background-size: 220% 220%; animation: wrapped-banner 9s ease-in-out infinite alternate; box-shadow: var(--shadow-md); }
-@keyframes wrapped-banner { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
-.wrapped-banner-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
+.wrapped-banner { position: relative; display: flex; align-items: center; gap: 14px; margin: 16px 0; padding: 18px; border-radius: 10px; color: #fff; text-decoration: none; overflow: hidden; isolation: isolate;
+  background: linear-gradient(110deg, var(--color-primary), #e8a923, var(--color-secondary), #7c3aed, var(--color-primary)); background-size: 300% 100%;
+  animation: wrapped-banner-flow 6s linear infinite, wrapped-banner-pulse 1.6s ease-in-out infinite; transition: transform var(--motion-fast); }
+.wrapped-banner:hover { transform: translateY(-2px) scale(1.01); }
+/* dunkler Schleier für lesbaren Text und ein Lichtschein, der durchläuft */
+.wrapped-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.12)); }
+.wrapped-banner::after { content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 34%; z-index: -1; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.38), transparent); transform: skewX(-18deg); animation: wrapped-banner-shine 2.8s ease-in-out infinite; }
+@keyframes wrapped-banner-flow { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+@keyframes wrapped-banner-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.55), 0 6px 18px rgba(0, 0, 0, 0.18); } 50% { box-shadow: 0 0 0 10px rgba(var(--color-primary-rgb), 0), 0 10px 30px rgba(0, 0, 0, 0.28); } }
+@keyframes wrapped-banner-shine { 0%, 25% { left: -40%; } 75%, 100% { left: 120%; } }
+@keyframes wrapped-banner-icon { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.18) rotate(12deg); } }
+.wrapped-banner-icon { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); animation: wrapped-banner-icon 1.6s ease-in-out infinite; }
 .wrapped-banner-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.wrapped-banner-text strong { font-family: var(--font-heading); font-size: 1.3rem; line-height: 1.1; }
-.wrapped-banner-text span { font-size: 0.85rem; color: rgba(255, 255, 255, 0.86); }
+.wrapped-banner-text strong { font-family: var(--font-heading); font-size: 1.45rem; line-height: 1.1; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.wrapped-banner-text span { font-size: 0.85rem; color: rgba(255, 255, 255, 0.94); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35); }
 .wrapped-banner-cta { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; white-space: nowrap; }
 .wrapped-banner:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .wrapped-banner, .wrapped-recording-dot { animation: none; }
+  .wrapped-banner, .wrapped-banner::after, .wrapped-banner-icon, .wrapped-recording-dot { animation: none; }
+  .wrapped-banner::after { display: none; }
 }

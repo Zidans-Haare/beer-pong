@@ -1,5 +1,10 @@
 {
   "wrapped": {
+    "tapForSound": "Tippen für Ton",
+    "soundOn": "Ton einschalten",
+    "soundOff": "Ton ausschalten",
+    "videoWebmHint": "Dieser Browser liefert WebM. Für Instagram bitte Chrome oder Safari nutzen.",
+    "winStamp": "SIEG!",
     "tournamentsEyebrow": "Unterwegs",
     "tournamentsTitle": "{count, plural, one {Turnier gespielt} other {Turniere gespielt}}",
     "bestLine": "Höchster Sieg: {score} gegen {opponent}",

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Beer, Github, Heart } from 'lucide-react';
+import { Beer, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -129,7 +129,7 @@ export default function LogoEasterEgg() {
                                         Bier Pong
                                     </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '2px', letterSpacing: "0", textTransform: 'uppercase', fontWeight: 600 }}>
-                                        Made with <Heart size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> in Österreich
+                                        Made by Nick
                                     </div>
                                 </div>
                             </div>

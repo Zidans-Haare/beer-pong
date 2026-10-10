@@ -1,5 +1,10 @@
 {
   "wrapped": {
+    "tapForSound": "Tap for sound",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "videoWebmHint": "This browser produces WebM. For Instagram please use Chrome or Safari.",
+    "winStamp": "WIN!",
     "tournamentsEyebrow": "On tour",
     "tournamentsTitle": "{count, plural, one {tournament played} other {tournaments played}}",
     "bestLine": "Biggest win: {score} against {opponent}",

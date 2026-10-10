@@ -4,14 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useReducedMotion } from 'framer-motion';
-import { X, Download, Video, Pause, RotateCcw, Square } from 'lucide-react';
+import { X, Download, Video, Pause, RotateCcw, Square, Volume2, VolumeX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { drawWrappedFrame, loadSceneFonts, segmentStarts, totalDuration, SEGMENT_MS, SCENE_WIDTH, SCENE_HEIGHT, type SceneModel } from '@/lib/wrapped-scene';
+import { drawWrappedFrame, loadSceneFonts, sceneTimeline, SEGMENT_MS, SCENE_WIDTH, SCENE_HEIGHT, type SceneModel } from '@/lib/wrapped-scene';
+import { WrappedAudio, audioSupported } from '@/lib/wrapped-audio';
 import { canvasToFile, saveFiles } from '@/lib/wrapped-image';
 
 const TAP_MS = 250;
-// bevorzugt MP4 (für Storys), sonst WebM
-const VIDEO_TYPES = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+const MUTE_KEY = 'wrapped-muted';
+// Instagram-Storys brauchen MP4 mit H.264 und AAC; WebM ist nur die Ausweichlösung
+const VIDEO_TYPES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
 
 function pickVideoType(): string | null {
     if (typeof MediaRecorder === 'undefined' || typeof HTMLCanvasElement.prototype.captureStream !== 'function') return null;
@@ -22,8 +24,8 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     const t = useTranslations('wrapped');
     const router = useRouter();
     const reducedMotion = useReducedMotion() ?? false;
-    const starts = useMemo(() => segmentStarts(model), [model]);
-    const total = useMemo(() => totalDuration(model), [model]);
+    const timeline = useMemo(() => sceneTimeline(model), [model]);
+    const { starts, total } = timeline;
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fillRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -31,6 +33,9 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     const pressedAt = useRef(0);
     const recorder = useRef<MediaRecorder | null>(null);
     const cancelled = useRef(false);
+    const audio = useRef<WrappedAudio | null>(null);
+    // Ton muss nach Springen, Pause oder Neustart neu an die Zeit gehängt werden
+    const needsSync = useRef(true);
 
     const [mounted, setMounted] = useState(false);
     const [ready, setReady] = useState(false);
@@ -42,7 +47,10 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     const [seconds, setSeconds] = useState(0);
     const [busy, setBusy] = useState(false);
     const [status, setStatus] = useState<string | null>(null);
+    const [muted, setMuted] = useState(false);
+    const [soundOn, setSoundOn] = useState(false);
     const videoType = useMemo(() => (mounted ? pickVideoType() : null), [mounted]);
+    const canSound = mounted && audioSupported();
 
     const segment = model.segments[index];
 
@@ -66,7 +74,10 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         setIndex(prev => (prev === current ? prev : current));
     }, [model, starts, indexAt]);
 
-    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => {
+        setMounted(true);
+        try { setMuted(localStorage.getItem(MUTE_KEY) === '1'); } catch { /* kein Speicher verfügbar */ }
+    }, []);
 
     useEffect(() => {
         if (!mounted) return;
@@ -75,12 +86,28 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         return () => { alive = false; };
     }, [mounted, paint]);
 
-    // Hintergrund sperren, solange die Story offen ist
+    // Hintergrund sperren, solange die Story offen ist; Ton beim Schließen beenden
     useEffect(() => {
         const previous = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = previous; };
+        return () => {
+            document.body.style.overflow = previous;
+            audio.current?.close();
+            audio.current = null;
+        };
     }, []);
+
+    // Browser erlauben Ton erst nach einer Nutzeraktion; deshalb bei jedem Tippen versuchen
+    const unlockAudio = useCallback(async () => {
+        if (!audioSupported()) return null;
+        if (!audio.current) audio.current = new WrappedAudio();
+        await audio.current.resume();
+        const on = audio.current.ctx.state === 'running';
+        setSoundOn(on);
+        return on ? audio.current : null;
+    }, []);
+
+    useEffect(() => { audio.current?.setMuted(muted); }, [muted, soundOn]);
 
     const finishRecording = useCallback(() => {
         if (recorder.current && recorder.current.state !== 'inactive') recorder.current.stop();
@@ -92,7 +119,14 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         let frame = 0;
         let last = performance.now();
         const tick = (now: number) => {
-            if (!document.hidden) time.current = Math.min(total, time.current + (now - last));
+            const sound = audio.current;
+            if (sound && sound.ctx.state === 'running') {
+                if (needsSync.current) { sound.schedule(timeline, time.current); needsSync.current = false; }
+                // Bild folgt der Tonuhr, so bleiben beide synchron (auch im Video)
+                time.current = Math.min(total, Math.max(time.current, sound.positionMs()));
+            } else if (!document.hidden) {
+                time.current = Math.min(total, time.current + (now - last));
+            }
             last = now;
             paint();
             if (recording) setSeconds(Math.floor(time.current / 1000));
@@ -106,12 +140,31 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         };
         frame = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(frame);
-    }, [ready, playing, held, reducedMotion, recording, total, paint, finishRecording]);
+    }, [ready, playing, held, reducedMotion, recording, total, timeline, paint, finishRecording, soundOn]);
+
+    // Halten und verdeckter Tab halten auch den Ton an
+    useEffect(() => {
+        const sound = audio.current;
+        if (!sound) return;
+        if (held || !playing) sound.suspend(); else sound.resume();
+    }, [held, playing, soundOn]);
+
+    useEffect(() => {
+        const onVisibility = () => {
+            const sound = audio.current;
+            if (!sound) return;
+            if (document.hidden) sound.suspend(); else if (playing && !held) sound.resume();
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => document.removeEventListener('visibilitychange', onVisibility);
+    }, [playing, held]);
 
     const seek = useCallback((target: number) => {
         const i = Math.max(0, Math.min(model.segments.length - 1, target));
         // ohne Animation zeigt jeder Abschnitt sein Endbild
         time.current = reducedMotion ? starts[i] + SEGMENT_MS[model.segments[i].key] - 1 : starts[i];
+        audio.current?.stop();
+        needsSync.current = true;
         setEnded(false);
         setStatus(null);
         setPlaying(!reducedMotion);
@@ -139,12 +192,24 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     }, [step, router, recording]);
 
     // kurz tippen = springen, gedrückt halten = anhalten
-    const press = () => { if (recording) return; pressedAt.current = performance.now(); setHeld(true); };
+    const press = () => {
+        if (recording) return;
+        pressedAt.current = performance.now();
+        setHeld(true);
+        if (!soundOn) unlockAudio();
+    };
     const release = (direction: 1 | -1) => {
         if (recording) return;
         setHeld(false);
         if (performance.now() - pressedAt.current < TAP_MS) step(direction);
     };
+
+    function toggleMute() {
+        const next = !muted;
+        setMuted(next);
+        try { localStorage.setItem(MUTE_KEY, next ? '1' : '0'); } catch { /* kein Speicher verfügbar */ }
+        if (!next) unlockAudio();
+    }
 
     async function saveFrame() {
         if (!canvasRef.current) return;
@@ -159,25 +224,31 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         }
     }
 
-    function recordVideo() {
+    async function recordVideo() {
         const canvas = canvasRef.current;
         if (!canvas || !videoType) { setStatus(t('videoUnsupported')); return; }
+        // der Klick erlaubt dem Browser den Ton; das Video bekommt ihn auch bei stummem Lautsprecher
+        const sound = await unlockAudio();
         const chunks: Blob[] = [];
-        const stream = canvas.captureStream(30);
-        const rec = new MediaRecorder(stream, { mimeType: videoType, videoBitsPerSecond: 8_000_000 });
+        const video = canvas.captureStream(30);
+        const stream = new MediaStream([...video.getVideoTracks(), ...(sound ? sound.stream.getAudioTracks() : [])]);
+        const rec = new MediaRecorder(stream, { mimeType: videoType, videoBitsPerSecond: 8_000_000, audioBitsPerSecond: 128_000 });
+        const container = videoType.split(';')[0];
         cancelled.current = false;
         rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
         rec.onstop = async () => {
-            stream.getTracks().forEach(track => track.stop());
+            video.getTracks().forEach(track => track.stop());
             recorder.current = null;
             setRecording(false);
             if (cancelled.current) { setStatus(null); return; }
             setBusy(true);
             try {
-                const extension = videoType.startsWith('video/mp4') ? 'mp4' : 'webm';
-                const file = new File([new Blob(chunks, { type: videoType.split(';')[0] })], `bierpong-wrapped.${extension}`, { type: videoType.split(';')[0] });
+                const isMp4 = container === 'video/mp4';
+                const file = new File([new Blob(chunks, { type: container })], `bierpong-wrapped.${isMp4 ? 'mp4' : 'webm'}`, { type: container });
                 const result = await saveFiles([file], model.title);
-                setStatus(result === 'shared' ? t('videoShared') : result === 'downloaded' ? t('videoDownloaded') : null);
+                const done = result === 'shared' ? t('videoShared') : result === 'downloaded' ? t('videoDownloaded') : null;
+                // WebM nimmt Instagram nicht an
+                setStatus(done && !isMp4 ? `${done} ${t('videoWebmHint')}` : done);
             } catch {
                 setStatus(t('saveFailed'));
             } finally {
@@ -187,6 +258,8 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
         recorder.current = rec;
         // Aufnahme läuft die Szene einmal von vorn bis zum Ende durch
         time.current = 0;
+        sound?.stop();
+        needsSync.current = true;
         setEnded(false);
         setSeconds(0);
         setStatus(null);
@@ -199,6 +272,8 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     function cancelRecording() {
         cancelled.current = true;
         finishRecording();
+        audio.current?.stop();
+        needsSync.current = true;
         setPlaying(false);
     }
 
@@ -221,9 +296,15 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
                 </div>
                 <div className="wrapped-top-row">
                     {held && !recording && <span className="wrapped-paused"><Pause size={14} aria-hidden="true" /> {t('paused')}</span>}
+                    {canSound && !soundOn && !muted && !recording && !held && <span className="wrapped-paused"><Volume2 size={14} aria-hidden="true" /> {t('tapForSound')}</span>}
                     {recording && <span className="wrapped-recording"><span className="wrapped-recording-dot" aria-hidden="true" /> {t('recording', { seconds: `${seconds}/${Math.round(total / 1000)}` })}</span>}
                     {!recording && (
                         <>
+                            {canSound && (
+                                <button type="button" className="wrapped-icon" aria-label={muted ? t('soundOn') : t('soundOff')} title={muted ? t('soundOn') : t('soundOff')} aria-pressed={!muted} onClick={toggleMute}>
+                                    {muted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+                                </button>
+                            )}
                             {videoType && <button type="button" className="wrapped-icon" aria-label={t('saveVideo')} title={t('saveVideo')} disabled={busy || !ready} onClick={recordVideo}><Video size={22} /></button>}
                             <button type="button" className="wrapped-icon" aria-label={t('saveFrame')} title={t('saveFrame')} disabled={busy || !ready} onClick={saveFrame}><Download size={22} /></button>
                             <button type="button" className="wrapped-icon" aria-label={t('close')} title={t('close')} onClick={() => router.push('/')}><X size={24} /></button>

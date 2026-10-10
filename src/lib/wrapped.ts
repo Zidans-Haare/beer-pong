@@ -211,5 +211,5 @@ export function buildScene(data: WrappedData, wrappedTitle: string, primary: str
         },
     ];
 
-    return { title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary, segments };
+    return { title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary, winLabel: t('winStamp'), segments };
 }

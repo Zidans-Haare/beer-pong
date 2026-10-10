@@ -24,6 +24,8 @@ export interface SceneModel {
     opponentName: string | null;
     // Saisonfarbe als #rrggbb
     primary: string;
+    // Stempel beim Sieg, z. B. "SIEG!"
+    winLabel: string;
     segments: SceneSegment[];
 }
 
@@ -184,11 +186,12 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
     ctx.restore();
 }
 
-function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number) {
+function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0) {
     if (enter <= 0) return;
     const sad = clamp(-mood);
     const bob = Math.sin(time / 520) * 4 * (1 - sad);
-    const y = 836 + (1 - easeOutBack(enter)) * 150 + sad * 26 + bob;
+    // flinch 0..1: zuckt bei einem Treffer kurz hoch
+    const y = 836 + (1 - easeOutBack(enter)) * 150 + sad * 26 + bob - Math.sin(flinch * Math.PI) * 34;
     ctx.save();
     ctx.globalAlpha = clamp(enter * 1.6);
     ctx.translate(CENTER_X, y);
@@ -206,7 +209,9 @@ function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number
     // Augen
     ctx.fillStyle = '#2a1f14';
     const eyeY = -8 + sad * 6;
-    ctx.beginPath(); ctx.arc(-22, eyeY, 7, 0, Math.PI * 2); ctx.arc(22, eyeY, 7, 0, Math.PI * 2); ctx.fill();
+    // beim Schreck werden die Augen groß
+    const eye = 7 + Math.sin(flinch * Math.PI) * 5;
+    ctx.beginPath(); ctx.arc(-22, eyeY, eye, 0, Math.PI * 2); ctx.arc(22, eyeY, eye, 0, Math.PI * 2); ctx.fill();
     // Augenbrauen kippen bei schlechter Laune
     ctx.strokeStyle = '#2a1f14'; ctx.lineWidth = 6;
     ctx.beginPath(); ctx.moveTo(-34, eyeY - 20 + sad * 8); ctx.lineTo(-12, eyeY - 20 - sad * 8); ctx.stroke();
@@ -242,7 +247,8 @@ function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number
     const jump = cheer > 0 ? Math.abs(Math.sin(time / 190)) * 46 * cheer : 0;
     const y = 1800 + (1 - easeOut(enter)) * 420 - jump;
     ctx.save();
-    ctx.translate(CENTER_X, y);
+    // leichtes Wippen im Stand
+    ctx.translate(CENTER_X + Math.sin(time / 700) * 6 * (1 - cheer), y);
     const shirt = shade(primary, 1.5);
     // Rumpf
     ctx.fillStyle = shirt;
@@ -267,50 +273,135 @@ function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number
     ctx.restore();
 }
 
-interface Throw { start: number; target: number }
-const THROW_MS = 820;
+export interface Throw { start: number; target: number }
+export const THROW_MS = 820;
+// Takt der Musik; die Szene pulsiert im selben Tempo
+export const BEAT_MS = 60000 / 112;
 
-export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number) {
+// Alle Zeitpunkte der Handlung in ms. Bild und Ton lesen dieselbe Zeitachse.
+export interface SceneTimeline {
+    starts: number[];
+    total: number;
+    setup: number; throwAt: number; rally: number; win: number; final: number;
+    meEnter: number;
+    myCupPops: number[];
+    oppEnter: number;
+    oppCupPops: number[];
+    throws: Throw[];
+    // der Gegner wirft einmal und trifft nicht
+    oppThrow: number;
+    topple: number;
+    stamp: number;
+    fireworks: number[];
+}
+
+export function sceneTimeline(model: SceneModel): SceneTimeline {
     const starts = segmentStarts(model);
     const total = totalDuration(model);
-    const time = clamp(timeMs, 0, total);
-    let index = starts.length - 1;
-    for (let i = 0; i < starts.length; i++) if (time >= starts[i]) index = i;
-    const seg = model.segments[index];
-    const local = time - starts[index];
     const at = (key: SceneKey) => { const i = model.segments.findIndex(s => s.key === key); return i >= 0 ? starts[i] : Infinity; };
-    const S_SETUP = at('setup'), S_THROW = at('throw'), S_RALLY = at('rally'), S_WIN = at('win'), S_FINAL = at('final');
+    const setup = at('setup'), throwAt = at('throw'), rally = at('rally'), win = at('win'), final = at('final');
+    const fireworks: number[] = [];
+    for (let t = win + 1500; t < final + 400; t += 850) fireworks.push(t);
+    return {
+        starts, total, setup, throwAt, rally, win, final,
+        meEnter: setup + 150,
+        myCupPops: MY_CUPS.map((_, i) => setup + 900 + i * 110),
+        oppEnter: setup + 2500,
+        oppCupPops: OPP_CUPS.map((_, i) => setup + 3300 + i * 80),
+        throws: [
+            { start: throwAt + 1300, target: HIT_ORDER[0] },
+            { start: rally + 700, target: HIT_ORDER[1] },
+            { start: rally + 3000, target: HIT_ORDER[2] },
+            { start: rally + 4300, target: HIT_ORDER[3] },
+        ],
+        oppThrow: rally + 1700,
+        topple: win + 500,
+        stamp: win + 1100,
+        fireworks,
+    };
+}
 
-    const throws: Throw[] = [
-        { start: S_THROW + 1300, target: HIT_ORDER[0] },
-        { start: S_RALLY + 900, target: HIT_ORDER[1] },
-        { start: S_RALLY + 2300, target: HIT_ORDER[2] },
-        { start: S_RALLY + 3700, target: HIT_ORDER[3] },
-    ];
-    const hits = throws.filter(t => time >= t.start + THROW_MS).length;
+// Kamera: langsame Fahrt, Zoom auf den Wurf, Wackeln beim Treffer
+function camera(time: number, tl: SceneTimeline) {
+    let scale = 1 + 0.035 * easeInOut(ramp(time, tl.setup, 5000));
+    let ox = 0, oy = 0;
+    for (const th of tl.throws) {
+        // zum Ziel hin zoomen und danach zurück
+        const k = ramp(time, th.start - 200, THROW_MS + 200);
+        const back = ramp(time, th.start + THROW_MS, 600);
+        const zoom = Math.sin(clamp(k) * Math.PI / 2) * (1 - easeOut(back));
+        scale += 0.09 * zoom;
+        oy += 70 * zoom;
+        const hit = ramp(time, th.start + THROW_MS, 380);
+        if (hit > 0 && hit < 1) { ox += Math.sin(hit * 46) * 16 * (1 - hit); oy += Math.cos(hit * 38) * 10 * (1 - hit); }
+    }
+    const fall = ramp(time, tl.topple, 1100);
+    if (fall > 0 && fall < 1) { ox += Math.sin(fall * 60) * 22 * (1 - fall); oy += Math.cos(fall * 52) * 14 * (1 - fall); }
+    // nach dem Sieg ein Stück zurückfahren
+    scale -= 0.05 * easeInOut(ramp(time, tl.win + 900, 1400)) * (1 - ramp(time, tl.final, 800));
+    return { scale, ox, oy };
+}
+
+function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 1) {
+    if (r <= 0 || alpha <= 0) return;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    const ball = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 1, x, y, r);
+    ball.addColorStop(0, '#ffffff'); ball.addColorStop(1, '#ffd9a0');
+    ctx.fillStyle = ball;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+}
+
+export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number) {
+    const tl = sceneTimeline(model);
+    const time = clamp(timeMs, 0, tl.total);
+    let index = tl.starts.length - 1;
+    for (let i = 0; i < tl.starts.length; i++) if (time >= tl.starts[i]) index = i;
+    const seg = model.segments[index];
+    const local = time - tl.starts[index];
+    const hits = tl.throws.filter(t => time >= t.start + THROW_MS).length;
+    // 0..1 im Takt der Musik
+    const beat = 0.5 + 0.5 * Math.cos((time / BEAT_MS) * Math.PI * 2);
 
     // ---- Hintergrund ----
     const bg = ctx.createLinearGradient(0, 0, 0, SCENE_HEIGHT);
     bg.addColorStop(0, shade(model.primary, 0.42)); bg.addColorStop(0.5, shade(model.primary, 0.24)); bg.addColorStop(1, '#070b09');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
-    // Lichtkegel über dem Tisch
+    // Lichtkegel über dem Tisch, pulsiert im Takt
     const glow = ctx.createRadialGradient(CENTER_X, 1220, 60, CENTER_X, 1220, 900);
-    glow.addColorStop(0, 'rgba(255,255,255,0.16)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+    glow.addColorStop(0, `rgba(255,255,255,${0.13 + 0.07 * beat})`); glow.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+    // aufsteigende Schaumblasen
+    for (let i = 0; i < 22; i++) {
+        const speed = 60 + rand(i, 7) * 90;
+        const y = SCENE_HEIGHT + 60 - ((time / 1000) * speed + rand(i, 8) * 2100) % 2100;
+        const r = 8 + rand(i, 9) * 20;
+        ctx.fillStyle = `rgba(255,255,255,${0.05 + rand(i, 10) * 0.07})`;
+        ctx.beginPath(); ctx.arc(rand(i, 11) * SCENE_WIDTH + Math.sin(time / 900 + i) * 18, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // ---- Szene mit Kamera ----
+    const cam = camera(time, tl);
+    ctx.save();
+    ctx.translate(CENTER_X, 1150);
+    ctx.scale(cam.scale, cam.scale);
+    ctx.translate(-CENTER_X + cam.ox, -1150 + cam.oy);
 
     const tableIn = easeOut(ramp(time, 150, 1100));
-    const oppEnter = ramp(time, S_SETUP + 2500, 700);
-    const mood = time >= S_WIN + 700 ? -easeInOut(ramp(time, S_WIN + 700, 900)) : -Math.min(0.45, hits * 0.12);
-    drawOpponent(ctx, oppEnter, mood, model.opponentName, time);
+    const oppEnter = ramp(time, tl.oppEnter, 700);
+    const mood = time >= tl.win + 700 ? -easeInOut(ramp(time, tl.win + 700, 900)) : -Math.min(0.45, hits * 0.12);
+    const lastHit = [...tl.throws].reverse().find(t => time >= t.start + THROW_MS);
+    const flinch = lastHit ? ramp(time, lastHit.start + THROW_MS, 420) : 0;
+    drawOpponent(ctx, oppEnter, mood, model.opponentName, time, flinch < 1 ? flinch : 0);
 
     // ---- Tisch ----
     ctx.save();
     ctx.globalAlpha = tableIn;
     ctx.translate(0, (1 - tableIn) * 120);
     const nl = tablePoint(-1, 0), nr = tablePoint(1, 0), fl = tablePoint(-1, 1), fr = tablePoint(1, 1);
-    // Tischkante
     ctx.fillStyle = shade(model.primary, 0.5);
     ctx.beginPath(); ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y); ctx.lineTo(nr.x - 8, nr.y + 46); ctx.lineTo(nl.x + 8, nl.y + 46); ctx.closePath(); ctx.fill();
     const surface = ctx.createLinearGradient(0, fl.y, 0, nl.y);
@@ -325,12 +416,11 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     ctx.restore();
 
     // ---- Becher des Gegners (hinten zuerst) ----
-    const toppleStart = S_WIN + 500;
     OPP_CUPS.forEach((spot, i) => {
         const p = tablePoint(spot.u, spot.v);
-        const pop = easeOutBack(ramp(time, S_SETUP + 3300 + i * 80, 380));
+        const pop = easeOutBack(ramp(time, tl.oppCupPops[i], 380));
         const hitIndex = HIT_ORDER.indexOf(i);
-        const hit = hitIndex >= 0 ? throws[hitIndex] : null;
+        const hit = hitIndex >= 0 ? tl.throws[hitIndex] : null;
         if (hit && time >= hit.start + THROW_MS) {
             // getroffener Becher fliegt weg
             const k = ramp(time, hit.start + THROW_MS, 620);
@@ -338,45 +428,82 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
             return;
         }
         // am Ende kippen alle übrigen um
-        const fall = easeInOut(ramp(time, toppleStart + rand(i) * 520, 620));
+        const fall = easeInOut(ramp(time, tl.topple + rand(i) * 520, 620));
         const dir = spot.u === 0 ? (i % 2 ? 1 : -1) : Math.sign(spot.u);
-        drawCup(ctx, p.x + dir * fall * 70 * p.scale, p.y + fall * 10, p.scale, { pop, rotate: dir * fall * 1.5, alpha: 1 - ramp(time, toppleStart + 900 + rand(i) * 520, 700) * 0.75 });
+        drawCup(ctx, p.x + dir * fall * 70 * p.scale, p.y + fall * 10, p.scale, { pop, rotate: dir * fall * 1.5, alpha: 1 - ramp(time, tl.topple + 900 + rand(i) * 520, 700) * 0.75 });
     });
 
-    // ---- Ball in der Luft ----
-    for (const th of throws) {
+    // ---- Fehlwurf des Gegners: Ball springt vom Tisch ins Aus ----
+    {
+        const k = ramp(time, tl.oppThrow, 1500);
+        if (k > 0 && k < 1) {
+            const from = { x: CENTER_X + 30, y: 880 };
+            const land = tablePoint(0.72, 0.36);
+            const first = clamp(k / 0.55), second = clamp((k - 0.55) / 0.45);
+            let x: number, y: number, r: number;
+            if (k < 0.55) {
+                x = lerp(from.x, land.x, first);
+                y = lerp(from.y, land.y, first) - Math.sin(first * Math.PI) * 260;
+                r = lerp(12, 24, first);
+            } else {
+                // Abpraller nach rechts aus dem Bild
+                x = lerp(land.x, SCENE_WIDTH + 120, second);
+                y = land.y - Math.sin(second * Math.PI) * 190 + second * 260;
+                r = lerp(24, 30, second);
+            }
+            ctx.fillStyle = 'rgba(0,0,0,0.18)';
+            ctx.beginPath(); ctx.ellipse(x, k < 0.55 ? lerp(from.y + 60, land.y, first) : land.y + second * 260, r, r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+            drawBall(ctx, x, y, r);
+        }
+    }
+
+    // ---- mein Ball mit Schweif ----
+    tl.throws.forEach((th, n) => {
         const k = ramp(time, th.start, THROW_MS);
-        if (k <= 0 || k >= 1) continue;
+        if (k <= 0 || k >= 1) return;
         const target = OPP_CUPS[th.target];
         const end = tablePoint(target.u, target.v);
         const sx = CENTER_X + 150, sy = 1650;
-        const x = lerp(sx, end.x, k);
-        const y = lerp(sy, end.y - 118 * end.scale, k) - Math.sin(k * Math.PI) * 430;
-        const r = lerp(30, 15, k);
+        const pos = (q: number) => ({
+            x: lerp(sx, end.x, q),
+            y: lerp(sy, end.y - 118 * end.scale, q) - Math.sin(q * Math.PI) * 430,
+            r: lerp(30, 15, q),
+        });
+        // ab dem zweiten Treffer in Folge brennt der Ball
+        const fire = n >= 2;
+        for (let i = 9; i >= 1; i--) {
+            const q = k - i * 0.028;
+            if (q <= 0) continue;
+            const t = pos(q);
+            const fade = 1 - i / 10;
+            ctx.fillStyle = fire ? `rgba(255,${Math.round(90 + 130 * fade)},40,${0.5 * fade})` : `rgba(255,255,255,${0.28 * fade})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, t.r * (fire ? 0.7 + fade * 0.9 : fade), 0, Math.PI * 2); ctx.fill();
+        }
+        const b = pos(k);
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
-        ctx.beginPath(); ctx.ellipse(x, lerp(sy, end.y, k), r * 1.1, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
-        const ball = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 2, x, y, r);
-        ball.addColorStop(0, '#ffffff'); ball.addColorStop(1, '#ffd9a0');
-        ctx.fillStyle = ball;
-        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    }
-    // Spritzer und "+1" beim Treffer
-    throws.forEach((th, n) => {
+        ctx.beginPath(); ctx.ellipse(b.x, lerp(sy, end.y, k), b.r * 1.1, b.r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+        drawBall(ctx, b.x, b.y, b.r);
+    });
+    // Spritzer, Ring und "+1" beim Treffer
+    tl.throws.forEach((th, n) => {
         const k = ramp(time, th.start + THROW_MS, 700);
         if (k <= 0 || k >= 1) return;
         const target = OPP_CUPS[th.target];
         const p = tablePoint(target.u, target.v);
         const top = p.y - 118 * p.scale;
+        ctx.strokeStyle = `rgba(255,255,255,${(1 - k) * 0.8})`;
+        ctx.lineWidth = 6 * (1 - k) + 1;
+        ctx.beginPath(); ctx.arc(p.x, top, 20 + easeOut(k) * 110, 0, Math.PI * 2); ctx.stroke();
         ctx.fillStyle = `rgba(232,169,35,${1 - k})`;
-        for (let d = 0; d < 9; d++) {
-            const angle = -Math.PI * (0.15 + 0.7 * (d / 8));
-            const dist = easeOut(k) * (70 + rand(d, n) * 60);
-            ctx.beginPath(); ctx.arc(p.x + Math.cos(angle) * dist, top + Math.sin(angle) * dist + k * k * 60, 7 * (1 - k * 0.5), 0, Math.PI * 2); ctx.fill();
+        for (let d = 0; d < 12; d++) {
+            const angle = -Math.PI * (0.1 + 0.8 * (d / 11));
+            const dist = easeOut(k) * (80 + rand(d, n) * 80);
+            ctx.beginPath(); ctx.arc(p.x + Math.cos(angle) * dist, top + Math.sin(angle) * dist + k * k * 70, 8 * (1 - k * 0.5), 0, Math.PI * 2); ctx.fill();
         }
         ctx.save();
         ctx.globalAlpha = 1 - k;
         ctx.fillStyle = '#ffffff';
-        ctx.font = `700 70px ${HEADING}`;
+        ctx.font = `700 ${Math.round(70 + easeOutBack(clamp(k * 3)) * 26)}px ${HEADING}`;
         ctx.textAlign = 'center';
         ctx.fillText('+1', p.x, top - 50 - easeOut(k) * 90);
         ctx.restore();
@@ -387,22 +514,36 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
         const spot = MY_CUPS[i];
         const p = tablePoint(spot.u, spot.v);
         // Aufbau von der Kante zur Spitze
-        const pop = easeOutBack(ramp(time, S_SETUP + 900 + i * 110, 420));
-        drawCup(ctx, p.x, p.y, p.scale, { pop });
+        drawCup(ctx, p.x, p.y, p.scale, { pop: easeOutBack(ramp(time, tl.myCupPops[i], 420)) });
     });
 
     // ---- ich ----
-    const meEnter = ramp(time, S_SETUP + 150, 800);
-    const active = throws.find(t => time >= t.start - 420 && time < t.start + 380);
+    const meEnter = ramp(time, tl.meEnter, 800);
+    const active = tl.throws.find(t => time >= t.start - 420 && time < t.start + 380);
     const throwPhase = active ? ramp(time, active.start - 420, 800) : 0;
-    const cheer = easeOut(ramp(time, S_WIN + 1100, 500)) * (1 - ramp(time, S_FINAL, 600));
+    const cheer = easeOut(ramp(time, tl.stamp, 500)) * (1 - ramp(time, tl.final, 600));
     drawMe(ctx, meEnter, throwPhase, cheer, time, model.primary);
 
-    // ---- Konfetti zum Sieg ----
-    if (time >= S_WIN + 1100) {
-        const fade = 1 - ramp(time, S_FINAL + 600, 900) * 0.6;
+    ctx.restore(); // Kamera
+
+    // ---- Feuerwerk und Konfetti zum Sieg ----
+    for (const start of tl.fireworks) {
+        const k = ramp(time, start, 1100);
+        if (k <= 0 || k >= 1) continue;
+        const n = Math.round(start);
+        const cx = 160 + rand(n, 1) * 760, cy = 300 + rand(n, 2) * 520;
+        const hue = Math.round(rand(n, 3) * 360);
+        for (let i = 0; i < 26; i++) {
+            const angle = (i / 26) * Math.PI * 2;
+            const dist = easeOut(k) * (150 + rand(i, n) * 110);
+            ctx.fillStyle = `hsl(${hue + i * 4} 95% 66% / ${1 - k})`;
+            ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist + k * k * 90, 9 * (1 - k * 0.6), 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    if (time >= tl.stamp) {
+        const fade = 1 - ramp(time, tl.final + 600, 900) * 0.6;
         for (let i = 0; i < 80; i++) {
-            const age = (time - (S_WIN + 1100)) / 1000;
+            const age = (time - tl.stamp) / 1000;
             const y = ((age * (260 + rand(i, 1) * 320) + rand(i, 2) * 2200) % 2200) - 140;
             const x = rand(i, 3) * SCENE_WIDTH + Math.sin(age * 2 + i) * 40;
             ctx.save();
@@ -420,6 +561,33 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     topShade.addColorStop(0, 'rgba(0,0,0,0.55)'); topShade.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = topShade;
     ctx.fillRect(0, 0, SCENE_WIDTH, 820);
+
+    // kurzer Lichtblitz beim Wechsel des Abschnitts
+    if (index > 0 && local < 220) {
+        ctx.fillStyle = `rgba(255,255,255,${0.16 * (1 - local / 220)})`;
+        ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+    }
+
+    // ---- Sieg-Stempel ----
+    {
+        const k = ramp(time, tl.stamp, 380);
+        const out = ramp(time, tl.stamp + 1150, 320);
+        if (k > 0 && out < 1) {
+            ctx.save();
+            ctx.globalAlpha = clamp(k * 2) * (1 - out);
+            ctx.translate(CENTER_X, 470);
+            ctx.rotate(-0.09);
+            const scale = lerp(3.2, 1, easeOut(k)) * (1 + 0.04 * Math.sin(time / 60) * (1 - k));
+            ctx.scale(scale, scale);
+            ctx.textAlign = 'center';
+            const size = fitFont(ctx, model.winLabel, HEADING, 300, 120, SCENE_WIDTH - 200);
+            ctx.lineWidth = 16; ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineJoin = 'round';
+            ctx.strokeText(model.winLabel, 0, size * 0.35);
+            ctx.fillStyle = '#ffe08a';
+            ctx.fillText(model.winLabel, 0, size * 0.35);
+            ctx.restore();
+        }
+    }
 
     // ---- Text ----
     const accent = '#ffe08a';
@@ -448,7 +616,8 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     } else if (seg.key === 'rally') {
         drawStat(ctx, seg, local, 500, accent);
     } else if (seg.key === 'win') {
-        drawStat(ctx, seg, local, 1300, accent);
+        // erst der Stempel, dann die Zahl
+        drawStat(ctx, seg, local, 2500, accent);
     } else {
         // Abschluss: Szene abdunkeln, Zusammenfassung mittig
         const dim = easeOut(ramp(local, 0, 700));
@@ -481,7 +650,7 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
         ctx.restore();
     }
 
-    // Fußzeile mit Marke, auch im exportierten Video
+    // Marke oben links, auch im exportierten Video
     ctx.save();
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = '#ffffff';

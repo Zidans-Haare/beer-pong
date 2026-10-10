@@ -194,7 +194,7 @@ export function computeInsights(input: InsightMatch[]): StatsInsights {
 }
 
 // Lädt die 1v1-Spiele der abgeschlossenen Turniere im gewählten Zeitraum
-export async function getStatsInsights(onlyRanked: boolean, season?: SeasonRange): Promise<StatsInsights> {
+export async function getInsightMatches(onlyRanked: boolean, season?: SeasonRange): Promise<InsightMatch[]> {
     const dates = dateFilter(season);
     const rows = await prisma.match.findMany({
         where: {
@@ -216,7 +216,7 @@ export async function getStatsInsights(onlyRanked: boolean, season?: SeasonRange
         },
     });
 
-    return computeInsights(rows.map(m => ({
+    return rows.map(m => ({
         id: m.id,
         tournamentId: m.tournamentId,
         tournamentName: m.tournament.name,
@@ -231,5 +231,9 @@ export async function getStatsInsights(onlyRanked: boolean, season?: SeasonRange
         winnerId: m.winnerId!,
         durationSeconds: m.durationSeconds
             ?? (m.completedAt && m.startedAt ? Math.floor((m.completedAt.getTime() - m.startedAt.getTime()) / 1000) : null),
-    })));
+    }));
+}
+
+export async function getStatsInsights(onlyRanked: boolean, season?: SeasonRange): Promise<StatsInsights> {
+    return computeInsights(await getInsightMatches(onlyRanked, season));
 }

@@ -337,3 +337,14 @@ model Season {
   accentColor String    @default("#006b50")
   createdAt   DateTime  @default(now())
 }
+
+// Bier Pong Wrapped: Jahres- bzw. Saisonrückblick je Spieler für den Zeitraum startDate <= Datum < endDate.
+// Sichtbar für alle, sobald publishedAt gesetzt ist.
+model Wrapped {
+  id          String    @id @default(uuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+}

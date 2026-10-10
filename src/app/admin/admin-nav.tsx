@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Users, Radio, LayoutDashboard, Settings, Trophy,
-    UserCheck, MessageSquare, UserX, User, KeyRound, ChevronDown, ChevronRight, CalendarRange,
+    UserCheck, MessageSquare, UserX, User, KeyRound, ChevronDown, ChevronRight, CalendarRange, Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import SheetDialog from '@/components/SheetDialog';
@@ -66,6 +66,7 @@ export default function AdminNav({ pendingCount }: Props) {
             items: [
                 { href: '/admin/chat', label: t('chat'), icon: MessageSquare },
                 { href: '/admin/broadcast', label: t('broadcast'), icon: Radio },
+                { href: '/admin/wrapped', label: t('wrapped'), icon: Sparkles },
                 { href: '/admin/settings', label: t('setup'), icon: Settings },
             ],
         },

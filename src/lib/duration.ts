@@ -400,3 +400,68 @@ export async function markMatchStarted(matchId: string, tableNumber?: number): P
     data: { startedAt, tableNumber: tableNumber ?? null },
   });
 }
+
+export interface DurationBreakdown {
+  count: number;
+  medianSeconds: number;
+  fastestSeconds: number;
+  slowestSeconds: number;
+  // 10 % der Spiele sind schneller bzw. langsamer als diese Werte
+  fastSeconds: number;
+  slowSeconds: number;
+  matchesWithoutDuration: number;
+  byStage: { stage: 'LEAGUE' | 'BRACKET'; count: number; averageSeconds: number }[];
+  byTable: { table: number; count: number; averageSeconds: number }[];
+  recentTournaments: { id: string; name: string; date: Date; count: number; averageSeconds: number }[];
+  thresholds: { minMatches: number; defaultMinutes: number };
+}
+
+/**
+ * Aufschlüsselung der gemessenen Spieldauern für die Admin-Einstellungen
+ */
+export async function getDurationBreakdown(): Promise<DurationBreakdown> {
+  const [rows, matchesWithoutDuration] = await Promise.all([
+    prisma.match.findMany({
+      where: { durationSeconds: { not: null } },
+      select: { durationSeconds: true, stage: true, tableNumber: true, tournament: { select: { id: true, name: true, date: true } } },
+    }),
+    prisma.match.count({ where: { isPlayed: true, durationSeconds: null } }),
+  ]);
+
+  const durations = rows.map(r => r.durationSeconds!).sort((a, b) => a - b);
+  const at = (share: number) => durations.length ? durations[Math.min(durations.length - 1, Math.floor(durations.length * share))] : 0;
+  const average = (values: number[]) => values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+
+  const group = <K,>(key: (r: typeof rows[number]) => K | null) => {
+    const map = new Map<K, number[]>();
+    for (const r of rows) {
+      const k = key(r);
+      if (k === null) continue;
+      map.set(k, [...(map.get(k) ?? []), r.durationSeconds!]);
+    }
+    return map;
+  };
+
+  const tournaments = new Map(rows.map(r => [r.tournament.id, r.tournament]));
+
+  return {
+    count: durations.length,
+    medianSeconds: at(0.5),
+    fastestSeconds: durations[0] ?? 0,
+    slowestSeconds: durations[durations.length - 1] ?? 0,
+    fastSeconds: at(0.1),
+    slowSeconds: at(0.9),
+    matchesWithoutDuration,
+    byStage: [...group(r => (r.stage === 'BRACKET' ? 'BRACKET' as const : 'LEAGUE' as const))]
+      .map(([stage, values]) => ({ stage, count: values.length, averageSeconds: average(values) }))
+      .sort((a, b) => a.stage.localeCompare(b.stage) * -1),
+    byTable: [...group(r => r.tableNumber)]
+      .map(([table, values]) => ({ table, count: values.length, averageSeconds: average(values) }))
+      .sort((a, b) => a.table - b.table),
+    recentTournaments: [...group(r => r.tournament.id)]
+      .map(([id, values]) => ({ id, name: tournaments.get(id)!.name.trim(), date: tournaments.get(id)!.date, count: values.length, averageSeconds: average(values) }))
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, 6),
+    thresholds: { minMatches: MIN_MATCHES_FOR_STATS, defaultMinutes: DEFAULT_DURATION_SECONDS / 60 },
+  };
+}

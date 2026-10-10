@@ -9,15 +9,23 @@ import DrunkModeToggle from '@/components/DrunkModeToggle';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import { getAllPlayerStats } from '@/lib/stats';
 import { auth } from '@/auth';
+import { getTranslations } from 'next-intl/server';
+import { getActiveWrapped } from '@/lib/wrapped-server';
+import WrappedBanner from '@/components/wrapped/WrappedBanner';
 
 export default async function Home() {
   const session = await auth();
   const stats = await getAllPlayerStats();
+  // Rückblick-Hinweis nur für angemeldete Nutzer, solange einer veröffentlicht ist
+  const wrapped = session?.user?.id ? await getActiveWrapped().catch(() => null) : null;
+  const tw = wrapped ? await getTranslations('wrapped') : null;
 
   return (
     <div className="container">
 
       <HeroSection userName={session?.user?.name} />
+
+      {wrapped && tw && <WrappedBanner title={tw('bannerTitle', { title: wrapped.title })} text={tw('bannerText')} cta={tw('bannerCta')} />}
 
       <div className="home-tools">
         <DrunkModeToggle />

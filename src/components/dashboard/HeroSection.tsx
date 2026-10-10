@@ -1,6 +1,5 @@
 'use client';
 
-import { QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
@@ -16,9 +15,8 @@ export default function HeroSection({ userName }: Props) {
                 <div className="eyebrow">{userName ? t('welcomeBack') : 'MATCHDAY'}</div>
                 <h1>{userName || 'Bier Pong'}</h1>
             </div>
-            <Link href={userName ? '/join' : '/login'} className="btn btn-secondary">
-                <QrCode size={20} />{userName ? t('join') : t('getStarted')}
-            </Link>
+            {/* Beitreten liegt in der Navigation; hier nur der Einstieg für nicht angemeldete Besucher */}
+            {!userName && <Link href="/login" className="btn btn-secondary">{t('getStarted')}</Link>}
         </header>
     );
 }

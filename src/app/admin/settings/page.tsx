@@ -1,10 +1,11 @@
 import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
-import { getGlobalDurationStats } from '@/lib/duration';
-import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ScrollText } from 'lucide-react';
+import { getGlobalDurationStats, getDurationBreakdown, formatDuration } from '@/lib/duration';
+import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ScrollText, ChevronDown } from 'lucide-react';
+import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
 
 export default async function AdminSettingsPage() {
-    const [settings, durationStats, t] = await Promise.all([getSystemSettings(), getGlobalDurationStats(), getTranslations('admin.settings')]);
+    const [settings, durationStats, breakdown, t] = await Promise.all([getSystemSettings(), getGlobalDurationStats(), getDurationBreakdown(), getTranslations('admin.settings')]);
 
     async function handleSubmit(formData: FormData) {
         'use server';
@@ -15,52 +16,69 @@ export default async function AdminSettingsPage() {
         <div className="card" style={{ maxWidth: '600px' }}>
             <h2 className="title-gradient" style={{ marginBottom: 'var(--spacing-6)' }}>{t('title')}</h2>
 
-            {/* Smart Duration Info Box */}
-            <div style={{
-                padding: 'var(--spacing-4)',
-                background: durationStats.isCalculated
-                    ? "var(--color-primary-light)"
-                    : "var(--color-primary-light)",
-                border: `1px solid ${durationStats.isCalculated ? 'var(--color-secondary)' : 'orange'}`,
-                borderRadius: 'var(--radius-md)',
-                marginBottom: 'var(--spacing-6)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-3)' }}>
-                    <BarChart3 size={18} color={durationStats.isCalculated ? 'var(--color-secondary)' : 'orange'} />
-                    <span style={{ fontWeight: 600 }}>{t('smartDuration')}</span>
-                    {durationStats.isCalculated ? (
-                        <CheckCircle size={14} color="var(--color-secondary)" />
-                    ) : (
-                        <AlertCircle size={14} color="orange" />
+            {/* Smart Duration: Zusammenfassung, aufklappbar für Details */}
+            <details className={`duration-box${durationStats.isCalculated ? '' : ' is-default'}`}>
+                <summary className="duration-summary">
+                    <span className="duration-summary-head">
+                        <BarChart3 size={18} aria-hidden="true" />
+                        <span style={{ fontWeight: 600 }}>{t('smartDuration')}</span>
+                        {durationStats.isCalculated ? <CheckCircle size={14} aria-hidden="true" /> : <AlertCircle size={14} aria-hidden="true" />}
+                        <ChevronDown size={18} className="duration-chevron" aria-hidden="true" />
+                    </span>
+                    <span className="duration-value">
+                        <strong>{durationStats.averageMinutes}</strong>
+                        <span>{durationStats.isCalculated ? t('avgMin') : t('defaultMin')}</span>
+                    </span>
+                    <span className="duration-note">
+                        {durationStats.isCalculated ? t('basedOn', { count: durationStats.matchCount }) : t('notEnoughData', { count: durationStats.matchCount })}
+                    </span>
+                    <span className="duration-more">{t('showDetails')}</span>
+                </summary>
+
+                <div className="duration-details">
+                    <h3>{t('howItWorks')}</h3>
+                    <ol>
+                        <li>{t('step1', { min: breakdown.thresholds.minMatches })}</li>
+                        <li>{t('step2', { min: breakdown.thresholds.minMatches })}</li>
+                        <li>{t('step3', { minutes: breakdown.thresholds.defaultMinutes })}</li>
+                    </ol>
+
+                    {breakdown.count > 0 && (
+                        <>
+                            <h3>{t('distribution')}</h3>
+                            <dl className="duration-grid">
+                                <div><dt>{t('median')}</dt><dd>{formatDuration(breakdown.medianSeconds)}</dd></div>
+                                <div><dt>{t('fastest')}</dt><dd>{formatDuration(breakdown.fastestSeconds)}</dd></div>
+                                <div><dt>{t('slowest')}</dt><dd>{formatDuration(breakdown.slowestSeconds)}</dd></div>
+                                <div><dt>{t('typicalRange')}</dt><dd>{formatDuration(breakdown.fastSeconds)} – {formatDuration(breakdown.slowSeconds)}</dd></div>
+                                <div><dt>{t('measured')}</dt><dd>{breakdown.count}</dd></div>
+                                <div><dt>{t('unmeasured')}</dt><dd>{breakdown.matchesWithoutDuration}</dd></div>
+                            </dl>
+
+                            <h3>{t('byStage')}</h3>
+                            <table className="duration-table">
+                                <tbody>
+                                    {breakdown.byStage.map(s => (
+                                        <tr key={s.stage}><th scope="row">{s.stage === 'BRACKET' ? t('stageBracket') : t('stageLeague')}</th><td>{formatDuration(s.averageSeconds)}</td><td>{t('nGames', { count: s.count })}</td></tr>
+                                    ))}
+                                    {breakdown.byTable.map(tb => (
+                                        <tr key={`t${tb.table}`}><th scope="row">{t('table', { number: tb.table })}</th><td>{formatDuration(tb.averageSeconds)}</td><td>{t('nGames', { count: tb.count })}</td></tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <h3>{t('recentTournaments')}</h3>
+                            <table className="duration-table">
+                                <tbody>
+                                    {breakdown.recentTournaments.map(tr => (
+                                        <tr key={tr.id}><th scope="row">{tr.name}<span>{format(tr.date, 'dd.MM.yyyy')}</span></th><td>{formatDuration(tr.averageSeconds)}</td><td>{t('nGames', { count: tr.count })}</td></tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </>
                     )}
                 </div>
-
-                {durationStats.isCalculated ? (
-                    <>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
-                            <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
-                                {durationStats.averageMinutes}
-                            </span>
-                            <span style={{ color: 'var(--color-text-dim)' }}>{t('avgMin')}</span>
-                        </div>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>
-                            {t('basedOn', { count: durationStats.matchCount })}
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-2)' }}>
-                            <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'orange' }}>
-                                {durationStats.averageMinutes}
-                            </span>
-                            <span style={{ color: 'var(--color-text-dim)' }}>{t('defaultMin')}</span>
-                        </div>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-dim)', margin: 0 }}>
-                            {t('notEnoughData', { count: durationStats.matchCount })}
-                        </p>
-                    </>
-                )}
-            </div>
+            </details>
 
             <form action={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' }}>
 
@@ -130,7 +148,7 @@ export default async function AdminSettingsPage() {
                     </small>
                 </div>
 
-                <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'var(--spacing-2)' }}>
+                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'var(--spacing-2)', minWidth: '160px' }}>
                     {t('save')}
                 </button>
             </form>

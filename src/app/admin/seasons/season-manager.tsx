@@ -7,6 +7,8 @@ import { updateSeason, endSeasonAndStartNext } from '@/app/actions/seasons';
 interface Props {
     current: { id: string; name: string; accentColor: string; sinceLabel: string };
     suggestedName: string;
+    // Zuletzt beendete Saison, für den Hinweis bei gleicher Farbe
+    previous: { name: string; accentColor: string } | null;
 }
 
 // Vorschläge für die nächste Saisonfarbe; Kontrast wird beim Anwenden automatisch abgesichert
@@ -28,7 +30,7 @@ function ColorField({ value, onChange, label }: { value: string; onChange: (v: s
     );
 }
 
-export default function SeasonManager({ current, suggestedName }: Props) {
+export default function SeasonManager({ current, suggestedName, previous }: Props) {
     const t = useTranslations('admin.seasons');
     const [pending, startTransition] = useTransition();
     const [name, setName] = useState(current.name);
@@ -65,6 +67,9 @@ export default function SeasonManager({ current, suggestedName }: Props) {
                     <input id="season-name" style={field} value={name} maxLength={60} onChange={e => setName(e.target.value)} />
                 </div>
                 <ColorField value={color} onChange={setColor} label={t('color')} />
+                {previous && previous.accentColor.toLowerCase() === color.toLowerCase() && (
+                    <p role="status" style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-warning)', fontWeight: 600 }}>{t('sameColorHint', { season: previous.name })}</p>
+                )}
                 <div>
                     <button className="btn btn-primary" disabled={pending}
                         onClick={() => run(() => updateSeason(current.id, name, color), t('saved'), 'save')}>{t('save')}</button>
@@ -80,6 +85,9 @@ export default function SeasonManager({ current, suggestedName }: Props) {
                     <input id="next-name" style={field} value={nextName} maxLength={60} onChange={e => setNextName(e.target.value)} />
                 </div>
                 <ColorField value={nextColor} onChange={setNextColor} label={t('nextColor')} />
+                {current.accentColor.toLowerCase() === nextColor.toLowerCase() && (
+                    <p role="status" style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-warning)', fontWeight: 600 }}>{t('sameColorHint', { season: current.name })}</p>
+                )}
                 {!confirming ? (
                     <div>
                         <button className="btn btn-secondary" disabled={pending} onClick={() => { setMessage(null); setConfirming(true); }}>{t('endButton')}</button>

@@ -25,6 +25,7 @@ export default async function AdminSeasonsPage() {
                 <SeasonManager
                     current={{ id: current.id, name: current.name, accentColor: current.accentColor, sinceLabel: current.startDate.getFullYear() < 2010 ? t('sinceStart') : t('since', { date: fmt(current.startDate) }) }}
                     suggestedName={t('suggestedName', { number: seasons.length + 1 })}
+                    previous={past[0] ? { name: past[0].name, accentColor: past[0].accentColor } : null}
                 />
             )}
 

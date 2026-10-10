@@ -27,13 +27,15 @@ export async function getPlayerMedals(onlyRanked = true, season?: SeasonRange): 
     return (await computePlacements(onlyRanked, season)).medals;
 }
 
-interface Placements {
+export interface Placements {
     medals: Record<string, PlayerMedals>;
     winnersByTournament: Map<string, Set<string>>;
+    // Turnier-ID -> Spieler-ID -> Medaille in diesem Turnier
+    podiumByTournament: Map<string, Map<string, keyof PlayerMedals>>;
 }
 
 // Medals per player plus the gold winner(s) of each tournament (bracket final beats league table)
-async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Promise<Placements> {
+export async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Promise<Placements> {
     const seasonDates = dateFilter(season);
     const tournaments = await prisma.tournament.findMany({
         where: {
@@ -58,6 +60,7 @@ async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Pro
 
     const medals: Record<string, PlayerMedals> = {};
     const winnersByTournament = new Map<string, Set<string>>();
+    const podiumByTournament = new Map<string, Map<string, keyof PlayerMedals>>();
     let currentTournamentId = '';
 
     const add = (ids: (string | null | undefined)[], type: keyof PlayerMedals) => {
@@ -65,6 +68,8 @@ async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Pro
             if (!id) continue;
             if (!medals[id]) medals[id] = { gold: 0, silver: 0, bronze: 0 };
             medals[id][type]++;
+            if (!podiumByTournament.has(currentTournamentId)) podiumByTournament.set(currentTournamentId, new Map());
+            podiumByTournament.get(currentTournamentId)!.set(id, type);
             if (type === 'gold') {
                 if (!winnersByTournament.has(currentTournamentId)) winnersByTournament.set(currentTournamentId, new Set());
                 winnersByTournament.get(currentTournamentId)!.add(id);
@@ -175,7 +180,7 @@ async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Pro
         }
     }
 
-    return { medals, winnersByTournament };
+    return { medals, winnersByTournament, podiumByTournament };
 }
 
 export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';

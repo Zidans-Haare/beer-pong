@@ -9,9 +9,11 @@ import { Users, User, Trophy, PartyPopper, Play, Calendar, Search, MapPin } from
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { calculateTournamentDuration, formatDuration, getEstimatedEndTime } from '@/lib/estimation';
+import { useAppDialog } from '@/components/AppDialog';
 
 
 export default function CreateTournamentForm({ players, hostPlayerId }: { players: Player[], hostPlayerId: string | null }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('tournaments');
     const router = useRouter();
     const [startImmediately, setStartImmediately] = useState(true);
@@ -50,7 +52,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
             // New behavior: Redirect to detailed page with success flag
             router.push(`/tournaments/${res.tournament.id}?newlyCreated=true`);
         } else {
-            alert(t('error') + ' ' + res.error);
+            appDialog.alert(t('error') + ' ' + res.error);
         }
     }
 

@@ -4,6 +4,7 @@ import { submitRSVP } from '@/app/actions/rsvp';
 import { useState } from 'react';
 import { Check, HelpCircle, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function RSVPForm({
     tournamentId,
@@ -14,6 +15,7 @@ export default function RSVPForm({
     currentStatus?: string;
     title?: string;
 }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('rsvp');
     const [rulesAccepted, setRulesAccepted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +32,7 @@ export default function RSVPForm({
 
         const res = await submitRSVP(formData);
         if (!res.success) {
-            alert(res.error);
+            appDialog.alert(res.error);
         }
         setIsSubmitting(false);
     }

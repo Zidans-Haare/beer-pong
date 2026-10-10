@@ -8,6 +8,7 @@ import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Props {
     tournamentId: string;
@@ -24,6 +25,7 @@ export default function HostControls({
     isPlanned,
     isActive
 }: Props) {
+    const appDialog = useAppDialog();
     const t = useTranslations('host');
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -31,61 +33,52 @@ export default function HostControls({
     if (!isPlanned && !isActive) return null;
 
     async function handleDelete() {
-        if (!confirm(t('confirm'))) return;
+        if (!await appDialog.confirm(t('confirm'), { title: t('delete'), confirmLabel: t('delete'), danger: true })) return;
         setIsDeleting(true);
         const res = await deleteTournament(tournamentId);
         if (res.success) {
             router.push('/tournaments');
             router.refresh();
         } else {
-            alert(res.error || t('deleteError'));
+            appDialog.alert(res.error || t('deleteError'));
             setIsDeleting(false);
         }
     }
 
-    return (
-        <section className="glass-panel" style={{ padding: 'var(--spacing-4)' }}>
-            <h3 style={{ marginBottom: 'var(--spacing-3)', fontSize: '1rem', fontWeight: 600 }}>{t('title')}</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--spacing-3)' }}>
-                {isPlanned && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)' }}>
-                        <StartTournamentButton tournamentId={tournamentId} />
+    const showPlayoffs = tournamentType === 'ROUND_ROBIN' || tournamentType === 'GROUPS';
 
-                        <button
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="btn"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                width: '100%',
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid var(--color-error)',
-                                color: 'var(--color-error)',
-                                padding: '0 var(--spacing-4)',
-                                height: '60px',
-                                fontSize: '1rem',
-                                borderRadius: 'var(--radius-md)',
-                                cursor: 'pointer',
-                                fontWeight: 500,
-                                opacity: isDeleting ? 0.7 : 1,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <Trash2 size={20} />
-                            {isDeleting ? t('deleting') : t('delete')}
-                        </button>
-                    </div>
+    return (
+        <section className="glass-panel host-actions" aria-label={t('title')}>
+            <h3 className="host-actions-title">{t('title')}</h3>
+            <div className="host-actions-grid">
+                {isPlanned && (
+                    <>
+                        <div className="host-action">
+                            <StartTournamentButton tournamentId={tournamentId} />
+                            <p>{t('startHint')}</p>
+                        </div>
+                        <div className="host-action">
+                            <button type="button" onClick={handleDelete} disabled={isDeleting} className="btn btn-danger host-action-button">
+                                <Trash2 size={20} aria-hidden="true" />
+                                {isDeleting ? t('deleting') : t('delete')}
+                            </button>
+                            <p>{t('deleteHint')}</p>
+                        </div>
+                    </>
                 )}
                 {isActive && (
-                    <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 'var(--spacing-3)' }}>
-                        {(tournamentType === 'ROUND_ROBIN' || tournamentType === 'GROUPS') && (
-                            <StartPlayoffsButton tournamentId={tournamentId} />
+                    <>
+                        {showPlayoffs && (
+                            <div className="host-action">
+                                <StartPlayoffsButton tournamentId={tournamentId} />
+                                <p>{t('playoffsHint')}</p>
+                            </div>
                         )}
-                        <FinishTournamentButton tournamentId={tournamentId} />
-                    </div>
+                        <div className="host-action">
+                            <FinishTournamentButton tournamentId={tournamentId} />
+                            <p>{t('finishHint')}</p>
+                        </div>
+                    </>
                 )}
             </div>
         </section>

@@ -1,3 +1,4 @@
+import AppDialogProvider from '@/components/AppDialog';
 import { getCurrentSeason, accentCss } from '@/lib/seasons';
 import type { Metadata } from 'next';
 import './globals.css';
@@ -91,6 +92,7 @@ export default async function RootLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
         <DrunkModeProvider>
+        <AppDialogProvider>
         {isDemoMode && <DemoBanner />}
         <div className="layout-shell">
           <Navbar />
@@ -108,6 +110,7 @@ export default async function RootLayout({
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>
+        </AppDialogProvider>
         </DrunkModeProvider>
         </NextIntlClientProvider>
       </body>

@@ -5,6 +5,7 @@ import { setTournamentStatus, adminDeleteTournament } from '@/app/actions/admin'
 import { setTournamentLiveStreamUrl } from '@/app/actions/tournaments';
 import { useTranslations } from 'next-intl';
 import { Video, VideoOff } from 'lucide-react';
+import { useAppDialog } from '@/components/AppDialog';
 
 const STATUS_KEYS = ['PLANNED', 'ACTIVE', 'COMPLETED'] as const;
 
@@ -45,15 +46,16 @@ export function StatusBadge({ status }: { status: string }) {
 }
 
 export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: string; tournamentName: string }) {
+    const appDialog = useAppDialog();
     const [loading, setLoading] = useState(false);
     const t = useTranslations('admin.statusButton');
 
     async function handleDelete() {
-        if (!confirm(t('confirmDelete', { name: tournamentName }))) return;
+        if (!await appDialog.confirm(t('confirmDelete', { name: tournamentName }))) return;
         setLoading(true);
         const result = await adminDeleteTournament(tournamentId);
         if (!result.success) {
-            alert(result.error ?? t('deleteError'));
+            appDialog.alert(result.error ?? t('deleteError'));
         }
         setLoading(false);
     }

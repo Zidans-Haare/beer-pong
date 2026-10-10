@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function AdminDeleteButton({ id, type, deleteAction }: { id: string, type: 'Player' | 'Tournament', deleteAction: (id: string) => Promise<{ success: boolean, error?: string }> }) {
+    const appDialog = useAppDialog();
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
 
     async function handleDelete() {
-        if (!confirm(`Möchtest du dieses ${type} wirklich löschen?`)) return;
+        if (!await appDialog.confirm(`Möchtest du dieses ${type} wirklich löschen?`)) return;
 
         setIsDeleting(true);
         const result = await deleteAction(id);
@@ -20,7 +22,7 @@ export default function AdminDeleteButton({ id, type, deleteAction }: { id: stri
             if (type === 'Tournament') router.push('/tournaments');
             router.refresh();
         } else {
-            alert(result.error || 'Fehler beim Löschen');
+            appDialog.alert(result.error || 'Fehler beim Löschen');
         }
     }
 

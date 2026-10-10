@@ -6,6 +6,7 @@ import { leaveTournamentAsGuest } from '@/app/actions/guests';
 import { UserCheck, LogOut, Loader2 } from 'lucide-react';
 import { haptic } from '@/lib/haptics';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Props {
     guestId: string;
@@ -15,16 +16,17 @@ interface Props {
 }
 
 export default function GuestStatusBadge({ guestId, guestName, tournamentId, isPlanned }: Props) {
+    const appDialog = useAppDialog();
     const t = useTranslations('guest');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const handleLeave = async () => {
         if (!isPlanned) {
-            alert(t('cantLeave'));
+            appDialog.alert(t('cantLeave'));
             return;
         }
-        if (!confirm(t('confirmLeave'))) return;
+        if (!await appDialog.confirm(t('confirmLeave'))) return;
 
         setLoading(true);
         haptic.light();
@@ -36,7 +38,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                 router.refresh();
                 // Optional: redirect to home or keep on page to show join button
             } else {
-                alert(result.error || t('leaveError'));
+                appDialog.alert(result.error || t('leaveError'));
                 haptic.error();
             }
         } catch (error) {

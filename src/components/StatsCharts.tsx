@@ -1,163 +1,83 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { PlayerStats } from '@/lib/stats';
+import { useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { useReducedMotion } from 'framer-motion';
 
-export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
+export interface TrendSeries {
+    id: string;
+    name: string;
+    history: { timestamp: number; winRate: number }[];
+}
+
+const COLORS = ['var(--color-primary)', '#c34232', '#28647a', '#94600b', '#7c3aed'];
+const MAX_SELECTED = COLORS.length;
+
+// Siegquote im Verlauf: ein Punkt je Turnier, Spieler per Chip wählbar
+export default function StatsCharts({ series, defaultIds }: { series: TrendSeries[]; defaultIds: string[] }) {
     const t = useTranslations('stats');
     const reducedMotion = useReducedMotion();
     const [mounted, setMounted] = useState(false);
+    const [selected, setSelected] = useState<string[]>(defaultIds.filter(id => series.some(s => s.id === id)).slice(0, MAX_SELECTED));
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    useEffect(() => { setMounted(true); }, []);
 
-    const processedData = useMemo(() => {
-        const playersWithData = stats.map(p => ({
-            ...p,
-            filteredHistory: p.history,
-            rangeCupDiff: p.cupDiff,
-            rangeWinRate: p.winRate * 100,
-        })).filter(p => p.filteredHistory.length > 0);
+    const toggle = (id: string) => setSelected(prev =>
+        prev.includes(id) ? prev.filter(p => p !== id) : prev.length >= MAX_SELECTED ? prev : [...prev, id]);
 
-        const topWinRate = [...playersWithData]
-            .sort((a, b) => b.rangeWinRate - a.rangeWinRate)
-            .slice(0, 5);
-
-        const topCupDiff = [...playersWithData]
-            .sort((a, b) => b.rangeCupDiff - a.rangeCupDiff)
-            .slice(0, 10);
-
-        const topDuration = [...playersWithData]
-            .sort((a, b) => b.filteredHistory.length - a.filteredHistory.length || a.name.localeCompare(b.name))
-            .slice(0, 5);
-
-        return { topWinRate, topCupDiff, topDuration };
-    }, [stats]);
-
-    const NEON_COLORS = ['var(--color-primary)', '#28647a', '#c34232', '#08754b', '#94600b'];
+    if (series.length === 0) return <p style={{ color: 'var(--color-text-dim)', margin: 0 }}>{t('noData')}</p>;
 
     return (
-        <div className="stats-chart-grid">
-            {/* Win Rate Chart */}
-            <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('winRateTrend')}</h3>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>1 Punkt = 1 Turnier</p>
-                </div>
-                <div style={{ height: '300px' }}>
-                    {mounted && (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                            <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                                <XAxis
-                                    dataKey="timestamp"
-                                    type="number"
-                                    domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
-                                    stroke="var(--color-text-dim)"
-                                    tick={{ fontSize: 12 }}
-                                    tickCount={6}
-                                />
-                                <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} domain={[0, 100]} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => typeof label === 'number' || typeof label === 'string' ? new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
-                                    formatter={(value, name) => [`${value}%`, String(name ?? '')]}
-                                />
-                                {processedData.topWinRate.map((p, i) => (
-                                    <Line
-                                        key={p.id}
-                                        isAnimationActive={!reducedMotion}
-                                        animationDuration={300}
-                                        data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
-                                        dataKey="winRate"
-                                        name={p.name}
-                                        type="linear"
-                                        stroke={NEON_COLORS[i % NEON_COLORS.length]}
-                                        strokeWidth={2}
-                                        dot={{ r: 4, fill: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 0 }}
-                                        activeDot={{ r: 7, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 2 }}
-                                    />
-                                ))}
-                            </LineChart>
-                        </ResponsiveContainer>
-                    )}
-                </div>
+        <div>
+            <div className="chart-chips" role="group" aria-label={t('chartPlayers')}>
+                {series.map(s => {
+                    const index = selected.indexOf(s.id);
+                    const active = index >= 0;
+                    return (
+                        <button key={s.id} type="button" className={`chart-chip${active ? ' is-active' : ''}`} aria-pressed={active}
+                            disabled={!active && selected.length >= MAX_SELECTED} onClick={() => toggle(s.id)}
+                            style={active ? { borderColor: COLORS[index], color: COLORS[index] } : undefined}>
+                            <span className="chart-chip-dot" style={{ background: active ? COLORS[index] : 'var(--color-border-strong)' }} />
+                            {s.name}
+                        </button>
+                    );
+                })}
             </div>
-
-            {/* Game Duration Chart */}
-            <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
-                <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('gameDurationTrend')}</h3>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>Ø Spieldauer pro Turnier</p>
-                </div>
-                <div style={{ height: '300px' }}>
-                    {mounted && (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                            <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                                <XAxis
-                                    dataKey="timestamp"
-                                    type="number"
-                                    domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
-                                    stroke="var(--color-text-dim)"
-                                    tick={{ fontSize: 12 }}
-                                    tickCount={6}
-                                />
-                                <YAxis stroke="var(--color-text-dim)" unit="m" tick={{ fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => typeof label === 'number' || typeof label === 'string' ? new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
-                                    formatter={(value, name) => [`${Number(value).toFixed(1)} min`, String(name ?? t('duration'))]}
-                                />
-                                {processedData.topDuration.map((p, i) => (
-                                    <Line
-                                        key={p.id}
-                                        isAnimationActive={!reducedMotion}
-                                        animationDuration={300}
-                                        data={p.filteredHistory
-                                            .filter(h => h.duration > 0)
-                                            .map((h) => ({ timestamp: h.timestamp, duration: h.duration / 60 }))}
-                                        dataKey="duration"
-                                        name={p.name}
-                                        type="linear"
-                                        stroke={NEON_COLORS[i % NEON_COLORS.length]}
-                                        strokeWidth={2}
-                                        dot={{ r: 4, fill: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 0 }}
-                                        activeDot={{ r: 7, fill: 'white', stroke: NEON_COLORS[i % NEON_COLORS.length], strokeWidth: 2 }}
-                                        connectNulls={true}
-                                    />
-                                ))}
-                            </LineChart>
-                        </ResponsiveContainer>
-                    )}
-                </div>
-            </div>
-
-            {/* Cup Diff Chart */}
-            <div className="glass-panel" style={{ padding: 'var(--spacing-6)', gridColumn: '1 / -1' }}>
-                <h3 style={{ marginBottom: 'var(--spacing-6)', color: 'var(--color-text)', fontSize: '1.1rem' }}>{t('cupDiffTop')}</h3>
-                <div style={{ height: '300px' }}>
-                    {mounted && (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                            <BarChart data={processedData.topCupDiff} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                                <XAxis dataKey="name" stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
-                                <YAxis stroke="var(--color-text-dim)" tick={{ fontSize: 12 }} />
-                                <Tooltip
-                                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                />
-                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name={t('cupDiff')} radius={[4, 4, 0, 0]} isAnimationActive={!reducedMotion} animationDuration={300} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    )}
-                </div>
+            <div style={{ height: '280px' }}>
+                {mounted && (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                        <LineChart margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                            <XAxis
+                                dataKey="timestamp"
+                                type="number"
+                                domain={['dataMin', 'dataMax']}
+                                tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                                stroke="var(--color-text-dim)"
+                                tick={{ fontSize: 12 }}
+                                tickCount={6}
+                            />
+                            <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} domain={[0, 100]} width={44} />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
+                                labelFormatter={(label) => typeof label === 'number' || typeof label === 'string' ? new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                                formatter={(value, name) => [`${value}%`, String(name ?? '')]}
+                            />
+                            {selected.map((id, i) => {
+                                const s = series.find(x => x.id === id);
+                                if (!s) return null;
+                                return (
+                                    <Line key={s.id} isAnimationActive={!reducedMotion} animationDuration={300}
+                                        data={s.history} dataKey="winRate" name={s.name} type="linear"
+                                        stroke={COLORS[i]} strokeWidth={2}
+                                        dot={{ r: 4, fill: COLORS[i], strokeWidth: 0 }}
+                                        activeDot={{ r: 7, fill: 'white', stroke: COLORS[i], strokeWidth: 2 }} />
+                                );
+                            })}
+                        </LineChart>
+                    </ResponsiveContainer>
+                )}
             </div>
         </div>
     );

@@ -14,6 +14,7 @@ import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, S
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 type Notification = {
     id: string;
@@ -26,6 +27,7 @@ type Notification = {
 };
 
 export default function NotificationsPage() {
+    const appDialog = useAppDialog();
     const t = useTranslations('notifications');
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ export default function NotificationsPage() {
 
             if (!vapidKey) {
                 console.error("No VAPID key found");
-                alert("Push Setup Error: No Key");
+                appDialog.alert("Push Setup Error: No Key");
                 return;
             }
 
@@ -82,10 +84,10 @@ export default function NotificationsPage() {
 
             await saveSubscription(subscription.toJSON());
             setPushStatus('granted');
-            alert(t('enabled'));
+            appDialog.alert(t('enabled'));
         } catch (error) {
             console.error("Push Error", error);
-            alert(t('error'));
+            appDialog.alert(t('error'));
         }
     };
 
@@ -107,7 +109,7 @@ export default function NotificationsPage() {
     };
 
     const handleDeleteAllRead = async () => {
-        if (!confirm(t('confirmDeleteRead'))) return;
+        if (!await appDialog.confirm(t('confirmDeleteRead'))) return;
         setNotifications(prev => prev.filter(n => !n.isRead));
         await deleteAllReadNotifications();
     };
@@ -167,8 +169,8 @@ export default function NotificationsPage() {
                     <button
                         onClick={async () => {
                             const res = await sendTestPush();
-                            if (res.success) alert(t('testPushSent'));
-                            else alert(t('testPushError') + res.error);
+                            if (res.success) appDialog.alert(t('testPushSent'));
+                            else appDialog.alert(t('testPushError') + res.error);
                         }}
                         className="nav-link"
                         style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px' }}

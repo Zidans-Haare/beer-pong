@@ -4,7 +4,7 @@ import { requireIsolatedMode } from './helpers';
 test.describe('Isolated admin redesign', () => {
   test.skip(process.env.E2E_MODE !== 'isolated', 'Never run admin mutations against production');
   test.use({ storageState: 'e2e/.auth/admin.json' });
-  for (const route of ['/admin', '/admin/users', '/admin/players', '/admin/tournaments', '/admin/guests', '/admin/chat', '/admin/broadcast', '/admin/settings', '/admin/passkeys', '/admin/approvals']) {
+  for (const route of ['/admin', '/admin/users', '/admin/players', '/admin/tournaments', '/admin/guests', '/admin/chat', '/admin/broadcast', '/admin/settings', '/admin/passkeys', '/admin/approvals', '/admin/seasons']) {
     test(`admin layout ${route}`, async ({ page }, testInfo) => {
       const failures: string[] = [];
       page.on('pageerror', error => failures.push(error.message));
@@ -21,11 +21,11 @@ test.describe('Isolated admin redesign', () => {
     });
   }
 
-  test('mobile area selection exposes all ten admin destinations', async ({ page }, testInfo) => {
+  test('mobile area selection exposes all eleven admin destinations', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'chromium', 'Mobile area selection only');
     await page.goto('/admin');
     await page.locator('.admin-section-button').click();
-    await expect(page.getByRole('dialog').getByRole('link')).toHaveCount(10);
+    await expect(page.getByRole('dialog').getByRole('link')).toHaveCount(11);
     await page.getByRole('dialog').getByRole('link', { name: /Passkeys/ }).click();
     await expect(page).toHaveURL('/admin/passkeys', { timeout: 30_000 });
   });

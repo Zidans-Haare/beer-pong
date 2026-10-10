@@ -4,6 +4,8 @@ import { checkForUpdate } from '@/lib/update-check';
 import { Users, Trophy, Swords, MessageSquare, User, ArrowUpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import UptimeGraph from '@/components/UptimeGraph';
+import { syncAndGetUptimeData } from '@/lib/uptime';
 
 async function getBaseStats() {
     const [userCount, tournamentCount] = await Promise.all([
@@ -19,7 +21,7 @@ async function getBaseStats() {
 }
 
 export default async function AdminDashboard() {
-    const [base, extra, updateInfo, t] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate(), getTranslations('admin.dashboard')]);
+    const [base, extra, updateInfo, t, uptimeData] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate(), getTranslations('admin.dashboard'), syncAndGetUptimeData()]);
 
     const statCards = [
         { label: 'User', value: base.userCount, icon: Users, color: "#28647a", bg: "rgba(40,100,122,0.15)" },
@@ -126,6 +128,13 @@ export default async function AdminDashboard() {
                     </div>
                 </section>
             </div>
+
+            {/* Server-Uptime (früher auf der Statistik-Seite) */}
+            {uptimeData.heartbeats.length > 0 && (
+                <div className="glass-panel" style={{ overflow: 'hidden', padding: '0', border: '1px solid var(--color-border)' }}>
+                    <UptimeGraph heartbeats={uptimeData.heartbeats} uptime24h={uptimeData.uptime24h} maintenanceList={uptimeData.maintenanceList} />
+                </div>
+            )}
         </div>
     );
 }

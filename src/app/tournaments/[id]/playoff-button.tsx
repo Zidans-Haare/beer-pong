@@ -4,18 +4,20 @@ import { startPlayoffs } from '@/app/actions/tournaments';
 import { Trophy } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function StartPlayoffsButton({ tournamentId }: { tournamentId: string }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('tournaments');
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleClick() {
-        if (!confirm(t('confirmPlayoffs'))) return;
+        if (!await appDialog.confirm(t('confirmPlayoffs'), { title: t('startPlayoffs'), confirmLabel: t('startPlayoffs') })) return;
 
         setIsLoading(true);
         const res = await startPlayoffs(tournamentId);
         if (!res.success) {
-            alert(res.error);
+            appDialog.alert(res.error);
         }
         setIsLoading(false);
     }
@@ -24,20 +26,7 @@ export default function StartPlayoffsButton({ tournamentId }: { tournamentId: st
         <button
             onClick={handleClick}
             disabled={isLoading}
-            className="btn"
-            style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                width: '100%',
-                background: "var(--color-primary)",
-                color: '#1a1a2e',
-                fontWeight: 600,
-                padding: 'var(--spacing-4)',
-                border: 'none',
-                opacity: isLoading ? 0.7 : 1
-            }}
+            className="btn btn-primary host-action-button"
         >
             <Trophy size={20} />
             {isLoading ? t('generatingPlayoffs') : t('startPlayoffs')}

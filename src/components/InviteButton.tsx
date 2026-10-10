@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Share2, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function InviteButton() {
+    const appDialog = useAppDialog();
     const t = useTranslations('invite');
     const [copied, setCopied] = useState(false);
 
@@ -16,7 +18,7 @@ export default function InviteButton() {
                 setTimeout(() => setCopied(false), 2000);
             } catch (err) {
                 console.error('Failed to copy link:', err);
-                alert('Konnte Link nicht kopieren. Bitte manuell teilen: ' + window.location.origin);
+                appDialog.alert('Konnte Link nicht kopieren. Bitte manuell teilen: ' + window.location.origin);
             }
         }
     };

@@ -6,6 +6,7 @@ import { Search, Key, Trash2, Smartphone } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import SheetDialog from '@/components/SheetDialog';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 type User = {
     id: string;
@@ -17,6 +18,7 @@ type User = {
 };
 
 export default function UsersPage() {
+    const appDialog = useAppDialog();
     const t = useTranslations('admin.users');
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function UsersPage() {
     };
 
     const handleDelete = async (userId: string) => {
-        if (!confirm(t('confirmDelete'))) return;
+        if (!await appDialog.confirm(t('confirmDelete'))) return;
         await deleteUser(userId);
         loadUsers();
     };

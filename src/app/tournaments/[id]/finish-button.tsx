@@ -5,21 +5,23 @@ import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function FinishTournamentButton({ tournamentId }: { tournamentId: string }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('tournaments');
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleClick() {
-        if (!confirm(t('confirmFinish'))) return;
+        if (!await appDialog.confirm(t('confirmFinish'), { title: t('finishTournament'), confirmLabel: t('finishTournament') })) return;
 
         setIsLoading(true);
         const res = await finishTournament(tournamentId);
         if (res.success) {
             router.refresh();
         } else {
-            alert(res.error);
+            appDialog.alert(res.error);
             setIsLoading(false);
         }
     }
@@ -28,20 +30,7 @@ export default function FinishTournamentButton({ tournamentId }: { tournamentId:
         <button
             onClick={handleClick}
             disabled={isLoading}
-            className="btn"
-            style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                width: '100%',
-                background: 'rgba(39, 174, 96, 0.1)',
-                border: '1px solid var(--color-success)',
-                color: 'var(--color-success)',
-                padding: 'var(--spacing-4)',
-                fontWeight: 500,
-                opacity: isLoading ? 0.7 : 1
-            }}
+            className="btn btn-secondary host-action-button"
         >
             <Flag size={20} />
             {isLoading ? t('finishing') : t('finishTournament')}

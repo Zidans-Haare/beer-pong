@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { sendTournamentInviteEmails } from '@/app/actions/tournaments';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 type Participant = {
     email: string | null;
@@ -23,6 +24,7 @@ type TournamentSuccessModalProps = {
 };
 
 export default function TournamentSuccessModal({ tournament, participants }: TournamentSuccessModalProps) {
+    const appDialog = useAppDialog();
     const t = useTranslations('successModal');
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -37,14 +39,14 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
         .filter((email): email is string => !!email);
 
     const handleSendEmails = async () => {
-        if (!confirm(t('confirmEmail', { count: participantEmails.length }))) return;
+        if (!await appDialog.confirm(t('confirmEmail', { count: participantEmails.length }))) return;
         setEmailSending(true);
         const result = await sendTournamentInviteEmails(tournament.id);
         setEmailSending(false);
         if (result.success) {
             setEmailResult({ sent: result.sent ?? 0, failed: result.failed ?? 0 });
         } else {
-            alert(t('emailError'));
+            appDialog.alert(t('emailError'));
         }
     };
 
@@ -138,7 +140,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
 
                         <button
                             onClick={async () => {
-                                if (!confirm(t('confirmPush'))) return;
+                                if (!await appDialog.confirm(t('confirmPush'))) return;
                                 const title = t('pushTitle');
                                 const message = t('pushMessage', { name: tournament.name, date: new Date(tournament.date).toLocaleDateString() });
                                 const { broadcastNotification } = await import('@/app/actions/notifications');
@@ -148,7 +150,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                                     type: 'TOURNAMENT',
                                     link: `/tournaments/${tournament.id}`
                                 });
-                                alert(t('pushSent'));
+                                appDialog.alert(t('pushSent'));
                             }}
                             className="btn"
                             style={{

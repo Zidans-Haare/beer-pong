@@ -5,6 +5,7 @@ import { UserRound, Users, UserPlus, Shuffle, X, Check } from 'lucide-react';
 import { autoAssignTeams, assignToTeam, createTeam, deleteTeam, updateTeamName } from '@/app/actions/teams';
 import { haptic } from '@/lib/haptics';
 import Avatar from '@/components/Avatar';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Player {
     id: string;
@@ -41,6 +42,7 @@ export default function TeamAssignment({
     availableGuests,
     isHost
 }: Props) {
+    const appDialog = useAppDialog();
     const [isPending, startTransition] = useTransition();
     const [selectedMember, setSelectedMember] = useState<{
         type: 'player' | 'guest';
@@ -70,7 +72,7 @@ export default function TeamAssignment({
                 haptic.success();
             } else {
                 haptic.error();
-                alert(result.error);
+                appDialog.alert(result.error);
             }
         });
     };
@@ -106,7 +108,7 @@ export default function TeamAssignment({
                     setSelectedMember(null);
                 } else {
                     haptic.error();
-                    alert(result.error);
+                    appDialog.alert(result.error);
                 }
             });
         } else if (currentMember) {

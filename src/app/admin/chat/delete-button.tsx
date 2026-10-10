@@ -3,16 +3,18 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { deleteChatMessage } from '@/app/actions/chat';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function ChatDeleteButton({ messageId }: { messageId: string }) {
+    const appDialog = useAppDialog();
     const [isDeleting, setIsDeleting] = useState(false);
 
     async function handleDelete() {
-        if (!confirm('Nachricht wirklich löschen?')) return;
+        if (!await appDialog.confirm('Nachricht wirklich löschen?')) return;
         setIsDeleting(true);
         const result = await deleteChatMessage(messageId);
         if (!result.success) {
-            alert(result.error ?? 'Fehler beim Löschen.');
+            appDialog.alert(result.error ?? 'Fehler beim Löschen.');
             setIsDeleting(false);
         }
     }

@@ -5,8 +5,10 @@ import { requestRoom, acceptRoomRequest, rejectRoomRequest } from '@/app/actions
 import { BedDouble, Check, X, Clock, Info, Coffee, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function GuestRoomInfo({ tournamentId, title, description, capacity, image, offersBreakfast, offersHalfBoard, reservations, isHost, currentUserId }: any) {
+    const appDialog = useAppDialog();
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [isRequesting, setIsRequesting] = useState(false);
     const [wantsBreakfast, setWantsBreakfast] = useState(false);
@@ -17,7 +19,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleRequest = async () => {
         setIsRequesting(true);
         const res = await requestRoom(tournamentId, wantsBreakfast, wantsHalfBoard);
-        if (!res.success) alert(res.error || t('errorRequest'));
+        if (!res.success) appDialog.alert(res.error || t('errorRequest'));
         setIsRequesting(false);
         router.refresh();
     };
@@ -25,7 +27,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleAccept = async (id: string) => {
         setLoadingId(id);
         const res = await acceptRoomRequest(id);
-        if (!res.success) alert(res.error || t('errorAccept'));
+        if (!res.success) appDialog.alert(res.error || t('errorAccept'));
         setLoadingId(null);
         router.refresh();
     };
@@ -33,7 +35,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleReject = async (id: string) => {
         setLoadingId(id);
         const res = await rejectRoomRequest(id);
-        if (!res.success) alert(res.error || t('errorReject'));
+        if (!res.success) appDialog.alert(res.error || t('errorReject'));
         setLoadingId(null);
         router.refresh();
     };

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { User, Sparkles, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function CreatePlayerForm() {
+    const appDialog = useAppDialog();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const t = useTranslations('players');
@@ -19,7 +21,7 @@ export default function CreatePlayerForm() {
         if (res.success) {
             router.push('/players');
         } else {
-            alert('Fehler: ' + res.error);
+            appDialog.alert('Fehler: ' + res.error);
         }
     }
 

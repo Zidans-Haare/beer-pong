@@ -29,7 +29,7 @@ export default function BiometricLoginButton({
     if (
       typeof window !== 'undefined' &&
       'PublicKeyCredential' in window &&
-      'get' in PublicKeyCredential
+      typeof navigator.credentials?.get === 'function'
     ) {
       setIsSupported(true);
     }

@@ -123,8 +123,8 @@ export function isWebAuthnSupported(): boolean {
   return (
     typeof window !== 'undefined' &&
     'PublicKeyCredential' in window &&
-    'create' in PublicKeyCredential &&
-    'get' in PublicKeyCredential
+    typeof navigator.credentials?.create === 'function' &&
+    typeof navigator.credentials?.get === 'function'
   );
 }
 

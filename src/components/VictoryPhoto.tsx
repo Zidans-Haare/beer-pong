@@ -109,7 +109,7 @@ export default function VictoryPhoto({
               position: 'fixed',
               inset: 0,
               background: 'rgba(0, 0, 0, 0.9)',
-              backdropFilter: 'blur(10px)',
+              backdropFilter: "none",
               zIndex: 9998,
               display: 'flex',
               flexDirection: 'column',
@@ -151,9 +151,9 @@ export default function VictoryPhoto({
                 style={{
                   fontSize: '2rem',
                   fontWeight: 800,
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  background: "none",
                   WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  WebkitTextFillColor: "currentColor",
                   marginBottom: 8,
                 }}
               >
@@ -212,7 +212,7 @@ export default function VictoryPhoto({
                     position: 'relative',
                     borderRadius: 16,
                     overflow: 'hidden',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    boxShadow: "none",
                   }}
                 >
                   <img
@@ -327,7 +327,7 @@ export default function VictoryPhoto({
                 onClick={() => setShowCamera(true)}
                 className="btn"
                 style={{
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  background: "var(--color-primary)",
                   color: 'black',
                   padding: '16px 32px',
                   fontSize: '1.1rem',

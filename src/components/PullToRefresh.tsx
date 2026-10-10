@@ -138,7 +138,7 @@ export default function PullToRefresh({
             height: 40,
             borderRadius: '50%',
             background: 'var(--color-primary)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            boxShadow: "none",
           }}
           animate={isRefreshing ? { rotate: 360 } : undefined}
           transition={

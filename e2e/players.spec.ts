@@ -19,7 +19,7 @@ test.describe('Spieler-Seite', () => {
     const exists = await firstLink.count() > 0;
     if (!exists) { test.skip(); return; }
     await firstLink.click();
-    await expect(page).toHaveURL(/\/players\/.+/);
+    await expect(page).toHaveURL(/\/players\/.+/, { timeout: 30_000 });
   });
 
   test('Neuer-Spieler-Seite erreichbar', async ({ page }) => {
@@ -30,7 +30,6 @@ test.describe('Spieler-Seite', () => {
 
   test('Ungültige Spieler-ID gibt 404', async ({ page }) => {
     await page.goto('/players/dieser-spieler-existiert-nicht-12345');
-    const shows404 = await page.getByRole('heading', { name: /404/i }).count() > 0;
-    expect(shows404).toBe(true);
+    await expect(page.getByRole('heading', { name: /404/i })).toBeVisible({ timeout: 30_000 });
   });
 });

@@ -24,15 +24,15 @@ function setupDatabase(answers, spinner) {
     if (mode === 'local') {
         // Use the current node process directly — no bash or NVM needed
         const env = { ...process.env, DATABASE_URL: `file:${dbPath}` };
-        const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+        const prismaCli = path.join(appPath, 'node_modules', 'prisma', 'build', 'index.js');
 
         spinner.text = 'Running prisma generate…';
         if (isDryRun()) { dryLog(`npx prisma generate  (cwd: ${appPath})`); }
-        else { execFileSync(npx, ['prisma', 'generate'], { cwd: appPath, env, stdio: 'pipe' }); }
+        else { execFileSync(process.execPath, [prismaCli, 'generate'], { cwd: appPath, env, stdio: 'pipe' }); }
 
         spinner.text = 'Running prisma migrate deploy…';
         if (isDryRun()) { dryLog(`npx prisma migrate deploy  (cwd: ${appPath})`); }
-        else { execFileSync(npx, ['prisma', 'migrate', 'deploy'], { cwd: appPath, env, stdio: 'pipe' }); }
+        else { execFileSync(process.execPath, [prismaCli, 'migrate', 'deploy'], { cwd: appPath, env, stdio: 'pipe' }); }
     } else {
         // Server mode: use bash + NVM + source .env
         const nvm = nvmPrefix();

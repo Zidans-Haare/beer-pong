@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { MapPin, Calendar, Users, User, Trophy, Sparkles, Copy, Check, QrCode } from 'lucide-react';
+import { MapPin, Calendar, Users, User, Trophy, Sparkles, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import TournamentQRCode from '@/components/TournamentQRCode';
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
@@ -48,15 +48,15 @@ export default function TournamentHeader({
     };
 
     const statusConfig = {
-        PLANNED: { label: t('statusLobby'), color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
-        ACTIVE: { label: t('statusLive'), color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.15)' },
-        COMPLETED: { label: t('statusEnded'), color: '#27ae60', bg: 'rgba(39, 174, 96, 0.15)' }
+        PLANNED: { label: t('statusLobby'), color: 'var(--color-info)', bg: 'var(--color-info-light)' },
+        ACTIVE: { label: t('statusLive'), color: 'var(--color-success)', bg: 'var(--color-success-light)' },
+        COMPLETED: { label: t('statusEnded'), color: 'var(--color-text-dim)', bg: 'var(--color-surface-secondary)' }
     };
 
     const status = statusConfig[tournament.status as keyof typeof statusConfig] || statusConfig.PLANNED;
 
     return (
-        <header style={{ marginBottom: 'var(--spacing-6)' }}>
+        <header className="tournament-header">
             {/* Status Bar */}
             <div style={{
                 display: 'flex',
@@ -64,7 +64,7 @@ export default function TournamentHeader({
                 justifyContent: 'space-between',
                 marginBottom: 'var(--spacing-3)'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--spacing-2)', minWidth: 0 }}>
                     {/* Status Badge */}
                     <span style={{
                         display: 'inline-flex',
@@ -73,12 +73,12 @@ export default function TournamentHeader({
                         padding: '4px 12px',
                         background: status.bg,
                         border: `1px solid ${status.color}`,
-                        borderRadius: '99px',
+                        borderRadius: "6px",
                         fontSize: '0.75rem',
                         fontWeight: 600,
                         color: status.color,
                         textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
+                        letterSpacing: "0"
                     }}>
                         {isActive && (
                             <span style={{
@@ -99,10 +99,10 @@ export default function TournamentHeader({
                         gap: '4px',
                         padding: '4px 10px',
                         background: tournament.mode === 'TEAM'
-                            ? 'rgba(78, 205, 196, 0.15)'
+                            ? "rgba(40,100,122,0.15)"
                             : 'rgba(255, 107, 107, 0.15)',
                         border: `1px solid ${tournament.mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-primary)'}`,
-                        borderRadius: '99px',
+                        borderRadius: "6px",
                         fontSize: '0.75rem',
                         fontWeight: 600,
                         color: tournament.mode === 'TEAM' ? 'var(--color-secondary)' : 'var(--color-primary)'
@@ -117,12 +117,12 @@ export default function TournamentHeader({
                         alignItems: 'center',
                         gap: '4px',
                         padding: '4px 10px',
-                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : 'rgba(155, 89, 182, 0.15)',
-                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : 'rgba(155, 89, 182, 0.5)'}`,
-                        borderRadius: '99px',
+                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : "rgba(0,107,80,0.15)",
+                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : "rgba(0,107,80,0.5)"}`,
+                        borderRadius: "6px",
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: tournament.isRanked ? '#d97706' : '#9b59b6'
+                        color: tournament.isRanked ? "#94600b" : "#006b50"
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
                         {tournament.isRanked ? t('rankedShort') : t('funShort')}
@@ -134,12 +134,12 @@ export default function TournamentHeader({
                         alignItems: 'center',
                         gap: '4px',
                         padding: '4px 10px',
-                        background: 'rgba(52, 152, 219, 0.1)',
-                        border: '1px solid rgba(52, 152, 219, 0.3)',
-                        borderRadius: '99px',
+                        background: "rgba(40,100,122,0.1)",
+                        border: "1px solid rgba(40,100,122,0.3)",
+                        borderRadius: "6px",
                         fontSize: '0.7rem',
                         fontWeight: 600,
-                        color: '#3498db',
+                        color: "#28647a",
                         whiteSpace: 'nowrap',
                         flexShrink: 0
                     }}>
@@ -155,10 +155,10 @@ export default function TournamentHeader({
                             padding: '4px 10px',
                             background: 'rgba(34, 197, 94, 0.1)',
                             border: '1px solid rgba(34, 197, 94, 0.3)',
-                            borderRadius: '99px',
+                            borderRadius: "6px",
                             fontSize: '0.75rem',
                             fontWeight: 600,
-                            color: '#22c55e'
+                            color: "#08754b"
                         }}>
                             {t('returnLegBadge')}
                         </span>
@@ -170,7 +170,7 @@ export default function TournamentHeader({
 
             {/* Title */}
             <h1 style={{
-                fontSize: 'clamp(1.5rem, 5vw, 2rem)',
+                fontSize: "2rem",
                 fontWeight: 700,
                 marginBottom: 'var(--spacing-3)',
                 lineHeight: 1.2
@@ -226,13 +226,15 @@ export default function TournamentHeader({
                             fontFamily: 'monospace',
                             fontSize: '1rem',
                             fontWeight: 700,
-                            letterSpacing: '1px',
+                            letterSpacing: "0",
                             color: 'var(--color-primary)'
                         }}>
                             {tournament.shortCode}
                         </span>
                         <button
                             onClick={copyLink}
+                            className="icon-button"
+                            aria-label={t('copyLink')}
                             style={{
                                 background: 'none',
                                 border: 'none',

@@ -2,12 +2,14 @@
 
 import { PlayerStats } from '@/lib/stats';
 import { useMemo, useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Trophy } from 'lucide-react';
+import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useReducedMotion } from 'framer-motion';
 
 export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }) {
     const t = useTranslations('home');
+    const reducedMotion = useReducedMotion();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -16,13 +18,13 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
 
     // Top 3 players by winrate
     const topPlayers = useMemo(() => {
-        return stats.sort((a, b) => b.winRate - a.winRate).slice(0, 3);
+        return [...stats].sort((a, b) => b.winRate - a.winRate).slice(0, 3);
     }, [stats]);
 
-    const NEON_COLORS = ['#d946ef', '#06b6d4', '#8b5cf6']; // Fuchsia, Cyan, Violet
+    const NEON_COLORS = ['#006b50', '#28647a', '#c34232'];
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-6)', gridRow: 'span 2' }}>
+        <section className="performance-section">
             <div className="widget-header">
                 <span className="widget-title">Performance</span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 700 }}>TOP 3</span>
@@ -71,11 +73,13 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
                                     const pName = props.payload[`name${pIndex + 1}`];
                                     return [`${value}%`, pName];
                                 }}
-                                labelFormatter={(label) => t('gameLabel', { n: label })}
+                                labelFormatter={(label) => t('gameLabel', { n: Number(label) })}
                             />
                             {/* Player 1 Area */}
                             {topPlayers[0] && (
                                 <Area
+                                    isAnimationActive={!reducedMotion}
+                                    animationDuration={300}
                                     type="monotone"
                                     dataKey="p1"
                                     name="p1"
@@ -89,6 +93,8 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
                             {/* Player 2 Area */}
                             {topPlayers[1] && (
                                 <Area
+                                    isAnimationActive={!reducedMotion}
+                                    animationDuration={300}
                                     type="monotone"
                                     dataKey="p2"
                                     name="p2"
@@ -102,6 +108,8 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
                             {/* Player 3 Area */}
                             {topPlayers[2] && (
                                 <Area
+                                    isAnimationActive={!reducedMotion}
+                                    animationDuration={300}
                                     type="monotone"
                                     dataKey="p3"
                                     name="p3"
@@ -117,104 +125,13 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
                 )}
             </div>
 
-            {/* Podium View */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-end',
-                gap: 'var(--spacing-3)',
-                marginTop: 'var(--spacing-6)',
-                height: '180px',
-                paddingBottom: '10px' // Space for names
-            }}>
-                {/* 2nd Place */}
-                {topPlayers[1] && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '30%' }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: NEON_COLORS[1], display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', marginBottom: '8px', boxShadow: `0 0 15px ${NEON_COLORS[1]}80` }}>
-                            2
-                        </div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                            {topPlayers[1].name}
-                        </div>
-                        <div style={{
-                            width: '100%',
-                            height: '80px',
-                            background: `linear-gradient(to top, ${NEON_COLORS[1]}20, ${NEON_COLORS[1]}80)`,
-                            borderRadius: '8px 8px 0 0',
-                            border: `1px solid ${NEON_COLORS[1]}`,
-                            borderBottom: 'none',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            paddingTop: '8px',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '0.9rem'
-                        }}>
-                            {(topPlayers[1].winRate * 100).toFixed(0)}%
-                        </div>
-                    </div>
-                )}
-
-                {/* 1st Place */}
-                {topPlayers[0] && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '35%', zIndex: 2 }}>
-                        <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: NEON_COLORS[0], display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem', color: 'white', marginBottom: '8px', boxShadow: `0 0 20px ${NEON_COLORS[0]}90` }}>
-                            <Trophy size={24} />
-                        </div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 700, textAlign: 'center', marginBottom: '4px', color: 'var(--color-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                            {topPlayers[0].name}
-                        </div>
-                        <div style={{
-                            width: '100%',
-                            height: '110px',
-                            background: `linear-gradient(to top, ${NEON_COLORS[0]}20, ${NEON_COLORS[0]}80)`,
-                            borderRadius: '12px 12px 0 0',
-                            border: `1px solid ${NEON_COLORS[0]}`,
-                            borderBottom: 'none',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            paddingTop: '12px',
-                            color: 'white',
-                            fontWeight: 800,
-                            fontSize: '1.1rem',
-                            boxShadow: `0 0 30px ${NEON_COLORS[0]}30`
-                        }}>
-                            {(topPlayers[0].winRate * 100).toFixed(0)}%
-                        </div>
-                    </div>
-                )}
-
-                {/* 3rd Place */}
-                {topPlayers[2] && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '30%' }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: NEON_COLORS[2], display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', marginBottom: '8px', boxShadow: `0 0 15px ${NEON_COLORS[2]}80` }}>
-                            3
-                        </div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                            {topPlayers[2].name}
-                        </div>
-                        <div style={{
-                            width: '100%',
-                            height: '60px',
-                            background: `linear-gradient(to top, ${NEON_COLORS[2]}20, ${NEON_COLORS[2]}80)`,
-                            borderRadius: '8px 8px 0 0',
-                            border: `1px solid ${NEON_COLORS[2]}`,
-                            borderBottom: 'none',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            paddingTop: '8px',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '0.9rem'
-                        }}>
-                            {(topPlayers[2].winRate * 100).toFixed(0)}%
-                        </div>
-                    </div>
-                )}
+            <div className="performance-ranking">
+                {topPlayers.map((player, index) => <Link key={player.id} href={`/players/${player.id}`} className="performance-row">
+                    <span className="score performance-rank" style={{ color: NEON_COLORS[index] }}>{String(index + 1).padStart(2, '0')}</span>
+                    <span className="performance-name">{player.name}<span className="performance-track"><span style={{ width: `${player.winRate * 100}%`, background: NEON_COLORS[index] }} /></span></span>
+                    <span className="score performance-value">{(player.winRate * 100).toFixed(0)}<small>%</small></span>
+                </Link>)}
             </div>
-        </div>
+        </section>
     );
 }

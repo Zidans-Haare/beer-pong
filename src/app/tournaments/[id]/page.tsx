@@ -165,7 +165,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
         .map((r: any) => ({ id: r.player.id, name: r.player.name, image: r.player.image }));
 
     return (
-        <div className="container" style={{ paddingBottom: '120px' }}>
+        <div className="container page-content" style={{ paddingBottom: '120px' }}>
             {typeof matchParam === 'string' && <MatchHighlighter matchParam={matchParam} />}
             <TournamentClientFeatures
                 tournamentId={tournament.id}
@@ -418,7 +418,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {tournament.type === 'GROUPS' && (
-                        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
+                        <section style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
                             <div>
                                 <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>{t('groupA')}</h3>
                                 <TournamentTable

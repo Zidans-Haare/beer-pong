@@ -33,7 +33,7 @@ export default function DrunkModeToggle() {
                 <div style={{
                     width: '100%',
                     height: '100%',
-                    borderRadius: '14px',
+                    borderRadius: "6px",
                     background: isDrunk ? '#ea580c' : 'var(--color-border-strong, rgba(0,0,0,0.2))',
                     transition: 'background 0.2s',
                 }} />
@@ -45,7 +45,7 @@ export default function DrunkModeToggle() {
                     height: '22px',
                     borderRadius: '50%',
                     background: '#ffffff',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                    boxShadow: "none",
                     transition: 'left 0.2s',
                 }} />
             </div>

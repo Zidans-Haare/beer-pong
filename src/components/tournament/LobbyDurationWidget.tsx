@@ -145,7 +145,7 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
         <div style={{ marginBottom: 'var(--spacing-6)' }}>
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
                 gap: 'var(--spacing-3)',
             }}>
                 {/* Estimated Duration — clickable */}
@@ -156,9 +156,9 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                     <div className="glass-panel" style={{
                         padding: 'var(--spacing-4)',
                         background: showFormula
-                            ? 'linear-gradient(135deg, rgba(190,35,213,0.12) 0%, rgba(147,51,234,0.06) 100%)'
-                            : 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 100%)',
-                        border: showFormula ? '1px solid rgba(190,35,213,0.35)' : '1px solid rgba(59, 130, 246, 0.3)',
+                            ? "var(--color-primary-light)"
+                            : "var(--color-primary-light)",
+                        border: showFormula ? '1px solid var(--color-lobby-border)' : '1px solid var(--color-border)',
                         display: 'flex', flexDirection: 'column', gap: '4px',
                         transition: 'all 0.2s ease',
                         height: '100%',
@@ -166,7 +166,7 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)' }}>
                                 <Hourglass size={16} />
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: "0" }}>
                                     {t('estimatedDuration')}
                                 </span>
                             </div>
@@ -192,13 +192,13 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                 {/* Estimated End */}
                 <div className="glass-panel" style={{
                     padding: 'var(--spacing-4)',
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.02) 100%)',
+                    background: "var(--color-primary-light)",
                     border: '1px solid rgba(16, 185, 129, 0.3)',
                     display: 'flex', flexDirection: 'column', gap: '4px'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-secondary)' }}>
                         <Clock size={16} />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: "0" }}>
                             {t('estimatedEnd')}
                         </span>
                     </div>
@@ -224,8 +224,8 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                     >
                         <div className="glass-panel" style={{
                             padding: 'var(--spacing-4)',
-                            background: 'linear-gradient(135deg, rgba(190,35,213,0.05) 0%, rgba(147,51,234,0.03) 100%)',
-                            border: '1px solid rgba(190,35,213,0.15)',
+                            background: "var(--color-primary-light)",
+                            border: "1px solid rgba(0,107,80,0.15)",
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-3)' }}>
                                 <div style={{ minWidth: 0 }}>

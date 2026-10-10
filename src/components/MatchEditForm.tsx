@@ -1,16 +1,21 @@
 'use client';
 
 import { updateMatchResult } from '@/app/actions/matches';
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTeamDisplayName } from '@/lib/team-utils';
-import { ChevronLeft, RefreshCw } from 'lucide-react';
+import { Check, ChevronLeft, LoaderCircle, RefreshCw, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import SheetDialog from './SheetDialog';
 
 export default function MatchEditForm({ match, onClose }: { match: any, onClose: () => void }) {
     const t = useTranslations('match');
     const router = useRouter();
     const isTeamMatch = !!match.team1Id && !!match.team2Id;
+    const fieldId = useId();
+    const savingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState('');
 
     // For team matches: use winnerTeamId, for solo: use winnerId
     const currentWinner = isTeamMatch ? match.winnerTeamId : match.winnerId;
@@ -43,10 +48,11 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!winnerId) return alert(t('selectWinner'));
+        if (savingRef.current) return;
+        if (!winnerId) return setError(t('selectWinner'));
         const loserCups = parseInt(loserCupsStr);
-        if (!isOT && (loserCupsStr === '' || isNaN(loserCups) || loserCups < 0 || loserCups > 9)) return alert(t('cupsError'));
-        if (isOT && otLoserCups === null) return alert(t('otCupsError'));
+        if (!isOT && (loserCupsStr === '' || isNaN(loserCups) || loserCups < 0 || loserCups > 9)) return setError(t('cupsError'));
+        if (isOT && otLoserCups === null) return setError(t('otCupsError'));
 
         const isTeam1Winner = isTeamMatch ? winnerId === match.team1Id : winnerId === match.player1Id;
 
@@ -64,15 +70,23 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
         const score1 = isTeam1Winner ? winnerScore : loserScore;
         const score2 = isTeam1Winner ? loserScore : winnerScore;
 
-        const result = await updateMatchResult(match.id, score1, score2);
-
-        if (!result.success) {
-            alert(result.error || t('saveError'));
-            return;
+        savingRef.current = true;
+        setIsSaving(true);
+        setError('');
+        try {
+            const result = await updateMatchResult(match.id, score1, score2);
+            if (!result.success) {
+                setError(result.error || t('saveError'));
+                return;
+            }
+            onClose();
+            router.refresh();
+        } catch {
+            setError(t('saveError'));
+        } finally {
+            savingRef.current = false;
+            setIsSaving(false);
         }
-
-        onClose();
-        router.refresh();
     }
 
     const handleWinnerClick = (id: string) => {
@@ -94,193 +108,47 @@ export default function MatchEditForm({ match, onClose }: { match: any, onClose:
     };
 
     return (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '350px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)' }}>
-                <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-text)' }}>
-                    {match.isPlayed ? t('correctResult') : t('editResult')}
-                </h3>
-
-                <form onSubmit={handleSubmit}>
-                    <p style={{ marginBottom: 'var(--spacing-2)', textAlign: 'center', color: 'var(--color-text-dim)' }}>{t('whoWon')}</p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
-                        <button
-                            type="button"
-                            onClick={() => handleWinnerClick(isTeamMatch ? match.team1Id : match.player1Id)}
-                            style={{
-                                padding: 'var(--spacing-4)',
-                                border: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? 'var(--color-surface)' : 'var(--color-bg)',
-                                color: 'var(--color-text)',
-                                borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer',
-                                fontWeight: winnerId === (isTeamMatch ? match.team1Id : match.player1Id) ? 'bold' : 'normal'
-                            }}
-                        >
-                            {isTeamMatch ? team1Name : player1Name}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleWinnerClick(isTeamMatch ? match.team2Id : match.player2Id)}
-                            style={{
-                                padding: 'var(--spacing-4)',
-                                border: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? '2px solid var(--color-success)' : '1px solid var(--color-border)',
-                                background: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? 'var(--color-surface)' : 'var(--color-bg)',
-                                color: 'var(--color-text)',
-                                borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer',
-                                fontWeight: winnerId === (isTeamMatch ? match.team2Id : match.player2Id) ? 'bold' : 'normal'
-                            }}
-                        >
-                            {isTeamMatch ? team2Name : player2Name}
-                        </button>
+        <SheetDialog title={match.isPlayed ? t('correctResult') : t('editResult')} onClose={() => { if (!savingRef.current) onClose(); }} className="score-sheet">
+            <form onSubmit={handleSubmit}>
+                <fieldset disabled={isSaving} className="score-fields">
+                    <legend className="form-label">{t('whoWon')}</legend>
+                    <div className="winner-options">
+                        {[
+                            { id: isTeamMatch ? match.team1Id : match.player1Id, name: isTeamMatch ? team1Name : player1Name },
+                            { id: isTeamMatch ? match.team2Id : match.player2Id, name: isTeamMatch ? team2Name : player2Name },
+                        ].map(side => <button key={side.id} type="button" className="winner-option" aria-pressed={winnerId === side.id} onClick={() => handleWinnerClick(side.id)}>
+                            <span className="winner-marker">{winnerId === side.id ? <Check size={18} /> : null}</span>
+                            <span>{side.name}</span>
+                        </button>)}
                     </div>
-
-                    {winnerId && !isOT && (
-                        <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                            <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center' }}>
-                                {t('loserCups')}
-                            </label>
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                placeholder="z.B. 6"
-                                value={loserCupsStr}
-                                onChange={e => {
-                                    const v = e.target.value.replace(/[^0-9]/g, '');
-                                    if (v === '' || (parseInt(v) >= 0 && parseInt(v) <= 9)) setLoserCupsStr(v);
-                                }}
-                                autoFocus
-                                onFocus={e => e.target.select()}
-                                style={{
-                                    display: 'block',
-                                    width: '100%',
-                                    padding: '14px',
-                                    fontSize: '2rem',
-                                    fontWeight: 700,
-                                    textAlign: 'center',
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    color: 'var(--color-text)',
-                                    marginBottom: 'var(--spacing-3)',
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => { setIsOT(true); setLoserCupsStr(''); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    borderRadius: '100px',
-                                    border: '1px solid var(--color-border)',
-                                    background: 'var(--color-surface)',
-                                    color: 'var(--color-text-dim)',
-                                    fontWeight: 700,
-                                    fontSize: '0.9rem',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                <RefreshCw size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-                                {t('overtime')}
-                            </button>
+                    {winnerId && !isOT && <div className="form-stack">
+                        <div className="form-field">
+                            <label htmlFor={fieldId} className="form-label">{t('loserCups')}</label>
+                            <input id={fieldId} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={1} className="score-input" placeholder="0–9" value={loserCupsStr}
+                                onChange={event => { const value = event.target.value.replace(/[^0-9]/g, ''); if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 9)) setLoserCupsStr(value); }}
+                                onFocus={event => event.target.select()} />
                         </div>
-                    )}
-
-                    {winnerId && isOT && (
-                        <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                            <div style={{
-                                textAlign: 'center',
-                                marginBottom: 'var(--spacing-3)',
-                                padding: '6px 14px',
-                                background: 'rgba(99,102,241,0.1)',
-                                border: '1px solid var(--color-primary)',
-                                borderRadius: '100px',
-                                display: 'inline-block',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                color: 'var(--color-primary)',
-                                width: '100%',
-                                boxSizing: 'border-box',
-                            }}>
-                                {otRounds > 0 ? t('otRound', { round: otRounds + 1 }) : t('otBase')}
-                            </div>
-                            <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', color: 'var(--color-text)', textAlign: 'center', fontSize: '0.9rem' }}>
-                                {t('loserCupsOT')}
-                                {otLoserCups !== null && (
-                                    <span style={{ marginLeft: '8px', color: 'var(--color-primary)', fontWeight: 700 }}>→ {otLoserCups}</span>
-                                )}
-                            </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: 'var(--spacing-3)' }}>
-                                {[0,1,2].map(n => (
-                                    <button
-                                        key={n}
-                                        type="button"
-                                        onClick={() => setOtLoserCups(n)}
-                                        style={{
-                                            aspectRatio: '1',
-                                            borderRadius: '50%',
-                                            border: otLoserCups === n ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                            background: otLoserCups === n ? 'var(--color-primary)' : 'var(--color-surface)',
-                                            color: otLoserCups === n ? '#fff' : 'var(--color-text)',
-                                            fontWeight: 700,
-                                            fontSize: '1rem',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.15s',
-                                        }}
-                                    >
-                                        {n}
-                                    </button>
-                                ))}
-                                <button
-                                    type="button"
-                                    onClick={() => handleOtLoserCups(3)}
-                                    style={{
-                                        aspectRatio: '1',
-                                        borderRadius: '50%',
-                                        border: '1px solid var(--color-border)',
-                                        background: 'var(--color-surface)',
-                                        color: 'var(--color-text-dim)',
-                                        fontWeight: 700,
-                                        fontSize: '0.75rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s',
-                                    }}
-                                    title="Beide treffen alle 3 → nächste OT-Runde"
-                                >
-                                    OT+
-                                </button>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => { setIsOT(false); setOtRounds(0); setOtLoserCups(null); }}
-                                style={{
-                                    width: '100%',
-                                    padding: '6px',
-                                    borderRadius: '100px',
-                                    border: '1px solid var(--color-border)',
-                                    background: 'transparent',
-                                    color: 'var(--color-text-dim)',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                <ChevronLeft size={14} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                                {t('back')}
-                            </button>
+                        <div className="cup-options" aria-label={t('loserCups')}>
+                            {Array.from({ length: 10 }, (_, number) => <button key={number} type="button" className="cup-option" aria-pressed={loserCupsStr === String(number)} onClick={() => setLoserCupsStr(String(number))}>{number}</button>)}
                         </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-                        <button type="button" onClick={onClose} className="btn" style={{ flex: 1, border: '1px solid var(--color-border)', color: 'var(--color-text-dim)' }}>{t('cancel')}</button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={!winnerId || (!isOT && loserCupsStr === '') || (isOT && otLoserCups === null)}>{t('save')}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                        <button type="button" className="btn btn-secondary" onClick={() => { setIsOT(true); setLoserCupsStr(''); }}><RefreshCw size={18} />{t('overtime')}</button>
+                    </div>}
+                    {winnerId && isOT && <div className="form-stack">
+                        <div className="ot-round" role="status"><RefreshCw size={18} />{otRounds > 0 ? t('otRound', { round: otRounds + 1 }) : t('otBase')}</div>
+                        <div className="form-label">{t('loserCupsOT')}</div>
+                        <div className="cup-options ot-options">
+                            {[0, 1, 2].map(number => <button key={number} type="button" className="cup-option" aria-pressed={otLoserCups === number} onClick={() => setOtLoserCups(number)}>{number}</button>)}
+                            <button type="button" className="cup-option" onClick={() => handleOtLoserCups(3)} title={t('nextOT')}>OT+</button>
+                        </div>
+                        <button type="button" className="btn btn-quiet" onClick={() => { setIsOT(false); setOtRounds(0); setOtLoserCups(null); }}><ChevronLeft size={18} />{t('back')}</button>
+                    </div>}
+                </fieldset>
+                {error && <p className="form-error" role="alert">{error}</p>}
+                <div className="sheet-actions">
+                    <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isSaving}>{t('cancel')}</button>
+                    <button type="submit" className="btn btn-primary" disabled={isSaving || !winnerId || (!isOT && loserCupsStr === '') || (isOT && otLoserCups === null)}>{isSaving ? <LoaderCircle size={18} className="loading-spin" /> : <Save size={18} />}{t('save')}</button>
+                </div>
+            </form>
+        </SheetDialog>
     );
 }

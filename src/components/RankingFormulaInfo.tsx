@@ -20,12 +20,12 @@ export default function RankingFormulaInfo() {
                     alignItems: 'center',
                     gap: '5px',
                     padding: '4px 10px',
-                    borderRadius: 'var(--radius-full)',
+                    borderRadius: "var(--radius-md)",
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     color: open ? 'var(--color-primary)' : 'var(--color-text-subtle)',
                     background: open ? 'var(--color-primary-light)' : 'transparent',
-                    border: `1px solid ${open ? 'rgba(190,35,213,0.25)' : 'var(--color-border)'}`,
+                    border: `1px solid ${open ? "rgba(0,107,80,0.25)" : 'var(--color-border)'}`,
                     transition: 'all 0.2s ease',
                 }}
             >
@@ -49,8 +49,8 @@ export default function RankingFormulaInfo() {
                     >
                         <div style={{
                             padding: 'var(--spacing-4)',
-                            background: 'linear-gradient(135deg, rgba(190,35,213,0.05) 0%, rgba(147,51,234,0.03) 100%)',
-                            border: '1px solid rgba(190,35,213,0.15)',
+                            background: "var(--color-primary-light)",
+                            border: "1px solid rgba(0,107,80,0.15)",
                             borderRadius: 'var(--radius-lg)',
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
@@ -70,7 +70,7 @@ export default function RankingFormulaInfo() {
 
                             {/* Sorting cascade */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-4)' }}>
-                                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0" }}>
                                     {t('sortingCascade')}
                                 </div>
                                 {[
@@ -81,8 +81,8 @@ export default function RankingFormulaInfo() {
                                     <div key={item.rank} style={{
                                         padding: '6px 8px',
                                         borderRadius: 'var(--radius-sm)',
-                                        background: 'rgba(190,35,213,0.04)',
-                                        border: '1px solid rgba(190,35,213,0.08)',
+                                        background: "rgba(0,107,80,0.04)",
+                                        border: "1px solid rgba(0,107,80,0.08)",
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0 }}>{item.rank}</span>
@@ -97,7 +97,7 @@ export default function RankingFormulaInfo() {
                             </div>
 
                             {/* Column formulas */}
-                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--spacing-2)' }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", marginBottom: 'var(--spacing-2)' }}>
                                 {t('columnFormulas')}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -108,7 +108,7 @@ export default function RankingFormulaInfo() {
                                 ].map(item => (
                                     <div key={item.col} style={{ padding: '4px 8px', borderRadius: 'var(--radius-sm)' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0 }}>
+                                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", flexShrink: 0 }}>
                                                 {item.col}
                                             </span>
                                             <span style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>
@@ -126,8 +126,8 @@ export default function RankingFormulaInfo() {
                             <div style={{
                                 marginTop: 'var(--spacing-3)',
                                 padding: '6px 10px',
-                                background: 'rgba(8,145,178,0.06)',
-                                border: '1px solid rgba(8,145,178,0.15)',
+                                background: "rgba(40,100,122,0.06)",
+                                border: "1px solid rgba(40,100,122,0.15)",
                                 borderRadius: 'var(--radius-sm)',
                                 fontSize: '0.75rem',
                                 color: 'var(--color-text-dim)',

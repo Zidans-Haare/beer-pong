@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 export default function ServiceWorkerUpdate() {
+    const t = useTranslations('pwaUpdate');
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
@@ -75,7 +77,7 @@ export default function ServiceWorkerUpdate() {
                 exit={{ y: 100, opacity: 0 }}
                 style={{
                     position: 'fixed',
-                    bottom: '80px', // Above bottom nav
+                    bottom: 'calc(var(--nav-height) + env(safe-area-inset-bottom) + 12px)',
                     left: 'var(--spacing-4)',
                     right: 'var(--spacing-4)',
                     zIndex: 1000,
@@ -88,39 +90,32 @@ export default function ServiceWorkerUpdate() {
                     alignItems: 'center',
                     gap: 'var(--spacing-4)',
                     padding: '12px 16px',
-                    background: 'rgba(59, 130, 246, 0.9)',
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    background: 'var(--color-surface)',
+                    borderColor: 'var(--color-border-strong)',
+                    boxShadow: "none",
                     maxWidth: '500px',
                     width: '100%'
                 }}>
                     <div style={{ flex: 1 }}>
-                        <h4 style={{ color: 'white', fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px' }}>Neues Update verfügbar!</h4>
-                        <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>Lade die App neu, um die neuesten Features zu nutzen.</p>
+                        <h4 style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: '2px' }}>{t('title')}</h4>
+                        <p style={{ color: 'var(--color-text-dim)', fontSize: '0.8rem' }}>{t('description')}</p>
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button
                             onClick={() => setUpdateAvailable(false)}
-                            style={{ padding: '8px', color: 'rgba(255,255,255,0.6)' }}
+                            className="icon-button"
+                            aria-label={t('dismiss')}
                         >
                             <X size={18} />
                         </button>
                         <button
                             onClick={updateApp}
-                            className="btn"
-                            style={{
-                                background: 'white',
-                                color: 'var(--color-primary)',
-                                fontSize: '0.8rem',
-                                padding: '8px 16px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontWeight: 700
-                            }}
+                            className="icon-button"
+                            aria-label={t('reload')}
+                            data-tooltip={t('reload')}
                         >
-                            <RefreshCw size={14} /> Jetzt laden
+                            <RefreshCw size={20} />
                         </button>
                     </div>
                 </div>

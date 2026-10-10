@@ -43,7 +43,7 @@ export default function CostEmailButton({ tournamentId }: { tournamentId: string
             </div>
 
             {state === 'done' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontWeight: 600, fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: "#08754b", fontWeight: 600, fontSize: '0.85rem' }}>
                     <CheckCircle size={16} /> {result?.sent} Mail{result?.sent !== 1 ? 's' : ''} gesendet
                 </div>
             ) : state === 'error' ? (

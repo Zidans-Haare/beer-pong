@@ -13,12 +13,12 @@ interface AvatarProps {
 // Deterministic color based on name
 function getAvatarColor(name: string): string {
     const colors = [
-        'linear-gradient(135deg, #FF6B6B 0%, #d946ef 100%)',
-        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-        'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-        'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
-        'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+        "#006b50",
+        "#28647a",
+        "#c34232",
+        "#08754b",
+        "#94600b",
+        "#36463e",
     ];
 
     let hash = 0;
@@ -46,7 +46,7 @@ export default function Avatar({ src, name, size = 28, isGuest = false, style = 
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: isGuest ? '#9b59b6' : getAvatarColor(name || ''),
+        background: isGuest ? "#006b50" : getAvatarColor(name || ''),
         fontSize: size * 0.4,
         fontWeight: 600,
         color: 'white',

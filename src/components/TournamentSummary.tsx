@@ -152,7 +152,7 @@ export default function TournamentSummary({
                     padding: 'var(--spacing-8)',
                     marginBottom: 'var(--spacing-8)',
                     textAlign: 'center',
-                    background: 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.1))',
+                    background: "var(--color-primary-light)",
                     border: '2px solid gold'
                 }}>
                     <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
@@ -233,7 +233,7 @@ export default function TournamentSummary({
             {/* Statistics */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
                 gap: 'var(--spacing-4)',
                 marginBottom: 'var(--spacing-8)'
             }}>

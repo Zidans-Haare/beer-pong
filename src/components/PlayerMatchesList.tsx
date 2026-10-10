@@ -70,7 +70,7 @@ export default function PlayerMatchesList({ matches, currentPlayerId }: PlayerMa
                         <span style={{
                             display: 'inline-block',
                             padding: '4px 12px',
-                            borderRadius: '99px',
+                            borderRadius: "6px",
                             background: 'var(--color-primary)',
                             color: 'white',
                             fontSize: '0.8rem',

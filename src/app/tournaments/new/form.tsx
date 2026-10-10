@@ -55,23 +55,10 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
     }
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-6)', maxWidth: '600px', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
-            {/* Background decorative glow */}
-            <div style={{
-                position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px',
-                background: 'radial-gradient(circle, rgba(217, 70, 239, 0.15) 0%, rgba(0,0,0,0) 70%)', pointerEvents: 'none'
-            }} />
+        <div className="create-tournament-form" style={{ maxWidth: '680px', margin: '0 auto' }}>
 
-            <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-6)' }}>
-                <div style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: '64px', height: '64px', borderRadius: '50%',
-                    background: 'var(--surface-color)', boxShadow: 'var(--shadow-glow-primary)',
-                    marginBottom: 'var(--spacing-4)', border: '1px solid var(--color-primary)'
-                }}>
-                    <Trophy size={32} color="var(--color-primary)" />
-                </div>
-                <h1 className="title-gradient" style={{ fontSize: '1.8rem', marginBottom: 'var(--spacing-2)' }}>{t('newTitle')}</h1>
+            <div className="auth-heading">
+                <h1 style={{ fontSize: '2.25rem', marginBottom: 'var(--spacing-2)' }}>{t('newTitle')}</h1>
                 <p className="subtitle">{t('newSubtitle')}</p>
             </div>
 
@@ -128,10 +115,10 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 {/* Timing Section - Card Style */}
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
                     <label style={{ display: 'block', marginBottom: 'var(--spacing-3)', fontWeight: '600', color: 'var(--color-text)' }}>{t('timing')}</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)', padding: '4px', background: 'var(--color-surface)', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-3)', padding: '4px', background: 'var(--color-surface)', borderRadius: "var(--radius-md)", border: '1px solid var(--color-border)' }}>
                         <label style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer',
-                            padding: '10px', borderRadius: 'var(--radius-full)',
+                            padding: '10px', borderRadius: "var(--radius-md)",
                             background: startImmediately ? 'var(--color-primary)' : 'transparent',
                             color: startImmediately ? 'white' : 'var(--color-text-dim)',
                             transition: 'all 0.3s ease',
@@ -142,7 +129,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         </label>
                         <label style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer',
-                            padding: '10px', borderRadius: 'var(--radius-full)',
+                            padding: '10px', borderRadius: "var(--radius-md)",
                             background: !startImmediately ? 'var(--color-primary)' : 'transparent',
                             color: !startImmediately ? 'white' : 'var(--color-text-dim)',
                             transition: 'all 0.3s ease',
@@ -175,7 +162,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         <button type="button" onClick={() => setMode('SOLO')}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: 'var(--spacing-4)',
-                                background: mode === 'SOLO' ? 'rgba(217, 70, 239, 0.1)' : 'var(--color-surface)',
+                                background: mode === 'SOLO' ? "rgba(0,107,80,0.1)" : 'var(--color-surface)',
                                 border: mode === 'SOLO' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-lg)', cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative'
                             }}>
@@ -189,7 +176,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         <button type="button" onClick={() => setMode('TEAM')}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: 'var(--spacing-4)',
-                                background: mode === 'TEAM' ? 'rgba(6, 182, 212, 0.1)' : 'var(--color-surface)',
+                                background: mode === 'TEAM' ? "rgba(40,100,122,0.1)" : 'var(--color-surface)',
                                 border: mode === 'TEAM' ? '2px solid var(--color-secondary)' : '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-lg)', cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative'
                             }}>
@@ -211,7 +198,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             padding: '12px', borderRadius: 'var(--radius-lg)',
                             border: isRanked ? '2px solid #fbbf24' : '1px solid var(--color-border)',
                             background: isRanked ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
-                            color: isRanked ? '#d97706' : 'var(--color-text-dim)',
+                            color: isRanked ? "#94600b" : 'var(--color-text-dim)',
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
@@ -221,8 +208,8 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         style={{
                             padding: '12px', borderRadius: 'var(--radius-lg)',
                             border: !isRanked ? '2px solid #a855f7' : '1px solid var(--color-border)',
-                            background: !isRanked ? 'rgba(168, 85, 247, 0.1)' : 'transparent',
-                            color: !isRanked ? '#9333ea' : 'var(--color-text-dim)',
+                            background: !isRanked ? "rgba(0,107,80,0.1)" : 'transparent',
+                            color: !isRanked ? "#006b50" : 'var(--color-text-dim)',
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
@@ -256,7 +243,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             width: '40px',
                             height: '24px',
                             backgroundColor: hasReturnLeg ? 'var(--color-primary)' : 'var(--color-border-strong)',
-                            borderRadius: '24px',
+                            borderRadius: "6px",
                             cursor: 'pointer',
                             transition: 'background-color 0.3s ease',
                             flexShrink: 0
@@ -271,7 +258,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             borderRadius: '50%',
                             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
                             transform: hasReturnLeg ? 'translateX(16px)' : 'translateX(0)',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                            boxShadow: "none"
                         }} />
                         {hasReturnLeg && <input type="hidden" name="hasReturnLeg" value="on" />}
                     </div>
@@ -284,7 +271,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                 <div style={{ background: 'var(--color-surface-secondary)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
                         <label style={{ fontWeight: '600', color: 'var(--color-text)' }}>{t('tableCount')}</label>
-                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)', background: 'var(--color-surface)', padding: '4px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)', background: 'var(--color-surface)', padding: '4px 12px', borderRadius: "var(--radius-md)", border: '1px solid var(--color-border)' }}>
                             {tableCount}
                         </span>
                     </div>
@@ -324,12 +311,12 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             style={{
                                 position: 'relative', width: '40px', height: '24px',
                                 backgroundColor: offersGuestRoom ? 'var(--color-primary)' : 'var(--color-border-strong)',
-                                borderRadius: '24px', cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0
+                                borderRadius: "6px", cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0
                             }}>
                             <div style={{
                                 position: 'absolute', top: '4px', left: '4px', width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%',
                                 transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-                                transform: offersGuestRoom ? 'translateX(16px)' : 'translateX(0)', boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                                transform: offersGuestRoom ? 'translateX(16px)' : 'translateX(0)', boxShadow: "none"
                             }} />
                             {offersGuestRoom && <input type="hidden" name="offersGuestRoom" value="on" />}
                         </div>
@@ -427,12 +414,12 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                             style={{
                                 position: 'relative', width: '40px', height: '24px',
                                 backgroundColor: usePaypal ? 'var(--color-primary)' : 'var(--color-border-strong)',
-                                borderRadius: '24px', cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0,
+                                borderRadius: "6px", cursor: 'pointer', transition: 'background-color 0.3s ease', flexShrink: 0,
                             }}>
                             <div style={{
                                 position: 'absolute', top: '4px', left: '4px', width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%',
                                 transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-                                transform: usePaypal ? 'translateX(16px)' : 'translateX(0)', boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                transform: usePaypal ? 'translateX(16px)' : 'translateX(0)', boxShadow: "none",
                             }} />
                             {usePaypal && <input type="hidden" name="usePaypal" value="on" />}
                         </div>
@@ -448,7 +435,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         <Users size={16} color="var(--color-secondary)" />
                         {t('addPlayers')}
                         {selectedPlayerIds.length > 0 && (
-                            <span style={{ marginLeft: 'auto', fontSize: '0.7rem', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.7rem', background: 'var(--color-primary)', color: 'white', borderRadius: "var(--radius-md)", padding: '2px 8px', whiteSpace: 'nowrap' }}>
                                 {selectedPlayerIds.length} {t('selected')}
                             </span>
                         )}
@@ -484,7 +471,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                             display: 'flex', alignItems: 'center', gap: '10px',
                                             padding: '8px 12px', borderRadius: 'var(--radius-md)',
                                             cursor: isHost ? 'default' : 'pointer', transition: 'all 0.15s ease',
-                                            background: selected ? 'rgba(217, 70, 239, 0.12)' : 'var(--color-surface)',
+                                            background: selected ? "rgba(0,107,80,0.12)" : 'var(--color-surface)',
                                             border: selected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                         }}
                                     >
@@ -500,7 +487,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                             {p.name}
                                         </span>
                                         {isHost && (
-                                            <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: 'rgba(217,70,239,0.12)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
+                                            <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.12)", padding: '2px 8px', borderRadius: "var(--radius-md)" }}>
                                                 Host
                                             </span>
                                         )}
@@ -513,8 +500,8 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
 
                 <button type="submit" className="btn btn-primary" style={{
                     marginTop: 'var(--spacing-2)', padding: '16px', fontSize: '1.2rem',
-                    borderRadius: 'var(--radius-full)', background: 'var(--gradient-primary)',
-                    boxShadow: 'var(--shadow-glow-primary)', letterSpacing: '0.5px'
+                    borderRadius: "var(--radius-md)", background: 'var(--gradient-primary)',
+                    boxShadow: "none", letterSpacing: "0"
                 }}>
                     {startImmediately ? t('startNow') : t('planTournament')}
                 </button>

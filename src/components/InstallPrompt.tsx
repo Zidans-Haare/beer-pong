@@ -56,8 +56,8 @@ export default function InstallPrompt() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 'var(--spacing-4)',
-                background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%)',
-                border: '1px solid rgba(99,102,241,0.2)',
+                background: "var(--color-primary-light)",
+                border: "1px solid rgba(0,107,80,0.2)",
             }}>
                 <div>
                     <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t('prompt')}</div>
@@ -93,7 +93,7 @@ export default function InstallPrompt() {
                                 position: 'fixed',
                                 inset: 0,
                                 background: 'rgba(0,0,0,0.6)',
-                                backdropFilter: 'blur(4px)',
+                                backdropFilter: "none",
                                 zIndex: 9998,
                             }}
                         />
@@ -114,7 +114,7 @@ export default function InstallPrompt() {
                                 background: 'var(--color-surface)',
                                 borderRadius: '24px 24px 0 0',
                                 padding: '28px 24px 40px',
-                                boxShadow: '0 -8px 40px rgba(0,0,0,0.3)',
+                                boxShadow: "none",
                             }}
                         >
                             {/* Close */}
@@ -161,7 +161,7 @@ export default function InstallPrompt() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <div style={{
                                         width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                        background: "var(--color-primary)",
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         color: 'white', fontWeight: 700, fontSize: '1rem',
                                     }}>1</div>
@@ -169,7 +169,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step1Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: 'rgba(99,102,241,0.12)', borderRadius: '8px',
+                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             <Share size={15} /> {t('share')}
@@ -183,7 +183,7 @@ export default function InstallPrompt() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <div style={{
                                         width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                        background: "var(--color-primary)",
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         color: 'white', fontWeight: 700, fontSize: '1rem',
                                     }}>2</div>
@@ -191,7 +191,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step2Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: 'rgba(99,102,241,0.12)', borderRadius: '8px',
+                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             &quot;{t('addToHome')}&quot;
@@ -205,7 +205,7 @@ export default function InstallPrompt() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <div style={{
                                         width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                        background: "var(--color-primary)",
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         color: 'white', fontWeight: 700, fontSize: '1rem',
                                     }}>3</div>
@@ -213,7 +213,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step3Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: 'rgba(99,102,241,0.12)', borderRadius: '8px',
+                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             &quot;{t('add')}&quot; <ChevronRight size={14} />

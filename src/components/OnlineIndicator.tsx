@@ -47,13 +47,13 @@ export default function OnlineIndicator() {
     return (
         <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '7px',
-            padding: '5px 14px', borderRadius: 'var(--radius-full)',
+            padding: '5px 14px', borderRadius: "var(--radius-md)",
             background: 'var(--color-surface)', border: '1px solid var(--color-border)',
             fontSize: '0.82rem', color: 'var(--color-text-dim)', fontWeight: 500,
         }}>
             <span style={{
                 width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-                background: count > 1 ? '#22c55e' : '#94a3b8',
+                background: count > 1 ? "#08754b" : '#94a3b8',
                 boxShadow: count > 1 ? '0 0 6px #22c55e88' : 'none',
             }} />
             {label}

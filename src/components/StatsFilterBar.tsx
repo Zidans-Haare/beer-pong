@@ -70,11 +70,11 @@ export default function StatsFilterBar({
             {/* Row 1: Period */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Calendar size={14} color="var(--color-text-dim)" style={{ flexShrink: 0 }} />
-                <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-surface-secondary)', borderRadius: "var(--radius-md)", padding: '3px', border: '1px solid var(--color-border)' }}>
                     {PERIOD_KEYS.map((key) => (
                         <button key={key} onClick={() => navigate(buildUrl({ period: key }))}
                             style={{
-                                padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
+                                padding: '6px 12px', borderRadius: "var(--radius-md)", border: 'none',
                                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                                 background: activePeriod === key ? 'var(--color-primary)' : 'transparent',
                                 color: activePeriod === key ? 'white' : 'var(--color-text-dim)',
@@ -90,11 +90,11 @@ export default function StatsFilterBar({
             <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
             {/* Row 2: Ranked / All */}
-            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: 'var(--radius-full)', padding: '3px', border: '1px solid var(--color-border)', justifySelf: 'start' }}>
+            <div style={{ display: 'inline-flex', background: 'var(--color-surface-secondary)', borderRadius: "var(--radius-md)", padding: '3px', border: '1px solid var(--color-border)', justifySelf: 'start' }}>
                 <button onClick={() => navigate(buildUrl({ ranked: true }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
-                        padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
+                        padding: '6px 12px', borderRadius: "var(--radius-md)", border: 'none',
                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         background: onlyRanked ? 'var(--color-primary)' : 'transparent',
                         color: onlyRanked ? 'white' : 'var(--color-text-dim)',
@@ -105,7 +105,7 @@ export default function StatsFilterBar({
                 <button onClick={() => navigate(buildUrl({ ranked: false }))}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
-                        padding: '6px 12px', borderRadius: 'var(--radius-full)', border: 'none',
+                        padding: '6px 12px', borderRadius: "var(--radius-md)", border: 'none',
                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         background: !onlyRanked ? 'var(--color-primary)' : 'transparent',
                         color: !onlyRanked ? 'white' : 'var(--color-text-dim)',
@@ -124,9 +124,9 @@ export default function StatsFilterBar({
                     onClick={() => setShowPlayerPicker(v => !v)}
                     style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
-                        padding: '6px 12px', borderRadius: 'var(--radius-full)',
+                        padding: '6px 12px', borderRadius: "var(--radius-md)",
                         border: selectedPlayerIds.length > 0 ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                        background: selectedPlayerIds.length > 0 ? 'rgba(217,70,239,0.1)' : 'var(--color-surface-secondary)',
+                        background: selectedPlayerIds.length > 0 ? "rgba(0,107,80,0.1)" : 'var(--color-surface-secondary)',
                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         color: selectedPlayerIds.length > 0 ? 'var(--color-primary)' : 'var(--color-text-dim)',
                     }}>
@@ -176,7 +176,7 @@ export default function StatsFilterBar({
                                             display: 'flex', alignItems: 'center', gap: '8px',
                                             padding: '6px 8px', borderRadius: 'var(--radius-md)',
                                             cursor: 'pointer',
-                                            background: selected ? 'rgba(217,70,239,0.12)' : 'transparent',
+                                            background: selected ? "rgba(0,107,80,0.12)" : 'transparent',
                                         }}>
                                         <div style={{
                                             width: '16px', height: '16px', borderRadius: '3px', flexShrink: 0,

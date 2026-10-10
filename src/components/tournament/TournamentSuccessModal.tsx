@@ -90,7 +90,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
             alignItems: 'center',
             justifyContent: 'center',
             padding: 'var(--spacing-4)',
-            backdropFilter: 'blur(5px)'
+            backdropFilter: "none"
         }}>
             <div className="glass-panel" style={{
                 maxWidth: '450px',
@@ -121,11 +121,11 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                 </p>
 
                 <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--spacing-4)' }}>
-                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{t('notifySection')}</h3>
+                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: "0", fontWeight: 600 }}>{t('notifySection')}</h3>
                     <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                         <button onClick={handleSendEmails} disabled={emailSending || !!emailResult} className="btn" style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
-                            background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)',
+                            background: "rgba(40,100,122,0.15)", color: "#28647a", border: "1px solid rgba(40,100,122,0.3)",
                             opacity: emailSending || !!emailResult ? 0.7 : 1, cursor: emailSending || !!emailResult ? 'default' : 'pointer'
                         }}>
                             <Mail size={18} />

@@ -19,8 +19,8 @@ const paceIconMap: Record<PaceKey, React.ElementType> = {
 };
 
 const paceColors: Record<PaceKey, string> = {
-    Blitzschnell: '#06b6d4',
-    Schnellspieler: '#22c55e',
+    Blitzschnell: "#28647a",
+    Schnellspieler: "#08754b",
     Normal: 'var(--color-text-dim)',
     Genießer: '#f97316',
     Unbekannt: 'var(--color-text-dim)',
@@ -56,8 +56,8 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                         padding: 'var(--spacing-4)',
                         textAlign: 'center',
                         transition: 'all 0.2s ease',
-                        background: showFormula ? 'linear-gradient(135deg, rgba(190,35,213,0.10) 0%, rgba(147,51,234,0.05) 100%)' : undefined,
-                        border: showFormula ? '1px solid rgba(190,35,213,0.30)' : undefined,
+                        background: showFormula ? "var(--color-primary-light)" : undefined,
+                        border: showFormula ? '1px solid var(--color-lobby-border)' : undefined,
                     }}>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: paceColor }}>
                             {t(`labels.${paceKey}`)}
@@ -91,7 +91,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
             {/* Fastest / Slowest */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-4)' }}>
                 <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-3)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ECDC4' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: "#28647a" }}>
                         {formatDuration(paceStats.fastestMatch)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{t('fastest')}</div>
@@ -117,8 +117,8 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                     >
                         <div className="glass-panel" style={{
                             padding: 'var(--spacing-4)',
-                            background: 'linear-gradient(135deg, rgba(190,35,213,0.05) 0%, rgba(147,51,234,0.03) 100%)',
-                            border: '1px solid rgba(190,35,213,0.15)',
+                            background: "var(--color-primary-light)",
+                            border: "1px solid rgba(0,107,80,0.15)",
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -152,10 +152,10 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                     marginTop: '8px',
                                     padding: '8px',
                                     borderRadius: 'var(--radius-sm)',
-                                    background: 'rgba(190,35,213,0.06)',
-                                    borderTop: '1px solid rgba(190,35,213,0.15)',
+                                    background: "rgba(0,107,80,0.06)",
+                                    borderTop: "1px solid rgba(0,107,80,0.15)",
                                 }}>
-                                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", marginBottom: '6px' }}>
                                         {t('classification')}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -164,7 +164,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                                 padding: '3px 6px',
                                                 borderRadius: '4px',
-                                                background: key === paceKey ? 'rgba(190,35,213,0.10)' : 'transparent',
+                                                background: key === paceKey ? "rgba(0,107,80,0.10)" : 'transparent',
                                                 fontWeight: key === paceKey ? 700 : 400,
                                             }}>
                                                 <span style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>

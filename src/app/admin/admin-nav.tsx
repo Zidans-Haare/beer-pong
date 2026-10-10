@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Users, Radio, LayoutDashboard, Settings, Trophy,
-    UserCheck, MessageSquare, UserX, User, KeyRound,
+    UserCheck, MessageSquare, UserX, User, KeyRound, ChevronDown, ChevronRight,
 } from 'lucide-react';
+import { useState } from 'react';
+import SheetDialog from '@/components/SheetDialog';
 import { useTranslations } from 'next-intl';
 import './admin-nav.css';
 
@@ -33,6 +35,7 @@ function isActive(pathname: string, href: string): boolean {
 export default function AdminNav({ pendingCount }: Props) {
     const pathname = usePathname();
     const t = useTranslations('admin.nav');
+    const [sectionOpen, setSectionOpen] = useState(false);
 
     const sections: NavSection[] = [
         {
@@ -67,23 +70,28 @@ export default function AdminNav({ pendingCount }: Props) {
         },
     ];
     const allItems = sections.flatMap(s => s.items);
+    const currentItem = allItems.find(item => isActive(pathname, item.href)) || allItems[0];
 
     return (
         <>
+            <button type="button" className="admin-section-button" onClick={() => setSectionOpen(true)} aria-haspopup="dialog" aria-expanded={sectionOpen}>
+                <span className="eyebrow">ADMIN</span><span>{currentItem.label}</span><ChevronDown size={20} />
+                {pendingCount > 0 && <span className="badge">{pendingCount}</span>}
+            </button>
             {/* Desktop Sidebar */}
             <aside
                 className="admin-sidebar"
                 style={{
                     width: '220px',
-                    height: '100vh',
+                    height: 'calc(100dvh - var(--header-height))',
                     position: 'fixed',
                     left: 0,
-                    top: 0,
+                    top: 'var(--header-height)',
                     zIndex: 50,
                     flexDirection: 'column',
                     background: 'var(--color-surface)',
                     borderRight: '1px solid var(--color-border)',
-                    backdropFilter: 'blur(12px)',
+                    backdropFilter: "none",
                 }}
             >
                 {/* Logo area */}
@@ -94,7 +102,7 @@ export default function AdminNav({ pendingCount }: Props) {
                     <div style={{
                         fontSize: '0.6rem',
                         fontWeight: 700,
-                        letterSpacing: '0.15em',
+                        letterSpacing: "0",
                         textTransform: 'uppercase',
                         color: 'var(--color-text-subtle)',
                         marginBottom: '3px',
@@ -105,12 +113,12 @@ export default function AdminNav({ pendingCount }: Props) {
                     <div style={{
                         fontSize: '1.05rem',
                         fontWeight: 800,
-                        background: 'var(--gradient-primary)',
+                        background: "none",
                         WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
+                        WebkitTextFillColor: "currentColor",
                         backgroundClip: 'text',
                         fontFamily: 'var(--font-heading)',
-                        letterSpacing: '-0.01em',
+                        letterSpacing: "0",
                     }}>
                         Admin
                     </div>
@@ -130,7 +138,7 @@ export default function AdminNav({ pendingCount }: Props) {
                             <div style={{
                                 fontSize: '0.6rem',
                                 fontWeight: 700,
-                                letterSpacing: '0.12em',
+                                letterSpacing: "0",
                                 textTransform: 'uppercase',
                                 color: 'var(--color-text-subtle)',
                                 fontFamily: 'monospace',
@@ -154,7 +162,7 @@ export default function AdminNav({ pendingCount }: Props) {
                                                 <span style={{
                                                     background: 'var(--color-primary)',
                                                     color: '#fff',
-                                                    borderRadius: '100px',
+                                                    borderRadius: "6px",
                                                     fontSize: '10px',
                                                     fontWeight: 700,
                                                     padding: '1px 6px',
@@ -183,74 +191,14 @@ export default function AdminNav({ pendingCount }: Props) {
                 </div>
             </aside>
 
-            {/* Mobile Bottom Nav — horizontal scrollable */}
-            <nav
-                className="admin-mobile-nav admin-mobile-scroll"
-                style={{
-                    position: 'fixed',
-                    bottom: '78px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 'calc(100% - 24px)',
-                    maxWidth: '500px',
-                    zIndex: 60,
-                    display: 'none',
-                    background: 'var(--color-surface)',
-                    backdropFilter: 'blur(16px)',
-                    borderRadius: '16px',
-                    border: '1px solid var(--color-border)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                    overflowX: 'auto',
-                    scrollbarWidth: 'none',
-                    padding: '6px 8px',
-                }}
-            >
-                <div style={{
-                    display: 'flex',
-                    gap: '2px',
-                    minWidth: 'max-content',
-                }}>
-                    {allItems.map(item => {
-                        const active = isActive(pathname, item.href);
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`admin-mobile-link${active ? ' active' : ''}`}
-                            >
-                                <div style={{ position: 'relative' }}>
-                                    <item.icon size={17} />
-                                    {item.badge && item.badge > 0 ? (
-                                        <span style={{
-                                            position: 'absolute',
-                                            top: '-4px',
-                                            right: '-6px',
-                                            background: 'var(--color-primary)',
-                                            color: '#fff',
-                                            borderRadius: '100px',
-                                            fontSize: '9px',
-                                            fontWeight: 700,
-                                            padding: '1px 4px',
-                                            lineHeight: 1.2,
-                                        }}>
-                                            {item.badge}
-                                        </span>
-                                    ) : null}
-                                </div>
-                                <span style={{
-                                    fontSize: '9px',
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.04em',
-                                    whiteSpace: 'nowrap',
-                                }}>
-                                    {item.label}
-                                </span>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </nav>
+            <SheetDialog open={sectionOpen} title="Admin" onClose={() => setSectionOpen(false)}>
+                {sections.map(section => <section key={section.title} className="admin-menu-section">
+                    <h3 className="eyebrow">{section.title}</h3>
+                    <div className="more-list">{section.items.map(item => <Link key={item.href} href={item.href} className="more-link" aria-current={isActive(pathname, item.href) ? 'page' : undefined} onClick={() => setSectionOpen(false)}>
+                        <item.icon size={21} /><span>{item.label}</span>{!!item.badge && <span className="badge">{item.badge}</span>}<ChevronRight size={18} />
+                    </Link>)}</div>
+                </section>)}
+            </SheetDialog>
         </>
     );
 }

@@ -1,4 +1,9 @@
 {
+  "broadcast": { "back": "Back to tournament", "zoomOut": "Zoom out", "zoomIn": "Zoom in", "rotate": "Rotate", "mirror": "Mirror", "flip": "Switch camera", "start": "Start stream", "stop": "Stop stream" },
+  "pwaUpdate": { "title": "Update available", "description": "A new version is ready.", "dismiss": "Later", "reload": "Reload now" },
+  "connection": { "online": "Back online", "offline": "No connection" },
+  "tv": { "fullscreen": "Fullscreen", "exitFullscreen": "Exit fullscreen" },
+  "ui": { "close": "Close", "back": "Back", "save": "Save", "cancel": "Cancel", "loading": "Loading..." },
   "auth": {
     "loginWithEmail": "or with email",
     "password": "Password",
@@ -15,6 +20,14 @@
     "registrationError": "Registration error"
   },
   "nav": {
+    "home": "Home",
+    "more": "More",
+    "settings": "Settings",
+    "profile": "Profiles",
+    "rules": "Rules",
+    "streaming": "Streaming",
+    "navigation": "Main navigation",
+    "register": "Register",
     "join": "Join",
     "tournaments": "Tournaments",
     "players": "Players",
@@ -23,6 +36,7 @@
     "chat": "Chat"
   },
   "home": {
+    "join": "Join",
     "welcomeBack": "Welcome back",
     "getStarted": "Get started",
     "aloneOnline": "Just you online",
@@ -144,6 +158,10 @@
   },
   "players": {
     "title": "Players",
+    "myProfile": "My profile",
+    "openProfile": "Open profile",
+    "accountSettings": "Settings",
+    "allPlayers": "All players",
     "noPlayers": "No players registered yet",
     "namePlaceholder": "Name (required)",
     "nickname": "Nickname",
@@ -199,6 +217,8 @@
     }
   },
   "join": {
+    "retry": "Try again",
+    "joining": "Joining...",
     "title": "Join Tournament",
     "subtitle": "Enter the 6-digit code or scan the QR code",
     "invalidCode": "Please enter a valid 6-digit code",
@@ -438,6 +458,7 @@
     "bestDefense": "Best Defense ({cups} conceded)"
   },
   "match": {
+    "nextOT": "Both clear all three: next overtime round",
     "editResult": "Enter Result",
     "correctResult": "Correct Result",
     "whoWon": "Who won?",
@@ -457,6 +478,7 @@
     "player2": "Player 2"
   },
   "chat": {
+    "newMessages": "New messages",
     "noMessages": "No messages yet. Say hello!",
     "me": "Me",
     "sendError": "Error sending message.",
@@ -648,6 +670,7 @@
     "security": "Security"
   },
   "notifications": {
+    "delete": "Delete notification",
     "enabled": "Push notifications enabled!",
     "error": "Error enabling notifications",
     "title": "Notifications",

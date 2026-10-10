@@ -15,26 +15,18 @@ export default async function Home() {
   const stats = await getAllPlayerStats();
 
   return (
-    <div className="container" style={{ paddingBottom: '80px' }}>
+    <div className="container">
 
       <HeroSection userName={session?.user?.name} />
 
-      <div style={{ marginTop: 'var(--spacing-4)', marginBottom: 'var(--spacing-2)' }}>
+      <div className="home-tools">
         <DrunkModeToggle />
+        <DrunkModeConditional show="sober">
+          <OnlineIndicator />
+        </DrunkModeConditional>
       </div>
 
-      <DrunkModeConditional show="sober">
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--spacing-6)', marginBottom: 'var(--spacing-6)' }}>
-          <OnlineIndicator />
-        </div>
-      </DrunkModeConditional>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: 'var(--spacing-6)',
-        marginTop: 'var(--spacing-6)'
-      }}>
+      <div className="home-feed">
         {/* Install Prompt */}
         <InstallPrompt />
 

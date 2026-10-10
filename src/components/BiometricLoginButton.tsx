@@ -29,7 +29,7 @@ export default function BiometricLoginButton({
     if (
       typeof window !== 'undefined' &&
       'PublicKeyCredential' in window &&
-      'get' in PublicKeyCredential
+      typeof navigator.credentials?.get === 'function'
     ) {
       setIsSupported(true);
     }
@@ -102,7 +102,7 @@ export default function BiometricLoginButton({
         className="btn"
         style={{
           width: '100%',
-          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          background: "var(--color-primary)",
           color: 'white',
           display: 'flex',
           alignItems: 'center',

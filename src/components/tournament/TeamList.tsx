@@ -33,7 +33,7 @@ export default function TeamList({ teams }: { teams: Team[] }) {
                     color: 'var(--color-text-dim)',
                     background: 'var(--color-surface-hover)',
                     padding: '2px 8px',
-                    borderRadius: '99px'
+                    borderRadius: "6px"
                 }}>
                     {teams.length}
                 </span>
@@ -41,7 +41,7 @@ export default function TeamList({ teams }: { teams: Team[] }) {
 
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
                 gap: 'var(--spacing-3)'
             }}>
                 {teams.map((team, index) => {
@@ -86,7 +86,7 @@ function TeamMemberRow({ member, isGuest }: { member: { name: string; image?: st
                 size={20}
                 isGuest={isGuest}
             />
-            <span style={{ color: isGuest ? '#9b59b6' : 'var(--color-text)' }}>
+            <span style={{ color: isGuest ? "#006b50" : 'var(--color-text)' }}>
                 {member.name} {isGuest && '(Gast)'}
             </span>
         </div>

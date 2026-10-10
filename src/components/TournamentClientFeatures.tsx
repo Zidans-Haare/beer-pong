@@ -82,7 +82,7 @@ export default function TournamentClientFeatures({
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            boxShadow: "none",
             zIndex: 100,
           }}
         >

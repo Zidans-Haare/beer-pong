@@ -18,7 +18,7 @@ export default async function TournamentsArchivePage() {
     ]);
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
+        <div className="container page-content" style={{ paddingBottom: '100px' }}>
             <div style={{ marginBottom: 'var(--spacing-8)' }}>
                 <Link
                     href="/tournaments"
@@ -45,7 +45,7 @@ export default async function TournamentsArchivePage() {
                     {t('noArchived')}
                 </p>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.85 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)', opacity: 0.85 }}>
                     {completedTournaments.map((tournament) => (
                         <Link key={tournament.id} href={`/tournaments/${tournament.id}`} className="glass-panel card-interactive" style={{
                             padding: 'var(--spacing-6)',
@@ -60,13 +60,13 @@ export default async function TournamentsArchivePage() {
                                 <h3 style={{ fontSize: '1.3rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700 }}>{tournament.name}</h3>
                                 <span style={{
                                     padding: '4px 10px',
-                                    borderRadius: 'var(--radius-full)',
+                                    borderRadius: "var(--radius-md)",
                                     background: 'var(--color-surface-hover)',
                                     color: 'var(--color-text-dim)',
                                     fontSize: '0.7rem',
                                     fontWeight: 700,
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
+                                    letterSpacing: "0",
                                     whiteSpace: 'nowrap',
                                 }}>
                                     {t('ended')}

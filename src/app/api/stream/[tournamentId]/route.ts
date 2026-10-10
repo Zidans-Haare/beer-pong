@@ -35,6 +35,7 @@ function cleanupStore() {
 async function checkAccess(tournamentId: string) {
     const session = await auth();
     if (!session?.user?.id) return false;
+    const userId = session.user.id;
 
     // Admin override
     // @ts-ignore
@@ -48,7 +49,7 @@ async function checkAccess(tournamentId: string) {
     if (!tournament) return false;
 
     const isHost = tournament.hostId === session.user.id;
-    const isParticipant = tournament.participants.some((p: any) => p.player?.userId === session.user.id);
+    const isParticipant = tournament.participants.some((p: any) => p.player?.userId === userId);
 
     return isHost || isParticipant;
 }

@@ -38,8 +38,9 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 margin: '0 auto',
                 display: 'flex',
                 flexDirection: 'column',
-                height: 'calc(100dvh - 198px)',
+                height: 'calc(100dvh - var(--header-height) - env(safe-area-inset-top))',
                 minHeight: '300px',
+                padding: '0 20px',
             }}
         >
             {children}

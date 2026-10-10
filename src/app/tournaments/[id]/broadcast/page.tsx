@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, CameraOff, FlipHorizontal, Loader2, RefreshCw, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { ArrowLeft, Camera, CameraOff, FlipHorizontal, Loader2, RefreshCw, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 const POLL_MS = 1500;
 
@@ -25,6 +27,7 @@ async function fetchIceServers(): Promise<RTCIceServer[]> {
 type Status = 'idle' | 'connecting' | 'connected' | 'error';
 
 export default function BroadcastPage({ params }: { params: Promise<{ id: string }> }) {
+    const t = useTranslations('broadcast');
     const [tournamentId, setTournamentId] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -255,10 +258,10 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
     useEffect(() => () => { stop(); }, [stop]);
 
-    const statusColor = status === 'connected' ? '#4ade80'
-        : status === 'connecting' ? 'orange'
-        : status === 'error' ? '#ef4444'
-        : 'rgba(255,255,255,0.5)';
+    const statusColor = status === 'connected' ? "#08754b"
+        : status === 'connecting' ? 'var(--color-warning)'
+        : status === 'error' ? 'var(--color-error)'
+        : 'var(--color-text-dim)';
 
     const statusLabel = status === 'connected'
         ? `● Live${viewerCount > 0 ? ` · ${viewerCount} Zuschauer` : ' — TV empfängt'}`
@@ -269,12 +272,12 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
     const isRunning = status === 'connecting' || status === 'connected';
 
     return (
-        <div
+        <div className="broadcast-screen"
             onPointerDown={resetHideTimer}
             style={{
-                position: 'fixed', inset: 0, zIndex: 9999, background: '#000',
+                position: 'fixed', inset: 0, zIndex: 9999, background: 'var(--color-bg)',
                 display: 'flex', flexDirection: 'column',
-                fontFamily: 'system-ui, sans-serif', color: '#fff', userSelect: 'none',
+                fontFamily: 'var(--font-family)', color: 'var(--color-text)', userSelect: 'none',
             }}
         >
             {/* Camera preview */}
@@ -290,18 +293,20 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
             {/* Top bar: status + quality selector */}
             <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0,
-                padding: '14px 16px',
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)',
+                padding: 'max(10px, env(safe-area-inset-top)) 16px 10px',
+                background: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 opacity: controlsVisible ? 1 : 0,
                 transition: 'opacity 0.4s ease',
                 pointerEvents: controlsVisible ? 'auto' : 'none',
             }}>
+                {tournamentId && <Link href={`/tournaments/${tournamentId}`} className="icon-button" aria-label={t('back')}><ArrowLeft size={22} /></Link>}
                 <span style={{ fontSize: '0.82rem', fontWeight: 700, color: statusColor }}>
                     {statusLabel}
                 </span>
 
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)' }}>
                     {(QUALITY_PRESETS as any)[quality].height}p
                 </span>
             </div>
@@ -309,29 +314,33 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
             {/* Bottom controls */}
             <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '12px 16px 32px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+                padding: '12px 16px max(16px, env(safe-area-inset-bottom))',
+                background: 'var(--color-surface)',
+                borderTop: '1px solid var(--color-border)',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
                 opacity: controlsVisible ? 1 : 0,
                 transition: 'opacity 0.4s ease',
                 pointerEvents: controlsVisible ? 'auto' : 'none',
             }}>
                 {/* Row 0: quality */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="broadcast-quality">
                     {(['low', 'medium', 'high'] as Quality[]).map(q => (
                         <button
                             key={q}
+                            type="button"
+                            aria-pressed={quality === q}
                             onClick={() => changeQuality(q)}
                             style={{
-                                padding: '4px 12px',
-                                borderRadius: '20px',
+                                minHeight: '48px',
+                                padding: '8px 6px',
+                                borderRadius: "6px",
                                 border: 'none',
                                 cursor: 'pointer',
                                 fontSize: '0.75rem',
                                 fontWeight: 700,
-                                background: quality === q ? '#fff' : 'rgba(255,255,255,0.15)',
-                                color: quality === q ? '#000' : '#fff',
-                                backdropFilter: 'blur(6px)',
+                                background: quality === q ? 'var(--color-primary-light)' : 'var(--color-surface-secondary)',
+                                color: quality === q ? 'var(--color-primary)' : 'var(--color-text-dim)',
+                                backdropFilter: "none",
                                 transition: 'all 0.15s',
                             }}
                         >
@@ -341,27 +350,27 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
                 </div>
 
                 {/* Row 1: zoom + rotate */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button onClick={() => setZoom(z => { const n = Math.max(1, +(z - 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title="Rauszoomen">
+                <div className="broadcast-tools">
+                    <button onClick={() => setZoom(z => { const n = Math.max(1, +(z - 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title={t('zoomOut')} aria-label={t('zoomOut')}>
                         <ZoomOut size={20} />
                     </button>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, minWidth: '38px', textAlign: 'center', color: 'rgba(255,255,255,0.8)' }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 700, minWidth: '38px', textAlign: 'center', color: 'var(--color-text)' }}>
                         {zoom.toFixed(2)}x
                     </span>
-                    <button onClick={() => setZoom(z => { const n = Math.min(4, +(z + 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title="Reinzoomen">
+                    <button onClick={() => setZoom(z => { const n = Math.min(4, +(z + 0.25).toFixed(2)); signalTransform(rotation, n, mirrored); return n; })} style={iconBtn(false)} title={t('zoomIn')} aria-label={t('zoomIn')}>
                         <ZoomIn size={20} />
                     </button>
 
-                    <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+                    <div style={{ width: 1, height: 28, background: 'var(--color-border)', margin: '0 4px' }} />
 
-                    <button onClick={() => setRotation(r => { const n = ((r + 90) % 360) as 0|90|180|270; signalTransform(n, zoom, mirrored); return n; })} style={iconBtn(false)} title="Drehen">
+                    <button onClick={() => setRotation(r => { const n = ((r + 90) % 360) as 0|90|180|270; signalTransform(n, zoom, mirrored); return n; })} style={iconBtn(false)} title={t('rotate')} aria-label={t('rotate')}>
                         <RotateCw size={20} />
                     </button>
-                    <button onClick={() => setMirrored(m => { signalTransform(rotation, zoom, !m); return !m; })} style={iconBtn(mirrored)} title="Spiegeln">
+                    <button onClick={() => setMirrored(m => { signalTransform(rotation, zoom, !m); return !m; })} style={iconBtn(mirrored)} title={t('mirror')} aria-label={t('mirror')} aria-pressed={mirrored}>
                         <FlipHorizontal size={20} />
                     </button>
                     {hasMultipleCams && (
-                        <button onClick={flipCamera} style={iconBtn(false)} title="Kamera wechseln">
+                        <button onClick={flipCamera} style={iconBtn(false)} title={t('flip')} aria-label={t('flip')}>
                             <RefreshCw size={20} />
                         </button>
                     )}
@@ -369,11 +378,11 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
                 {/* Row 2: main action */}
                 {!isRunning ? (
-                    <button onClick={start} style={mainBtn('#fff', '#000')} title="Stream starten">
+                    <button onClick={start} style={mainBtn('var(--color-primary)', '#fff')} title={t('start')} aria-label={t('start')}>
                         <Camera size={28} />
                     </button>
                 ) : (
-                    <button onClick={stop} style={mainBtn('#ef4444', '#fff')} title="Stream beenden">
+                    <button onClick={stop} style={mainBtn('var(--color-error)', '#fff')} title={t('stop')} aria-label={t('stop')}>
                         {status === 'connecting'
                             ? <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
                             : <CameraOff size={28} />}
@@ -398,11 +407,11 @@ export default function BroadcastPage({ params }: { params: Promise<{ id: string
 
 function iconBtn(active: boolean): React.CSSProperties {
     return {
-        width: 52, height: 52, borderRadius: '50%',
-        background: active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.15)',
+        width: 48, height: 48, borderRadius: '6px',
+        background: active ? 'var(--color-primary-light)' : 'var(--color-surface-secondary)',
         border: 'none', cursor: 'pointer', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
-        color: active ? '#000' : '#fff', backdropFilter: 'blur(6px)',
+        color: active ? 'var(--color-primary)' : 'var(--color-text-dim)', backdropFilter: "none",
     };
 }
 
@@ -411,6 +420,6 @@ function mainBtn(bg: string, color: string): React.CSSProperties {
         width: 72, height: 72, borderRadius: '50%',
         background: bg, border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color, boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        color, boxShadow: "none",
     };
 }

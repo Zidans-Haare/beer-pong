@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getUsers, resetUserPassword, deleteUser } from '@/app/actions/admin';
 import { Search, Key, Trash2, Smartphone } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import SheetDialog from '@/components/SheetDialog';
 import { useTranslations } from 'next-intl';
 
 type User = {
@@ -100,7 +101,7 @@ export default function UsersPage() {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                         <thead>
-                            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: "0" }}>
                                 <th style={{ padding: 'var(--spacing-4)' }}>User</th>
                                 <th style={{ padding: 'var(--spacing-4)' }}>{t('colStats')}</th>
                                 <th style={{ padding: 'var(--spacing-4)', textAlign: 'right' }}>{t('colActions')}</th>
@@ -111,7 +112,7 @@ export default function UsersPage() {
                                 <tr><td colSpan={3} style={{ padding: 'var(--spacing-8)', textAlign: 'center', color: 'var(--color-text-dim)' }}>{t('loading')}</td></tr>
                             ) : filteredUsers.map(user => (
                                 <tr key={user.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.2s' }}>
-                                    <td style={{ padding: 'var(--spacing-4)' }}>
+                                    <td style={{ padding: 'var(--spacing-4)' }} data-label="User">
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
                                             <Avatar
                                                 src={user.image}
@@ -127,13 +128,15 @@ export default function UsersPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td style={{ padding: 'var(--spacing-4)', fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                                    <td style={{ padding: 'var(--spacing-4)', fontSize: '0.9rem', color: 'var(--color-text-dim)' }} data-label={t('colStats')}>
                                         {user._count.hostedTournaments} {t('tournamentsHosted')}
                                     </td>
-                                    <td style={{ padding: 'var(--spacing-4)', textAlign: 'right' }}>
+                                    <td style={{ padding: 'var(--spacing-4)', textAlign: 'right' }} data-label={t('colActions')}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-2)' }}>
                                             <button
                                                 onClick={() => setSelectedUser(user)}
+                                                className="icon-button"
+                                                aria-label={`${t('changePassword')}: ${user.name}`}
                                                 style={{ padding: '8px', color: 'var(--color-text-dim)', background: 'var(--color-surface-hover)', borderRadius: 'var(--radius-sm)' }}
                                                 title={t('changePassword')}
                                             >
@@ -156,18 +159,14 @@ export default function UsersPage() {
 
             {/* Password Reset Modal */}
             {selectedUser && (
-                <div style={{
-                    position: 'fixed', inset: 0, zIndex: 100,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: 'var(--spacing-4)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)'
-                }}>
-                    <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: 'var(--spacing-6)' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 'var(--spacing-2)' }}>{t('passwordReset')}</h3>
+                <SheetDialog title={t('passwordReset')} onClose={() => { if (resetStatus !== 'loading') setSelectedUser(null); }}>
                         <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-6)' }}>{t('newPasswordFor')} <span style={{ color: 'var(--color-secondary)' }}>{selectedUser.name}</span>.</p>
 
                         <form onSubmit={handleResetPassword} style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
                             <input
-                                type="text"
+                                type="password"
+                                autoComplete="new-password"
+                                aria-label={t('newPasswordPlaceholder')}
                                 placeholder={t('newPasswordPlaceholder')}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
@@ -179,10 +178,12 @@ export default function UsersPage() {
                                 autoFocus
                             />
 
-                            <div style={{ display: 'flex', gap: 'var(--spacing-3)' }}>
+                            <div className="sheet-actions">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedUser(null)}
+                                    disabled={resetStatus === 'loading'}
+                                    className="btn btn-secondary"
                                     style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--color-surface-hover)' }}
                                 >
                                     {t('cancel')}
@@ -190,7 +191,7 @@ export default function UsersPage() {
                                 <button
                                     type="submit"
                                     disabled={!password || resetStatus === 'loading'}
-                                    className="btn-primary" // Reuse global class
+                                    className="btn btn-primary"
                                     style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
                                 >
                                     {resetStatus === 'loading' ? t('saving') :
@@ -202,8 +203,7 @@ export default function UsersPage() {
                                 <p style={{ color: 'var(--color-error)', textAlign: 'center', fontSize: '0.9rem' }}>{resetStatus}</p>
                             )}
                         </form>
-                    </div>
-                </div>
+                </SheetDialog>
             )}
         </div>
     );

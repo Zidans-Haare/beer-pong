@@ -113,7 +113,7 @@ export default function GroupMatches({ matches, tableCount, readOnly = false }: 
                                                         background: 'var(--color-primary)',
                                                         color: 'white',
                                                         padding: '1px 6px',
-                                                        borderRadius: 'var(--radius-full)',
+                                                        borderRadius: "var(--radius-md)",
                                                         fontSize: '0.6rem',
                                                         fontWeight: 'bold',
                                                         boxShadow: 'var(--shadow-sm)',

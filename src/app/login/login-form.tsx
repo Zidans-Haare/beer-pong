@@ -1,46 +1,44 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useId } from 'react';
+import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { authenticate } from '@/app/actions/auth';
 import BiometricLoginButton from '@/components/BiometricLoginButton';
 import { useTranslations } from 'next-intl';
 
 export default function LoginForm() {
     const t = useTranslations('auth');
-    const [errorMessage, dispatch] = useActionState(authenticate, undefined);
+    const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+    const formId = useId();
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px' }}>
-            <h1 className="title-gradient" style={{ textAlign: 'center', marginBottom: 'var(--spacing-6)' }}>Login</h1>
+        <div>
+            <div className="auth-heading"><div className="eyebrow">BIER PONG</div><h1>Login</h1></div>
 
             {/* Biometric Login - Primary Option */}
             <BiometricLoginButton />
 
             {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', margin: 'var(--spacing-6) 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-                <span style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('loginWithEmail')}</span>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-            </div>
+            <div className="auth-divider">{t('loginWithEmail')}</div>
 
             {/* Traditional Login Form */}
-            <form action={dispatch}>
-                <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>Email</label>
-                    <input name="email" type="email" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+            <form action={dispatch} className="form-stack">
+                <div className="form-field">
+                    <label className="form-label" htmlFor={`${formId}-email`}>{t('email')}</label>
+                    <input id={`${formId}-email`} name="email" type="email" autoComplete="username" autoCapitalize="none" required />
                 </div>
 
-                <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('password')}</label>
-                    <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+                <div className="form-field">
+                    <label className="form-label" htmlFor={`${formId}-password`}>{t('password')}</label>
+                    <input id={`${formId}-password`} name="password" type="password" autoComplete="current-password" required />
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{t('signIn')}</button>
+                <button type="submit" className="btn btn-primary" disabled={isPending}>{isPending ? <LoaderCircle size={18} className="loading-spin" /> : <ArrowRight size={18} />}{t('signIn')}</button>
 
-                {errorMessage && <p style={{ color: 'var(--color-error)', marginTop: 'var(--spacing-4)', textAlign: 'center' }}>{errorMessage}</p>}
+                {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
             </form>
 
-            <p style={{ marginTop: 'var(--spacing-4)', textAlign: 'center', color: 'var(--color-text-dim)' }}>
+            <p className="auth-footer">
                 {t('noAccount')} <a href="/register" style={{ color: 'var(--color-primary)' }}>{t('register')}</a>
             </p>
         </div>

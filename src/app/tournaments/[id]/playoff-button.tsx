@@ -31,7 +31,7 @@ export default function StartPlayoffsButton({ tournamentId }: { tournamentId: st
                 justifyContent: 'center',
                 gap: '8px',
                 width: '100%',
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                background: "var(--color-primary)",
                 color: '#1a1a2e',
                 fontWeight: 600,
                 padding: 'var(--spacing-4)',

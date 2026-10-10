@@ -24,8 +24,8 @@ export default function DemoBanner() {
 
     return (
         <div style={{
-            background: 'linear-gradient(90deg, rgba(190,35,213,0.10) 0%, rgba(190,35,213,0.05) 100%)',
-            borderBottom: '1px solid rgba(190, 35, 213, 0.2)',
+            background: "var(--color-primary-light)",
+            borderBottom: "1px solid rgba(0,107,80,0.2)",
             padding: '8px 16px',
             display: 'flex',
             flexWrap: 'wrap',
@@ -38,7 +38,7 @@ export default function DemoBanner() {
                 fontSize: '0.75rem',
                 fontWeight: 600,
                 color: 'var(--color-primary)',
-                letterSpacing: '0.06em',
+                letterSpacing: "0",
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
             }}>
@@ -57,13 +57,13 @@ export default function DemoBanner() {
                             padding: '3px 8px',
                             fontSize: '0.7rem',
                             fontWeight: 600,
-                            background: active === i ? 'rgba(190,35,213,0.2)' : 'transparent',
-                            border: '1px solid rgba(190,35,213,0.25)',
+                            background: active === i ? "rgba(0,107,80,0.2)" : 'transparent',
+                            border: "1px solid rgba(0,107,80,0.25)",
                             borderRight: i === 0 ? 'none' : undefined,
                             borderRadius: i === 0 ? '6px 0 0 6px' : '0',
                             color: active === i ? 'var(--color-primary)' : 'var(--color-text-dim)',
                             cursor: 'pointer',
-                            letterSpacing: '0.03em',
+                            letterSpacing: "0",
                         }}
                     >
                         {c.label}
@@ -79,7 +79,7 @@ export default function DemoBanner() {
                         alignItems: 'center',
                         gap: '8px',
                         background: 'rgba(255,255,255,0.9)',
-                        border: '1px solid rgba(190,35,213,0.35)',
+                        border: "1px solid rgba(0,107,80,0.35)",
                         borderLeft: 'none',
                         borderRadius: '0 6px 6px 0',
                         padding: '3px 10px 3px 12px',

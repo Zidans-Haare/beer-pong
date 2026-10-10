@@ -45,20 +45,20 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     const paceStats = await getPlayerPaceStats(player.id);
 
     return (
-        <div className="container">
+        <div className="container page-content">
             <Link href="/players" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>
                 &larr; {t('back')}
             </Link>
 
-            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', marginBottom: 'var(--spacing-8)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: 'var(--spacing-8)', alignItems: 'center' }}>
+            <header className="profile-header">
+                <div className="profile-identity">
                     <Avatar
                         src={player.image ? `${player.image}?v=3` : null}
                         name={player.name}
-                        size={100}
+                        size={80}
                     />
-                    <div>
-                        <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>{player.name}</h1>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <h1 style={{ marginBottom: 'var(--spacing-2)', fontSize: '2.25rem' }}>{player.name}</h1>
                         {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>&quot;{player.motto}&quot;</p>}
 
                         {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
@@ -70,10 +70,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 </div>
 
                 {session?.user && <AdminDeleteButton id={player.id} type="Player" deleteAction={deletePlayer} />}
-            </div>
+            </header>
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-4)', width: '100%', marginTop: 'var(--spacing-4)' }}>
+            <div className="profile-stats">
                 <StatBox label={t('wins')} value={matchesWon} />
                 <StatBox label={t('games')} value={matchesPlayed} />
                 <StatBox label={t('winRate')} value={`${winRate}%`} />
@@ -114,9 +114,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
 function StatBox({ label, value }: { label: string, value: string | number }) {
     return (
-        <div style={{ background: 'var(--color-surface)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{value}</div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
+        <div className="profile-stat">
+            <div className="score" style={{ fontSize: '2.5rem', color: 'var(--color-primary)' }}>{value}</div>
+            <div className="eyebrow" style={{ margin: '8px 0 0' }}>{label}</div>
         </div>
     );
 }

@@ -52,7 +52,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
                 background: 'var(--color-surface)',
                 borderRadius: '20px 20px 0 0',
                 padding: '24px 24px 40px',
-                boxShadow: '0 -8px 32px rgba(0,0,0,0.3)',
+                boxShadow: "none",
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>
@@ -96,7 +96,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
                         <button
                             onClick={() => { onSave(null); onClose(); }}
                             style={{
-                                flex: 1, padding: '14px', borderRadius: '12px',
+                                flex: 1, padding: '14px', borderRadius: "6px",
                                 border: '1px solid var(--color-border)',
                                 background: 'transparent', color: 'var(--color-text-dim)',
                                 fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer',
@@ -108,7 +108,7 @@ function PriceSheet({ label, currentPrice, onSave, onClose }: {
                     <button
                         onClick={submit}
                         style={{
-                            flex: 2, padding: '14px', borderRadius: '12px',
+                            flex: 2, padding: '14px', borderRadius: "6px",
                             border: 'none', background: 'var(--color-primary)',
                             color: '#fff', fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -182,11 +182,11 @@ export default function BringList({ tournamentId, initialItems, currentUserId }:
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 'var(--spacing-3)', color: 'var(--color-text-dim)' }}>
                 <ShoppingBag size={13} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: "0" }}>
                     {t('title')}
                 </span>
                 {totalCost > 0 && (
-                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', background: 'rgba(190,35,213,0.1)', padding: '1px 7px', borderRadius: '99px' }}>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.1)", padding: '1px 7px', borderRadius: "6px" }}>
                         {t('totalCost', { amount: totalCost.toFixed(2) })}
                     </span>
                 )}
@@ -283,12 +283,12 @@ function CategoryCard({ categoryKey, label, icon, items, myItem, currentUserId, 
                     <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', display: 'flex', flexShrink: 0 }}>{icon}</span>
                     <span style={{ fontSize: '0.82rem', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
                     {totalQty > 0 && (
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: 'rgba(190,35,213,0.1)', padding: '1px 5px', borderRadius: '99px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.1)", padding: '1px 5px', borderRadius: "6px", flexShrink: 0 }}>
                             {totalQty}×
                         </span>
                     )}
                     {totalPrice > 0 && (
-                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#10b981', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: "#08754b", flexShrink: 0 }}>
                             {totalPrice.toFixed(2)}€
                         </span>
                     )}
@@ -312,7 +312,7 @@ function CategoryCard({ categoryKey, label, icon, items, myItem, currentUserId, 
                                     padding: '6px 10px', borderRadius: 'var(--radius-sm)',
                                     border: myItem.price != null ? '1px solid #10b981' : '1px dashed var(--color-border)',
                                     background: myItem.price != null ? 'rgba(16,185,129,0.08)' : 'transparent',
-                                    color: myItem.price != null ? '#10b981' : 'var(--color-text-dim)',
+                                    color: myItem.price != null ? "#08754b" : 'var(--color-text-dim)',
                                     fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', width: '100%',
                                     minHeight: '36px',
                                 }}
@@ -337,7 +337,7 @@ function CategoryCard({ categoryKey, label, icon, items, myItem, currentUserId, 
                 {contributors.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                         {contributors.map(c => (
-                            <span key={c.id} style={{ fontSize: '0.7rem', color: c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-text-dim)', background: 'var(--color-surface)', border: `1px solid ${c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '99px', padding: '1px 6px' }}>
+                            <span key={c.id} style={{ fontSize: '0.7rem', color: c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-text-dim)', background: 'var(--color-surface)', border: `1px solid ${c.userId === currentUserId ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: "6px", padding: '1px 6px' }}>
                                 {c.userName} · {c.quantity}×{c.price != null ? ` · ${c.price.toFixed(2)}€` : ''}
                             </span>
                         ))}

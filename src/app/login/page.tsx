@@ -12,7 +12,7 @@ export default async function LoginPage() {
     }
 
     return (
-        <div className="container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <div className="container auth-page">
             {isDemoMode && (
                 <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center', marginBottom: 'var(--spacing-4)' }}>
                     <h1 className="title-gradient" style={{ fontSize: '2rem', marginBottom: 'var(--spacing-2)' }}>Beer Pong</h1>
@@ -21,7 +21,7 @@ export default async function LoginPage() {
                     </p>
                 </div>
             )}
-            <div style={{ width: '100%', maxWidth: '400px' }}>
+            <div style={{ width: '100%' }}>
                 {isDemoMode ? <DemoLoginButton /> : <LoginForm />}
             </div>
         </div>

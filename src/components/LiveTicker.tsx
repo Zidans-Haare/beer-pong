@@ -41,17 +41,17 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
         switch (type) {
             case 'COMMENTARY':
                 return {
-                    background: 'linear-gradient(135deg, rgba(217, 70, 239, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-primary)'
                 };
             case 'SCORE_UPDATE':
                 return {
-                    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-secondary)'
                 };
             case 'MATCH_END':
                 return {
-                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-success)'
                 };
             default:
@@ -163,7 +163,7 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                                                 fontSize: '0.75rem',
                                                 fontWeight: 700,
                                                 textTransform: 'uppercase',
-                                                letterSpacing: '0.5px'
+                                                letterSpacing: "0"
                                             }}>
                                                 {event.type === 'COMMENTARY' ? t('commentary') :
                                                     event.type === 'SCORE_UPDATE' ? t('scoreUpdate') :

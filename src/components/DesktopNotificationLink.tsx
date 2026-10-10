@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
+import { useTranslations } from 'next-intl';
 
 export default function DesktopNotificationLink() {
+    const t = useTranslations('nav');
     const [unreadCount, setUnreadCount] = useState(0);
     const pathname = usePathname();
 
@@ -28,9 +30,9 @@ export default function DesktopNotificationLink() {
     return (
         <Link
             href="/notifications"
-            className="hidden md:block"
-            title="Benachrichtigungen"
-            style={{ position: 'relative', padding: '8px', color: 'var(--color-text-dim)', transition: 'color 0.2s' }}
+            className="icon-button"
+            aria-label={t('notifications')}
+            data-tooltip={t('notifications')}
         >
             <Bell size={20} />
             {unreadCount > 0 && (

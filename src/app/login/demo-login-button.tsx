@@ -27,7 +27,7 @@ export default function DemoLoginButton() {
                 color: 'var(--color-text-dim)',
                 fontSize: '0.78rem',
                 marginTop: 'var(--spacing-2)',
-                letterSpacing: '0.02em',
+                letterSpacing: "0",
             }}>
                 No account needed · Data resets daily
             </p>

@@ -33,7 +33,7 @@ export default async function RecentMatchesWidget() {
     if (matches.length === 0) return null;
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
+        <section className="recent-results">
             <div className="widget-header">
                 <span className="widget-title">{t('recentMatches')}</span>
             </div>
@@ -59,17 +59,15 @@ export default async function RecentMatchesWidget() {
                             gridTemplateColumns: '1fr auto 1fr',
                             alignItems: 'center',
                             gap: '12px',
-                            padding: '12px',
-                            background: 'var(--color-surface-hover)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--color-border)',
+                            padding: '14px 0',
+                            borderBottom: '1px solid var(--color-border)',
                             fontSize: '0.9rem'
                         }}>
                             <div style={{
                                 textAlign: 'right',
                                 fontWeight: p1Winner ? 700 : 400,
                                 color: p1Winner ? 'var(--color-success)' : 'var(--color-text)',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                minWidth: 0, overflowWrap: 'anywhere'
                             }}>
                                 {name1}
                             </div>
@@ -80,9 +78,9 @@ export default async function RecentMatchesWidget() {
                                 alignItems: 'center',
                                 gap: '2px'
                             }}>
-                                <div style={{
+                                <div className="score" style={{
                                     fontWeight: 700,
-                                    fontSize: '1rem',
+                                    fontSize: '2rem',
                                     background: 'var(--color-surface)',
                                     padding: '2px 8px',
                                     borderRadius: '4px',
@@ -99,7 +97,7 @@ export default async function RecentMatchesWidget() {
                                 textAlign: 'left',
                                 fontWeight: p2Winner ? 700 : 400,
                                 color: p2Winner ? 'var(--color-success)' : 'var(--color-text)',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                minWidth: 0, overflowWrap: 'anywhere'
                             }}>
                                 {name2}
                             </div>
@@ -107,6 +105,6 @@ export default async function RecentMatchesWidget() {
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 }

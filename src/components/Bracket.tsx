@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Match, Player } from '@prisma/client';
 import MatchEditForm from './MatchEditForm';
 import { getTeamDisplayName } from '@/lib/team-utils';
 import { useTranslations } from 'next-intl';
@@ -57,7 +56,7 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
 
     return (
         <>
-            <div style={{ display: 'flex', overflowX: 'auto', gap: 'var(--spacing-8)', padding: 'var(--spacing-4)' }}>
+            <div className="bracket-scroll">
                 {roundNumbers.map((round) => (
                     <div key={round} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 'var(--spacing-8)' }}>
                         <h3 style={{ textAlign: 'center', marginBottom: 'var(--spacing-4)', color: 'var(--color-secondary)' }}>
@@ -78,7 +77,7 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                             return (
                                 <div key={match.id} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                                     {matchLabel && (
-                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center', color: matchLabel.color }}>
+                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: "0", textAlign: 'center', color: matchLabel.color }}>
                                             {matchLabel.text}
                                         </div>
                                     )}
@@ -87,10 +86,13 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                                     )}
                                 <div
                                     id={`match-${match.id}`}
-                                    className="glass-panel"
+                                    className="glass-panel bracket-match"
+                                    role={readOnly ? undefined : 'button'}
+                                    tabIndex={readOnly ? undefined : 0}
+                                    aria-label={`${name1} ${match.score1} : ${match.score2} ${name2}`}
                                     style={{
                                         padding: 'var(--spacing-3)',
-                                        width: '200px',
+                                        width: '232px',
                                         flexShrink: 0,
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
@@ -98,10 +100,11 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                                         border: isActive ? '2px solid var(--color-primary)' : matchLabel ? `1px solid ${matchLabel.border}` : '1px solid var(--color-border)',
                                         background: matchLabel ? matchLabel.bg : undefined,
                                         boxShadow: isActive ? '0 0 15px var(--color-primary-glow)' : 'none',
-                                        transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                                        transform: 'none',
                                         zIndex: isActive ? 10 : 1
                                     }}
                                     onClick={() => !readOnly && setEditingMatch(match)}
+                                    onKeyDown={event => { if (!readOnly && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); setEditingMatch(match); } }}
                                 >
                                     {isActive && (
                                         <div style={{
@@ -112,7 +115,7 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                                             background: 'var(--color-primary)',
                                             color: 'white',
                                             padding: '2px 8px',
-                                            borderRadius: 'var(--radius-full)',
+                                            borderRadius: "var(--radius-md)",
                                             fontSize: '0.7rem',
                                             fontWeight: 'bold',
                                             boxShadow: 'var(--shadow-sm)',
@@ -123,12 +126,12 @@ export default function Bracket({ matches, tableCount, readOnly = false }: { mat
                                         </div>
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, true) }}>
-                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name1}</span>
-                                        <span>{match.score1}</span>
+                                        <span style={{ minWidth: 0, overflowWrap: 'anywhere', fontSize: '0.85rem' }}>{name1}</span>
+                                        <span className="score" style={{ fontSize: '1.75rem', marginLeft: '12px' }}>{match.score1}</span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', borderBottom: getMatchSideClass(match, isTeamMatch, false) }}>
-                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>{name2}</span>
-                                        <span>{match.score2}</span>
+                                        <span style={{ minWidth: 0, overflowWrap: 'anywhere', fontSize: '0.85rem' }}>{name2}</span>
+                                        <span className="score" style={{ fontSize: '1.75rem', marginLeft: '12px' }}>{match.score2}</span>
                                     </div>
                                 </div>
                                 </div>

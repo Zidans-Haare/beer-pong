@@ -12,8 +12,7 @@ export default async function NewTournamentPage() {
         : null;
 
     return (
-        <div className="container">
-            <h1 className="title-gradient" style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-8)', textAlign: 'center' }}>Neues Turnier Planen</h1>
+        <div className="container page-content">
             <CreateTournamentForm players={players} hostPlayerId={hostPlayer?.id ?? null} />
         </div>
     );

@@ -26,7 +26,7 @@ export default function PasskeyRegisterButton({
     if (
       typeof window !== 'undefined' &&
       'PublicKeyCredential' in window &&
-      'create' in PublicKeyCredential
+      typeof navigator.credentials?.create === 'function'
     ) {
       setIsSupported(true);
     }
@@ -102,7 +102,7 @@ export default function PasskeyRegisterButton({
           width: '100%',
           background: success
             ? 'var(--color-success)'
-            : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+            : "var(--color-primary)",
           color: 'white',
           display: 'flex',
           alignItems: 'center',

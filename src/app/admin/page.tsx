@@ -22,11 +22,11 @@ export default async function AdminDashboard() {
     const [base, extra, updateInfo, t] = await Promise.all([getBaseStats(), getDashboardStats(), checkForUpdate(), getTranslations('admin.dashboard')]);
 
     const statCards = [
-        { label: 'User', value: base.userCount, icon: Users, color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
-        { label: t('statTournaments'), value: base.tournamentCount, icon: Trophy, color: '#c084fc', bg: 'rgba(168,85,247,0.15)' },
-        { label: t('statPlayers'), value: extra.playerCount, icon: User, color: '#4ade80', bg: 'rgba(34,197,94,0.15)' },
-        { label: t('statMatches'), value: extra.matchCount, icon: Swords, color: '#fb923c', bg: 'rgba(249,115,22,0.15)' },
-        { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: '#38bdf8', bg: 'rgba(56,189,248,0.15)' },
+        { label: 'User', value: base.userCount, icon: Users, color: "#28647a", bg: "rgba(40,100,122,0.15)" },
+        { label: t('statTournaments'), value: base.tournamentCount, icon: Trophy, color: "#006b50", bg: "rgba(0,107,80,0.15)" },
+        { label: t('statPlayers'), value: extra.playerCount, icon: User, color: "#08754b", bg: 'rgba(34,197,94,0.15)' },
+        { label: t('statMatches'), value: extra.matchCount, icon: Swords, color: "#94600b", bg: 'rgba(249,115,22,0.15)' },
+        { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: "#28647a", bg: 'rgba(56,189,248,0.15)' },
     ];
 
     return (
@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
                     background: 'rgba(96,165,250,0.1)',
                     border: '1px solid rgba(96,165,250,0.3)',
                     borderRadius: '10px',
-                    color: '#60a5fa',
+                    color: "#28647a",
                 }}>
                     <ArrowUpCircle size={20} style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
@@ -65,7 +65,7 @@ export default async function AdminDashboard() {
                         href={updateInfo.releaseUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ fontSize: '0.82rem', color: '#60a5fa', textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                        style={{ fontSize: '0.82rem', color: "#28647a", textDecoration: 'underline', whiteSpace: 'nowrap' }}
                     >
                         Release Notes
                     </Link>
@@ -73,21 +73,18 @@ export default async function AdminDashboard() {
             )}
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--spacing-3)' }}>
+            <div className="admin-stat-grid">
                 {statCards.map(card => (
-                    <div key={card.label} className="glass-panel" style={{ padding: 'var(--spacing-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 'var(--spacing-2)' }}>
-                        <div style={{ padding: '10px', background: card.bg, borderRadius: '50%', color: card.color }}>
-                            <card.icon size={20} />
-                        </div>
-                        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1 }}>{card.value}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
+                    <div key={card.label} className="admin-stat">
+                        <div className="admin-stat-label"><card.icon size={18} />{card.label}</div>
+                        <div className="score">{card.value}</div>
                     </div>
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-6)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 'var(--spacing-6)' }}>
                 {/* Top Spieler */}
-                <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
+                <section>
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Swords size={16} color="var(--color-primary)" /> {t('topPlayers')}
                     </h3>
@@ -108,10 +105,10 @@ export default async function AdminDashboard() {
                         })}
                         {extra.topPlayers.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('noMatchData')}</p>}
                     </div>
-                </div>
+                </section>
 
                 {/* Letzte Aktivitäten */}
-                <div className="glass-panel" style={{ padding: 'var(--spacing-5)' }}>
+                <section>
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--spacing-4)' }}>{t('recentActivity')}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {base.recentNotifications.map((n: (typeof base.recentNotifications)[number], i: number) => (
@@ -127,7 +124,7 @@ export default async function AdminDashboard() {
                         ))}
                         {base.recentNotifications.length === 0 && <p style={{ color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>{t('noActivity')}</p>}
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     );

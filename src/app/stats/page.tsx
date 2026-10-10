@@ -119,7 +119,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     }
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
+        <div className="container page-content" style={{ paddingBottom: '100px' }}>
             <header style={{ marginBottom: 'var(--spacing-8)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                     <div>
@@ -198,7 +198,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                         {medalSorted.map((s, idx) => (
                                             <tr key={s.id} style={{
                                                 borderBottom: '1px solid var(--color-border)',
-                                                background: ranks[idx] === 1 ? 'linear-gradient(90deg, rgba(180, 83, 9, 0.08) 0%, transparent 100%)' : 'transparent',
+                                                background: ranks[idx] === 1 ? "var(--color-primary-light)" : 'transparent',
                                             }}>
                                                 <td style={{ padding: 'var(--spacing-4)', color: 'var(--color-text-dim)', fontWeight: 600 }}>
                                                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -212,7 +212,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                                                 background: 'rgba(255,255,255,0.07)',
                                                                 color: 'var(--color-text-dim)',
                                                                 border: '1px solid rgba(255,255,255,0.13)',
-                                                                letterSpacing: '0.03em',
+                                                                letterSpacing: "0",
                                                                 cursor: 'default',
                                                                 whiteSpace: 'nowrap',
                                                             }}>GL</span>
@@ -278,9 +278,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                 return (
                                     <tr key={s.id} style={{
                                         borderBottom: '1px solid var(--color-border)',
-                                        background: idx === 0 ? 'linear-gradient(90deg, rgba(180, 83, 9, 0.1) 0%, transparent 100%)' : 'transparent'
+                                        background: idx === 0 ? "var(--color-primary-light)" : 'transparent'
                                     }}>
-                                        <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: rankColor, fontSize: '1.2rem', fontFamily: '"Outfit", sans-serif' }}>
+                                        <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: rankColor, fontSize: '1.2rem', fontFamily: "var(--font-family)" }}>
                                             {idx === 0 && <Crown size={16} style={{ marginRight: '4px', verticalAlign: 'middle', marginBottom: '2px' }} />}
                                             {idx + 1}
                                         </td>
@@ -325,7 +325,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
 
             {/* Special Stats: Tournament Efficiency */}
             <div className="glass-panel" style={{ overflow: 'hidden', marginTop: 'var(--spacing-12)', padding: '0', border: '1px solid var(--color-border)' }}>
-                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: 'linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, transparent 100%)' }}>
+                <div style={{ padding: 'var(--spacing-6)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', background: "var(--color-primary-light)" }}>
                     <Zap size={24} color="#b45309" />
                     <div>
                         <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{t('tournamentEfficiency')}</h2>
@@ -336,7 +336,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                 marginLeft: '12px',
                                 fontSize: '0.7rem',
                                 padding: '2px 8px',
-                                borderRadius: '99px',
+                                borderRadius: "6px",
                                 background: 'rgba(255, 165, 0, 0.15)',
                                 color: 'orange',
                                 border: '1px solid rgba(255, 165, 0, 0.3)'
@@ -374,7 +374,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                             borderBottom: '1px solid var(--color-border)',
                                             background: 'transparent'
                                         }}>
-                                            <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: 'var(--color-text-dim)', fontSize: '1rem', fontFamily: '"Outfit", sans-serif' }}>
+                                            <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', color: 'var(--color-text-dim)', fontSize: '1rem', fontFamily: "var(--font-family)" }}>
                                                 {idx + 1}.
                                             </td>
                                             <td style={{ padding: 'var(--spacing-4)', fontWeight: 'bold', fontSize: '1rem' }}>

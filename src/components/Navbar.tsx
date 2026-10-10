@@ -4,57 +4,51 @@ import DesktopNotificationLink from './DesktopNotificationLink';
 import LogoEasterEgg from './LogoEasterEgg';
 import { getTranslations } from 'next-intl/server';
 import { isDemoMode } from '@/lib/demo';
+import { LogOut, UserRound } from 'lucide-react';
 
 export default async function Navbar() {
     const session = await auth();
     const t = await getTranslations('nav');
 
     return (
-        <nav style={{
-            position: 'sticky', top: 0, zIndex: 100,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '0 var(--spacing-6)', height: '60px',
-            background: 'rgba(248, 248, 252, 0.88)',
-            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.07)',
-            marginBottom: 0,
-        }}>
+        <nav className="app-header" aria-label={t('navigation')}>
             <LogoEasterEgg />
 
             {/* Desktop Navigation Links */}
-            <div className="desktop-nav-links" style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
+            <div className="desktop-nav-links" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <Link href="/tournaments" className="nav-link">{t('tournaments')}</Link>
                 <Link href="/join" className="nav-link" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{t('join')}</Link>
                 <Link href="/players" className="nav-link">{t('players')}</Link>
                 <Link href="/stats" className="nav-link">{t('stats')}</Link>
+                <Link href="/chat" className="nav-link">{t('chat')}</Link>
                 <Link href="/streaming" className="nav-link">Streaming</Link>
                 {session?.user?.email === process.env.ADMIN_EMAIL && (
                     <Link href="/admin/broadcast" className="nav-link">Admin</Link>
                 )}
                 <div style={{ width: '1px', height: '20px', background: 'var(--color-border)', margin: '0 var(--spacing-2)' }}></div>
 
-                {session?.user && <DesktopNotificationLink />}
             </div>
 
             {/* Auth Section - Visible on Mobile too */}
-            <div style={{ display: 'flex', gap: 'var(--spacing-4)', alignItems: 'center' }}>
+            <div className="app-header-actions">
                 {session?.user ? (
                     <>
 
-                        <span className="desktop-nav-links" style={{ color: 'var(--color-text-dim)', fontSize: '0.9rem' }}>{session.user.name}</span>
+                        <DesktopNotificationLink />
+                        <Link href="/players" className="icon-button" aria-label={t('profile')} data-tooltip={t('profile')}><UserRound size={21} /></Link>
                         <form action={async () => {
                             'use server';
                             await signOut();
                         }}>
-                            <button type="submit" style={{ background: 'none', border: 'none', color: 'var(--color-text-dim)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                Logout
+                            <button type="submit" className="icon-button" aria-label="Logout" data-tooltip="Logout">
+                                <LogOut size={20} />
                             </button>
                         </form>
                     </>
                 ) : !isDemoMode ? (
                     <>
                         <Link href="/login" className="nav-link" style={{ fontSize: '0.9rem' }}>Login</Link>
-                        <Link href="/register" className="btn btn-primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: '0.9rem' }}>Sign Up</Link>
+                        <Link href="/register" className="btn btn-primary" style={{ padding: '10px 12px', fontSize: '0.8125rem' }}>{t('register')}</Link>
                     </>
                 ) : (
                     <Link href="/login" className="btn btn-primary" style={{ padding: 'var(--spacing-2) var(--spacing-4)', fontSize: '0.9rem' }}>Try Demo</Link>

@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { sendChatMessage } from '@/app/actions/chat';
 import { useTranslations } from 'next-intl';
+import { ArrowDown, LoaderCircle, Send } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 type ChatUser = { id: string; name: string | null; image: string | null };
 type ChatMsg = { id: string; userId: string; text: string; createdAt: string | Date; user: ChatUser };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatTime(date: string | Date, t: (key: string, params?: any) => string) {
+function formatTime(date: string | Date, t: (key: string, params?: Record<string, string | number | Date>) => string) {
     const d = new Date(date);
     const now = new Date();
     const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
@@ -19,27 +20,6 @@ function formatTime(date: string | Date, t: (key: string, params?: any) => strin
     return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
 }
 
-function AvatarInitial({ name }: { name: string | null }) {
-    const letter = (name ?? '?')[0].toUpperCase();
-    return (
-        <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            background: 'var(--gradient-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            color: '#ffffff',
-            flexShrink: 0,
-            boxShadow: '0 2px 8px rgba(190,35,213,0.20)',
-        }}>
-            {letter}
-        </div>
-    );
-}
 
 export default function ChatWindow({
     initialMessages,
@@ -53,9 +33,14 @@ export default function ChatWindow({
     const t = useTranslations('chat');
     const [messages, setMessages] = useState<ChatMsg[]>(initialMessages);
     const [input, setInput] = useState('');
+    const [isReady, setIsReady] = useState(false);
     const [error, setError] = useState('');
     const [isPending, startTransition] = useTransition();
     const bottomRef = useRef<HTMLDivElement>(null);
+    const messagesRef = useRef<HTMLDivElement>(null);
+    const stickToBottom = useRef(true);
+    const [hasNewMessages, setHasNewMessages] = useState(false);
+    useEffect(() => { setIsReady(true); }, []);
     const lastTimestampRef = useRef<string>(
         initialMessages.length > 0
             ? new Date(initialMessages[initialMessages.length - 1].createdAt).toISOString()
@@ -64,7 +49,10 @@ export default function ChatWindow({
 
     // Scroll to bottom on new messages
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (stickToBottom.current) {
+            const area = messagesRef.current;
+            if (area) area.scrollTop = area.scrollHeight;
+        } else setHasNewMessages(true);
     }, [messages]);
 
     // Poll for new messages every 5 seconds
@@ -75,7 +63,7 @@ export default function ChatWindow({
                 if (!res.ok) return;
                 const newMsgs: ChatMsg[] = await res.json();
                 if (newMsgs.length > 0) {
-                    setMessages(prev => [...prev, ...newMsgs]);
+                    setMessages(prev => [...prev, ...newMsgs.filter(message => !prev.some(existing => existing.id === message.id))]);
                     lastTimestampRef.current = new Date(newMsgs[newMsgs.length - 1].createdAt).toISOString();
                 }
             } catch {
@@ -89,7 +77,8 @@ export default function ChatWindow({
 
     function handleSend() {
         const text = input.trim();
-        if (!text || isPending) return;
+        if (!text || isPending || !isReady) return;
+        stickToBottom.current = true;
 
         // Optimistic update
         const optimisticMsg: ChatMsg = {
@@ -104,18 +93,20 @@ export default function ChatWindow({
         setError('');
 
         startTransition(async () => {
-            const res = await sendChatMessage(text);
-            if (!res.success) {
-                // Remove optimistic message on error
+            try {
+                const res = await sendChatMessage(text);
+                if (!res.success) {
+                    setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+                    setInput(text);
+                    setError(res.error ?? t('sendError'));
+                } else if (res.message) {
+                    setMessages(prev => prev.filter(message => message.id !== res.message!.id).map(m => m.id === optimisticMsg.id ? (res.message as ChatMsg) : m));
+                    lastTimestampRef.current = new Date((res.message as ChatMsg).createdAt).toISOString();
+                }
+            } catch {
                 setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
                 setInput(text);
-                setError(res.error ?? t('sendError'));
-            } else if (res.message) {
-                // Replace optimistic with real message
-                setMessages(prev =>
-                    prev.map(m => m.id === optimisticMsg.id ? (res.message as ChatMsg) : m)
-                );
-                lastTimestampRef.current = new Date((res.message as ChatMsg).createdAt).toISOString();
+                setError(t('sendError'));
             }
         });
     }
@@ -128,15 +119,12 @@ export default function ChatWindow({
     }
 
     return (
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <div className="chat-window">
             {/* Messages */}
-            <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: 'var(--spacing-4)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--spacing-3)',
+            <div className="chat-messages" ref={messagesRef} onScroll={event => {
+                const area = event.currentTarget;
+                stickToBottom.current = area.scrollHeight - area.scrollTop - area.clientHeight < 80;
+                if (stickToBottom.current) setHasNewMessages(false);
             }}>
                 {messages.length === 0 && (
                     <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-8)' }}>
@@ -153,9 +141,10 @@ export default function ChatWindow({
                             flexDirection: msg.userId === currentUserId ? 'row-reverse' : 'row',
                         }}
                     >
-                        <AvatarInitial name={msg.user.name} />
+                        <Avatar name={msg.user.name ?? '?'} src={msg.user.image} size={32} />
                         <div style={{
-                            maxWidth: '70%',
+                            maxWidth: '78%',
+                            minWidth: 0,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: msg.userId === currentUserId ? 'flex-end' : 'flex-start',
@@ -170,16 +159,16 @@ export default function ChatWindow({
                                 <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.user.name ?? t('unknown')}</span>
                                 <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt, t)}</span>
                             </div>
-                            <div style={{
+                            <div data-pending={msg.id.startsWith('optimistic-') ? 'true' : 'false'} style={{
                                 background: msg.userId === currentUserId ? 'var(--gradient-primary)' : 'var(--color-surface-2)',
                                 color: msg.userId === currentUserId ? '#fff' : 'var(--color-text)',
-                                borderRadius: msg.userId === currentUserId ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                borderRadius: msg.userId === currentUserId ? '6px 6px 0 6px' : '6px 6px 6px 0',
                                 padding: '10px 16px',
                                 fontSize: '0.9rem',
                                 lineHeight: 1.5,
                                 wordBreak: 'break-word',
                                 opacity: msg.id.startsWith('optimistic-') ? 0.7 : 1,
-                                boxShadow: msg.userId === currentUserId ? '0 2px 12px rgba(190,35,213,0.20)' : 'none',
+                                boxShadow: 'none',
                             }}>
                                 {msg.text}
                             </div>
@@ -189,13 +178,18 @@ export default function ChatWindow({
                 <div ref={bottomRef} />
             </div>
 
-            {/* Divider */}
+            {hasNewMessages && <button type="button" className="btn chat-new-messages" onClick={() => {
+                stickToBottom.current = true;
+                setHasNewMessages(false);
+                const area = messagesRef.current;
+                if (area) area.scrollTop = area.scrollHeight;
+            }}><ArrowDown size={18} />{t('newMessages')}</button>}
             <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
             {/* Input */}
-            <div style={{ padding: 'var(--spacing-3) var(--spacing-4)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+            <div className="chat-composer">
                 {error && (
-                    <p style={{ color: 'var(--color-error)', fontSize: '0.85rem', margin: 0 }}>{error}</p>
+                    <p className="form-error" role="alert">{error}</p>
                 )}
                 {isLoggedIn ? (
                     <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
@@ -204,25 +198,27 @@ export default function ChatWindow({
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={t('placeholder')}
+                            aria-label={t('placeholder')}
                             maxLength={500}
-                            disabled={isPending}
+                            disabled={isPending || !isReady}
                             style={{
                                 flex: 1,
                                 padding: 'var(--spacing-3)',
                                 background: 'var(--color-surface-secondary)',
                                 border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-full)',
+                                borderRadius: '6px',
                                 color: 'var(--color-text)',
-                                fontSize: '0.9rem',
+                                fontSize: '1rem',
                             }}
                         />
                         <button
                             onClick={handleSend}
-                            disabled={isPending || !input.trim()}
+                            disabled={isPending || !isReady || !input.trim()}
                             className="btn btn-primary"
+                            aria-label={t('send')}
                             style={{ flexShrink: 0, opacity: (isPending || !input.trim()) ? 0.5 : 1 }}
                         >
-                            {t('send')}
+                            {isPending ? <LoaderCircle size={20} className="loading-spin" /> : <Send size={20} />}
                         </button>
                     </div>
                 ) : (

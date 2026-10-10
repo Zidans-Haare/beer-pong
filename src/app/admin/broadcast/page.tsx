@@ -38,9 +38,9 @@ export default function BroadcastPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
                     <div style={{
                         padding: '12px',
-                        background: 'rgba(59,130,246,0.2)',
+                        background: "rgba(40,100,122,0.2)",
                         borderRadius: '50%',
-                        color: '#60a5fa',
+                        color: "#28647a",
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                         <Bell size={24} />

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wartung — Bier Pong</title>
     <style>
+        @font-face { font-family: 'Manrope'; src: url('/fonts/Manrope.ttf') format('truetype'); font-weight: 200 800; font-display: swap; }
+        @font-face { font-family: 'Barlow Condensed'; src: url('/fonts/BarlowCondensed-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -12,9 +14,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f8f8fc;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #0f0f14;
+            background: #fafbfb;
+            font-family: 'Manrope', sans-serif;
+            color: #181c20;
         }
 
         .container {
@@ -25,37 +27,33 @@
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #be23d5 0%, #9333ea 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.03em;
+            color: #006b50;
+            letter-spacing: 0;
             margin-bottom: 2rem;
         }
 
         .card {
             background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.07);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+            border-top: 3px solid #006b50;
+            padding: 2rem 0;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(190, 35, 213, 0.08);
-            border: 1px solid rgba(190, 35, 213, 0.2);
-            border-radius: 999px;
+            background: #e6f2ec;
+            border: 1px solid #bddbc8;
+            border-radius: 4px;
             padding: 4px 12px;
             font-size: 0.72rem;
             font-weight: 600;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             text-transform: uppercase;
-            color: #be23d5;
+            color: #006b50;
             margin-bottom: 1.5rem;
         }
 
@@ -63,7 +61,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #be23d5;
+            background: #006b50;
             animation: blink 2s ease-in-out infinite;
         }
 
@@ -73,11 +71,12 @@
         }
 
         h1 {
-            font-size: 1.3rem;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2rem;
             font-weight: 700;
-            color: #0f0f14;
+            color: #181c20;
             margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
+            letter-spacing: 0;
         }
 
         .description {
@@ -89,9 +88,9 @@
 
         .info-box {
             display: none;
-            background: rgba(190, 35, 213, 0.05);
-            border: 1px solid rgba(190, 35, 213, 0.15);
-            border-radius: 10px;
+            background: #e6f2ec;
+            border: 1px solid #bddbc8;
+            border-radius: 4px;
             padding: 0.75rem 1rem;
             margin-bottom: 1.5rem;
             text-align: left;
@@ -103,8 +102,8 @@
             font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #be23d5;
+            letter-spacing: 0;
+            color: #006b50;
             margin-bottom: 4px;
         }
 
@@ -137,7 +136,7 @@
 
         .ts-label { color: #a1a1aa; }
         .ts-value { color: #0f0f14; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .ts-value.countdown { color: #be23d5; }
+        .ts-value.countdown { color: #006b50; }
         .ts-value.overdue { color: #ef4444; }
 
         .divider {
@@ -146,6 +145,7 @@
             margin: 1.5rem 0;
         }
 
+        @media (prefers-reduced-motion: reduce) { .status-dot { animation: none; } }
         .footer {
             font-size: 0.78rem;
             color: #a1a1aa;
@@ -188,7 +188,7 @@
 
             <div class="divider"></div>
             <p class="footer">Bitte versuchen Sie es in wenigen Minuten erneut.</p>
-            <p class="footer" style="margin-top: 0.5rem;">Infos zum Code: <a href="https://github.com/Zidans-Haare/beer-pong" style="color: #be23d5; text-decoration: none;">github.com/Zidans-Haare/beer-pong</a></p>
+            <p class="footer" style="margin-top: 0.5rem;">Infos zum Code: <a href="https://github.com/Zidans-Haare/beer-pong" style="color: #006b50; text-decoration: none;">github.com/Zidans-Haare/beer-pong</a></p>
         </div>
     </div>
     <script>

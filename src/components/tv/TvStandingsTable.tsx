@@ -92,11 +92,11 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                 gap: compact ? '2px' : '4px',
                 padding: compact ? '4px 8px' : 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)',
                 borderBottom: '2px solid var(--color-border)',
-                fontSize: compact ? '10px' : 'clamp(0.6rem, 0.85vw, 0.8rem)',
+                fontSize: compact ? '0.6875rem' : 'var(--tv-label-size, 0.875rem)',
                 fontWeight: 700,
                 color: 'var(--color-text-subtle)',
                 textTransform: 'uppercase',
-                letterSpacing: '0.1em',
+                letterSpacing: "0",
             }}>
                 <span>#</span>
                 <span>{label}</span>
@@ -150,13 +150,13 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                         >
                             {/* Rank */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ fontSize: standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? 'clamp(0.75rem, 1.1vw, 1rem)' : 'clamp(0.85rem, 1.2vw, 1.1rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
+                                <span style={{ fontSize: compact ? '0.875rem' : 'var(--tv-copy-size, 1.5rem)', fontWeight: 700, color: i === 0 ? 'var(--color-primary)' : 'var(--color-text-dim)' }}>{i + 1}</span>
                             </div>
 
                             {/* Name + delta indicator */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                                 <span style={{
-                                    fontSize: compact ? '0.9rem' : (standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? 'clamp(0.85rem, 1.5vw, 1.4rem)' : 'clamp(0.9rem, 1.6vw, 1.5rem)'),
+                                    fontSize: compact ? '0.9375rem' : 'var(--tv-copy-size, 1.5rem)',
                                     fontWeight: isFirst ? 800 : 700,
                                     color: isFirst ? 'var(--color-text)' : 'var(--color-text)',
                                     overflow: 'hidden',
@@ -172,7 +172,7 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                                             animate={{ opacity: 1, scale: 1 }}
                                             exit={{ opacity: 0, scale: 0.5 }}
                                             style={{
-                                                fontSize: 'clamp(0.65rem, 0.9vw, 0.85rem)',
+                                                fontSize: "var(--tv-copy-size, 1.5rem)",
                                                 fontWeight: 800,
                                                 color: movedUp ? 'var(--color-success)' : 'var(--color-error)',
                                                 background: movedUp ? 'rgba(74,222,128,0.15)' : 'rgba(239,68,68,0.12)',
@@ -189,20 +189,20 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                             </div>
 
                              {/* Stats */}
-                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-text-dim)' }}>{s.matchesPlayed}</span>
-                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', fontWeight: 700, color: 'var(--color-success)' }}>{s.wins}</span>
-                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: 'var(--color-error)' }}>{s.losses}</span>
-                            <span style={{ textAlign: 'center', fontSize: compact ? '0.75rem' : 'clamp(0.8rem, 1.2vw, 1.1rem)', color: s.cupDiff > 0 ? 'var(--color-success)' : s.cupDiff < 0 ? 'var(--color-error)' : 'var(--color-text-dim)' }}>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.8125rem' : 'var(--tv-copy-size, 1.5rem)', color: 'var(--color-text-dim)' }}>{s.matchesPlayed}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.8125rem' : 'var(--tv-copy-size, 1.5rem)', fontWeight: 700, color: 'var(--color-success)' }}>{s.wins}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.8125rem' : 'var(--tv-copy-size, 1.5rem)', color: 'var(--color-error)' }}>{s.losses}</span>
+                            <span style={{ textAlign: 'center', fontSize: compact ? '0.8125rem' : 'var(--tv-copy-size, 1.5rem)', color: s.cupDiff > 0 ? 'var(--color-success)' : s.cupDiff < 0 ? 'var(--color-error)' : 'var(--color-text-dim)' }}>
                                 {s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}
                             </span>
-                            <span style={{ textAlign: 'right', fontSize: compact ? '0.9rem' : 'clamp(0.9rem, 1.4vw, 1.3rem)', fontWeight: 800, color: 'var(--color-primary)' }}>{s.points}</span>
+                            <span style={{ textAlign: 'right', fontSize: compact ? '1rem' : 'var(--tv-copy-size, 1.5rem)', fontWeight: 800, color: 'var(--color-primary)' }}>{s.points}</span>
                         </motion.div>
                     );
                 })}
             </AnimatePresence>
 
             {highlightTop > 0 && (
-                <div style={{ padding: 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)', fontSize: 'clamp(0.6rem, 0.85vw, 0.8rem)', color: 'var(--color-text-subtle)', textAlign: 'right' }}>
+                <div style={{ padding: 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)', fontSize: "var(--tv-copy-size, 1.5rem)", color: 'var(--color-text-subtle)', textAlign: 'right' }}>
                     <span style={{ color: 'var(--color-success)', marginRight: '5px' }}>●</span>
                     Top {highlightTop} qualifizieren sich
                 </div>

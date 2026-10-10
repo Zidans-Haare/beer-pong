@@ -10,7 +10,7 @@ export default async function RegisterPage() {
     }
 
     return (
-        <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <div className="container auth-page">
             <RegisterForm />
         </div>
     );

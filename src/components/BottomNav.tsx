@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, Tv2 } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, Tv2, MessageSquare, Menu, Settings, BookOpen, ChevronRight } from 'lucide-react';
 import { getNotifications } from '@/app/actions/notifications';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
-import { motion, AnimatePresence } from 'framer-motion';
+import SheetDialog from './SheetDialog';
 import { useDrunkMode } from '@/context/DrunkModeContext';
 import { useTranslations } from 'next-intl';
 
@@ -15,6 +15,7 @@ export default function BottomNav({ isAdmin, isLoggedIn, hasLiveStream }: { isAd
     const pathname = usePathname();
     const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
     const [unreadCount, setUnreadCount] = useState(0);
+    const [moreOpen, setMoreOpen] = useState(false);
     const { isDrunk } = useDrunkMode();
 
     useEffect(() => {
@@ -33,163 +34,58 @@ export default function BottomNav({ isAdmin, isLoggedIn, hasLiveStream }: { isAd
     const handleNavClick = () => haptic.light();
 
     // ── Broadcast page: hide nav entirely ─────────────────────────────────
-    if (pathname.includes('/broadcast')) return null;
+    if (/^\/tournaments\/[^/]+\/(?:broadcast|tv)$/.test(pathname)) return null;
 
     // ── Logged-out: floating QR pill ──────────────────────────────────────
     if (!isLoggedIn) {
         return (
-            <motion.div
-                initial={{ y: 80, opacity: 0, scale: 0.8 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 28, delay: 0.15 }}
-                style={{
-                    position: 'fixed',
-                    bottom: '24px',
-                    left: '50%',
-                    translateX: '-50%',
-                    zIndex: 1000,
-                    display: 'flex',
-                }}
-            >
-                <Link
-                    href="/join"
-                    onClick={handleNavClick}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '14px 28px',
-                        borderRadius: '100px',
-                        background: 'rgba(255,255,255,0.95)',
-                        border: '1px solid var(--color-border)',
-                        boxShadow: 'var(--shadow-xl)',
-                        color: 'var(--color-primary)',
-                        textDecoration: 'none',
-                        backdropFilter: 'blur(12px)',
-                    }}
-                >
-                    <QrCode size={24} strokeWidth={1.8} />
-                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.8 }}>
-                        {t('join')}
-                    </span>
-                </Link>
-            </motion.div>
+            <Link href="/join" className="btn guest-join" onClick={handleNavClick}>
+                <QrCode size={22} />{t('join')}
+            </Link>
         );
     }
 
     // ── Logged-in: full bar expanding from center ─────────────────────────
-    const allNavItems = [
-        { href: '/',              icon: Home,          label: 'Home',              drunkVisible: true  },
-        { href: '/tournaments',   icon: Trophy,        label: t('tournaments'),    drunkVisible: true  },
-        { href: '/join',          icon: QrCode,        label: t('join'),           drunkVisible: true  },
-        { href: '/notifications', icon: Bell,          label: t('notifications'),  drunkVisible: false, badge: unreadCount },
-        { href: '/players',       icon: Users,         label: t('players'),        drunkVisible: false },
-        { href: '/stats',         icon: BarChart2,     label: t('stats'),          drunkVisible: false },
-        { href: '/streaming',     icon: Tv2,           label: 'Streaming',         drunkVisible: false, liveDot: hasLiveStream },
-        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin',           drunkVisible: false, badge: 0 }] : []),
+    const navItems = [
+        { href: '/', icon: Home, label: t('home') },
+        { href: '/tournaments', icon: Trophy, label: t('tournaments') },
+        { href: '/join', icon: QrCode, label: t('join') },
+        ...(!isDrunk ? [{ href: '/stats', icon: BarChart2, label: t('stats') }] : []),
     ];
-    const navItems = isDrunk ? allNavItems.filter(i => i.drunkVisible) : allNavItems;
+    const moreItems = [
+        { href: '/players', icon: Users, label: t('players') },
+        { href: '/chat', icon: MessageSquare, label: t('chat') },
+        { href: '/notifications', icon: Bell, label: t('notifications'), badge: unreadCount },
+        { href: '/streaming', icon: Tv2, label: t('streaming'), live: hasLiveStream },
+        { href: '/settings', icon: Settings, label: t('settings') },
+        { href: '/rules', icon: BookOpen, label: t('rules') },
+        ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin' }] : []),
+    ];
+    const moreActive = moreItems.some(item => isActive(item.href));
 
     return (
-        <AnimatePresence>
-            <motion.nav
-                className="bottom-nav"
-                initial={{ y: 96, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
-            >
-                {navItems.map(item => (
-                    <motion.div
-                        key={item.href}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.1 + navItems.indexOf(item) * 0.04 }}
-                    >
-                        <Link
-                            href={item.href}
-                            className={`bottom-nav-item ${(item.href === '/' ? pathname === '/' : isActive(item.href)) ? 'active' : ''}`}
-                            onClick={handleNavClick}
-                            style={{ position: 'relative' }}
-                        >
-                            {(item.href === '/' ? pathname === '/' : isActive(item.href)) && (
-                                <motion.span
-                                    layoutId="bottom-nav-pill"
-                                    style={{
-                                        position: 'absolute', inset: 0,
-                                        borderRadius: 'var(--radius-md)',
-                                        background: 'var(--color-primary-light)',
-                                        zIndex: 0,
-                                    }}
-                                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                />
-                            )}
-                            {item.href === '/notifications' ? (
-                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
-                                    <span className="nav-icon-glow" style={{ display: 'flex', position: 'relative', top: '-2px' }}>
-                                        <Bell size={24} />
-                                    </span>
-                                    <AnimatePresence>
-                                        {unreadCount > 0 && (
-                                            <motion.span
-                                                key="badge"
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
-                                                exit={{ scale: 0 }}
-                                                transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    right: 0,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    minWidth: '18px',
-                                                    height: '18px',
-                                                    padding: '0 4px',
-                                                    background: 'var(--color-error)',
-                                                    color: 'white',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    borderRadius: '9px',
-                                                    border: '2px solid rgba(255,255,255,0.92)',
-                                                    zIndex: 10,
-                                                }}
-                                            >
-                                                {unreadCount > 9 ? '9+' : unreadCount}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            ) : item.liveDot ? (
-                                <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
-                                    <span className="nav-icon-glow" style={{ display: 'flex' }}><item.icon size={24} /></span>
-                                    <span style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        right: 0,
-                                        width: '9px',
-                                        height: '9px',
-                                        borderRadius: '50%',
-                                        background: 'var(--color-error)',
-                                        border: '2px solid rgba(255,255,255,0.92)',
-                                        animation: 'liveDotPulse 1.4s ease-in-out infinite',
-                                        zIndex: 10,
-                                    }} />
-                                    <style>{`
-                                        @keyframes liveDotPulse {
-                                            0%, 100% { opacity: 1; transform: scale(1); }
-                                            50% { opacity: 0.6; transform: scale(0.8); }
-                                        }
-                                    `}</style>
-                                </div>
-                            ) : (
-                                <span className="nav-icon-glow" style={{ position: 'relative', zIndex: 1 }}><item.icon size={24} /></span>
-                            )}
-                        </Link>
-                    </motion.div>
-                ))}
-            </motion.nav>
-        </AnimatePresence>
+        <>
+            <nav className={`bottom-nav ${isDrunk ? 'drunk-nav' : ''}`} aria-label={t('navigation')}>
+                {navItems.map(item => <Link key={item.href} href={item.href}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                    className={`bottom-nav-item ${item.href === '/join' ? 'join-tab' : ''} ${isActive(item.href) ? 'active' : ''}`}
+                    onClick={() => { handleNavClick(); setMoreOpen(false); }}>
+                    <item.icon size={22} strokeWidth={1.8} /><span>{item.label}</span>
+                </Link>)}
+                {!isDrunk && <button type="button" className={`bottom-nav-item ${moreActive || moreOpen ? 'active' : ''}`}
+                    aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => { handleNavClick(); setMoreOpen(true); }}>
+                    <Menu size={22} strokeWidth={1.8} /><span>{t('more')}</span>
+                    {unreadCount > 0 && <span className="nav-count">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                </button>}
+            </nav>
+            {!isDrunk && <SheetDialog open={moreOpen} title={t('more')} onClose={() => setMoreOpen(false)}>
+                <div className="more-list">{moreItems.map(item => <Link href={item.href} key={item.href} className="more-link" onClick={() => setMoreOpen(false)}>
+                    <item.icon size={22} /><span>{item.label}</span>
+                    {'badge' in item && !!item.badge && <span className="badge">{item.badge}</span>}
+                    {'live' in item && item.live && <span className="live-dot" />}
+                    <ChevronRight size={18} />
+                </Link>)}</div>
+            </SheetDialog>}
+        </>
     );
 }

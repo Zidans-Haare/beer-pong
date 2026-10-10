@@ -3,7 +3,7 @@
  * Provides offline support, caching strategies, and push notifications
  */
 
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const STATIC_CACHE = `bierpong-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bierpong-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bierpong-images-${CACHE_VERSION}`;
@@ -14,6 +14,9 @@ const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
   '/icon.png',
+  '/fonts/Manrope.ttf',
+  '/fonts/BarlowCondensed-SemiBold.ttf',
+  '/fonts/BarlowCondensed-Bold.ttf',
 ];
 
 // Cache size limits

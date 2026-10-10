@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import GuestJoinForm from './GuestJoinForm';
 import { isGuestForTournament } from '@/app/actions/guests';
-import { joinTournamentAction } from '@/app/actions/rsvp';
 import { PartyPopper } from 'lucide-react';
+import AutoJoin from './auto-join';
 
 interface Props {
   params: Promise<{ code: string }>;
@@ -43,9 +43,7 @@ export default async function JoinByCodePage({ params }: Props) {
   // If user is logged in
   if (session?.user) {
     // Auto-join for all tournament types (Ranked & Spaß)
-    await joinTournamentAction(tournament.id);
-    // Redirect to tournament page
-    redirect(`/tournaments/${tournament.id}`);
+    return <AutoJoin tournamentId={tournament.id} name={tournament.name} />;
   }
 
   // Check if already a guest for this tournament
@@ -63,9 +61,9 @@ export default async function JoinByCodePage({ params }: Props) {
 
   // For Spaß-Turniere, show guest join form
   return (
-    <div className="container" style={{ maxWidth: '500px', padding: 'var(--spacing-6)' }}>
+    <div className="container page-content" style={{ maxWidth: '500px', padding: 'var(--spacing-6)' }}>
       <div className="glass-panel" style={{ padding: 'var(--spacing-6)', textAlign: 'center' }}>
-        <div style={{ marginBottom: 'var(--spacing-4)', color: '#9b59b6' }}><PartyPopper size={48} /></div>
+        <div style={{ marginBottom: 'var(--spacing-4)', color: "#006b50" }}><PartyPopper size={48} /></div>
         <h1 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-2)' }}>
           {tournament.name}
         </h1>
@@ -74,8 +72,8 @@ export default async function JoinByCodePage({ params }: Props) {
         </p>
 
         <div style={{
-          background: 'rgba(155, 89, 182, 0.1)',
-          border: '1px solid rgba(155, 89, 182, 0.3)',
+          background: "rgba(0,107,80,0.1)",
+          border: "1px solid rgba(0,107,80,0.3)",
           borderRadius: 'var(--radius-md)',
           padding: 'var(--spacing-4)',
           marginBottom: 'var(--spacing-6)'

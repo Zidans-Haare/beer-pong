@@ -1,4 +1,9 @@
 {
+  "broadcast": { "back": "Zum Turnier", "zoomOut": "Rauszoomen", "zoomIn": "Reinzoomen", "rotate": "Drehen", "mirror": "Spiegeln", "flip": "Kamera wechseln", "start": "Stream starten", "stop": "Stream beenden" },
+  "pwaUpdate": { "title": "Update verfügbar", "description": "Eine neue Version ist bereit.", "dismiss": "Später", "reload": "Jetzt laden" },
+  "connection": { "online": "Wieder online", "offline": "Keine Verbindung" },
+  "tv": { "fullscreen": "Vollbild", "exitFullscreen": "Vollbild beenden" },
+  "ui": { "close": "Schließen", "back": "Zurück", "save": "Speichern", "cancel": "Abbrechen", "loading": "Lädt..." },
   "auth": {
     "loginWithEmail": "oder mit Email",
     "password": "Passwort",
@@ -15,14 +20,23 @@
     "registrationError": "Fehler bei der Registrierung"
   },
   "nav": {
-    "join": "Join",
+    "home": "Start",
+    "more": "Mehr",
+    "settings": "Einstellungen",
+    "profile": "Profile",
+    "rules": "Regeln",
+    "streaming": "Streaming",
+    "navigation": "Hauptnavigation",
+    "register": "Registrieren",
+    "join": "Beitreten",
     "tournaments": "Turniere",
     "players": "Spieler",
-    "notifications": "Glocke",
+    "notifications": "Benachrichtigungen",
     "stats": "Stats",
     "chat": "Chat"
   },
   "home": {
+    "join": "Beitreten",
     "welcomeBack": "Willkommen zurück",
     "getStarted": "Loslegen",
     "aloneOnline": "Nur du online",
@@ -144,6 +158,10 @@
   },
   "players": {
     "title": "Spieler",
+    "myProfile": "Mein Profil",
+    "openProfile": "Profil öffnen",
+    "accountSettings": "Einstellungen",
+    "allPlayers": "Alle Spieler",
     "noPlayers": "Noch keine Spieler registriert",
     "namePlaceholder": "Name (Pflicht)",
     "nickname": "Spitzname",
@@ -199,6 +217,8 @@
     }
   },
   "join": {
+    "retry": "Erneut versuchen",
+    "joining": "Trete bei...",
     "title": "Turnier beitreten",
     "subtitle": "Gib den 6-stelligen Code ein oder scanne den QR-Code",
     "invalidCode": "Bitte gib einen gültigen 6-stelligen Code ein",
@@ -438,6 +458,7 @@
     "bestDefense": "Beste Verteidigung ({cups} Gegenbecher)"
   },
   "match": {
+    "nextOT": "Beide treffen alle drei: nächste OT-Runde",
     "editResult": "Ergebnis eintragen",
     "correctResult": "Ergebnis korrigieren",
     "whoWon": "Wer hat gewonnen?",
@@ -457,6 +478,7 @@
     "player2": "Spieler 2"
   },
   "chat": {
+    "newMessages": "Neue Nachrichten",
     "noMessages": "Noch keine Nachrichten. Sag Hallo!",
     "me": "Du",
     "sendError": "Fehler beim Senden.",
@@ -648,6 +670,7 @@
     "security": "Sicherheit"
   },
   "notifications": {
+    "delete": "Benachrichtigung löschen",
     "enabled": "Push-Benachrichtigungen aktiviert!",
     "error": "Fehler beim Aktivieren der Benachrichtigungen",
     "title": "Benachrichtigungen",

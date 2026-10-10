@@ -19,8 +19,8 @@ export default async function AdminSettingsPage() {
             <div style={{
                 padding: 'var(--spacing-4)',
                 background: durationStats.isCalculated
-                    ? 'linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(78, 205, 196, 0.05) 100%)'
-                    : 'linear-gradient(135deg, rgba(255, 165, 0, 0.1) 0%, rgba(255, 165, 0, 0.05) 100%)',
+                    ? "var(--color-primary-light)"
+                    : "var(--color-primary-light)",
                 border: `1px solid ${durationStats.isCalculated ? 'var(--color-secondary)' : 'orange'}`,
                 borderRadius: 'var(--radius-md)',
                 marginBottom: 'var(--spacing-6)'

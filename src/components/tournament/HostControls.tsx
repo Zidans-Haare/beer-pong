@@ -80,7 +80,7 @@ export default function HostControls({
                     </div>
                 )}
                 {isActive && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-3)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 'var(--spacing-3)' }}>
                         {(tournamentType === 'ROUND_ROBIN' || tournamentType === 'GROUPS') && (
                             <StartPlayoffsButton tournamentId={tournamentId} />
                         )}

@@ -65,7 +65,7 @@ export default function LogoEasterEgg() {
                             justifyContent: 'center',
                             padding: '16px',
                             background: 'rgba(0,0,0,0.55)',
-                            backdropFilter: 'blur(10px)',
+                            backdropFilter: "none",
                         }}
                     >
                         <motion.div
@@ -80,7 +80,7 @@ export default function LogoEasterEgg() {
                                 background: 'var(--color-surface)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-xl)',
-                                boxShadow: '0 24px 64px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.06)',
+                                boxShadow: "none",
                                 overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -92,7 +92,7 @@ export default function LogoEasterEgg() {
                             <div style={{
                                 width: '100%',
                                 padding: '28px 24px 20px',
-                                background: 'linear-gradient(160deg, rgba(190,35,213,0.12) 0%, rgba(8,145,178,0.08) 100%)',
+                                background: "var(--color-primary-light)",
                                 borderBottom: '1px solid var(--color-border)',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -105,12 +105,12 @@ export default function LogoEasterEgg() {
                                     style={{
                                         width: '64px',
                                         height: '64px',
-                                        borderRadius: '18px',
+                                        borderRadius: "6px",
                                         background: 'var(--gradient-primary)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        boxShadow: '0 8px 24px rgba(190,35,213,0.35)',
+                                        boxShadow: "none",
                                     }}
                                 >
                                     <Beer size={32} color="#fff" strokeWidth={1.8} />
@@ -120,15 +120,15 @@ export default function LogoEasterEgg() {
                                         fontSize: '1.4rem',
                                         fontWeight: 800,
                                         fontFamily: 'var(--font-heading)',
-                                        background: 'var(--gradient-primary)',
+                                        background: "none",
                                         WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
+                                        WebkitTextFillColor: "currentColor",
                                         backgroundClip: 'text',
-                                        letterSpacing: '-0.02em',
+                                        letterSpacing: "0",
                                     }}>
                                         Bier Pong
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', marginTop: '2px', letterSpacing: "0", textTransform: 'uppercase', fontWeight: 600 }}>
                                         Made with <Heart size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> in Österreich
                                     </div>
                                 </div>
@@ -138,11 +138,11 @@ export default function LogoEasterEgg() {
                             <div style={{ padding: '20px 24px 24px', width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div style={{
                                     padding: '14px 16px',
-                                    background: 'linear-gradient(135deg, rgba(190,35,213,0.06) 0%, rgba(8,145,178,0.04) 100%)',
-                                    border: '1px solid rgba(190,35,213,0.15)',
+                                    background: "var(--color-primary-light)",
+                                    border: "1px solid rgba(0,107,80,0.15)",
                                     borderRadius: 'var(--radius-md)',
                                 }}>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '4px' }}>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", fontWeight: 700, marginBottom: '4px' }}>
                                         Open Source
                                     </div>
                                     <div style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}>
@@ -166,7 +166,7 @@ export default function LogoEasterEgg() {
                                         textDecoration: 'none',
                                         fontWeight: 700,
                                         fontSize: '0.875rem',
-                                        boxShadow: '0 4px 16px rgba(190,35,213,0.3)',
+                                        boxShadow: "none",
                                     }}
                                 >
                                     <Github size={16} /> Source Code
@@ -180,7 +180,7 @@ export default function LogoEasterEgg() {
                                         cursor: 'pointer',
                                         fontSize: '0.75rem',
                                         fontWeight: 700,
-                                        letterSpacing: '0.1em',
+                                        letterSpacing: "0",
                                         textTransform: 'uppercase',
                                         color: 'var(--color-text-subtle)',
                                         padding: '4px',

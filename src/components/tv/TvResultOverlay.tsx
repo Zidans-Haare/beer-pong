@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Result {
@@ -18,27 +18,34 @@ const STORAGE_KEY = 'tv_seen_match_ids';
 
 export default function TvResultOverlay({ results }: { results: Result[] }) {
     const [newResult, setNewResult] = useState<Result | null>(null);
+    const seenRef = useRef<string[]>([]);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const playedIds = results.map(r => r.id);
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const seen: string[] = raw ? JSON.parse(raw) : [];
+        let seen = seenRef.current;
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            const stored: unknown = raw ? JSON.parse(raw) : [];
+            if (Array.isArray(stored)) seen = stored.filter((id): id is string => typeof id === 'string');
+        } catch {}
 
         // Find the first result that wasn't seen before
         const fresh = results.find(r => !seen.includes(r.id));
 
         // Always persist current played IDs
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(playedIds));
+        seenRef.current = playedIds;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playedIds)); } catch {}
 
         if (fresh) {
             setNewResult(fresh);
-            const t = setTimeout(() => setNewResult(null), 5000);
-            return () => clearTimeout(t);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setNewResult(null), 5000);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [results]);
+    useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
-    const winner = newResult
+    const winner = newResult?.winnerId
         ? newResult.winnerId === newResult.p1Id
             ? newResult.name1
             : newResult.name2
@@ -48,6 +55,7 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
         <AnimatePresence>
             {newResult && (
                 <motion.div
+                    className="tv-result-backdrop"
                     key="overlay"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -61,19 +69,21 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         background: 'rgba(0,0,0,0.75)',
-                        backdropFilter: 'blur(12px)',
+                        backdropFilter: "none",
                     }}
                 >
                     <motion.div
+                        className="tv-result-panel"
+                        role="status"
                         initial={{ scale: 0.6, y: 60, opacity: 0 }}
                         animate={{ scale: 1, y: 0, opacity: 1 }}
                         exit={{ scale: 0.85, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 320, damping: 28, delay: 0.05 }}
                         style={{
                             background: 'var(--color-surface)',
-                            borderRadius: 'clamp(16px, 2.5vw, 32px)',
+                            borderRadius: '8px',
                             padding: 'clamp(32px, 5vw, 72px) clamp(40px, 7vw, 100px)',
-                            boxShadow: '0 32px 96px rgba(0,0,0,0.5)',
+                            boxShadow: "none",
                             border: '2px solid var(--color-border)',
                             minWidth: 'clamp(320px, 55vw, 820px)',
                             textAlign: 'center',
@@ -81,19 +91,11 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                             overflow: 'hidden',
                         }}
                     >
-                        {/* Background accent */}
-                        <div style={{
-                            position: 'absolute',
-                            inset: 0,
-                            background: 'radial-gradient(ellipse at 50% 0%, rgba(190,35,213,0.08) 0%, transparent 70%)',
-                            pointerEvents: 'none',
-                        }} />
-
                         {/* Label */}
                         <div style={{
-                            fontSize: 'clamp(0.7rem, 1.2vw, 1rem)',
+                            fontSize: "var(--tv-copy-size, 1.5rem)",
                             fontWeight: 800,
-                            letterSpacing: '0.2em',
+                            letterSpacing: "0",
                             textTransform: 'uppercase',
                             color: 'var(--color-text-subtle)',
                             marginBottom: 'clamp(16px, 2.5vw, 32px)',
@@ -112,7 +114,7 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                             {/* Player 1 */}
                             <div style={{ flex: 1, textAlign: 'right' }}>
                                 <div style={{
-                                    fontSize: 'clamp(1.4rem, 3.5vw, 3.2rem)',
+                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                     fontWeight: newResult.winnerId === newResult.p1Id ? 900 : 400,
                                     color: newResult.winnerId === newResult.p1Id ? 'var(--color-text)' : 'var(--color-text-dim)',
                                     lineHeight: 1.1,
@@ -132,7 +134,7 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                                 flexShrink: 0,
                             }}>
                                 <span style={{
-                                    fontSize: 'clamp(2rem, 5.5vw, 5.5rem)',
+                                    fontSize: 'var(--tv-score-size, 4.5rem)',
                                     fontWeight: 900,
                                     color: newResult.winnerId === newResult.p1Id ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                     lineHeight: 1,
@@ -141,9 +143,9 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                                 }}>
                                     {newResult.score1 ?? '–'}
                                 </span>
-                                <span style={{ fontSize: 'clamp(1rem, 2vw, 2rem)', color: 'var(--color-border-strong)', fontWeight: 300 }}>:</span>
+                                <span style={{ fontSize: "var(--tv-copy-size, 1.5rem)", color: 'var(--color-border-strong)', fontWeight: 300 }}>:</span>
                                 <span style={{
-                                    fontSize: 'clamp(2rem, 5.5vw, 5.5rem)',
+                                    fontSize: 'var(--tv-score-size, 4.5rem)',
                                     fontWeight: 900,
                                     color: newResult.winnerId === newResult.p2Id ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                     lineHeight: 1,
@@ -157,7 +159,7 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                             {/* Player 2 */}
                             <div style={{ flex: 1, textAlign: 'left' }}>
                                 <div style={{
-                                    fontSize: 'clamp(1.4rem, 3.5vw, 3.2rem)',
+                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                     fontWeight: newResult.winnerId === newResult.p2Id ? 900 : 400,
                                     color: newResult.winnerId === newResult.p2Id ? 'var(--color-text)' : 'var(--color-text-dim)',
                                     lineHeight: 1.1,
@@ -182,12 +184,12 @@ export default function TvResultOverlay({ results }: { results: Result[] }) {
                                     gap: '8px',
                                     background: 'var(--color-primary-light)',
                                     border: '1px solid var(--color-primary)',
-                                    borderRadius: '999px',
+                                    borderRadius: '6px',
                                     padding: 'clamp(6px, 0.8vw, 10px) clamp(18px, 2.5vw, 32px)',
-                                    fontSize: 'clamp(0.85rem, 1.4vw, 1.2rem)',
+                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                     fontWeight: 700,
                                     color: 'var(--color-primary)',
-                                    letterSpacing: '0.04em',
+                                    letterSpacing: "0",
                                 }}
                             >
                                 <span style={{ fontWeight: 400, opacity: 0.7 }}>Sieger</span>

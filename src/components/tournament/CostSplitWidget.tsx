@@ -183,7 +183,7 @@ function DebtRow({ debt, direction, paypalUrl }: { debt: Debt; direction: 'owe' 
             <span style={{
                 fontWeight: 700,
                 fontSize: '0.85rem',
-                color: isOwe ? '#ef4444' : isReceive ? '#10b981' : 'var(--color-text)',
+                color: isOwe ? '#ef4444' : isReceive ? "#08754b" : 'var(--color-text)',
             }}>
                 {debt.amount.toFixed(2)} €
             </span>

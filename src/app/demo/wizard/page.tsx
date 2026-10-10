@@ -12,7 +12,7 @@ export default function DemoWizardPage() {
     }
 
     return (
-        <div className="container" style={{ maxWidth: '920px', paddingTop: 'var(--spacing-6)', paddingBottom: 'var(--spacing-8)' }}>
+        <div className="container page-content" style={{ maxWidth: '920px', paddingTop: 'var(--spacing-6)', paddingBottom: 'var(--spacing-8)' }}>
             <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-2)' }}>
                 Setup Wizard
             </h1>

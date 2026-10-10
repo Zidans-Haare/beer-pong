@@ -28,8 +28,8 @@ export default function DemoCtaPopup() {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 'var(--spacing-3)',
-                boxShadow: '0 8px 32px rgba(190, 35, 213, 0.15)',
-                border: '1px solid rgba(190, 35, 213, 0.2)',
+                boxShadow: "none",
+                border: "1px solid rgba(0,107,80,0.2)",
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <p style={{ fontWeight: 600, fontSize: '0.95rem', margin: 0 }}>

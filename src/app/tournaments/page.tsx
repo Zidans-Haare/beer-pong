@@ -6,6 +6,7 @@ import { Calendar, MapPin, Gamepad2, Plus, ArrowRight, BedDouble } from 'lucide-
 import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import { getTranslations } from 'next-intl/server';
+import PageHeader from '@/components/PageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,19 +24,11 @@ export default async function TournamentsPage() {
     const activeTournaments = allTournaments.filter(tr => tr.status === 'ACTIVE');
     const completedTournaments = allTournaments
         .filter(tr => tr.status === 'COMPLETED')
-        .sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime());
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-8)' }}>
-                <div>
-                    <h1 className="title-display" style={{ fontSize: '2rem' }}>{t('title')}</h1>
-                    <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
-                </div>
-                <Link href="/tournaments/new" className="btn btn-primary" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                    <Plus size={20} /> <span>{t('new')}</span>
-                </Link>
-            </div>
+        <div className="container page-content" style={{ paddingBottom: '100px' }}>
+            <PageHeader title={t('title')} description={t('subtitle')} actions={<Link href="/tournaments/new" className="icon-button new-tournament-button" aria-label={t('new')} data-tooltip={t('new')}><Plus size={24} /></Link>} />
 
             {/* Lobbies — happening today */}
             {lobbyTournaments.length > 0 && (
@@ -43,7 +36,7 @@ export default async function TournamentsPage() {
                     <h2 className="section-header" style={{ color: 'var(--color-lobby)' }}>
                         <span className="live-dot" style={{ background: 'var(--color-lobby)' }} /> {t('openLobbies')}
                     </h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)' }}>
                         {lobbyTournaments.map((tournament) => (
                             <TournamentCard key={tournament.id} t={tournament} translations={t} />
                         ))}
@@ -57,7 +50,7 @@ export default async function TournamentsPage() {
                     <h2 className="section-header">
                         {t('planned')}
                     </h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)' }}>
                         {plannedTournaments.map((tournament) => (
                             <TournamentCard key={tournament.id} t={tournament} planned translations={t} />
                         ))}
@@ -71,7 +64,7 @@ export default async function TournamentsPage() {
                     <h2 className="section-header" style={{ color: 'var(--color-primary)' }}>
                         <span className="live-dot" style={{ background: 'var(--color-primary)' }} /> {t('live')}
                     </h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)' }}>
                         {activeTournaments.map((tournament) => (
                             <TournamentCard key={tournament.id} t={tournament} translations={t} />
                         ))}
@@ -85,7 +78,7 @@ export default async function TournamentsPage() {
                     <DrunkModeConditional show="sober">
                         <div>
                             <h2 className="section-header">{t('archive')}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--spacing-6)', opacity: 0.8 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)', opacity: 0.8 }}>
                                 {completedTournaments.map((tournament) => (
                                     <TournamentCard key={tournament.id} t={tournament} translations={t} />
                                 ))}
@@ -127,18 +120,14 @@ function TournamentCard({ t, planned, translations }: { t: any; planned?: boolea
         ? '1px solid var(--color-primary)'
         : '1px solid var(--color-border)';
 
-    const shadowStyle = isLobby
-        ? '0 0 20px var(--color-lobby-light)'
-        : isActive
-        ? '0 0 20px rgba(190, 35, 213, 0.15)'
-        : 'none';
+    const shadowStyle = 'none';
 
     const badgeBg = isLobby
         ? 'var(--color-lobby-light)'
         : isActive
         ? 'var(--color-primary)'
         : planned
-        ? 'rgba(8,145,178,0.09)'
+        ? "rgba(40,100,122,0.09)"
         : 'var(--color-surface-hover)';
 
     const badgeColor = isLobby
@@ -177,17 +166,17 @@ function TournamentCard({ t, planned, translations }: { t: any; planned?: boolea
             boxShadow: shadowStyle,
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <h3 style={{ fontSize: '1.5rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>{t.name}</h3>
+                <h3 style={{ fontSize: '1.75rem', lineHeight: 1.2, color: 'var(--color-text)', fontWeight: 700, minWidth: 0 }}>{t.name}</h3>
                 <span style={{
                     padding: '4px 10px',
-                    borderRadius: 'var(--radius-full)',
+                    borderRadius: "var(--radius-md)",
                     background: badgeBg,
                     color: badgeColor,
                     border: badgeBorder,
                     fontSize: '0.7rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                    letterSpacing: "0",
                     whiteSpace: 'nowrap',
                 }}>
                     {badgeLabel}
@@ -208,7 +197,7 @@ function TournamentCard({ t, planned, translations }: { t: any; planned?: boolea
                     <span>{getTournamentTypeLabel(t.type)}</span>
                 </div>
                 {t.offersGuestRoom && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#10b981', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: "#08754b", fontWeight: 600, marginTop: '4px' }}>
                         <BedDouble size={16} />
                         <span>{translations('accommodation')}{t.offersBreakfast ? ' ' + translations('withBreakfast') : ''}{t.offersHalfBoard ? ' ' + translations('withHalfBoard') : ''}</span>
                     </div>

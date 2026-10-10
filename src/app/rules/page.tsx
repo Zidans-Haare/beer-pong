@@ -10,7 +10,7 @@ export default async function RulesPage() {
     const rulesText = settings.rulesText ?? '';
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
+        <div className="container page-content" style={{ paddingBottom: '100px' }}>
             <Link href="/" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>
                 &larr; {t('back')}
             </Link>

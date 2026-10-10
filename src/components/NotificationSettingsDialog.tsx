@@ -2,38 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import { updateNotificationPreferences, getNotificationPreferences } from '@/app/actions/notifications';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, X, Trophy, AlertCircle, Radio } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Trophy, AlertCircle, Radio } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import SheetDialog from './SheetDialog';
 
-const Toggle = ({ active, onChange }: { active: boolean, onChange: (v: boolean) => void }) => (
+const Toggle = ({ active, onChange, label, disabled }: { active: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) => (
     <button
         type="button"
+        className="preference-switch"
+        role="switch"
+        aria-checked={active}
+        aria-label={label}
+        disabled={disabled}
         onClick={() => onChange(!active)}
-        style={{
-            width: '48px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            borderRadius: '999px',
-            padding: '4px',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            background: active ? 'var(--gradient-primary)' : 'rgba(0, 0, 0, 0.08)',
-            boxShadow: active ? 'var(--shadow-glow-primary)' : 'none',
-            position: 'relative',
-        }}
     >
+        <span className="preference-switch-track" style={{ background: active ? 'var(--color-primary)' : 'var(--color-border-strong)' }}>
         <motion.div
-            animate={{ x: active ? 24 : 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            animate={{ x: active ? 20 : 0 }}
+            transition={{ duration: 0.14 }}
             style={{
                 background: 'white',
-                width: '16px',
-                height: '16px',
+                width: '20px',
+                height: '20px',
                 borderRadius: '50%',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                boxShadow: "none"
             }}
         />
+        </span>
     </button>
 );
 
@@ -41,6 +37,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
     const t = useTranslations('notifications');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
     const [prefs, setPrefs] = useState({
         notifyNewTournaments: true,
         notifyUpdates: true,
@@ -48,7 +45,9 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
     });
 
     useEffect(() => {
+        let active = true;
         getNotificationPreferences().then(data => {
+            if (!active) return;
             if (data) {
                 setPrefs({
                     notifyNewTournaments: data.notifyNewTournaments ?? true,
@@ -57,8 +56,13 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                 });
             }
             setLoading(false);
+        }).catch(() => {
+            if (!active) return;
+            setError(t('error'));
+            setLoading(false);
         });
-    }, []);
+        return () => { active = false; };
+    }, [t]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,87 +72,24 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
         if (prefs.notifyUpdates) formData.append('notifyUpdates', 'on');
         if (prefs.notifyLiveTicker) formData.append('notifyLiveTicker', 'on');
 
-        await updateNotificationPreferences(formData);
-        setSaving(false);
-        onClose();
+        setError('');
+        try {
+            const result = await updateNotificationPreferences(formData);
+            if (!result.success) {
+                setError(result.error || t('error'));
+                return;
+            }
+            onClose();
+        } catch {
+            setError(t('error'));
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 'var(--spacing-4)',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)'
-        }}>
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="glass-panel"
-                style={{
-                    width: '100%',
-                    maxWidth: '450px',
-                    padding: 0,
-                    overflow: 'hidden',
-                    position: 'relative'
-                }}
-            >
-                {/* Decorative Accent Line */}
-                <div style={{
-                    height: '2px',
-                    width: '100%',
-                    background: 'var(--gradient-primary)'
-                }} />
-
-                <div style={{ padding: 'var(--spacing-8)' }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            padding: '8px',
-                            color: 'var(--color-text-dim)',
-                            backgroundColor: 'var(--color-surface-hover)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text)';
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text-dim)';
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                        }}
-                    >
-                        <X size={18} />
-                    </button>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'var(--spacing-8)' }}>
-                        <div style={{
-                            padding: 'var(--spacing-3)',
-                            background: 'rgba(217, 70, 239, 0.1)',
-                            borderRadius: 'var(--radius-md)',
-                            marginBottom: 'var(--spacing-3)',
-                            border: '1px solid rgba(217, 70, 239, 0.2)'
-                        }}>
-                            <Settings size={28} style={{ color: 'var(--color-primary)' }} />
-                        </div>
-                        <h2 className="title-display" style={{ fontSize: '1.5rem', marginBottom: '4px', color: '#1d1d1f' }}>
-                            {t('settings')}
-                        </h2>
-                        <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.8 }}>{t('manageNotifications')}</p>
-                    </div>
+        <SheetDialog title={t('settings')} onClose={() => { if (!saving) onClose(); }}>
+                    <p className="form-help" style={{ marginBottom: '20px' }}>{t('manageNotifications')}</p>
 
                     {loading ? (
                         <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-12)' }}>
@@ -170,7 +111,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                     <div style={{
                                         padding: '10px',
                                         background: 'rgba(234, 179, 8, 0.1)',
-                                        borderRadius: '12px',
+                                        borderRadius: "6px",
                                         color: '#eab308',
                                         border: '1px solid rgba(234, 179, 8, 0.2)'
                                     }}>
@@ -181,6 +122,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('newTournamentsDesc')}</div>
                                     </div>
                                     <Toggle
+                                        label={t('newTournaments')}
+                                        disabled={saving}
                                         active={prefs.notifyNewTournaments}
                                         onChange={(v) => setPrefs({ ...prefs, notifyNewTournaments: v })}
                                     />
@@ -198,10 +141,10 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 }}>
                                     <div style={{
                                         padding: '10px',
-                                        background: 'rgba(59, 130, 246, 0.1)',
-                                        borderRadius: '12px',
-                                        color: '#3b82f6',
-                                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                                        background: "rgba(40,100,122,0.1)",
+                                        borderRadius: "6px",
+                                        color: "#28647a",
+                                        border: "1px solid rgba(40,100,122,0.2)"
                                     }}>
                                         <AlertCircle size={20} />
                                     </div>
@@ -210,6 +153,8 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('importantUpdatesDesc')}</div>
                                     </div>
                                     <Toggle
+                                        label={t('importantUpdates')}
+                                        disabled={saving}
                                         active={prefs.notifyUpdates}
                                         onChange={(v) => setPrefs({ ...prefs, notifyUpdates: v })}
                                     />
@@ -228,7 +173,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                     <div style={{
                                         padding: '10px',
                                         background: 'rgba(239, 68, 68, 0.1)',
-                                        borderRadius: '12px',
+                                        borderRadius: "6px",
                                         color: '#ef4444',
                                         border: '1px solid rgba(239, 68, 68, 0.2)'
                                     }}>
@@ -239,16 +184,21 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)' }}>{t('liveTickerDesc')}</div>
                                     </div>
                                     <Toggle
+                                        label="Live Ticker"
+                                        disabled={saving}
                                         active={prefs.notifyLiveTicker}
                                         onChange={(v) => setPrefs({ ...prefs, notifyLiveTicker: v })}
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-4)' }}>
+                            {error && <p className="form-error" role="alert">{error}</p>}
+                            <div className="sheet-actions">
                                 <button
                                     type="button"
                                     onClick={onClose}
+                                    disabled={saving}
+                                    className="btn btn-secondary"
                                     style={{
                                         flex: 1,
                                         padding: '14px',
@@ -273,7 +223,7 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="btn-primary"
+                                    className="btn btn-primary"
                                     style={{
                                         flex: 2,
                                         padding: '14px',
@@ -286,8 +236,6 @@ export default function NotificationSettingsDialog({ onClose }: { onClose: () =>
                             </div>
                         </form>
                     )}
-                </div>
-            </motion.div>
-        </div>
+        </SheetDialog>
     );
 }

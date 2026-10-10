@@ -15,7 +15,7 @@ const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Beer Pong';
 export const metadata: Metadata = {
   title: appName,
   description: 'Manage your beer pong tournaments professionally.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.json',
   robots: {
     index: false,
     follow: false,
@@ -38,13 +38,11 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   interactiveWidget: 'resizes-content' as const, // keyboard shrinks layout viewport (Android Chrome 108+, Firefox 132+)
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#f8f8fc' },
-    { media: '(prefers-color-scheme: light)', color: '#f8f8fc' },
+    { media: '(prefers-color-scheme: dark)', color: '#fafbfb' },
+    { media: '(prefers-color-scheme: light)', color: '#fafbfb' },
   ],
 };
 
@@ -76,9 +74,8 @@ export default async function RootLayout({
         {/* SW-Reload vor React-Hydration registrieren — verhindert verpasste controllerchange-Events
             Kein XSS-Risiko: statischer Literal-String, keine User-Daten */}
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload();})}` }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet" />
+        <link rel="preload" href="/fonts/Manrope.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/BarlowCondensed-Bold.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />

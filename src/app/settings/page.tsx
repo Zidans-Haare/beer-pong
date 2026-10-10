@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import PasskeySettings from './passkey-settings';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import PageHeader from '@/components/PageHeader';
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings');
@@ -26,26 +28,24 @@ export default async function SettingsPage() {
   });
 
   return (
-    <div className="container" style={{ paddingTop: 'var(--spacing-6)' }}>
+    <div className="container page-content" style={{ paddingTop: 'var(--spacing-6)' }}>
       <Link
         href="/"
-        className="btn btn-secondary"
-        style={{ marginBottom: 'var(--spacing-6)', display: 'inline-block' }}
+        className="btn btn-quiet"
+        style={{ marginBottom: '16px' }}
       >
-        &larr; {t('back')}
+        <ArrowLeft size={18} />{t('back')}
       </Link>
 
-      <h1 className="title-display" style={{ marginBottom: 'var(--spacing-8)', color: '#1d1d1f' }}>
-        {t('title')}
-      </h1>
+      <PageHeader title={t('title')} />
 
-      <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
+      <section className="form-section">
         <h2 style={{ marginBottom: 'var(--spacing-4)', fontSize: '1.2rem' }}>
-          {t('security')}
+          <ShieldCheck size={20} style={{ verticalAlign: 'middle', marginRight: '8px', color: 'var(--color-primary)' }} />{t('security')}
         </h2>
 
         <PasskeySettings passkeys={passkeys} />
-      </div>
+      </section>
     </div>
   );
 }

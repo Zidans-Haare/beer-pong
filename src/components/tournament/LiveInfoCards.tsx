@@ -43,7 +43,7 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
         <div>
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))",
                 gap: 'var(--spacing-3)'
             }}>
                 {forecast && forecast.remainingMatches > 0 && (
@@ -54,16 +54,16 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                         <div style={{
                             padding: 'var(--spacing-4)',
                             background: showFormula
-                                ? 'linear-gradient(135deg, rgba(190,35,213,0.10) 0%, rgba(147,51,234,0.05) 100%)'
-                                : 'linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(78, 205, 196, 0.02) 100%)',
-                            border: showFormula ? '1px solid rgba(190,35,213,0.30)' : '1px solid rgba(78, 205, 196, 0.3)',
+                                ? "var(--color-primary-light)"
+                                : "var(--color-primary-light)",
+                            border: showFormula ? '1px solid var(--color-lobby-border)' : '1px solid var(--color-border)',
                             borderRadius: 'var(--radius-md)',
                             transition: 'all 0.2s ease',
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-2)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Clock size={14} color={showFormula ? 'var(--color-primary)' : 'var(--color-secondary)'} />
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>
                                         {t('end')}
                                     </span>
                                 </div>
@@ -89,13 +89,13 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                 {waitTime && (
                     <div style={{
                         padding: 'var(--spacing-4)',
-                        background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.02) 100%)',
+                        background: "var(--color-primary-light)",
                         border: '1px solid rgba(255, 107, 107, 0.3)',
                         borderRadius: 'var(--radius-md)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-2)' }}>
                             <Target size={14} color="var(--color-primary)" />
-                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>
                                 {t('yourMatch')}
                             </span>
                         </div>
@@ -122,8 +122,8 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                     >
                         <div style={{
                             padding: 'var(--spacing-4)',
-                            background: 'linear-gradient(135deg, rgba(190,35,213,0.05) 0%, rgba(147,51,234,0.03) 100%)',
-                            border: '1px solid rgba(190,35,213,0.15)',
+                            background: "var(--color-primary-light)",
+                            border: "1px solid rgba(0,107,80,0.15)",
                             borderRadius: 'var(--radius-lg)',
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
@@ -145,8 +145,8 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                                 {/* Source explanation */}
                                 <div style={{
                                     padding: '6px 8px', marginBottom: '4px',
-                                    background: 'rgba(8,145,178,0.07)',
-                                    border: '1px solid rgba(8,145,178,0.15)',
+                                    background: "rgba(40,100,122,0.07)",
+                                    border: "1px solid rgba(40,100,122,0.15)",
                                     borderRadius: 'var(--radius-sm)',
                                     fontSize: '0.78rem',
                                     color: 'var(--color-text-dim)',

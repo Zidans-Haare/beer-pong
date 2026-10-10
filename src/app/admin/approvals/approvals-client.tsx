@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { approveUser, rejectUser } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Check, X } from 'lucide-react';
 
 export default function ApprovalsClient({ userId }: { userId: string }) {
     const [isPending, startTransition] = useTransition();
@@ -31,7 +32,7 @@ export default function ApprovalsClient({ userId }: { userId: string }) {
                 disabled={isPending}
                 className="btn"
                 style={{
-                    background: 'var(--color-success, #22c55e)',
+                    background: "var(--color-success, #08754b)",
                     color: '#fff',
                     border: 'none',
                     padding: '8px 16px',
@@ -41,7 +42,7 @@ export default function ApprovalsClient({ userId }: { userId: string }) {
                     opacity: isPending ? 0.6 : 1,
                 }}
             >
-                {t('approve')}
+                <Check size={18} />{t('approve')}
             </button>
             <button
                 onClick={handleReject}
@@ -58,7 +59,7 @@ export default function ApprovalsClient({ userId }: { userId: string }) {
                     opacity: isPending ? 0.6 : 1,
                 }}
             >
-                {t('reject')}
+                <X size={18} />{t('reject')}
             </button>
         </div>
     );

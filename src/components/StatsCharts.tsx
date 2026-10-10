@@ -4,9 +4,11 @@ import { useMemo, useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { PlayerStats } from '@/lib/stats';
 import { useTranslations } from 'next-intl';
+import { useReducedMotion } from 'framer-motion';
 
 export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
     const t = useTranslations('stats');
+    const reducedMotion = useReducedMotion();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -36,10 +38,10 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         return { topWinRate, topCupDiff, topDuration };
     }, [stats]);
 
-    const NEON_COLORS = ['#d946ef', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b']; // Exact match from design system
+    const NEON_COLORS = ['#006b50', '#28647a', '#c34232', '#08754b', '#94600b'];
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-8)' }}>
+        <div className="stats-chart-grid">
             {/* Win Rate Chart */}
             <div className="glass-panel" style={{ padding: 'var(--spacing-6)' }}>
                 <div style={{ marginBottom: 'var(--spacing-6)' }}>
@@ -63,12 +65,14 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 <YAxis stroke="var(--color-text-dim)" unit="%" tick={{ fontSize: 12 }} domain={[0, 100]} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    formatter={(value: any, name: string | undefined) => [`${value}%`, name]}
+                                    labelFormatter={(label) => typeof label === 'number' || typeof label === 'string' ? new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                                    formatter={(value, name) => [`${value}%`, String(name ?? '')]}
                                 />
                                 {processedData.topWinRate.map((p, i) => (
                                     <Line
                                         key={p.id}
+                                        isAnimationActive={!reducedMotion}
+                                        animationDuration={300}
                                         data={p.filteredHistory.map((h) => ({ timestamp: h.timestamp, winRate: h.winRate }))}
                                         dataKey="winRate"
                                         name={p.name}
@@ -108,12 +112,14 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                 <YAxis stroke="var(--color-text-dim)" unit="m" tick={{ fontSize: 12 }} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
-                                    labelFormatter={(label) => new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    formatter={(value: any, name: string | undefined) => [`${Number(value).toFixed(1)} min`, name ?? t('duration')]}
+                                    labelFormatter={(label) => typeof label === 'number' || typeof label === 'string' ? new Date(label).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                                    formatter={(value, name) => [`${Number(value).toFixed(1)} min`, String(name ?? t('duration'))]}
                                 />
                                 {processedData.topDuration.map((p, i) => (
                                     <Line
                                         key={p.id}
+                                        isAnimationActive={!reducedMotion}
+                                        animationDuration={300}
                                         data={p.filteredHistory
                                             .filter(h => h.duration > 0)
                                             .map((h) => ({ timestamp: h.timestamp, duration: h.duration / 60 }))}
@@ -147,7 +153,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
                                     cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                                     contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)' }}
                                 />
-                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name={t('cupDiff')} radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="rangeCupDiff" fill="var(--color-secondary)" name={t('cupDiff')} radius={[4, 4, 0, 0]} isAnimationActive={!reducedMotion} animationDuration={300} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}

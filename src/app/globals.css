@@ -626,6 +626,16 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .my-profile-nick { color: var(--color-primary); font-size: 0.95rem; }
 .my-profile-motto { margin: 0; color: var(--color-text-dim); font-style: italic; font-size: 0.9rem; }
 .my-profile-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.season-badge { margin-top: var(--spacing-3); margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border: 1px solid var(--color-primary); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 600; background: var(--color-surface); }
+.season-badge-dot { width: 8px; height: 8px; border-radius: 50%; }
+.season-group { border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); padding: 0 16px 16px; }
+.season-group:not([open]) { padding-bottom: 0; }
+.season-group-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 12px 0 12px 12px; margin-left: -16px; padding-left: 28px; border-left: 4px solid var(--color-primary); cursor: pointer; font-weight: 700; font-size: 1.05rem; list-style: none; }
+.season-group-summary::-webkit-details-marker { display: none; }
+.season-group-summary::after { content: '+'; margin-left: auto; font-weight: 400; font-size: 1.4rem; line-height: 1; color: var(--color-text-dim); }
+.season-group[open] > .season-group-summary::after { content: '\2212'; }
+.season-group-count { font-size: 0.78rem; font-weight: 600; color: var(--color-text-dim); background: var(--color-surface-hover); border-radius: 999px; padding: 2px 10px; }
+.season-group-summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .player-card { min-width: 0; transition: border-color var(--motion-fast); }
 .player-card:hover { border-color: var(--color-primary); }
 .profile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--color-border); }

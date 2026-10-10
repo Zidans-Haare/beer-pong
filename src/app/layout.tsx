@@ -1,3 +1,4 @@
+import { getCurrentSeason, accentCss } from '@/lib/seasons';
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
@@ -67,6 +68,8 @@ export default async function RootLayout({
     where: { liveStreamUrl: { not: null }, status: 'ACTIVE' },
   });
   const hasLiveStream = liveStreamCount > 0;
+  // Saisonfarbe: überschreibt --color-primary & Co. der aktuellen Saison (ohne Saison bleibt das Standard-Grün)
+  const currentSeason = await getCurrentSeason().catch(() => null);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -76,6 +79,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload();})}` }} />
         <link rel="preload" href="/fonts/Manrope.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/BarlowCondensed-Bold.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+        {currentSeason && <style dangerouslySetInnerHTML={{ __html: accentCss(currentSeason.accentColor) }} />}
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />

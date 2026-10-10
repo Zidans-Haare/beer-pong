@@ -21,7 +21,7 @@ export default function DashboardStatsWidget({ stats }: { stats: PlayerStats[] }
         return [...stats].sort((a, b) => b.winRate - a.winRate).slice(0, 3);
     }, [stats]);
 
-    const NEON_COLORS = ['#006b50', '#28647a', '#c34232'];
+    const NEON_COLORS = ['var(--color-primary)', '#28647a', '#c34232'];
 
     return (
         <section className="performance-section">

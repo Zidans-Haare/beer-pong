@@ -57,7 +57,7 @@ export default function InstallPrompt() {
                 justifyContent: 'space-between',
                 gap: 'var(--spacing-4)',
                 background: "var(--color-primary-light)",
-                border: "1px solid rgba(0,107,80,0.2)",
+                border: "1px solid rgba(var(--color-primary-rgb), 0.2)",
             }}>
                 <div>
                     <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t('prompt')}</div>
@@ -169,7 +169,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step1Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
+                                            background: "rgba(var(--color-primary-rgb), 0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             <Share size={15} /> {t('share')}
@@ -191,7 +191,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step2Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
+                                            background: "rgba(var(--color-primary-rgb), 0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             &quot;{t('addToHome')}&quot;
@@ -213,7 +213,7 @@ export default function InstallPrompt() {
                                         <div style={{ fontWeight: 600, marginBottom: '2px' }}>{t('step3Prefix')}</div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            background: "rgba(0,107,80,0.12)", borderRadius: '8px',
+                                            background: "rgba(var(--color-primary-rgb), 0.12)", borderRadius: '8px',
                                             padding: '4px 10px', color: 'var(--color-primary)', fontWeight: 600,
                                         }}>
                                             &quot;{t('add')}&quot; <ChevronRight size={14} />

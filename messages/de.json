@@ -51,6 +51,7 @@
     "gameLabel": "Spiel {n}"
   },
   "tournaments": {
+    "seasonEmpty": "Keine Turniere in dieser Saison.",
     "title": "Turniere",
     "subtitle": "Alle Events auf einen Blick",
     "new": "Neues Turnier",
@@ -238,6 +239,31 @@
     "retry": "Erneut versuchen"
   },
   "admin": {
+    "seasons": {
+      "title": "Saisons",
+      "subtitle": "Saisonwechsel und Saisonfarbe",
+      "currentSeason": "Aktuelle Saison",
+      "sinceStart": "Läuft seit Beginn der Aufzeichnung",
+      "since": "Läuft seit {date}",
+      "name": "Name",
+      "color": "Akzentfarbe",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "failed": "Das hat nicht geklappt",
+      "endTitle": "Saison beenden",
+      "endHint": "Die laufende Saison endet jetzt und die neue startet mit eigener Farbe; die App färbt sich sofort um.",
+      "nextName": "Name der neuen Saison",
+      "nextColor": "Farbe der neuen Saison",
+      "confirmYes": "Ja, Saison beenden",
+      "cancel": "Abbrechen",
+      "working": "Einen Moment …",
+      "endButton": "Saison beenden & neue starten",
+      "confirmEnd": "\"{current}\" jetzt beenden und \"{next}\" starten? Das lässt sich nicht rückgängig machen.",
+      "ended": "Neue Saison gestartet",
+      "suggestedName": "Saison {number}",
+      "past": "Vergangene Saisons",
+      "noPast": "Noch keine Saison beendet."
+    },
     "nav": {
       "overview": "Übersicht",
       "people": "Personen",
@@ -245,6 +271,7 @@
       "users": "Benutzer",
       "players": "Spieler",
       "passkeys": "Passkeys",
+      "seasons": "Saisons",
       "tournament": "Turnier",
       "tournaments": "Turniere",
       "guests": "Gäste",
@@ -701,6 +728,8 @@
     "save": "Speichern"
   },
   "stats": {
+    "season": "Saison",
+    "allSeasons": "Alle Saisons",
     "title": "Statistiken",
     "subtitle": "Daten, Fakten & Legenden",
     "onlyRanked": "Nur Liga-Turniere (keine Spaß-Turniere)",

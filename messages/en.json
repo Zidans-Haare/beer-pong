@@ -51,6 +51,7 @@
     "gameLabel": "Game {n}"
   },
   "tournaments": {
+    "seasonEmpty": "No tournaments in this season.",
     "title": "Tournaments",
     "subtitle": "All events at a glance",
     "new": "New Tournament",
@@ -238,6 +239,31 @@
     "retry": "Try again"
   },
   "admin": {
+    "seasons": {
+      "title": "Seasons",
+      "subtitle": "Season switch and season colour",
+      "currentSeason": "Current season",
+      "sinceStart": "Running since records began",
+      "since": "Running since {date}",
+      "name": "Name",
+      "color": "Accent colour",
+      "save": "Save",
+      "saved": "Saved",
+      "failed": "That did not work",
+      "endTitle": "End season",
+      "endHint": "The running season ends now and a new one starts with its own colour; the app recolours immediately.",
+      "nextName": "Name of the new season",
+      "nextColor": "Colour of the new season",
+      "confirmYes": "Yes, end season",
+      "cancel": "Cancel",
+      "working": "One moment…",
+      "endButton": "End season & start a new one",
+      "confirmEnd": "End \"{current}\" now and start \"{next}\"? This cannot be undone.",
+      "ended": "New season started",
+      "suggestedName": "Season {number}",
+      "past": "Past seasons",
+      "noPast": "No season has ended yet."
+    },
     "nav": {
       "overview": "Overview",
       "people": "People",
@@ -245,6 +271,7 @@
       "users": "Users",
       "players": "Players",
       "passkeys": "Passkeys",
+      "seasons": "Seasons",
       "tournament": "Tournament",
       "tournaments": "Tournaments",
       "guests": "Guests",
@@ -701,6 +728,8 @@
     "save": "Save"
   },
   "stats": {
+    "season": "Season",
+    "allSeasons": "All seasons",
     "title": "Statistics",
     "subtitle": "Data, Facts & Legends",
     "onlyRanked": "Ranked tournaments only (no fun tournaments)",

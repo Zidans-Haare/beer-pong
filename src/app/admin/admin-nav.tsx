@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Users, Radio, LayoutDashboard, Settings, Trophy,
-    UserCheck, MessageSquare, UserX, User, KeyRound, ChevronDown, ChevronRight,
+    UserCheck, MessageSquare, UserX, User, KeyRound, ChevronDown, ChevronRight, CalendarRange,
 } from 'lucide-react';
 import { useState } from 'react';
 import SheetDialog from '@/components/SheetDialog';
@@ -57,6 +57,7 @@ export default function AdminNav({ pendingCount }: Props) {
             title: t('tournament'),
             items: [
                 { href: '/admin/tournaments', label: t('tournaments'), icon: Trophy },
+                { href: '/admin/seasons', label: t('seasons'), icon: CalendarRange },
                 { href: '/admin/guests', label: t('guests'), icon: UserX },
             ],
         },

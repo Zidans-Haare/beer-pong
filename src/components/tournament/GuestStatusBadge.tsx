@@ -50,8 +50,8 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
     return (
         <div className="glass-panel" style={{
             padding: 'var(--spacing-4)',
-            background: "rgba(0,107,80,0.1)",
-            border: "1px solid rgba(0,107,80,0.3)",
+            background: "rgba(var(--color-primary-rgb), 0.1)",
+            border: "1px solid rgba(var(--color-primary-rgb), 0.3)",
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -63,7 +63,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: "#006b50",
+                    background: "var(--color-primary)",
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

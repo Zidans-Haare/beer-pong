@@ -38,7 +38,7 @@ export default function StatsCharts({ stats }: { stats: PlayerStats[] }) {
         return { topWinRate, topCupDiff, topDuration };
     }, [stats]);
 
-    const NEON_COLORS = ['#006b50', '#28647a', '#c34232', '#08754b', '#94600b'];
+    const NEON_COLORS = ['var(--color-primary)', '#28647a', '#c34232', '#08754b', '#94600b'];
 
     return (
         <div className="stats-chart-grid">

@@ -7,6 +7,7 @@ import { getTournamentTypeLabel } from '@/lib/tournament-utils';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import { getTranslations } from 'next-intl/server';
 import PageHeader from '@/components/PageHeader';
+import { getSeasons, findSeasonForDate } from '@/lib/seasons';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,13 @@ export default async function TournamentsPage() {
     const completedTournaments = allTournaments
         .filter(tr => tr.status === 'COMPLETED')
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Archiv nach Saison gruppieren: aktuelle Saison offen, frühere eingeklappt
+    const seasons = await getSeasons();
+    const archiveGroups = seasons
+        .map(season => ({ season, items: completedTournaments.filter(tr => findSeasonForDate(seasons, new Date(tr.date))?.id === season.id) }))
+        .filter(g => g.items.length > 0 || !g.season.endDate);
+    const ungrouped = completedTournaments.filter(tr => !findSeasonForDate(seasons, new Date(tr.date)));
 
     return (
         <div className="container page-content" style={{ paddingBottom: '100px' }}>
@@ -76,13 +84,27 @@ export default async function TournamentsPage() {
             {completedTournaments.length > 0 && (
                 <>
                     <DrunkModeConditional show="sober">
-                        <div>
-                            <h2 className="section-header">{t('archive')}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)', opacity: 0.8 }}>
-                                {completedTournaments.map((tournament) => (
-                                    <TournamentCard key={tournament.id} t={tournament} translations={t} />
-                                ))}
-                            </div>
+                        <div style={{ display: 'grid', gap: 'var(--spacing-6)' }}>
+                            <h2 className="section-header" style={{ marginBottom: 0 }}>{t('archive')}</h2>
+                            {[...archiveGroups.map(g => ({ key: g.season.id, name: g.season.name, color: g.season.accentColor, open: !g.season.endDate, items: g.items })),
+                              ...(ungrouped.length > 0 ? [{ key: 'other', name: t('archive'), color: 'var(--color-border-strong)', open: false, items: ungrouped }] : [])]
+                                .map(group => (
+                                <details key={group.key} className="season-group" open={group.open}>
+                                    <summary className="season-group-summary" style={{ borderLeftColor: group.color }}>
+                                        <span>{group.name}</span>
+                                        <span className="season-group-count">{group.items.length}</span>
+                                    </summary>
+                                    {group.items.length === 0 ? (
+                                        <p style={{ color: 'var(--color-text-dim)', margin: 'var(--spacing-4) 0 0' }}>{t('seasonEmpty')}</p>
+                                    ) : (
+                                        <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 'var(--spacing-6)', opacity: 0.8, marginTop: 'var(--spacing-4)' }}>
+                                            {group.items.map((tournament) => (
+                                                <TournamentCard key={tournament.id} t={tournament} translations={t} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </details>
+                            ))}
                         </div>
                     </DrunkModeConditional>
 

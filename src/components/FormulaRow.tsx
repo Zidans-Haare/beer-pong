@@ -8,7 +8,7 @@ export default function FormulaRow({ label, formula, result, highlight }: {
         <div style={{
             padding: '5px 8px',
             borderRadius: 'var(--radius-sm)',
-            background: highlight ? "rgba(0,107,80,0.08)" : 'transparent',
+            background: highlight ? "rgba(var(--color-primary-rgb), 0.08)" : 'transparent',
             borderTop: highlight ? '1px solid var(--color-lobby-border)' : 'none',
             marginTop: highlight ? '4px' : '0',
         }}>

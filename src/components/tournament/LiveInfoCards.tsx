@@ -123,7 +123,7 @@ export default function LiveInfoCards({ forecast, waitTime }: Props) {
                         <div style={{
                             padding: 'var(--spacing-4)',
                             background: "var(--color-primary-light)",
-                            border: "1px solid rgba(0,107,80,0.15)",
+                            border: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                             borderRadius: 'var(--radius-lg)',
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>

@@ -46,7 +46,7 @@ export default function Avatar({ src, name, size = 28, isGuest = false, style = 
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: isGuest ? "#006b50" : getAvatarColor(name || ''),
+        background: isGuest ? "var(--color-primary)" : getAvatarColor(name || ''),
         fontSize: size * 0.4,
         fontWeight: 600,
         color: 'white',

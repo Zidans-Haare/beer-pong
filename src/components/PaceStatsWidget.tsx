@@ -118,7 +118,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                         <div className="glass-panel" style={{
                             padding: 'var(--spacing-4)',
                             background: "var(--color-primary-light)",
-                            border: "1px solid rgba(0,107,80,0.15)",
+                            border: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -152,8 +152,8 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                     marginTop: '8px',
                                     padding: '8px',
                                     borderRadius: 'var(--radius-sm)',
-                                    background: "rgba(0,107,80,0.06)",
-                                    borderTop: "1px solid rgba(0,107,80,0.15)",
+                                    background: "rgba(var(--color-primary-rgb), 0.06)",
+                                    borderTop: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                                 }}>
                                     <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", marginBottom: '6px' }}>
                                         {t('classification')}
@@ -164,7 +164,7 @@ export default function PaceStatsWidget({ paceStats }: Props) {
                                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                                 padding: '3px 6px',
                                                 borderRadius: '4px',
-                                                background: key === paceKey ? "rgba(0,107,80,0.10)" : 'transparent',
+                                                background: key === paceKey ? "rgba(var(--color-primary-rgb), 0.10)" : 'transparent',
                                                 fontWeight: key === paceKey ? 700 : 400,
                                             }}>
                                                 <span style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--color-text-dim)' }}>

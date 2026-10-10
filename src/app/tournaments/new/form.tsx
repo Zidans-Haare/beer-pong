@@ -162,7 +162,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         <button type="button" onClick={() => setMode('SOLO')}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: 'var(--spacing-4)',
-                                background: mode === 'SOLO' ? "rgba(0,107,80,0.1)" : 'var(--color-surface)',
+                                background: mode === 'SOLO' ? "rgba(var(--color-primary-rgb), 0.1)" : 'var(--color-surface)',
                                 border: mode === 'SOLO' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                                 borderRadius: 'var(--radius-lg)', cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative'
                             }}>
@@ -208,8 +208,8 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                         style={{
                             padding: '12px', borderRadius: 'var(--radius-lg)',
                             border: !isRanked ? '2px solid #a855f7' : '1px solid var(--color-border)',
-                            background: !isRanked ? "rgba(0,107,80,0.1)" : 'transparent',
-                            color: !isRanked ? "#006b50" : 'var(--color-text-dim)',
+                            background: !isRanked ? "rgba(var(--color-primary-rgb), 0.1)" : 'transparent',
+                            color: !isRanked ? "var(--color-primary)" : 'var(--color-text-dim)',
                             fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             transition: 'all 0.2s'
                         }}>
@@ -471,7 +471,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                             display: 'flex', alignItems: 'center', gap: '10px',
                                             padding: '8px 12px', borderRadius: 'var(--radius-md)',
                                             cursor: isHost ? 'default' : 'pointer', transition: 'all 0.15s ease',
-                                            background: selected ? "rgba(0,107,80,0.12)" : 'var(--color-surface)',
+                                            background: selected ? "rgba(var(--color-primary-rgb), 0.12)" : 'var(--color-surface)',
                                             border: selected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                         }}
                                     >
@@ -487,7 +487,7 @@ export default function CreateTournamentForm({ players, hostPlayerId }: { player
                                             {p.name}
                                         </span>
                                         {isHost && (
-                                            <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.12)", padding: '2px 8px', borderRadius: "var(--radius-md)" }}>
+                                            <span style={{ marginLeft: 'auto', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(var(--color-primary-rgb), 0.12)", padding: '2px 8px', borderRadius: "var(--radius-md)" }}>
                                                 Host
                                             </span>
                                         )}

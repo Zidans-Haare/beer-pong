@@ -25,7 +25,7 @@ export default function DemoBanner() {
     return (
         <div style={{
             background: "var(--color-primary-light)",
-            borderBottom: "1px solid rgba(0,107,80,0.2)",
+            borderBottom: "1px solid rgba(var(--color-primary-rgb), 0.2)",
             padding: '8px 16px',
             display: 'flex',
             flexWrap: 'wrap',
@@ -57,8 +57,8 @@ export default function DemoBanner() {
                             padding: '3px 8px',
                             fontSize: '0.7rem',
                             fontWeight: 600,
-                            background: active === i ? "rgba(0,107,80,0.2)" : 'transparent',
-                            border: "1px solid rgba(0,107,80,0.25)",
+                            background: active === i ? "rgba(var(--color-primary-rgb), 0.2)" : 'transparent',
+                            border: "1px solid rgba(var(--color-primary-rgb), 0.25)",
                             borderRight: i === 0 ? 'none' : undefined,
                             borderRadius: i === 0 ? '6px 0 0 6px' : '0',
                             color: active === i ? 'var(--color-primary)' : 'var(--color-text-dim)',
@@ -79,7 +79,7 @@ export default function DemoBanner() {
                         alignItems: 'center',
                         gap: '8px',
                         background: 'rgba(255,255,255,0.9)',
-                        border: "1px solid rgba(0,107,80,0.35)",
+                        border: "1px solid rgba(var(--color-primary-rgb), 0.35)",
                         borderLeft: 'none',
                         borderRadius: '0 6px 6px 0',
                         padding: '3px 10px 3px 12px',

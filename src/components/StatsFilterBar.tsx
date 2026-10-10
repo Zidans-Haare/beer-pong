@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Trophy, PartyPopper, Calendar, Users, X } from 'lucide-react';
+import { Trophy, PartyPopper, Calendar, CalendarRange, Users, X } from 'lucide-react';
 import type { StatsPeriod } from '@/lib/stats';
 import type { Player } from '@prisma/client';
 import { useTranslations } from 'next-intl';
@@ -10,11 +10,17 @@ import { useTranslations } from 'next-intl';
 const PERIOD_KEYS: StatsPeriod[] = ['month', 'last5', 'year', 'all'];
 
 export default function StatsFilterBar({
+    seasons,
+    activeSeasonId,
+    currentSeasonId,
     onlyRanked,
     activePeriod,
     selectedPlayerIds,
     allPlayers,
 }: {
+    seasons: { id: string; name: string }[];
+    activeSeasonId: string; // Saison-ID oder 'all'
+    currentSeasonId: string | null;
     onlyRanked: boolean;
     activePeriod: StatsPeriod;
     selectedPlayerIds: string[];
@@ -25,11 +31,14 @@ export default function StatsFilterBar({
     const [playerSearch, setPlayerSearch] = useState('');
     const [showPlayerPicker, setShowPlayerPicker] = useState(false);
 
-    function buildUrl(overrides: { ranked?: boolean; period?: StatsPeriod; players?: string[] }) {
+    function buildUrl(overrides: { ranked?: boolean; period?: StatsPeriod; players?: string[]; season?: string }) {
         const params = new URLSearchParams();
         const r = overrides.ranked ?? onlyRanked;
         const p = overrides.period ?? activePeriod;
         const pl = overrides.players ?? selectedPlayerIds;
+        const se = overrides.season ?? activeSeasonId;
+        // Aktuelle Saison ist der Standard und braucht keinen Parameter
+        if (se !== currentSeasonId) params.set('season', se);
         if (!r) params.set('ranked', 'false');
         if (p !== 'all') params.set('period', p);
         if (pl.length > 0) params.set('players', pl.join(','));
@@ -67,6 +76,30 @@ export default function StatsFilterBar({
             padding: 'var(--spacing-4)', background: 'var(--color-surface)',
             borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)'
         }}>
+            {/* Season */}
+            {seasons.length > 0 && (
+                <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CalendarRange size={14} color="var(--color-text-dim)" style={{ flexShrink: 0 }} />
+                        <div role="group" aria-label={t('season')} style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-surface-secondary)', borderRadius: "var(--radius-md)", padding: '3px', border: '1px solid var(--color-border)' }}>
+                            {[...seasons, { id: 'all', name: t('allSeasons') }].map((se) => (
+                                <button key={se.id} onClick={() => navigate(buildUrl({ season: se.id }))} aria-pressed={activeSeasonId === se.id}
+                                    style={{
+                                        padding: '6px 12px', borderRadius: "var(--radius-md)", border: 'none',
+                                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+                                        background: activeSeasonId === se.id ? 'var(--color-primary)' : 'transparent',
+                                        color: activeSeasonId === se.id ? 'white' : 'var(--color-text-dim)',
+                                        transition: 'all 0.2s ease'
+                                    }}>
+                                    {se.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ height: '1px', background: 'var(--color-border)' }} />
+                </>
+            )}
+
             {/* Row 1: Period */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Calendar size={14} color="var(--color-text-dim)" style={{ flexShrink: 0 }} />
@@ -126,7 +159,7 @@ export default function StatsFilterBar({
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '6px 12px', borderRadius: "var(--radius-md)",
                         border: selectedPlayerIds.length > 0 ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                        background: selectedPlayerIds.length > 0 ? "rgba(0,107,80,0.1)" : 'var(--color-surface-secondary)',
+                        background: selectedPlayerIds.length > 0 ? "rgba(var(--color-primary-rgb), 0.1)" : 'var(--color-surface-secondary)',
                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         color: selectedPlayerIds.length > 0 ? 'var(--color-primary)' : 'var(--color-text-dim)',
                     }}>
@@ -176,7 +209,7 @@ export default function StatsFilterBar({
                                             display: 'flex', alignItems: 'center', gap: '8px',
                                             padding: '6px 8px', borderRadius: 'var(--radius-md)',
                                             cursor: 'pointer',
-                                            background: selected ? "rgba(0,107,80,0.12)" : 'transparent',
+                                            background: selected ? "rgba(var(--color-primary-rgb), 0.12)" : 'transparent',
                                         }}>
                                         <div style={{
                                             width: '16px', height: '16px', borderRadius: '3px', flexShrink: 0,

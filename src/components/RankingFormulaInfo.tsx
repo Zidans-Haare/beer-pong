@@ -25,7 +25,7 @@ export default function RankingFormulaInfo() {
                     fontWeight: 600,
                     color: open ? 'var(--color-primary)' : 'var(--color-text-subtle)',
                     background: open ? 'var(--color-primary-light)' : 'transparent',
-                    border: `1px solid ${open ? "rgba(0,107,80,0.25)" : 'var(--color-border)'}`,
+                    border: `1px solid ${open ? "rgba(var(--color-primary-rgb), 0.25)" : 'var(--color-border)'}`,
                     transition: 'all 0.2s ease',
                 }}
             >
@@ -50,7 +50,7 @@ export default function RankingFormulaInfo() {
                         <div style={{
                             padding: 'var(--spacing-4)',
                             background: "var(--color-primary-light)",
-                            border: "1px solid rgba(0,107,80,0.15)",
+                            border: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                             borderRadius: 'var(--radius-lg)',
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
@@ -81,8 +81,8 @@ export default function RankingFormulaInfo() {
                                     <div key={item.rank} style={{
                                         padding: '6px 8px',
                                         borderRadius: 'var(--radius-sm)',
-                                        background: "rgba(0,107,80,0.04)",
-                                        border: "1px solid rgba(0,107,80,0.08)",
+                                        background: "rgba(var(--color-primary-rgb), 0.04)",
+                                        border: "1px solid rgba(var(--color-primary-rgb), 0.08)",
                                     }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0 }}>{item.rank}</span>

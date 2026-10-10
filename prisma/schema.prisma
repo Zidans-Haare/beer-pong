@@ -314,15 +314,26 @@ model Passkey {
 }
 
 model RoomReservation {
-  id              String     @id @default(uuid())
-  tournamentId    String
-  userId          String
-  status          String     @default("PENDING")
-  wantsBreakfast  Boolean    @default(false)
-  wantsHalfBoard  Boolean    @default(false)
-  createdAt       DateTime   @default(now())
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  id             String     @id @default(uuid())
+  tournamentId   String
+  userId         String
+  status         String     @default("PENDING")
+  wantsBreakfast Boolean    @default(false)
+  wantsHalfBoard Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, userId])
+}
+
+// Saisons: Turniere gehören über ihr Datum (startDate <= date < endDate) zu einer Saison.
+// Die aktuelle Saison hat kein endDate; beendet wird sie manuell im Admin.
+model Season {
+  id          String    @id @default(uuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  accentColor String    @default("#006b50")
+  createdAt   DateTime  @default(now())
 }

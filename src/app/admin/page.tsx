@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
 
     const statCards = [
         { label: 'User', value: base.userCount, icon: Users, color: "#28647a", bg: "rgba(40,100,122,0.15)" },
-        { label: t('statTournaments'), value: base.tournamentCount, icon: Trophy, color: "#006b50", bg: "rgba(0,107,80,0.15)" },
+        { label: t('statTournaments'), value: base.tournamentCount, icon: Trophy, color: "var(--color-primary)", bg: "rgba(var(--color-primary-rgb), 0.15)" },
         { label: t('statPlayers'), value: extra.playerCount, icon: User, color: "#08754b", bg: 'rgba(34,197,94,0.15)' },
         { label: t('statMatches'), value: extra.matchCount, icon: Swords, color: "#94600b", bg: 'rgba(249,115,22,0.15)' },
         { label: 'Chat', value: extra.chatCount, icon: MessageSquare, color: "#28647a", bg: 'rgba(56,189,248,0.15)' },

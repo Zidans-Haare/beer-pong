@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { dateFilter, type SeasonRange } from '@/lib/seasons';
 // import { Player, Match, Tournament } from '@prisma/client';
 
 export interface PlayerStats {
@@ -22,8 +23,8 @@ export interface PlayerMedals {
     bronze: number;
 }
 
-export async function getPlayerMedals(onlyRanked = true): Promise<Record<string, PlayerMedals>> {
-    return (await computePlacements(onlyRanked)).medals;
+export async function getPlayerMedals(onlyRanked = true, season?: SeasonRange): Promise<Record<string, PlayerMedals>> {
+    return (await computePlacements(onlyRanked, season)).medals;
 }
 
 interface Placements {
@@ -32,10 +33,12 @@ interface Placements {
 }
 
 // Medals per player plus the gold winner(s) of each tournament (bracket final beats league table)
-async function computePlacements(onlyRanked: boolean): Promise<Placements> {
+async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Promise<Placements> {
+    const seasonDates = dateFilter(season);
     const tournaments = await prisma.tournament.findMany({
         where: {
             status: 'COMPLETED',
+            ...(seasonDates ? { date: seasonDates } : {}),
             OR: [
                 { isHistorical: true },
                 ...(onlyRanked ? [{ isRanked: true, isHistorical: false }] : [{ isHistorical: false }]),
@@ -184,15 +187,15 @@ export function getPeriodStartDate(period: StatsPeriod): Date | undefined {
     return undefined;
 }
 
-export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all'): Promise<PlayerStats[]> {
-    const { medals, winnersByTournament } = await computePlacements(onlyRanked);
-    const since = getPeriodStartDate(period);
+export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all', season?: SeasonRange): Promise<PlayerStats[]> {
+    const { medals, winnersByTournament } = await computePlacements(onlyRanked, season);
+    const dates = dateFilter(season, getPeriodStartDate(period));
     // For 'last5', fetch all and filter per-player afterwards
     const tournamentFilter = {
         status: 'COMPLETED',
         isHistorical: false,
         ...(onlyRanked ? { isRanked: true } : {}),
-        ...(since ? { date: { gte: since } } : {}),
+        ...(dates ? { date: dates } : {}),
     };
 
     const players = await prisma.player.findMany({

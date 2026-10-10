@@ -186,7 +186,7 @@ export default function BringList({ tournamentId, initialItems, currentUserId }:
                     {t('title')}
                 </span>
                 {totalCost > 0 && (
-                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.1)", padding: '1px 7px', borderRadius: "6px" }}>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(var(--color-primary-rgb), 0.1)", padding: '1px 7px', borderRadius: "6px" }}>
                         {t('totalCost', { amount: totalCost.toFixed(2) })}
                     </span>
                 )}
@@ -283,7 +283,7 @@ function CategoryCard({ categoryKey, label, icon, items, myItem, currentUserId, 
                     <span style={{ color: myItem ? 'var(--color-primary)' : 'var(--color-text-dim)', display: 'flex', flexShrink: 0 }}>{icon}</span>
                     <span style={{ fontSize: '0.82rem', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
                     {totalQty > 0 && (
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(0,107,80,0.1)", padding: '1px 5px', borderRadius: "6px", flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', background: "rgba(var(--color-primary-rgb), 0.1)", padding: '1px 5px', borderRadius: "6px", flexShrink: 0 }}>
                             {totalQty}×
                         </span>
                     )}

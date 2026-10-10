@@ -139,7 +139,7 @@ export default function LogoEasterEgg() {
                                 <div style={{
                                     padding: '14px 16px',
                                     background: "var(--color-primary-light)",
-                                    border: "1px solid rgba(0,107,80,0.15)",
+                                    border: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                                     borderRadius: 'var(--radius-md)',
                                 }}>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--color-text-subtle)', textTransform: 'uppercase', letterSpacing: "0", fontWeight: 700, marginBottom: '4px' }}>

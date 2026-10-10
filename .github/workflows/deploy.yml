@@ -115,6 +115,8 @@ jobs:
             # Prisma's schema engine fails sporadically with "input contains invalid characters"
             # (~1 in 8 runs, not reproducible on demand) — retry before giving up
             DB_URL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"')
+            # Textzeitstempel in _prisma_migrations lassen die Schema-Engine abstürzen — vorher reparieren
+            DATABASE_URL="$DB_URL" node scripts/fix-migration-table.js
             for attempt in 1 2 3; do
               if DATABASE_URL="$DB_URL" npx prisma migrate deploy; then break; fi
               if [ "$attempt" = 3 ]; then echo "prisma migrate deploy nach 3 Versuchen fehlgeschlagen"; exit 1; fi

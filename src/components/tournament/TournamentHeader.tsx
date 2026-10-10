@@ -117,12 +117,12 @@ export default function TournamentHeader({
                         alignItems: 'center',
                         gap: '4px',
                         padding: '4px 10px',
-                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : "rgba(0,107,80,0.15)",
-                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : "rgba(0,107,80,0.5)"}`,
+                        background: tournament.isRanked ? 'rgba(217, 119, 6, 0.1)' : "rgba(var(--color-primary-rgb), 0.15)",
+                        border: `1px solid ${tournament.isRanked ? 'rgba(217, 119, 6, 0.3)' : "rgba(var(--color-primary-rgb), 0.5)"}`,
                         borderRadius: "6px",
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: tournament.isRanked ? "#94600b" : "#006b50"
+                        color: tournament.isRanked ? "#94600b" : "var(--color-primary)"
                     }}>
                         {tournament.isRanked ? <Trophy size={12} /> : <Sparkles size={12} />}
                         {tournament.isRanked ? t('rankedShort') : t('funShort')}

@@ -1,4 +1,5 @@
 import { getAllPlayerStats } from '@/lib/stats';
+import { getSeasons, resolveSeasonParam, seasonRange } from '@/lib/seasons';
 import type { StatsPeriod } from '@/lib/stats';
 import StatsCharts from '@/components/StatsCharts';
 import StatsExportButton from '@/components/StatsExportButton';
@@ -96,15 +97,21 @@ async function syncAndGetUptimeData() {
 
 export const dynamic = 'force-dynamic';
 
-export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string; period?: string; players?: string }> }) {
-    const { ranked, period, players: playersParam } = await searchParams;
+export default async function StatsPage({ searchParams }: { searchParams: Promise<{ ranked?: string; period?: string; players?: string; season?: string }> }) {
+    const { ranked, period, players: playersParam, season: seasonParam } = await searchParams;
     const onlyRanked = ranked !== 'false';
     const activePeriod = (['month', 'last5', 'year', 'all'].includes(period ?? '') ? period : 'all') as StatsPeriod;
     const selectedPlayerIds = playersParam ? playersParam.split(',').filter(Boolean) : [];
     const t = await getTranslations('stats');
 
+    // Saison: ohne Angabe die aktuelle, 'all' = alle Saisons zusammen
+    const seasons = await getSeasons();
+    const { selected: selectedSeason, isAll: allSeasons } = resolveSeasonParam(seasonParam, seasons);
+    const currentSeasonId = (seasons.find(se => !se.endDate) ?? seasons[0])?.id ?? null;
+    const range = seasonRange(selectedSeason);
+
     const [allStats, allPlayers, uptimeData] = await Promise.all([
-        getAllPlayerStats(onlyRanked, activePeriod),
+        getAllPlayerStats(onlyRanked, activePeriod, range),
         getPlayers().then(ps => ps.filter(p => !p.isGuest)),
         syncAndGetUptimeData(),
     ]);
@@ -114,7 +121,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
         : allStats;
 
     // Hide players with no activity in the selected period
-    if (activePeriod !== 'all') {
+    if (activePeriod !== 'all' || !allSeasons) {
         stats = stats.filter(s => s.matchesPlayed > 0);
     }
 
@@ -143,9 +150,18 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     <Trophy size={14} color="#b45309" />
                     {onlyRanked ? t('onlyRanked') : t('allTournamentsFilter')}
                 </div>
+                {selectedSeason && (
+                    <div className="season-badge" style={{ borderColor: selectedSeason.accentColor }}>
+                        <span className="season-badge-dot" style={{ background: selectedSeason.accentColor }} />
+                        {selectedSeason.name}
+                    </div>
+                )}
             </header>
 
             <StatsFilterBar
+                seasons={seasons.map(se => ({ id: se.id, name: se.name }))}
+                activeSeasonId={allSeasons ? 'all' : (selectedSeason?.id ?? 'all')}
+                currentSeasonId={currentSeasonId}
                 onlyRanked={onlyRanked}
                 activePeriod={activePeriod}
                 selectedPlayerIds={selectedPlayerIds}

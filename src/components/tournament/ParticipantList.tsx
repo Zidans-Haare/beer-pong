@@ -101,8 +101,8 @@ function ParticipantCard({ name, image, isGuest, isMaybe, maybeLabel }: { name: 
             alignItems: 'center',
             gap: 'var(--spacing-2)',
             padding: 'var(--spacing-2) var(--spacing-3)',
-            background: isGuest ? "rgba(0,107,80,0.08)" : isMaybe ? 'rgba(255, 165, 0, 0.06)' : 'var(--color-surface-hover)',
-            border: `1px solid ${isGuest ? "rgba(0,107,80,0.3)" : isMaybe ? 'rgba(255, 165, 0, 0.35)' : 'var(--color-border)'}`,
+            background: isGuest ? "rgba(var(--color-primary-rgb), 0.08)" : isMaybe ? 'rgba(255, 165, 0, 0.06)' : 'var(--color-surface-hover)',
+            border: `1px solid ${isGuest ? "rgba(var(--color-primary-rgb), 0.3)" : isMaybe ? 'rgba(255, 165, 0, 0.35)' : 'var(--color-border)'}`,
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',
             opacity: isMaybe ? 0.85 : 1,
@@ -118,7 +118,7 @@ function ParticipantCard({ name, image, isGuest, isMaybe, maybeLabel }: { name: 
                 {name}
             </span>
             {isGuest && (
-                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: "#006b50", marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: "var(--color-primary)", marginLeft: 'auto' }}>
                     GAST
                 </span>
             )}

@@ -225,7 +225,7 @@ export default function LobbyDurationWidget({ type, playerCount, matchDurationMi
                         <div className="glass-panel" style={{
                             padding: 'var(--spacing-4)',
                             background: "var(--color-primary-light)",
-                            border: "1px solid rgba(0,107,80,0.15)",
+                            border: "1px solid rgba(var(--color-primary-rgb), 0.15)",
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-3)' }}>
                                 <div style={{ minWidth: 0 }}>

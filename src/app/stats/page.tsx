@@ -14,6 +14,7 @@ import RankingFormulaInfo from '@/components/RankingFormulaInfo';
 import StatsRanking, { type RankingRow } from '@/components/stats/StatsRanking';
 import HeadToHead from '@/components/stats/HeadToHead';
 import FormDots from '@/components/stats/FormDots';
+import WrappedLink from '@/components/wrapped/WrappedLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -217,13 +218,13 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     <ul className="wrapped-list">
                         {wrappeds.map(w => (
                             <li key={w.id}>
-                                <Link href={`/wrapped?id=${w.id}`} className="wrapped-list-item">
+                                <WrappedLink href={`/wrapped?id=${w.id}`} className="wrapped-list-item">
                                     <span className="wrapped-list-text">
                                         <strong>{w.title}{w.views.length === 0 && <span className="ranking-me">{t('wrappedNew')}</span>}</strong>
                                         <span>{format(w.startDate, 'dd.MM.yyyy')} – {format(new Date(w.endDate.getTime() - 1), 'dd.MM.yyyy')}</span>
                                     </span>
                                     <span className="wrapped-list-cta">{t('wrappedOpen')} <ArrowRight size={16} aria-hidden="true" /></span>
-                                </Link>
+                                </WrappedLink>
                             </li>
                         ))}
                     </ul>

@@ -64,7 +64,7 @@ export default function AppDialogProvider({ children }: { children: ReactNode })
                     <p className="app-dialog-message">{state.message || t('genericError')}</p>
                     <div className="sheet-actions">
                         {state.kind === 'confirm' && <button type="button" className="btn btn-secondary" onClick={() => close(false)}>{t('cancel')}</button>}
-                        <button type="button" autoFocus className={`btn ${state.danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => close(true)}>
+                        <button type="button" data-autofocus className={`btn ${state.danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => close(true)}>
                             {state.confirmLabel ?? (state.kind === 'confirm' ? t('confirm') : t('ok'))}
                         </button>
                     </div>

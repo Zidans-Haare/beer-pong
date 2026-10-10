@@ -8,7 +8,7 @@ import { X, Download, Video, Pause, RotateCcw, Square, Volume2, VolumeX } from '
 import { useTranslations } from 'next-intl';
 import { drawWrappedFrame, loadSceneFonts, loadSceneLogo, sceneTimeline, SEGMENT_MS, SCENE_WIDTH, SCENE_HEIGHT, type SceneModel } from '@/lib/wrapped-scene';
 import { markWrappedSeen } from '@/app/actions/wrapped';
-import { WrappedAudio, audioSupported } from '@/lib/wrapped-audio';
+import { sharedWrappedAudio, audioSupported, type WrappedAudio } from '@/lib/wrapped-audio';
 import { canvasToFile, saveFiles } from '@/lib/wrapped-image';
 
 const TAP_MS = 250;
@@ -33,6 +33,7 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
     const fillRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const time = useRef(initialTime ?? 0);
     const pressedAt = useRef(0);
+    const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const recorder = useRef<MediaRecorder | null>(null);
     const cancelled = useRef(false);
     const audio = useRef<WrappedAudio | null>(null);
@@ -100,9 +101,19 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
     useEffect(() => {
         const previous = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
+        // Ton übernehmen: Er wurde meist schon beim Tippen auf den Link freigeschaltet
+        const sound = sharedWrappedAudio();
+        if (sound) {
+            audio.current = sound;
+            sound.ctx.onstatechange = () => setSoundOn(sound.ctx.state === 'running');
+            needsSync.current = true;
+            // falls noch nicht: versuchen (klappt, wenn die Seite schon einmal berührt wurde)
+            sound.resume().then(() => setSoundOn(sound.ctx.state === 'running'));
+        }
         return () => {
             document.body.style.overflow = previous;
-            audio.current?.close();
+            // gemeinsame Instanz nicht schließen, nur anhalten
+            if (sound) { sound.ctx.onstatechange = null; sound.stop(); sound.suspend(); }
             audio.current = null;
         };
     }, []);
@@ -110,8 +121,18 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
     // Browser erlauben Ton erst nach einer Nutzeraktion; deshalb bei jedem Tippen versuchen
     const unlockAudio = useCallback(async () => {
         if (!audioSupported()) return null;
-        if (!audio.current) audio.current = new WrappedAudio();
-        await audio.current.resume();
+        if (!audio.current) {
+            const created = sharedWrappedAudio();
+            if (!created) return null;
+            // der Browser meldet selbst, wann der Ton wirklich läuft
+            created.ctx.onstatechange = () => setSoundOn(created.ctx.state === 'running');
+            audio.current = created;
+        }
+        // resume() muss direkt in der Nutzeraktion aufgerufen werden, deshalb vor jedem await
+        const resumed = audio.current.resume();
+        // ab hier neu an die Bildzeit hängen, sonst startet der Ton nicht mitten in der Szene
+        needsSync.current = true;
+        await resumed;
         const on = audio.current.ctx.state === 'running';
         setSoundOn(on);
         return on ? audio.current : null;
@@ -202,16 +223,25 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
     }, [step, router, recording]);
 
     // kurz tippen = springen, gedrückt halten = anhalten
+    const clearHold = () => {
+        if (holdTimer.current) clearTimeout(holdTimer.current);
+        holdTimer.current = null;
+        setHeld(false);
+    };
     const press = () => {
         if (recording) return;
         pressedAt.current = performance.now();
-        setHeld(true);
-        if (!soundOn) unlockAudio();
+        // erst nach kurzem Halten pausieren; ein Tippen soll weder Bild noch Ton anhalten
+        if (holdTimer.current) clearTimeout(holdTimer.current);
+        holdTimer.current = setTimeout(() => setHeld(true), TAP_MS);
     };
     const release = (direction: 1 | -1) => {
         if (recording) return;
-        setHeld(false);
-        if (performance.now() - pressedAt.current < TAP_MS) step(direction);
+        const tapped = performance.now() - pressedAt.current < TAP_MS;
+        clearHold();
+        // Handys erlauben Ton erst, wenn der Finger wieder oben ist (nicht schon beim Aufsetzen)
+        if (!soundOn && !muted) unlockAudio();
+        if (tapped) step(direction);
     };
 
     function toggleMute() {
@@ -327,9 +357,9 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
             {!recording && (
                 <>
                     <button type="button" className="wrapped-tap wrapped-tap-prev" aria-label={t('previous')}
-                        onPointerDown={press} onPointerUp={() => release(-1)} onPointerLeave={() => setHeld(false)} onKeyDown={e => { if (e.key === 'Enter') step(-1); }} />
+                        onPointerDown={press} onPointerUp={() => release(-1)} onPointerLeave={clearHold} onPointerCancel={clearHold} onKeyDown={e => { if (e.key === 'Enter') step(-1); }} />
                     <button type="button" className="wrapped-tap wrapped-tap-next" aria-label={t('next')} disabled={index === model.segments.length - 1}
-                        onPointerDown={press} onPointerUp={() => release(1)} onPointerLeave={() => setHeld(false)} onKeyDown={e => { if (e.key === 'Enter') step(1); }} />
+                        onPointerDown={press} onPointerUp={() => release(1)} onPointerLeave={clearHold} onPointerCancel={clearHold} onKeyDown={e => { if (e.key === 'Enter') step(1); }} />
                 </>
             )}
 

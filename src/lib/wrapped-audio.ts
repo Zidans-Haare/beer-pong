@@ -207,3 +207,18 @@ export class WrappedAudio {
 export function audioSupported(): boolean {
     return typeof window !== 'undefined' && !!(window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
 }
+
+// Eine gemeinsame Instanz: Sie wird schon beim Tippen auf den Wrapped-Link freigeschaltet
+// und danach von der Story benutzt. So läuft der Ton ab dem ersten Bild.
+let shared: WrappedAudio | null = null;
+
+export function sharedWrappedAudio(): WrappedAudio | null {
+    if (!audioSupported()) return null;
+    if (!shared || shared.ctx.state === 'closed') shared = new WrappedAudio();
+    return shared;
+}
+
+// In einer Nutzeraktion aufrufen (Klick oder Tippen). Browser erlauben Ton nur von dort aus.
+export function primeWrappedAudio() {
+    try { sharedWrappedAudio()?.resume(); } catch { /* ohne Ton weiter */ }
+}

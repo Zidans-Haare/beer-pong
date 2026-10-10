@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Eye, Sparkles } from 'lucide-react';
 import { publishWrapped, unpublishWrapped } from '@/app/actions/wrapped';
 import { useAppDialog } from '@/components/AppDialog';
+import WrappedLink from '@/components/wrapped/WrappedLink';
 
 interface Scope { id: string; label: string; title: string; from: string; to: string; players: number }
 interface Existing { id: string; title: string; range: string; published: boolean; publishedAt: string | null }
@@ -59,9 +60,9 @@ export default function WrappedManager({ scopes, existing }: { scopes: Scope[]; 
                     <input id="wrapped-title" style={field} value={title} maxLength={60} onChange={e => setTitle(e.target.value)} />
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <a className="btn btn-secondary" href={previewUrl} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <WrappedLink className="btn btn-secondary wrapped-preview-link" href={previewUrl}>
                         <Eye size={18} aria-hidden="true" /> {t('preview')}
-                    </a>
+                    </WrappedLink>
                     <button type="button" className="btn btn-primary" disabled={pending || !scope || scope.players === 0 || !title.trim()} onClick={publish}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <Sparkles size={18} aria-hidden="true" /> {pending ? t('working') : t('publish')}

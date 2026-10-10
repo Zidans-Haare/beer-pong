@@ -88,7 +88,8 @@ test.describe('Isolated mobile page coverage', () => {
     await expect(page.locator('.bottom-nav').getByRole('link', { name: 'Chat', exact: true })).toHaveCount(0);
     await page.locator('.bottom-nav').getByRole('button', { name: /Mehr/ }).click();
     const dialog = page.getByRole('dialog');
-    for (const name of ['Spieler', 'Chat', 'Benachrichtigungen', 'Streaming', 'Einstellungen', 'Regeln']) await expect(dialog.getByRole('link', { name, exact: true })).toBeVisible();
+    // der Zähler ungelesener Benachrichtigungen wird nachgeladen und steht dann mit im Namen des Links
+    for (const name of ['Spieler', 'Chat', 'Benachrichtigungen', 'Streaming', 'Einstellungen', 'Regeln']) await expect(dialog.getByRole('link', { name: new RegExp(`^${name}( \\d+\\+?)?$`) })).toBeVisible();
     await expect(dialog.getByRole('link', { name: 'Stats', exact: true })).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Schließen', exact: true }).click();
     await expect(dialog).not.toBeVisible();

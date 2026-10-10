@@ -3,11 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
+// crypto.randomUUID gibt es nur über HTTPS oder localhost; sonst selbst eine v4-UUID bauen
+function randomId(): string {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const hex = Array.from(b, v => v.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function getOrCreatePresenceId(): string {
     const key = 'presence_id';
     let id = document.cookie.match(new RegExp(`(?:^|; )${key}=([^;]*)`))?.[1];
     if (!id) {
-        id = crypto.randomUUID();
+        id = randomId();
         // 30 min expiry, renewed on each heartbeat
         document.cookie = `${key}=${id}; path=/; max-age=1800; SameSite=Lax`;
     }

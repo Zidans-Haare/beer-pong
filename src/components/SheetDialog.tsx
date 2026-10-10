@@ -25,6 +25,9 @@ export default function SheetDialog({ title, children, open = true, onClose, cla
         locks++;
         document.body.style.overflow = 'hidden';
         if (!dialog.open) dialog.showModal();
+        // showModal() setzt den Fokus auf den ersten Button (das Kreuz); auf dem Handy bleibt dann dessen
+        // Fokusrahmen stehen. Stattdessen den Dialog selbst fokussieren, außer ein Element ist ausdrücklich markiert.
+        (dialog.querySelector<HTMLElement>('[data-autofocus]') ?? dialog).focus({ preventScroll: true });
         return () => {
             dialog.close();
             locks--;
@@ -35,7 +38,7 @@ export default function SheetDialog({ title, children, open = true, onClose, cla
 
     if (!mounted || !open) return null;
     return createPortal(
-        <dialog ref={dialogRef} className={`sheet-dialog ${className}`} aria-labelledby={titleId}
+        <dialog ref={dialogRef} tabIndex={-1} className={`sheet-dialog ${className}`} aria-labelledby={titleId}
             onCancel={event => { event.preventDefault(); closeRef.current(); }}
             onClick={event => {
                 if (event.target !== event.currentTarget) return;

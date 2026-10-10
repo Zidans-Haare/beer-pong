@@ -313,7 +313,12 @@ export async function getTournamentForecast(tournamentId: string): Promise<{
 }
 
 /**
- * Record match duration when result is submitted
+ * Record match duration when result is submitted.
+ *
+ * League matches are all marked as started when the tournament begins, so
+ * startedAt alone is too early. A match can only begin once the previous match
+ * on the same table of the same tournament is finished, hence the start is the
+ * later of startedAt and that completion.
  */
 export async function recordMatchDuration(
   matchId: string,
@@ -321,10 +326,32 @@ export async function recordMatchDuration(
 ): Promise<void> {
   const now = new Date();
 
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { tournamentId: true, tableNumber: true },
+  });
+
+  let effectiveStart = startedAt;
+  if (match?.tableNumber) {
+    const prevOnTable = await prisma.match.findFirst({
+      where: {
+        tournamentId: match.tournamentId,
+        tableNumber: match.tableNumber,
+        id: { not: matchId },
+        completedAt: { not: null, lt: now },
+      },
+      orderBy: { completedAt: 'desc' },
+      select: { completedAt: true },
+    });
+    if (prevOnTable?.completedAt && (!effectiveStart || prevOnTable.completedAt > effectiveStart)) {
+      effectiveStart = prevOnTable.completedAt;
+    }
+  }
+
   // Calculate duration if we have a start time
   let durationSeconds: number | undefined;
-  if (startedAt) {
-    durationSeconds = Math.round((now.getTime() - startedAt.getTime()) / 1000);
+  if (effectiveStart) {
+    durationSeconds = Math.round((now.getTime() - effectiveStart.getTime()) / 1000);
 
     // Sanity check: ignore unrealistic durations (< 60s or > 30 min)
     if (durationSeconds < 60 || durationSeconds > 1800) {
@@ -343,14 +370,23 @@ export async function recordMatchDuration(
 
 /**
  * Mark a match as started (when it becomes playable)
- * If tableNumber is provided, uses the last completedAt on that table as startedAt
+ * If tableNumber is provided, uses the last completedAt on that table of the same tournament as startedAt
  */
 export async function markMatchStarted(matchId: string, tableNumber?: number): Promise<void> {
   let startedAt = new Date();
 
   if (tableNumber) {
+    const current = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { tournamentId: true },
+    });
     const lastOnTable = await prisma.match.findFirst({
-      where: { tableNumber, completedAt: { not: null }, id: { not: matchId } },
+      where: {
+        tournamentId: current?.tournamentId,
+        tableNumber,
+        completedAt: { not: null },
+        id: { not: matchId },
+      },
       orderBy: { completedAt: 'desc' },
       select: { completedAt: true },
     });
@@ -364,5 +400,3 @@ export async function markMatchStarted(matchId: string, tableNumber?: number): P
     data: { startedAt, tableNumber: tableNumber ?? null },
   });
 }
-
-

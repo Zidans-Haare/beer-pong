@@ -47,10 +47,11 @@ describe('computeWrapped', () => {
 });
 
 describe('buildScene', () => {
-    it('liefert immer die sechs Abschnitte in fester Reihenfolge', () => {
+    it('liefert immer die sieben Abschnitte in fester Reihenfolge', () => {
         const data = computeWrapped([match('a', 'b', 10, 3)], extras(['a', 'b'], new Map([['a', { gold: 2, silver: 1, bronze: 0 }]]))).get('a')!;
         const scene = buildScene(data, 'Wrapped 2026', '#006b50', t);
-        expect(scene.segments.map(s => s.key)).toEqual(['table', 'setup', 'throw', 'rally', 'win', 'final']);
+        expect(scene.segments.map(s => s.key)).toEqual(['table', 'setup', 'throw', 'rally', 'win', 'final', 'outro']);
+        expect(scene.outro).toEqual({ title: 'outroTitle', line: 'outroLine' });
         expect(scene.opponentName).toBe('B');
         expect(scene.segments[0].countTo).toBe(1);
         expect(scene.segments[4].countTo).toBe(1); // Siege

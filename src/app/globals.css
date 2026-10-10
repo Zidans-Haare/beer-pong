@@ -886,3 +886,17 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
   .wrapped-banner, .wrapped-banner::after, .wrapped-banner-icon, .wrapped-recording-dot { animation: none; }
   .wrapped-banner::after { display: none; }
 }
+
+/* Rückblick schon angesehen: gleiche Stelle, aber ruhig */
+.wrapped-banner.is-seen { animation: none; box-shadow: var(--shadow-sm); padding: 14px 16px; background: linear-gradient(120deg, var(--color-primary), #1d2a24 60%, var(--color-secondary)); }
+.wrapped-banner.is-seen::after { display: none; }
+.wrapped-banner.is-seen .wrapped-banner-icon { animation: none; width: 40px; height: 40px; flex-basis: 40px; }
+.wrapped-banner.is-seen .wrapped-banner-text strong { font-size: 1.15rem; }
+.wrapped-banner.is-seen:hover { transform: none; }
+
+.wrapped-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.wrapped-list-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface-secondary); text-decoration: none; color: var(--color-text); }
+.wrapped-list-item:hover { border-color: var(--color-primary); }
+.wrapped-list-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wrapped-list-text span { font-size: 0.8rem; color: var(--color-text-dim); }
+.wrapped-list-cta { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--color-primary); white-space: nowrap; }

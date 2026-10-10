@@ -26,9 +26,9 @@ class FakeAudioContext {
     close() { return Promise.resolve(); }
 }
 
-const keys: SceneKey[] = ['table', 'setup', 'throw', 'rally', 'win', 'final'];
+const keys: SceneKey[] = ['table', 'setup', 'throw', 'rally', 'win', 'final', 'outro'];
 const model: SceneModel = {
-    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50', winLabel: 'SIEG!',
+    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50', winLabel: 'SIEG!', outro: { title: 'Bier Pong', line: 'Made by Nick' },
     segments: keys.map(key => ({ key, eyebrow: 'E', value: '1', title: 'T', lines: [] })),
 };
 

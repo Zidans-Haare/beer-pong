@@ -20,9 +20,9 @@ function fakeContext() {
     }) as unknown as CanvasRenderingContext2D;
 }
 
-const keys: SceneKey[] = ['table', 'setup', 'throw', 'rally', 'win', 'final'];
+const keys: SceneKey[] = ['table', 'setup', 'throw', 'rally', 'win', 'final', 'outro'];
 const model: SceneModel = {
-    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50', winLabel: 'SIEG!',
+    title: 'Wrapped 2026', playerName: 'Nick', opponentName: 'Heber', primary: '#006b50', winLabel: 'SIEG!', outro: { title: 'Bier Pong', line: 'Made by Nick' },
     segments: keys.map(key => ({ key, eyebrow: 'Eyebrow', value: '42', countTo: 42, title: 'Titel der Folie', lines: ['Zeile eins', 'Zeile zwei'] })),
 };
 
@@ -45,8 +45,8 @@ describe('drawWrappedFrame', () => {
     it('legt die Abschnitte lückenlos hintereinander', () => {
         const starts = segmentStarts(model);
         expect(starts[0]).toBe(0);
-        expect(starts).toHaveLength(6);
-        expect(totalDuration(model)).toBeGreaterThan(starts[5]);
+        expect(starts).toHaveLength(7);
+        expect(totalDuration(model)).toBeGreaterThan(starts[6]);
     });
 
     it('hält die Handlung in der richtigen Reihenfolge', () => {

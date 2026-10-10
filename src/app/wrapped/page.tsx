@@ -11,10 +11,10 @@ import WrappedStory from '@/components/wrapped/WrappedStory';
 
 export const dynamic = 'force-dynamic';
 
-export default async function WrappedPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; title?: string; at?: string }> }) {
+export default async function WrappedPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; title?: string; at?: string; id?: string }> }) {
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
-    const { from, to, title, at } = await searchParams;
+    const { from, to, title, at, id } = await searchParams;
     const t = await getTranslations('wrapped');
 
     // Vorschau über Zeitraum in der URL ist nur für den Admin
@@ -23,7 +23,11 @@ export default async function WrappedPage({ searchParams }: { searchParams: Prom
     const preview = isAdmin(session.user.email) && fromDate && toDate && !isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())
         ? { title: (title ?? '').trim().slice(0, 60) || t('brand'), startDate: fromDate, endDate: toDate }
         : null;
-    const wrapped = preview ?? await getActiveWrapped();
+    // ?id=… öffnet einen älteren veröffentlichten Rückblick (von der Statistik-Seite)
+    const published = preview ? null : id
+        ? await prisma.wrapped.findFirst({ where: { id, publishedAt: { not: null } } })
+        : await getActiveWrapped();
+    const wrapped = preview ?? published;
 
     const empty = (message: string) => (
         <div className="container page-content" style={{ textAlign: 'center', paddingTop: '64px' }}>
@@ -47,5 +51,5 @@ export default async function WrappedPage({ searchParams }: { searchParams: Prom
     // ?at=<Millisekunden> hält die Vorschau an einer Stelle an (nur Admin-Vorschau)
     const startAt = preview && at && !isNaN(Number(at)) ? Number(at) : undefined;
 
-    return <WrappedStory model={model} initialTime={startAt} />;
+    return <WrappedStory model={model} initialTime={startAt} wrappedId={published?.id} />;
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Trophy, Swords, Flame, TrendingUp, Medal, User, FileSpreadsheet } from 'lucide-react';
+import { Trophy, Swords, Flame, TrendingUp, Medal, User, FileSpreadsheet, Sparkles, ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
@@ -29,11 +30,17 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const dates = dateFilter(range);
 
     const session = await auth();
-    const [allStats, insights, me, historicalCount] = await Promise.all([
+    const [allStats, insights, me, historicalCount, wrappeds] = await Promise.all([
+        // der letzte Eintrag: alle veröffentlichten Rückblicke samt eigenem Gesehen-Vermerk
         getAllPlayerStats(onlyRanked, 'all', range),
         getStatsInsights(onlyRanked, range),
         session?.user?.id ? prisma.player.findUnique({ where: { userId: session.user.id }, select: { id: true } }) : null,
         prisma.tournament.count({ where: { status: 'COMPLETED', isHistorical: true, ...(dates ? { date: dates } : {}) } }),
+        prisma.wrapped.findMany({
+            where: { publishedAt: { not: null } },
+            orderBy: { publishedAt: 'desc' },
+            include: { views: { where: { userId: session?.user?.id ?? '' }, select: { id: true } } },
+        }).catch(() => []),
     ]);
 
     // Nur Spieler mit Spielen oder Medaillen im gewählten Zeitraum
@@ -197,6 +204,29 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                     </div>
                     <p className="stats-section-sub">{t('trendSubtitle')}</p>
                     <StatsCharts series={series} defaultIds={defaultChartIds} />
+                </section>
+            )}
+
+            {/* Rückblicke */}
+            {wrappeds.length > 0 && (
+                <section className="stats-section">
+                    <div className="stats-section-head">
+                        <h2><Sparkles size={18} aria-hidden="true" /> {t('wrappedTitle')}</h2>
+                    </div>
+                    <p className="stats-section-sub">{t('wrappedHint')}</p>
+                    <ul className="wrapped-list">
+                        {wrappeds.map(w => (
+                            <li key={w.id}>
+                                <Link href={`/wrapped?id=${w.id}`} className="wrapped-list-item">
+                                    <span className="wrapped-list-text">
+                                        <strong>{w.title}{w.views.length === 0 && <span className="ranking-me">{t('wrappedNew')}</span>}</strong>
+                                        <span>{format(w.startDate, 'dd.MM.yyyy')} – {format(new Date(w.endDate.getTime() - 1), 'dd.MM.yyyy')}</span>
+                                    </span>
+                                    <span className="wrapped-list-cta">{t('wrappedOpen')} <ArrowRight size={16} aria-hidden="true" /></span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </section>
             )}
 

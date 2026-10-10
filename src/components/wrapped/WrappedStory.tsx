@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useReducedMotion } from 'framer-motion';
 import { X, Download, Video, Pause, RotateCcw, Square, Volume2, VolumeX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { drawWrappedFrame, loadSceneFonts, sceneTimeline, SEGMENT_MS, SCENE_WIDTH, SCENE_HEIGHT, type SceneModel } from '@/lib/wrapped-scene';
+import { drawWrappedFrame, loadSceneFonts, loadSceneLogo, sceneTimeline, SEGMENT_MS, SCENE_WIDTH, SCENE_HEIGHT, type SceneModel } from '@/lib/wrapped-scene';
+import { markWrappedSeen } from '@/app/actions/wrapped';
 import { WrappedAudio, audioSupported } from '@/lib/wrapped-audio';
 import { canvasToFile, saveFiles } from '@/lib/wrapped-image';
 
@@ -20,7 +21,8 @@ function pickVideoType(): string | null {
     return VIDEO_TYPES.find(type => MediaRecorder.isTypeSupported(type)) ?? null;
 }
 
-export default function WrappedStory({ model, initialTime }: { model: SceneModel; initialTime?: number }) {
+// wrappedId fehlt in der Admin-Vorschau; dann wird nichts als gesehen vermerkt
+export default function WrappedStory({ model, initialTime, wrappedId }: { model: SceneModel; initialTime?: number; wrappedId?: string }) {
     const t = useTranslations('wrapped');
     const router = useRouter();
     const reducedMotion = useReducedMotion() ?? false;
@@ -34,6 +36,7 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     const recorder = useRef<MediaRecorder | null>(null);
     const cancelled = useRef(false);
     const audio = useRef<WrappedAudio | null>(null);
+    const logo = useRef<HTMLImageElement | null>(null);
     // Ton muss nach Springen, Pause oder Neustart neu an die Zeit gehängt werden
     const needsSync = useRef(true);
 
@@ -64,7 +67,7 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     const paint = useCallback(() => {
         const ctx = canvasRef.current?.getContext('2d');
         if (!ctx) return;
-        drawWrappedFrame(ctx, model, time.current);
+        drawWrappedFrame(ctx, model, time.current, { logo: logo.current });
         const current = indexAt(time.current);
         fillRefs.current.forEach((el, i) => {
             if (!el) return;
@@ -82,9 +85,16 @@ export default function WrappedStory({ model, initialTime }: { model: SceneModel
     useEffect(() => {
         if (!mounted) return;
         let alive = true;
-        loadSceneFonts().then(() => { if (alive) { setReady(true); paint(); } });
+        Promise.all([loadSceneFonts(), loadSceneLogo()]).then(([, image]) => {
+            if (!alive) return;
+            logo.current = image;
+            setReady(true);
+            paint();
+        });
         return () => { alive = false; };
     }, [mounted, paint]);
+
+    useEffect(() => { if (wrappedId) markWrappedSeen(wrappedId); }, [wrappedId]);
 
     // Hintergrund sperren, solange die Story offen ist; Ton beim Schließen beenden
     useEffect(() => {

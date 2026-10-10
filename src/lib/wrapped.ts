@@ -147,7 +147,7 @@ export function computeWrapped(matches: InsightMatch[], extras: WrappedExtras): 
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-// Texte für die sechs Abschnitte: Tisch, Aufbau/Gegner, Wurf, Schlagabtausch, Sieg, Abschluss
+// Texte für die Abschnitte: Tisch, Aufbau/Gegner, Wurf, Schlagabtausch, Sieg, Abschluss, Abspann
 export function buildScene(data: WrappedData, wrappedTitle: string, primary: string, t: Translate, locale = 'de-DE'): SceneModel {
     const percent = Math.round(data.winRate * 100);
     const medalTotal = data.medals.gold + data.medals.silver + data.medals.bronze;
@@ -209,7 +209,12 @@ export function buildScene(data: WrappedData, wrappedTitle: string, primary: str
                 ...(medalTotal > 0 ? [medalsLine] : []),
             ],
         },
+        // Abspann mit Logo; Texte auch für Screenreader
+        { key: 'outro', eyebrow: t('brand'), value: t('outroTitle'), title: t('outroLine'), lines: [] },
     ];
 
-    return { title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary, winLabel: t('winStamp'), segments };
+    return {
+        title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary,
+        winLabel: t('winStamp'), outro: { title: t('outroTitle'), line: t('outroLine') }, segments,
+    };
 }

@@ -5,6 +5,9 @@ import { getInsightMatches } from '@/lib/stats-insights';
 import { computeWrapped, type WrappedData } from '@/lib/wrapped';
 import type { SeasonRange } from '@/lib/seasons';
 
+// So viele Tage bleibt der Hinweis nach dem Ansehen auf der Startseite
+export const WRAPPED_HOME_DAYS = 7;
+
 // Zuletzt veröffentlichter Rückblick (für alle sichtbar)
 export async function getActiveWrapped() {
     return prisma.wrapped.findFirst({ where: { publishedAt: { not: null } }, orderBy: { publishedAt: 'desc' } });

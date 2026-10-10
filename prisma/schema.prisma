@@ -341,10 +341,23 @@ model Season {
 // Bier Pong Wrapped: Jahres- bzw. Saisonrückblick je Spieler für den Zeitraum startDate <= Datum < endDate.
 // Sichtbar für alle, sobald publishedAt gesetzt ist.
 model Wrapped {
-  id          String    @id @default(uuid())
+  id          String        @id @default(uuid())
   title       String
   startDate   DateTime
   endDate     DateTime
   publishedAt DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime      @default(now())
+  views       WrappedView[]
+}
+
+// Merkt, wann ein Nutzer einen Rückblick zum ersten Mal geöffnet hat.
+// Danach wird der Hinweis auf der Startseite ruhig und verschwindet nach einer Woche.
+model WrappedView {
+  id        String   @id @default(uuid())
+  wrappedId String
+  userId    String
+  seenAt    DateTime @default(now())
+  wrapped   Wrapped  @relation(fields: [wrappedId], references: [id], onDelete: Cascade)
+
+  @@unique([wrappedId, userId])
 }

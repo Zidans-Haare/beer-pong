@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 // Hinweis auf der Startseite, sobald ein Rückblick veröffentlicht ist
-export default function WrappedBanner({ title, text, cta }: { title: string; text: string; cta: string }) {
+// seen: schon angesehen, dann ruhig und ohne Animation
+export default function WrappedBanner({ title, text, cta, seen = false }: { title: string; text: string; cta: string; seen?: boolean }) {
     return (
-        <Link href="/wrapped" className="wrapped-banner">
+        <Link href="/wrapped" className={`wrapped-banner${seen ? ' is-seen' : ''}`}>
             <span className="wrapped-banner-icon"><Sparkles size={22} aria-hidden="true" /></span>
             <span className="wrapped-banner-text">
                 <strong>{title}</strong>

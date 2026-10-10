@@ -1,5 +1,9 @@
 {
   "wrapped": {
+    "bannerSeenText": "Your recap to watch again.",
+    "bannerSeenCta": "Open",
+    "outroTitle": "Beer Pong App",
+    "outroLine": "Made by Nick",
     "tapForSound": "Tap for sound",
     "soundOn": "Turn sound on",
     "soundOff": "Turn sound off",
@@ -871,6 +875,10 @@
     "save": "Save"
   },
   "stats": {
+    "wrappedTitle": "Beer Pong Wrapped",
+    "wrappedHint": "All published recaps to watch again.",
+    "wrappedNew": "New",
+    "wrappedOpen": "View",
     "exportTitle": "Excel export",
     "exportHint": "All seasons, tournaments and games in one file: rankings, tournaments with podium, every game, tournament tables, head to head and records.",
     "exportButton": "Download Excel file",

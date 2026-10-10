@@ -1,5 +1,9 @@
 {
   "wrapped": {
+    "bannerSeenText": "Dein Rückblick zum Nochmal-Ansehen.",
+    "bannerSeenCta": "Öffnen",
+    "outroTitle": "Bier Pong App",
+    "outroLine": "Made by Nick",
     "tapForSound": "Tippen für Ton",
     "soundOn": "Ton einschalten",
     "soundOff": "Ton ausschalten",
@@ -871,6 +875,10 @@
     "save": "Speichern"
   },
   "stats": {
+    "wrappedTitle": "Bier Pong Wrapped",
+    "wrappedHint": "Alle veröffentlichten Rückblicke zum Nachschauen.",
+    "wrappedNew": "Neu",
+    "wrappedOpen": "Ansehen",
     "exportTitle": "Excel-Export",
     "exportHint": "Alle Saisons, Turniere und Spiele in einer Datei: Ranglisten, Turniere mit Podium, jedes Spiel, Turniertabellen, direkter Vergleich und Rekorde.",
     "exportButton": "Excel-Datei herunterladen",

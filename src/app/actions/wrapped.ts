@@ -39,6 +39,23 @@ export async function publishWrapped(title: string, from: string, to: string): P
     }
 }
 
+// Merkt, dass der angemeldete Nutzer den Rückblick geöffnet hat (nur das erste Mal zählt)
+export async function markWrappedSeen(wrappedId: string): Promise<void> {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) return;
+    try {
+        await prisma.wrappedView.upsert({
+            where: { wrappedId_userId: { wrappedId, userId } },
+            create: { wrappedId, userId },
+            update: {},
+        });
+        revalidatePath('/');
+    } catch (error) {
+        console.error('markWrappedSeen failed:', error);
+    }
+}
+
 export async function unpublishWrapped(id: string): Promise<Result> {
     await requireAdmin();
     try {

@@ -5,7 +5,7 @@
 export const SCENE_WIDTH = 1080;
 export const SCENE_HEIGHT = 1920;
 
-export type SceneKey = 'table' | 'setup' | 'throw' | 'rally' | 'win' | 'final';
+export type SceneKey = 'table' | 'setup' | 'throw' | 'rally' | 'win' | 'final' | 'outro';
 
 export interface SceneSegment {
     key: SceneKey;
@@ -26,10 +26,15 @@ export interface SceneModel {
     primary: string;
     // Stempel beim Sieg, z. B. "SIEG!"
     winLabel: string;
+    // Abspann: App-Name und Absender
+    outro: { title: string; line: string };
     segments: SceneSegment[];
 }
 
-export const SEGMENT_MS: Record<SceneKey, number> = { table: 6000, setup: 6800, throw: 6200, rally: 6500, win: 7000, final: 7500 };
+export const SEGMENT_MS: Record<SceneKey, number> = { table: 6000, setup: 6800, throw: 6200, rally: 6500, win: 7000, final: 5200, outro: 3300 };
+
+// Bilder, die der Zeichner zusätzlich braucht (im Test leer)
+export interface SceneAssets { logo?: CanvasImageSource | null }
 
 export function segmentStarts(model: SceneModel): number[] {
     const starts: number[] = [];
@@ -282,7 +287,7 @@ export const BEAT_MS = 60000 / 112;
 export interface SceneTimeline {
     starts: number[];
     total: number;
-    setup: number; throwAt: number; rally: number; win: number; final: number;
+    setup: number; throwAt: number; rally: number; win: number; final: number; outro: number;
     meEnter: number;
     myCupPops: number[];
     oppEnter: number;
@@ -299,11 +304,11 @@ export function sceneTimeline(model: SceneModel): SceneTimeline {
     const starts = segmentStarts(model);
     const total = totalDuration(model);
     const at = (key: SceneKey) => { const i = model.segments.findIndex(s => s.key === key); return i >= 0 ? starts[i] : Infinity; };
-    const setup = at('setup'), throwAt = at('throw'), rally = at('rally'), win = at('win'), final = at('final');
+    const setup = at('setup'), throwAt = at('throw'), rally = at('rally'), win = at('win'), final = at('final'), outro = at('outro');
     const fireworks: number[] = [];
     for (let t = win + 1500; t < final + 400; t += 850) fireworks.push(t);
     return {
-        starts, total, setup, throwAt, rally, win, final,
+        starts, total, setup, throwAt, rally, win, final, outro,
         meEnter: setup + 150,
         myCupPops: MY_CUPS.map((_, i) => setup + 900 + i * 110),
         oppEnter: setup + 2500,
@@ -353,7 +358,7 @@ function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number
     ctx.restore();
 }
 
-export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number) {
+export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number, assets: SceneAssets = {}) {
     const tl = sceneTimeline(model);
     const time = clamp(timeMs, 0, tl.total);
     let index = tl.starts.length - 1;
@@ -618,12 +623,12 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     } else if (seg.key === 'win') {
         // erst der Stempel, dann die Zahl
         drawStat(ctx, seg, local, 2500, accent);
-    } else {
-        // Abschluss: Szene abdunkeln, Zusammenfassung mittig
-        const dim = easeOut(ramp(local, 0, 700));
+    } else if (seg.key === 'final') {
+        // Abschluss: Szene abdunkeln, Zusammenfassung zügig einblenden
+        const dim = easeOut(ramp(local, 0, 450));
         ctx.fillStyle = `rgba(0,0,0,${0.82 * dim})`;
         ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
-        const appear = (delay: number) => easeOut(ramp(local, 500 + delay, 520));
+        const appear = (delay: number) => easeOut(ramp(local, 200 + delay, 380));
         const width = SCENE_WIDTH - 180;
         ctx.save();
         ctx.textBaseline = 'alphabetic';
@@ -631,32 +636,92 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
         ctx.fillStyle = accent;
         ctx.font = `700 40px ${BODY}`;
         ctx.fillText(seg.eyebrow.toUpperCase(), 90, 560);
-        ctx.globalAlpha = appear(150);
+        ctx.globalAlpha = appear(90);
         ctx.fillStyle = '#ffffff';
         const size = fitFont(ctx, seg.value, HEADING, 210, 80, width);
         ctx.fillText(seg.value, 90, 600 + size * 0.74);
         let y = 600 + size * 0.74 + 90;
-        ctx.globalAlpha = appear(320);
+        ctx.globalAlpha = appear(180);
         ctx.font = `700 54px ${BODY}`;
         for (const line of wrapText(ctx, seg.title, width).slice(0, 3)) { ctx.fillText(line, 90, y); y += 70; }
         y += 34;
         ctx.font = `500 44px ${BODY}`;
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         seg.lines.slice(0, 5).forEach((line, i) => {
-            ctx.globalAlpha = appear(480 + i * 150);
+            ctx.globalAlpha = appear(280 + i * 90);
             for (const part of wrapText(ctx, line, width).slice(0, 2)) { ctx.fillText(part, 90, y); y += 62; }
             y += 10;
         });
+        ctx.restore();
+    } else {
+        // Abspann: Logo, App-Name und Absender
+        const cover = easeOut(ramp(local, 0, 420));
+        const end = ctx.createLinearGradient(0, 0, 0, SCENE_HEIGHT);
+        end.addColorStop(0, shade(model.primary, 0.5)); end.addColorStop(1, '#070b09');
+        ctx.save();
+        ctx.globalAlpha = cover;
+        ctx.fillStyle = end;
+        ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+        ctx.restore();
+
+        const pop = easeOutBack(ramp(local, 250, 520));
+        const logoSize = 340;
+        if (pop > 0.03) {
+            ctx.save();
+            ctx.translate(CENTER_X, 760);
+            ctx.scale(pop, pop);
+            // heller Schein hinter dem Logo, pulsiert im Takt
+            const halo = ctx.createRadialGradient(0, 0, 40, 0, 0, 420);
+            halo.addColorStop(0, `rgba(255,255,255,${0.22 + 0.1 * beat})`); halo.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = halo;
+            ctx.beginPath(); ctx.arc(0, 0, 420, 0, Math.PI * 2); ctx.fill();
+            if (assets.logo) {
+                ctx.save();
+                roundRect(ctx, -logoSize / 2, -logoSize / 2, logoSize, logoSize, 76);
+                ctx.clip();
+                ctx.drawImage(assets.logo, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
+                ctx.restore();
+            } else {
+                // ohne Bild ein einzelner Becher als Zeichen
+                drawCup(ctx, 0, 110, 2.4);
+            }
+            ctx.restore();
+        }
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        const titleIn = easeOut(ramp(local, 650, 450));
+        ctx.globalAlpha = titleIn;
+        ctx.fillStyle = '#ffffff';
+        fitFont(ctx, model.outro.title.toUpperCase(), HEADING, 170, 80, SCENE_WIDTH - 160);
+        ctx.fillText(model.outro.title.toUpperCase(), CENTER_X, 1150 + (1 - titleIn) * 30);
+        const lineIn = easeOut(ramp(local, 950, 450));
+        ctx.globalAlpha = lineIn;
+        ctx.fillStyle = accent;
+        ctx.font = `700 58px ${BODY}`;
+        ctx.fillText(model.outro.line, CENTER_X, 1250 + (1 - lineIn) * 30);
         ctx.restore();
     }
 
     // Marke oben links, auch im exportierten Video
     ctx.save();
-    ctx.globalAlpha = 0.9;
+    ctx.globalAlpha = 0.9 * (seg.key === 'outro' ? 1 - ramp(local, 0, 300) : 1);
     ctx.fillStyle = '#ffffff';
     ctx.font = `700 34px ${HEADING}`;
     ctx.fillText('BIER PONG WRAPPED', 60, 118);
     ctx.restore();
+}
+
+// App-Logo für den Abspann; ohne Bild läuft die Szene trotzdem
+export async function loadSceneLogo(src = '/icon.png'): Promise<HTMLImageElement | null> {
+    try {
+        const image = new Image();
+        image.src = src;
+        await image.decode();
+        return image;
+    } catch {
+        return null;
+    }
 }
 
 // Schriften laden, bevor gezeichnet wird, sonst nimmt der Browser eine Ersatzschrift

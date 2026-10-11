@@ -311,6 +311,10 @@ export class TournamentService {
      * Generates Knockout phase (Bracket) from Group standings.
      */
     static async generateKnockoutFromGroups(tournamentId: string) {
+        // Die K.-o.-Runde wird nur einmal erzeugt, auch wenn der Aufruf mehrfach kommt
+        if (await prisma.match.count({ where: { tournamentId, stage: 'BRACKET' } }) > 0) {
+            throw new Error('Die Playoffs wurden bereits erzeugt.');
+        }
         // Recalculate standings from actual match results before seeding
         await TournamentService.recalculateStandings(tournamentId);
 

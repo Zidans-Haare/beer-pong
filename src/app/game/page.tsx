@@ -44,7 +44,8 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
 
     return (
         <BeerPongGame
-            key={duel?.id ?? 'start'}
+            // der Schlüssel folgt dem Link, nicht dem Duell: Nach dem Nachziehen ist das Duell nicht mehr offen, die Seite darf aber nicht neu aufgebaut werden
+            key={duelParam ?? 'start'}
             meName={me?.name.trim() ?? session?.user?.name?.trim() ?? 'Du'}
             players={others}
             incoming={incoming.map(d => ({ id: d.id, name: d.challenger.name.trim() }))}

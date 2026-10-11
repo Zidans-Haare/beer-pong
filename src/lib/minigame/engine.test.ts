@@ -305,20 +305,21 @@ describe('Umstellen', () => {
         expect(moveCup(g, 'me', 9, 8)).toBe(g);
     });
 
-    it('stellt vier Becher in der Anordnung 1-1-2 ohne Island', () => {
+    it('stellt vier Becher in der Anordnung 1-1-2 (Spitze, Mitte der dritten Reihe, zwei in der Mitte der letzten Reihe)', () => {
         for (const mirror of [false, true]) {
             const g = withCups(newGame('opp'), 'me', [0, 3, 6, 9]);
             const slots = oneOneTwoSlots(4, mirror);
             expect(slots).toHaveLength(4);
             const r = rearrange(g, 'opp', slots);
-            expect(islandsOf(r.cups.me)).toEqual([]);
+            expect([...slots].sort()).toEqual([1, 2, 5, 9]);
             expect(r.cups.me.map(c => slotIndexOf(r, 'me', c)).sort()).toEqual([...slots].sort());
             // Spitze, ein Becher in der Reihe dahinter, zwei in der Reihe danach
             const rows = new Map<number, number>();
             for (const c of r.cups.me) rows.set(c.v, (rows.get(c.v) ?? 0) + 1);
             expect([...rows.values()].sort()).toEqual([1, 1, 2]);
         }
-        expect(oneOneTwoSlots(3, false)).toEqual([9, 7, 4]);
+        expect(oneOneTwoSlots(3, false)).toEqual([9, 5, 1]);
+        expect(oneOneTwoSlots(3, true)).toEqual([9, 5, 2]);
         expect(oneOneTwoSlots(1, false)).toEqual([9]);
     });
 });

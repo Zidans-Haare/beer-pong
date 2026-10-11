@@ -466,6 +466,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                             tournamentStatus={tournament.status}
                             isPlanned={false}
                             isActive={isActive}
+                            playoffsStarted={tournament.matches.some((m: any) => m.stage === 'BRACKET')}
                         />
                     )}
 

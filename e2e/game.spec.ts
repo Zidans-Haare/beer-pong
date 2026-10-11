@@ -430,4 +430,26 @@ test.describe('Duell', () => {
     await page.goto('/game?duel=duel-4');
     await expect(page.getByRole('button', { name: 'Annehmen', exact: true })).toHaveCount(0);
   });
+  test('nach dem Nachziehen bleibt das Ergebnisbild stehen', async ({ page }) => {
+    test.setTimeout(240_000);
+    await insertDuel('duel-5');
+    await page.goto('/game?duel=duel-5');
+    await page.getByRole('button', { name: 'Annehmen', exact: true }).click();
+    const aimHint = page.getByText(/Nach vorn wischen/);
+    await expect(aimHint).toBeVisible({ timeout: 150_000 });
+    // zweimal daneben: Das Duell ist verloren und wird gespeichert
+    for (let i = 0; i < 2; i++) {
+      await expect(aimHint).toBeVisible({ timeout: 30_000 });
+      expect(await page.evaluate(p => (window as unknown as { __bpThrow: (q: { x: number; y: number }) => boolean }).__bpThrow(p), { x: 20, y: 700 })).toBe(true);
+      await expect(aimHint).toBeHidden();
+    }
+    const anotherOpponent = page.getByRole('button', { name: 'Anderer Gegner' });
+    await expect(anotherOpponent).toBeVisible({ timeout: 60_000 });
+    await expect.poll(async () => (await duelRow('duel-5')).status, { timeout: 30_000 }).toBe('COMPLETED');
+    // Die Seite lädt nach dem Speichern neu (Duell nicht mehr offen), springt aber nicht zur Übersicht zurück
+    await page.waitForTimeout(6000);
+    await expect(page).toHaveURL(/\/game\?duel=duel-5$/);
+    await expect(anotherOpponent).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Herausforderungen für dich' })).toHaveCount(0);
+  });
 });

@@ -57,11 +57,13 @@ export interface OpenDuel { id: string; name: string }
 
 interface GhostState { replay: ReplayThrow[]; round: number; used: number; duelId: string }
 
-export default function BeerPongGame({ meName, players, incoming, outgoing, duel, abandoned, figures, backHref }: {
+export default function BeerPongGame({ meName, players, incoming, outgoing, duel: duelProp, abandoned, figures, backHref }: {
     meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; abandoned: string[]; figures: FigureMap; backHref: string;
 }) {
     const t = useTranslations('game');
     const dialog = useAppDialog();
+    // Das Duell bleibt so, wie es beim Öffnen war. Wird es abgeschlossen, lädt die Seite ohne Duell nach; das Ergebnisbild darf dabei nicht verschwinden.
+    const [duel] = useState(duelProp);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [mode, setMode] = useState<Mode>(duel ? 'invite' : 'pick');
     const [pickKind, setPickKind] = useState<'duel' | 'cpu'>(players.length > 0 ? 'duel' : 'cpu');

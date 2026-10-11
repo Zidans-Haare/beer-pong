@@ -332,11 +332,15 @@ export function moveCup(game: Game, by: Side, cupId: number, slot: number): Game
 // zu Beginn. Hier zählt nur, dass noch nicht abgeschlossen wurde und das Spiel läuft.
 const canRearrangeNow = (game: Game, by: Side) => !game.winner && !game.catchUp && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0;
 
-// Die Anordnung 1-1-2 des Computers als Plätze: die Spitze, ein Becher dahinter und zwei in der Reihe danach. Alle
-// berühren sich, es entsteht kein Island. Bei weniger Bechern nimmt er die ersten davon. `mirror` spiegelt links/rechts.
+// Die Anordnung 1-1-2 des Computers als Plätze, wie im Dreieck von der Spitze aus (O = Becher, X = leer):
+//      O        Spitze
+//     X X
+//    X O X      der mittlere der dritten Reihe
+//   X O O X     die beiden mittleren der letzten Reihe
+// Bei weniger Bechern nimmt er die ersten davon. `mirror` vertauscht links und rechts.
 export function oneOneTwoSlots(count: number, mirror: boolean): number[] {
-    const left = [9, 7, 4, 5];
-    const right = [9, 8, 6, 5];
+    const left = [9, 5, 1, 2];
+    const right = [9, 5, 2, 1];
     return (mirror ? right : left).slice(0, Math.max(1, Math.min(4, count)));
 }
 

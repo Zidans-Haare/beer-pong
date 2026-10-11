@@ -16,6 +16,8 @@ interface Props {
     tournamentStatus: string;
     isPlanned: boolean;
     isActive: boolean;
+    // Die Playoffs gibt es schon: Der Knopf darf nicht noch einmal Spiele anlegen
+    playoffsStarted?: boolean;
 }
 
 export default function HostControls({
@@ -23,7 +25,8 @@ export default function HostControls({
     tournamentType,
     tournamentStatus,
     isPlanned,
-    isActive
+    isActive,
+    playoffsStarted = false
 }: Props) {
     const appDialog = useAppDialog();
     const t = useTranslations('host');
@@ -68,7 +71,7 @@ export default function HostControls({
                 )}
                 {isActive && (
                     <>
-                        {showPlayoffs && (
+                        {showPlayoffs && !playoffsStarted && (
                             <div className="host-action">
                                 <StartPlayoffsButton tournamentId={tournamentId} />
                                 <p>{t('playoffsHint')}</p>

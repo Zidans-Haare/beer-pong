@@ -83,7 +83,7 @@ function cupSprite(ctx: CanvasRenderingContext2D, view: GameView, side: Side, ti
 }
 
 // Anzeige einer Seite oben: Name, Becher als kleine Symbole, Hinweis bei Unterhose
-function drawPlayerCard(ctx: CanvasRenderingContext2D, view: GameView, side: Side) {
+function drawPlayerCard(ctx: CanvasRenderingContext2D, view: GameView, side: Side, time: number) {
     const left = side === 'me';
     const x = left ? 40 : SCENE_WIDTH - 40;
     const cups = view.game.cups[side].length;
@@ -106,12 +106,23 @@ function drawPlayerCard(ctx: CanvasRenderingContext2D, view: GameView, side: Sid
         ctx.fillText(view.level, x, 268);
     }
     if (view.game.stripped === side) {
-        // kleine Unterhose als Zeichen: rot mit weißen Punkten
-        const sx = left ? x : x - 50;
-        ctx.fillStyle = '#d83a3a';
-        roundRect(ctx, sx, 284, 50, 34, 12); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        for (const [dx, dy] of [[12, 14], [26, 24], [38, 12]]) { ctx.beginPath(); ctx.arc(sx + dx, 284 + dy, 3.5, 0, Math.PI * 2); ctx.fill(); }
+        // Unterhose als Zeichen, deutlich sichtbar: rot mit weißen Punkten, mit Rand und leichtem Wippen. Der eigene Körper ist
+        // unten im Bild kaum zu sehen, deshalb steht das Zeichen bei beiden neben dem Namen.
+        const w = 96, h = 66;
+        const sx = left ? x : x - w;
+        const sy = 280 + Math.sin(time / 260) * 3;
+        ctx.save();
+        ctx.fillStyle = '#d83a3a'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(sx, sy + 8);
+        ctx.quadraticCurveTo(sx, sy, sx + 10, sy); ctx.lineTo(sx + w - 10, sy); ctx.quadraticCurveTo(sx + w, sy, sx + w, sy + 8);
+        ctx.lineTo(sx + w - 6, sy + h * 0.55);
+        ctx.quadraticCurveTo(sx + w * 0.7, sy + h * 0.5, sx + w * 0.5, sy + h);
+        ctx.quadraticCurveTo(sx + w * 0.3, sy + h * 0.5, sx + 6, sy + h * 0.55);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        for (const [dx, dy] of [[0.2, 0.26], [0.5, 0.22], [0.8, 0.28], [0.34, 0.55], [0.66, 0.55]]) { ctx.beginPath(); ctx.arc(sx + w * dx, sy + h * dy, 5, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
     }
     ctx.restore();
 }
@@ -372,8 +383,8 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
     topShade.addColorStop(0, 'rgba(0,0,0,0.6)'); topShade.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = topShade;
     ctx.fillRect(0, 0, SCENE_WIDTH, 520);
-    drawPlayerCard(ctx, view, 'me');
-    drawPlayerCard(ctx, view, 'opp');
+    drawPlayerCard(ctx, view, 'me', time);
+    drawPlayerCard(ctx, view, 'opp', time);
     drawStatus(ctx, view.status);
     drawStamps(ctx, view.stamps, time);
 

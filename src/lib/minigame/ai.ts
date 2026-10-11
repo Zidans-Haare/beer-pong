@@ -67,7 +67,7 @@ export function planAiTrick(game: Game, rng: Rng, difficulty: Difficulty): Throw
 }
 
 // Der Gegner darf die Becher des Spielers stellen, wenn nur noch vier stehen, und nimmt dann immer die Anordnung
-// 1-1-2 (Spitze, ein Becher dahinter, zwei in der Reihe danach). Liefert die Plätze, auf die die Becher kommen.
+// 1-1-2 (Spitze, Mitte der dritten Reihe, die zwei mittleren der letzten Reihe). Liefert die Plätze, auf die die Becher kommen.
 export function aiRearrangeSlots(game: Game, rng: Rng): number[] | null {
     if (!canRearrange(game, 'opp')) return null;
     return oneOneTwoSlots(game.cups.me.length, rng() < 0.5);

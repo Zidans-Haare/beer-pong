@@ -212,6 +212,9 @@ export async function startTournament(tournamentId: string) {
     }
 }
 
+// Läuft für ein Turnier gerade das Anlegen der Playoffs? Verhindert, dass zwei schnelle Klicks die Spiele doppelt erzeugen.
+const playoffsRunning = new Set<string>();
+
 export async function startPlayoffs(tournamentId: string) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
@@ -230,15 +233,26 @@ export async function startPlayoffs(tournamentId: string) {
             return { success: false, error: 'Nur der Host kann Playoffs starten.' };
         }
 
+        // Playoffs gibt es nur einmal: Sind schon Spiele der K.-o.-Runde da, wird nichts mehr angelegt
+        if (tournament.matches.some((m: any) => m.stage === 'BRACKET')) {
+            return { success: false, error: 'Die Playoffs wurden bereits erzeugt.' };
+        }
+
         // Check if groups are actually done
         const unplayed = tournament.matches.filter((m: any) =>
             (m.stage === 'GROUP' || m.stage === 'GROUP_1' || m.stage === 'GROUP_2' || m.stage === 'LEAGUE') && !m.isPlayed
         );
         if (unplayed.length > 0) throw new Error('Alle Gruppenspiele müssen beendet sein.');
 
-        // Use the new Service
-        const { TournamentService } = await import('@/lib/services/TournamentService');
-        await TournamentService.generateKnockoutFromGroups(tournamentId);
+        if (playoffsRunning.has(tournamentId)) return { success: false, error: 'Die Playoffs werden gerade erzeugt.' };
+        playoffsRunning.add(tournamentId);
+        try {
+            // Use the new Service
+            const { TournamentService } = await import('@/lib/services/TournamentService');
+            await TournamentService.generateKnockoutFromGroups(tournamentId);
+        } finally {
+            playoffsRunning.delete(tournamentId);
+        }
 
         revalidatePath(`/tournaments/${tournamentId}`);
         return { success: true };

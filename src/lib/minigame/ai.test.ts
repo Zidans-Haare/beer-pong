@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { newGame, islandsOf, rearrange } from './engine';
+import { newGame, islandsOf, rearrange, slotIndexOf } from './engine';
 import { planAiThrow, hitChance, aiSwat, aiRearrangeSlots, DIFFICULTIES, ROLL_BACK_CHANCE, type Rng } from './ai';
 import { judgeDirect, judgeBounce, cupMouth, hitRadii } from './aim';
 
@@ -79,10 +79,11 @@ describe('Gegner', () => {
             expect(slots).toHaveLength(4);
             seen.add(slots!.join());
             const r = rearrange(game, 'opp', slots!);
-            expect(islandsOf(r.cups.me)).toEqual([]);
+            // Spitze (9), Mitte der dritten Reihe (5) und die zwei mittleren der letzten Reihe (1, 2)
+            expect(r.cups.me.map(c => slotIndexOf(r, 'me', c)).sort()).toEqual([1, 2, 5, 9]);
         }
-        // beide Spiegelungen kommen vor, beide sind 1-1-2
-        expect([...seen].sort()).toEqual(['9,7,4,5', '9,8,6,5']);
+        // beide Spiegelungen kommen vor
+        expect([...seen].sort()).toEqual(['9,5,1,2', '9,5,2,1']);
         // mit mehr als vier Bechern, nur einmal und nicht beim Nachziehen gibt es nichts
         expect(aiRearrangeSlots(newGame('opp'), rng)).toBeNull();
         expect(aiRearrangeSlots({ ...game, rearranged: { me: false, opp: true } }, seeded(1))).toBeNull();

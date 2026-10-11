@@ -105,7 +105,7 @@ function drawPlayerCard(ctx: CanvasRenderingContext2D, view: GameView, side: Sid
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
         ctx.fillText(view.level, x, 268);
     }
-    if (view.game.stripped === side) {
+    if (view.game.stripped[side]) {
         // Unterhose als Zeichen, deutlich sichtbar: rot mit weißen Punkten, mit Rand und leichtem Wippen. Der eigene Körper ist
         // unten im Bild kaum zu sehen, deshalb steht das Zeichen bei beiden neben dem Namen.
         const w = 96, h = 66;
@@ -309,7 +309,7 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
     if (view.shake > 0) ctx.translate(Math.sin(time / 18) * 14 * view.shake, Math.cos(time / 23) * 9 * view.shake);
 
     // Gegner hinter dem Tisch
-    const oppUndies = view.game.stripped === 'opp';
+    const oppUndies = view.game.stripped.opp;
     drawOpponent(ctx, ramp(view.enter, 0.2, 0.4), view.mood, view.names.opp, time, view.flinch, view.skins.opp, view.anger, { ...view.looks.opp, undies: oppUndies });
 
     // Tisch
@@ -371,7 +371,7 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
     }
 
     // ich, von hinten; in Unterhose ohne Hemd
-    drawMe(ctx, ramp(view.enter, 0.1, 0.4), view.throwPhase, view.cheer, time, view.primary, { ...view.looks.me, skin: view.skins.me, undies: view.game.stripped === 'me' });
+    drawMe(ctx, ramp(view.enter, 0.1, 0.4), view.throwPhase, view.cheer, time, view.primary, { ...view.looks.me, skin: view.skins.me, undies: view.game.stripped.me });
     ctx.restore();
 
     // Trickshot mit geschlossenen Augen: man sieht nichts

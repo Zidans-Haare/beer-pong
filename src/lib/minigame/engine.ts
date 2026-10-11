@@ -69,8 +69,9 @@ export interface Game {
     // noch verfügbare Island-Ansagen und ob schon umgestellt wurde (jeweils einmal pro Spiel)
     islandsLeft: Record<Side, number>;
     rearranged: Record<Side, boolean>;
-    firstHitDone: boolean;
-    stripped: Side | null;
+    // Der erste Treffer jedes Spielers entscheidet über den Ausziehbecher; wer ausgezogen ist, zieht sich mit dem nächsten Treffer wieder an
+    firstHit: Record<Side, boolean>;
+    stripped: Record<Side, boolean>;
     // getroffene Becher im ganzen Spiel
     hits: Record<Side, number>;
     islandStreak: Record<Side, number>;
@@ -99,7 +100,7 @@ export function newGame(starter: Side, size = 1): Game {
     return {
         starter, turn: starter, throwsLeft: THROWS_PER_ROUND, roundHits: [],
         cups: { me: formation('me', size), opp: formation('opp', size) }, size,
-        trickPending: false, catchUp: false, firstHitDone: false, stripped: null,
+        trickPending: false, catchUp: false, firstHit: { me: false, opp: false }, stripped: { me: false, opp: false },
         islandsLeft: { me: ISLANDS_PER_GAME, opp: ISLANDS_PER_GAME }, rearranged: { me: false, opp: false },
         hits: { me: 0, opp: 0 }, islandStreak: { me: 0, opp: 0 },
         overtime: 0, winner: null, nakedMile: null,
@@ -113,7 +114,7 @@ export function newOvertimeGame(starter: Side, size = 1): Game {
     g.cups.me = formation('me', size).filter(c => c.id >= FRONT_CUPS_FROM);
     g.cups.opp = formation('opp', size).filter(c => c.id >= FRONT_CUPS_FROM);
     g.overtime = 1;
-    g.firstHitDone = true;
+    g.firstHit = { me: true, opp: true };
     g.islandsLeft = { me: 0, opp: 0 };
     g.rearranged = { me: true, opp: true };
     g.hits = { me: 1, opp: 1 };
@@ -195,11 +196,11 @@ export function applyThrow(game: Game, result: ThrowResult, options: ThrowOption
         events.push({ type: 'hit', side, cupId: cup.id, bounce: result.bounce, island });
 
         // Ausziehbecher: der allererste Treffer im Spiel, und zwar der mittlere Becher der dritten Reihe
-        if (!g.firstHitDone) {
-            g.firstHitDone = true;
-            if (cup.id === AUSZIEH_CUP && g.overtime === 0) { g.stripped = side; events.push({ type: 'strip', side }); }
-        } else if (g.stripped === side) {
-            g.stripped = null; events.push({ type: 'dress', side });
+        if (!g.firstHit[side]) {
+            g.firstHit[side] = true;
+            if (cup.id === AUSZIEH_CUP && g.overtime === 0) { g.stripped[side] = true; events.push({ type: 'strip', side }); }
+        } else if (g.stripped[side]) {
+            g.stripped[side] = false; events.push({ type: 'dress', side });
         }
     } else {
         // jeder Wurf, der kein Island trifft, unterbricht die Serie
@@ -243,6 +244,8 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
         let need = Math.max(...hits.map(h => h.remove), bomb ? 3 : 1);
         // Island-Treffer und danach derselbe Becher noch einmal (Bombe) zählen zusammen: zwei plus drei, also fünf
         if (bomb && need < 6 && hits.some(h => h.island)) need = 5;
+        // Aufpraller und danach derselbe Becher noch einmal (Bombe): drei plus der Aufpraller-Becher, also vier
+        else if (bomb && need < 4 && hits.some(h => h.bounce)) need = 4;
         const reason = bomb && need === 3 ? 'bomb' : hits.some(h => h.remove >= 6) ? 'islandStreak' : hits.some(h => h.island) ? 'island' : hits.some(h => h.bounce) ? 'bounce' : 'hit';
         const extra = nearest(g.cups[defender], cup, need - 1, doomed, g.size);
         extra.forEach(c => doomed.add(c.id));

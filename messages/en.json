@@ -917,7 +917,7 @@
           "**Island and bomb together:** Hit an island and then the same cup again with your second ball, and both add up: **five cups** (two for the island, three for the bomb).",
           "**Island:** A cup counts as an island when **nothing is left around it**, for example the tip once the row behind it is gone: one cup of space to the next one. Then you can call \"island\". Hit it and **two cups** are gone. Hit an island with **two throws directly in a row** and the second one is **six cups**.",
           "**Only two islands per game:** Everyone may call island twice at most. That holds for the whole game, including redemption and overtime. There are no new ones there, only unused ones.",
-          "**Bounce:** If the ball bounces on the table first and then lands in the cup, the hit counts **double**. A bounce may be stopped by swatting it away after it has bounced. There are no bounces in duels, because the other player is not at the table and could not swat. Swatting can knock one of your own cups over; it then stays gone.",
+          "**Bounce:** If the ball bounces on the table first and then lands in the cup, the hit counts **double**. A bounce may be stopped by swatting it away after it has bounced. There are no bounces in duels, because the other player is not at the table and could not swat. Swatting can knock one of your own cups over; it then stays gone. If the second ball then lands in the same cup (bomb), **four cups** are removed.",
           "**Trick shot:** If the ball bounces off a cup and rolls back at least past the middle of the table, you may try a trick shot, for example with your eyes closed, under your leg or off the ceiling.",
           "**Rolling over cups:** If the ball rolls over cups, the cups whose rim it rolled over do **not** count."
         ]
@@ -942,7 +942,7 @@
       {
         "title": "Penalties and fun",
         "items": [
-          "**Strip cup:** Whoever is the **very first in the whole game** to hit the **middle cup of the third row from the front** has to stand at the table in underwear. Only with the next hit may they get dressed again.",
+          "**Strip cup:** Only your **first hit** of the game counts: if it is the **middle cup of the third row from the front**, you have to stand at the table in your underwear. This applies to each player on their own. You may dress again with your next hit.",
           "**Naked mile:** Whoever loses a whole game without hitting a single cup runs a lap around the block naked. It never happens, but it is funny anyway."
         ]
       },

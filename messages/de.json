@@ -917,7 +917,7 @@
           "**Island und Bombe zusammen:** Triffst du ein Island und mit dem zweiten Ball denselben Becher noch einmal, zählt beides zusammen: **fünf Becher** (zwei fürs Island, drei für die Bombe).",
           "**Island:** Ein Becher gilt als Island, wenn **um ihn herum nichts mehr steht**, zum Beispiel die Spitze, wenn die Reihe dahinter fehlt: ein Becher Abstand bis zum nächsten. Dann kannst du „Island“ ansagen. Triffst du ihn, sind **zwei Becher** weg. Triffst du mit **zwei Würfen direkt hintereinander** ein Island, sind es beim zweiten **sechs Becher**.",
           "**Nur zwei Islands pro Spiel:** Jeder darf höchstens zweimal Island ansagen. Das gilt für das ganze Spiel, auch für Nachziehen und Verlängerung. Neue gibt es dort nicht, nur noch nicht benutzte.",
-          "**Aufpraller:** Springt der Ball vorher auf dem Tisch auf und landet dann im Becher, zählt der Treffer **doppelt**. Ein Aufpraller darf nach dem Aufprall durch Wegschlagen aufgehalten werden. Im Duell gibt es keine Aufpraller, weil der andere nicht mit am Tisch sitzt und nicht wegschlagen könnte. Beim Wegschlagen kann ein eigener Becher mitfliegen; der bleibt dann weg.",
+          "**Aufpraller:** Springt der Ball vorher auf dem Tisch auf und landet dann im Becher, zählt der Treffer **doppelt**. Ein Aufpraller darf nach dem Aufprall durch Wegschlagen aufgehalten werden. Im Duell gibt es keine Aufpraller, weil der andere nicht mit am Tisch sitzt und nicht wegschlagen könnte. Beim Wegschlagen kann ein eigener Becher mitfliegen; der bleibt dann weg. Trifft der zweite Ball danach denselben Becher (Bombe), werden **vier Becher** weggestellt.",
           "**Trickshot:** Prallt der Ball an einem Becher ab und rollt mindestens über die Mitte des Tisches zurück, darfst du einen Trickshot versuchen, zum Beispiel mit geschlossenen Augen, unter dem Bein durch oder über die Decke.",
           "**Rollen über Becher:** Rollt der Ball über Becher, zählen die Becher, über deren Rand er gerollt ist, **nicht** mit."
         ]
@@ -942,7 +942,7 @@
       {
         "title": "Strafen und Spaß",
         "items": [
-          "**Ausziehbecher:** Wer als **allererster im ganzen Spiel** den **mittleren Becher der dritten Reihe von vorne** trifft, muss in Unterhose am Tisch stehen. Erst mit dem nächsten Treffer darf er sich wieder anziehen.",
+          "**Ausziehbecher:** Zählt nur dein **erster Treffer** im Spiel: Ist es der **mittlere Becher der dritten Reihe von vorne**, musst du in Unterhose am Tisch stehen. Das gilt für jeden Spieler für sich. Erst mit deinem nächsten Treffer darfst du dich wieder anziehen.",
           "**Nackte Meile:** Wer ein ganzes Spiel verliert, ohne einen einzigen Becher zu treffen, läuft nackt eine Runde um den Block. Das passiert nie, ist aber trotzdem lustig."
         ]
       },

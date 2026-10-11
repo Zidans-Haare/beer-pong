@@ -163,12 +163,14 @@ export async function createOvertime(id: string, replayJson: string, partial?: {
     const starterPlayerId = root.starter === 'OPPONENT' ? root.opponentId : root.challengerId;
     try {
         const next = await prisma.$transaction(async tx => {
-            await tx.miniGame.update({
-                where: { id },
+            // Nur wer das laufende Spiel wirklich noch hält, darf die Verlängerung anlegen: Ein zweiter, gleichzeitiger Aufruf scheitert hier
+            const claimed = await tx.miniGame.updateMany({
+                where: { id, opponentId: player.id, status: 'PLAYING' },
                 data: game.stage === 0
                     ? { status: 'OVERTIME', opponentRounds: clampInt(partial?.rounds, 200), opponentHits: clampInt(partial?.hits) }
                     : { status: 'COMPLETED', completedAt: new Date() },
             });
+            if (claimed.count !== 1) throw new Error('Spiel nicht mehr offen');
             return tx.miniGame.create({
                 data: {
                     mode: 'DUEL', status: 'PENDING', stage: game.stage + 1, parentId: root.id,

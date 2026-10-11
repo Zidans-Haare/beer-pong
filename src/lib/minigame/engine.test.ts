@@ -325,25 +325,58 @@ describe('Umstellen', () => {
 });
 
 describe('Ausziehbecher', () => {
-    it('der allererste Treffer auf den mittleren Becher der dritten Reihe zieht den Werfer aus', () => {
+    // jeder Spieler hat nur seinen ersten Treffer: ist der der mittlere Becher der dritten Reihe, wird er ausgezogen
+    const finishRound = (g: Game) => resolveRound(applyThrow(applyThrow(g, miss).game, miss).game).game;
+
+    it('der erste Treffer eines Spielers auf den mittleren Becher der dritten Reihe zieht ihn aus', () => {
         const { game, events } = round(newGame('me'), hit(AUSZIEH_CUP), miss);
-        expect(game.stripped).toBe('me');
+        expect(game.stripped).toEqual({ me: true, opp: false });
         expect(events.some(e => e.type === 'strip')).toBe(true);
     });
 
     it('der nächste Treffer zieht ihn wieder an', () => {
-        let r = round(newGame('me'), hit(AUSZIEH_CUP), miss);
-        r = { game: resolveRound(applyThrow(applyThrow(r.game, miss).game, miss).game).game, events: [] };
-        const next = round(r.game, hit(9), miss);
-        expect(next.game.stripped).toBeNull();
+        const r = round(newGame('me'), hit(AUSZIEH_CUP), miss);
+        const next = round(finishRound(r.game), hit(9), miss);
+        expect(next.game.stripped.me).toBe(false);
         expect(next.events.some(e => e.type === 'dress')).toBe(true);
     });
 
-    it('gilt nicht, wenn vorher schon irgendein Becher getroffen wurde', () => {
-        let r = round(newGame('me'), hit(9), miss);
-        r = { game: resolveRound(applyThrow(applyThrow(r.game, miss).game, miss).game).game, events: [] };
-        const next = round(r.game, hit(AUSZIEH_CUP), miss);
-        expect(next.game.stripped).toBeNull();
+    it('gilt nicht, wenn der erste Treffer des Spielers ein anderer Becher war', () => {
+        const r = round(newGame('me'), hit(9), miss);
+        const next = round(finishRound(r.game), hit(AUSZIEH_CUP), miss);
+        expect(next.game.stripped).toEqual({ me: false, opp: false });
+    });
+
+    it('zählt je Spieler: Auch wenn der andere schon getroffen hat, gilt der erste Treffer des Zweiten', () => {
+        // ich treffe zuerst einen anderen Becher, danach trifft der Gegner als Zweiter mit seinem ersten Treffer den Ausziehbecher
+        const g = round(newGame('me'), hit(9), miss).game;
+        expect(g.turn).toBe('opp');
+        const out = round(g, hit(AUSZIEH_CUP), miss);
+        expect(out.game.stripped).toEqual({ me: false, opp: true });
+        expect(out.events.some(e => e.type === 'strip' && e.side === 'opp')).toBe(true);
+    });
+
+    it('beide können ausgezogen sein', () => {
+        let g = round(newGame('me'), hit(AUSZIEH_CUP), miss).game;
+        expect(g.turn).toBe('opp');
+        g = round(g, hit(AUSZIEH_CUP), miss).game;
+        expect(g.stripped).toEqual({ me: true, opp: true });
+    });
+});
+
+describe('Bombe mit Aufpraller', () => {
+    const bounceHit = (cupId: number): ThrowResult => ({ kind: 'hit', cupId, bounce: true });
+    it('Aufpraller und danach derselbe Becher noch einmal: vier Becher', () => {
+        const g = newGame('me');
+        const before = g.cups.opp.length;
+        const { game } = round(g, bounceHit(0), hit(0));
+        expect(before - game.cups.opp.length).toBe(4);
+    });
+
+    it('ohne Aufpraller bleibt die Bombe bei drei Bechern', () => {
+        const g = newGame('me');
+        const { game } = round(g, hit(0), hit(0));
+        expect(g.cups.opp.length - game.cups.opp.length).toBe(3);
     });
 });
 

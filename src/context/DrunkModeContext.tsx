@@ -42,6 +42,31 @@ export function DrunkModeProvider({ children }: { children: ReactNode }) {
         }
     }, [isDrunk, mounted]);
 
+    // Die Statusleiste des Handys (neben Notch bzw. Dynamic Island) gehört nicht zur Seite und lässt sich
+    // nicht verwischen. Ihre Farbe kommt aber von theme-color, also pulsiert die im Rausch mit.
+    useEffect(() => {
+        if (!mounted || !isDrunk) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        // Next tauscht die Meta-Tags beim Seitenwechsel aus, deshalb bei jedem Schritt neu suchen
+        const find = () => Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'));
+        const original = find()[0]?.content ?? '#fafbfb';
+        const started = performance.now();
+        const mix = (from: number[], to: number[], t: number) => `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t)).join(', ')})`;
+        const tick = () => {
+            // gleicher Takt wie die Unschärfe-Wellen des Schleiers (6,5 s)
+            const phase = ((performance.now() - started) % 6500) / 6500;
+            const wave = Math.max(0, Math.sin(phase * Math.PI * 4 - 0.6)) ** 2;
+            const color = mix([250, 251, 251], [244, 190, 150], wave * 0.9);
+            for (const meta of find()) meta.content = color;
+        };
+        tick();
+        const timer = setInterval(tick, 250);
+        return () => {
+            clearInterval(timer);
+            for (const meta of find()) meta.content = original;
+        };
+    }, [isDrunk, mounted]);
+
     const toggle = () => {
         const next = !isDrunk;
         localStorage.setItem('drunkMode', String(next));

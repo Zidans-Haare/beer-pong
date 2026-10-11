@@ -20,7 +20,7 @@ function fakeContext() {
     }) as unknown as CanvasRenderingContext2D;
 }
 
-const model: DrunkSceneModel = { primary: '#006b50', pictureName: 'Josie', missLabel: 'DANEBEN!', sorryLabel: 'Ups … sorry, Josie!', hiccupLabel: 'Hicks!' };
+const model: DrunkSceneModel = { primary: '#006b50', pictureName: 'Josie', opponentName: 'Moonzy', missLabel: 'DANEBEN!', sorryLabel: 'Ups … sorry, Josie!', hiccupLabel: 'Hicks!' };
 
 describe('drawDrunkFrame', () => {
     it('zeichnet zu jedem Zeitpunkt der Szene ohne Fehler', () => {

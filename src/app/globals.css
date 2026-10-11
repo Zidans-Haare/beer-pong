@@ -923,8 +923,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .drunk-intro-skip { position: absolute; right: 14px; bottom: max(16px, env(safe-area-inset-bottom)); min-height: 44px; padding: 8px 16px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 0.9rem; font-weight: 600; }
 
 /* Schleier über der Seite: verschwimmt in Wellen mit klaren Momenten dazwischen.
-   Als eigener Layer, damit fest positionierte Elemente der Seite an ihrem Platz bleiben. */
-.drunk-fx { position: fixed; inset: 0; z-index: 900; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, rgba(234, 88, 12, 0.12)); -webkit-backdrop-filter: blur(0.4px); backdrop-filter: blur(0.4px); animation: drunk-blur 6.5s ease-in-out infinite; }
+   Als eigener Layer, damit fest positionierte Elemente der Seite an ihrem Platz bleiben.
+   Liegt über Kopfzeile und Navigation (z-index 1000); Dialoge sind im Top-Layer und bleiben scharf. */
+.drunk-fx { position: fixed; inset: 0; z-index: 1500; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, rgba(234, 88, 12, 0.12)); -webkit-backdrop-filter: blur(0.4px); backdrop-filter: blur(0.4px); animation: drunk-blur 6.5s ease-in-out infinite; }
 @keyframes drunk-blur {
   0%, 100% { -webkit-backdrop-filter: blur(0.3px); backdrop-filter: blur(0.3px); }
   28% { -webkit-backdrop-filter: blur(2.4px); backdrop-filter: blur(2.4px); }
@@ -941,7 +942,11 @@ body.drunk-mode .main-content { animation: drunk-double 4.5s ease-in-out infinit
 body.drunk-mode .main-content .glass-panel, body.drunk-mode .main-content .card, body.drunk-mode .main-content .stats-section, body.drunk-mode .main-content .live-tournament,
 body.drunk-mode .main-content h1, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner { animation: drunk-sway 5.5s ease-in-out infinite; }
 body.drunk-mode .main-content .glass-panel:nth-of-type(2n), body.drunk-mode .main-content .stats-section:nth-of-type(2n), body.drunk-mode .main-content h2, body.drunk-mode .main-content .btn { animation: drunk-sway-alt 7s ease-in-out infinite; }
+/* Navigation und Kopfzeile schwanken mit; nur die Einträge, damit die Leisten selbst am Rand bleiben */
+body.drunk-mode .bottom-nav-item, body.drunk-mode .app-header-actions > * { animation: drunk-sway-alt 6s ease-in-out infinite; }
+body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :first-child { animation: drunk-sway 5s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .drunk-fx { animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  body.drunk-mode .main-content, body.drunk-mode .main-content *, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner { animation: none; }
+  body.drunk-mode .main-content, body.drunk-mode .main-content *, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner,
+  body.drunk-mode .bottom-nav-item, body.drunk-mode .app-header-actions > *, body.drunk-mode .app-header > :first-child { animation: none; }
 }

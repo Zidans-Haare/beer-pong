@@ -1,7 +1,7 @@
 import {
-    SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, OPP_CUPS, HEADING, BODY,
+    SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, OPP_CUPS, MY_CUPS, HEADING, BODY,
     clamp, lerp, ramp, easeOut, easeOutBack, rand, shade,
-    tablePoint, drawCup, drawMe, drawBall, roundRect, fitFont,
+    tablePoint, drawCup, drawMe, drawOpponent, drawBall, roundRect, fitFont,
 } from '@/lib/wrapped-scene';
 
 // Kurze Szene beim Einschalten des Betrunken-Modus: Die Figur torkelt an den Tisch,
@@ -16,12 +16,16 @@ export interface DrunkSceneModel {
     primary: string;
     // Name auf dem Schild unter dem Bild
     pictureName: string;
+    // Gegner auf der anderen Tischseite
+    opponentName: string;
     missLabel: string;
     sorryLabel: string;
     hiccupLabel: string;
 }
 
 const PICTURE = { x: 285, y: 650, w: 290, h: 390 };
+// dunkler Hautton für den Gegner
+const OPPONENT_SKIN = '#7a4b2a';
 
 // Fotoabzug an der Wand, dem echten Foto nachempfunden: nach vorn gebeugt, Kopf geneigt, lange blonde
 // Haare mit verwehten Strähnen, ärmelloses dunkles Oberteil, weiß getünchte Holzbretter.
@@ -200,6 +204,10 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
 
     drawPicture(ctx, time, model.pictureName);
 
+    // Gegner hinter dem Tisch: grinst und zuckt kurz, wenn der Ball an ihm vorbeifliegt
+    const dodge = ramp(time, THROW_AT + 500, 520);
+    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, OPPONENT_SKIN);
+
     // Tisch
     const nl = tablePoint(-1, 0), nr = tablePoint(1, 0), fl = tablePoint(-1, 1), fr = tablePoint(1, 1);
     ctx.fillStyle = shade(model.primary, 0.5);
@@ -211,7 +219,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
     ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // die Becher bleiben unberührt stehen
+    // die Becher des Gegners bleiben unberührt stehen
     for (const spot of OPP_CUPS) {
         const p = tablePoint(spot.u, spot.v);
         drawCup(ctx, p.x, p.y, p.scale);
@@ -236,6 +244,12 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
         const fall = ramp(time, HIT_AT, 900);
         if (fall < 1) drawBall(ctx, target.x + fall * 90, target.y + fall * fall * 520, 16, 1 - fall * 0.6);
     }
+
+    // meine Becher auf der eigenen Seite (hinten zuerst)
+    [...MY_CUPS].sort((a, b) => b.v - a.v).forEach(spot => {
+        const p = tablePoint(spot.u, spot.v);
+        drawCup(ctx, p.x, p.y, p.scale);
+    });
 
     // Figur: torkelt herein, holt wackelig aus
     const enter = ramp(time, 200, 1000);

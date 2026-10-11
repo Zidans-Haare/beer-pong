@@ -681,6 +681,7 @@
   },
   "drunk": {
     "pictureName": "Josie",
+    "opponentName": "Moonzy",
     "miss": "MISSED!",
     "sorry": "Oops … sorry, {name}!",
     "hiccup": "Hic!",

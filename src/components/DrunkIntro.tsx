@@ -21,7 +21,7 @@ export default function DrunkIntro({ onDone, frozenAt }: { onDone: () => void; f
         if (!canvas || !ctx) return;
         const primary = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#006b50';
         const model: DrunkSceneModel = {
-            primary, pictureName: t('pictureName'), missLabel: t('miss'),
+            primary, pictureName: t('pictureName'), opponentName: t('opponentName'), missLabel: t('miss'),
             sorryLabel: t('sorry', { name: t('pictureName') }), hiccupLabel: t('hiccup'),
         };
         let frame = 0;

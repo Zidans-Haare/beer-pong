@@ -82,7 +82,7 @@ function formation(side: 'me' | 'opponent'): CupSpot[] {
     });
     return spots;
 }
-const MY_CUPS = formation('me');
+export const MY_CUPS = formation('me');
 export const OPP_CUPS = formation('opponent');
 // Reihenfolge der Treffer: Spitze, zweite Reihe, dann Mitte der dritten
 const HIT_ORDER = [9, 7, 8, 5];
@@ -192,7 +192,8 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
     ctx.restore();
 }
 
-function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0) {
+// skin: Hautton der Figur
+export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0, skin = '#fbe3c0') {
     if (enter <= 0) return;
     const sad = clamp(-mood);
     const bob = Math.sin(time / 520) * 4 * (1 - sad);
@@ -210,13 +211,19 @@ function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number
     ctx.beginPath(); ctx.moveTo(-84, 96); ctx.lineTo(-112 - sad * 8, 96 + 70 + sad * 30); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(84, 96); ctx.lineTo(112 + sad * 8, 96 + 70 + sad * 30); ctx.stroke();
     // Kopf
-    ctx.fillStyle = '#fbe3c0';
+    ctx.fillStyle = skin;
     ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill();
     // Augen
     ctx.fillStyle = '#2a1f14';
     const eyeY = -8 + sad * 6;
     // beim Schreck werden die Augen groß
     const eye = 7 + Math.sin(flinch * Math.PI) * 5;
+    // auf dunkler Haut bekommen die Augen ein Weiß, sonst gehen sie unter
+    if (skin !== '#fbe3c0') {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.ellipse(-22, eyeY, eye + 6, eye + 3, 0, 0, Math.PI * 2); ctx.ellipse(22, eyeY, eye + 6, eye + 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#2a1f14';
+    }
     ctx.beginPath(); ctx.arc(-22, eyeY, eye, 0, Math.PI * 2); ctx.arc(22, eyeY, eye, 0, Math.PI * 2); ctx.fill();
     // Augenbrauen kippen bei schlechter Laune
     ctx.strokeStyle = '#2a1f14'; ctx.lineWidth = 6;

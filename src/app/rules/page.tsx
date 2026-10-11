@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { Fragment, type ReactNode } from 'react';
-import { getPublicSystemSettings } from '@/app/actions/admin';
 import { getTranslations } from 'next-intl/server';
-import { ScrollText, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,15 +12,17 @@ function rich(text: string): ReactNode {
     return text.split('**').map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : <Fragment key={i}>{part}</Fragment>));
 }
 
-export default async function RulesPage() {
-    const [settings, t] = await Promise.all([getPublicSystemSettings(), getTranslations('rules')]);
-    // Die Hausregeln sind fest eingebaut; was der Admin in den Einstellungen einträgt, kommt als Ergänzung dazu
+export default async function RulesPage({ searchParams }: { searchParams: Promise<{ from?: string }> }) {
+    // Wer von einer anderen Seite (z. B. der Turnier-Zusage) hierherkommt, soll mit „Zurück“ auch dorthin zurück
+    const { from } = await searchParams;
+    const backHref = from && /^\/(?!\/)[\w\-\/]*$/.test(from) ? from : '/';
+    const t = await getTranslations('rules');
+    // Die Hausregeln sind fest eingebaut (messages/de.json und en.json)
     const sections = t.raw('sections') as Section[];
-    const adminText = (settings.rulesText ?? '').trim();
 
     return (
         <div className="container page-content" style={{ paddingBottom: '100px' }}>
-            <Link href="/" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>
+            <Link href={backHref} className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>
                 &larr; {t('back')}
             </Link>
 
@@ -46,14 +47,6 @@ export default async function RulesPage() {
                     </section>
                 ))}
 
-                {adminText && (
-                    <section className="rules-section">
-                        <h2><ScrollText size={18} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />{t('adminTitle')}</h2>
-                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--color-text)', margin: 0 }}>
-                            {adminText}
-                        </pre>
-                    </section>
-                )}
             </div>
         </div>
     );

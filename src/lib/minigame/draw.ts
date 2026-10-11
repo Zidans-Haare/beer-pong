@@ -345,7 +345,7 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
             ctx.save();
             ctx.strokeStyle = 'rgba(255,224,138,0.9)'; ctx.fillStyle = 'rgba(255,224,138,0.14)';
             ctx.lineWidth = 5; ctx.setLineDash([10, 8]); ctx.lineDashOffset = time / 60;
-            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 44 * p.scale * size, 66 * p.scale * size, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 22 * p.scale * size, 34 * p.scale * size, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             ctx.restore();
         }
         for (const cup of view.game.cups.opp) {
@@ -354,7 +354,7 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
             ctx.save();
             ctx.strokeStyle = picked ? '#ffffff' : '#ffe08a';
             ctx.lineWidth = picked ? 8 : 5; ctx.setLineDash(picked ? [] : [12, 9]); ctx.lineDashOffset = -time / 50;
-            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 70 * p.scale * size, 88 * p.scale * size, 0, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 24 * p.scale * size, 36 * p.scale * size, 0, 0, Math.PI * 2); ctx.stroke();
             ctx.restore();
         }
     }

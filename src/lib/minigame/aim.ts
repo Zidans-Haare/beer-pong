@@ -123,7 +123,7 @@ export function toTable(point: Point) { return tableUV(point.x, point.y); }
 // Mitte eines Bechers (Körper) auf dem Bildschirm, zum Anfassen
 function bodyCenter(cup: { u: number; v: number }, size: number) {
     const p = tablePoint(cup.u, cup.v);
-    return { x: p.x, y: p.y - 55 * p.scale * size, reach: Math.max(70, 62 * p.scale * size * 1.7) };
+    return { x: p.x, y: p.y - 55 * p.scale * size, reach: Math.max(40, 62 * p.scale * size * 1.1) };
 }
 
 // Becher einer Seite unter einem Bildschirmpunkt (zum Anfassen beim Umstellen); großzügig, auch weit hinten

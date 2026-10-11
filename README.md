@@ -64,6 +64,13 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 - **Admin trigger** — pick a calendar year or a season, preview, publish for everyone; players get a notification and a banner
 - **Archive** — past recaps stay available on the stats page
 
+**Mini game and figures**
+- **Rules page** — the house rules (bombs, islands, rearranging, balls back, naked mile and more) at `/rules`, German and English
+- **Beer pong mini game** — swipe to throw against the computer (three levels) or challenge a player to an asynchronous duel: you play your game, the opponent answers whenever they have time and gets a notification
+- **Mini game stats** — overall record, record per computer level, duel results, head to head and the last duels on the profile and the stats page
+- **Your figure** — pick skin, hairstyle and colour, top and pattern, height, build and several accessories (including a beer hat); it appears at the podium, in Wrapped, in duels and the mini game, waves on the home page and dances on the profile (only once you have designed it)
+- **Tournament film** — a finished tournament plays as a short scene with the final, the podium and sound, and ends in a winner overlay with the top three
+
 **App**
 - **Design** — light theme with local fonts, five-tab mobile navigation, admin sidebar on desktop
 - **Drunk mode** — simplified navigation, a short intro scene, and a deliberately wobbly, blurry interface (off with reduced motion)

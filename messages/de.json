@@ -570,9 +570,6 @@
       "durationHintDefault": "Wird verwendet bis genug Spieldaten vorhanden sind.",
       "tableCountLabel": "Anzahl Tische",
       "tableCountHint": "Wie viele Tische gleichzeitig bespielt werden können.",
-      "rulesLabel": "Regelwerk",
-      "rulesPlaceholder": "Regeln hier eingeben... (Plaintext oder Markdown)",
-      "rulesHint": "Wird auf der öffentlichen Regelseite (/rules) angezeigt. Unterstützt Plaintext mit Zeilenumbrüchen.",
       "save": "Speichern"
     },
     "broadcast": {
@@ -849,7 +846,6 @@
     "gameTitle": "Minispiel",
     "gameText": "Probier die Regeln gegen einen Mitspieler aus: Schnick, Schnack, Schnuck, zwei Würfe pro Runde, Bomben, Islands und alles andere.",
     "gameCta": "Spielen",
-    "adminTitle": "Ergänzungen vom Admin",
     "sectionsHint": "Die Hausregeln gelten für jedes Spiel, auch für das Minispiel.",
     "sections": [
       {
@@ -866,6 +862,7 @@
         "title": "Treffer und Sonderwürfe",
         "items": [
           "**Bombe:** Landen beide Würfe einer Runde im selben Becher, werden **drei Becher** weggestellt. Beide Bälle waren drin, also gibt es auch **Balls back**.",
+          "**Island und Bombe zusammen:** Triffst du ein Island und mit dem zweiten Ball denselben Becher noch einmal, zählt beides zusammen: **fünf Becher** (zwei fürs Island, drei für die Bombe).",
           "**Island:** Ein Becher gilt als Island, wenn **um ihn herum nichts mehr steht**, zum Beispiel die Spitze, wenn die Reihe dahinter fehlt: ein Becher Abstand bis zum nächsten. Dann kannst du „Island“ ansagen. Triffst du ihn, sind **zwei Becher** weg. Triffst du mit **zwei Würfen direkt hintereinander** ein Island, sind es beim zweiten **sechs Becher**.",
           "**Nur zwei Islands pro Spiel:** Jeder darf höchstens zweimal Island ansagen. Das gilt für das ganze Spiel, auch für Nachziehen und Verlängerung. Neue gibt es dort nicht, nur noch nicht benutzte.",
           "**Aufpraller:** Springt der Ball vorher auf dem Tisch auf und landet dann im Becher, zählt der Treffer **doppelt**. Ein Aufpraller darf nach dem Aufprall durch Wegschlagen aufgehalten werden. Im Duell gibt es keine Aufpraller, weil der andere nicht mit am Tisch sitzt und nicht wegschlagen könnte. Beim Wegschlagen kann ein eigener Becher mitfliegen; der bleibt dann weg.",
@@ -878,7 +875,7 @@
         "items": [
           "Stehen auf der Seite deines Gegners nur noch **vier Becher**, die du treffen musst, darfst du sie **selbst** umstellen. Das passiert nicht automatisch, das machst du.",
           "Umgestellt wird **nur auf die zehn Plätze** der Zehneraufstellung, also dorthin, wo beim Aufbau ein Becher steht. Nicht frei auf den Tisch.",
-          "Umstellen darfst du **zu Beginn deiner Runde**, nicht mittendrin: Triffst du bei fünf Bechern den ersten, müssen die anderen stehen bleiben (es kann ja noch eine Bombe werden). Umgestellt wird beim nächsten Mal, wenn du dran bist.",
+          "Umstellen darfst du **zu Beginn deiner Runde**, nicht mittendrin: Triffst du bei fünf Bechern den ersten, müssen die anderen stehen bleiben (es kann ja noch eine Bombe werden). Umgestellt wird beim nächsten Mal, wenn du dran bist. **Nicht bei Balls back:** Triffst du beide Bälle, darfst du zwar gleich noch einmal werfen, aber das ist noch derselbe Zug. Umstellen geht erst, wenn du nach dem Gegner wieder wirklich dran bist.",
           "Umgestellt wird **nur einmal pro Spiel**. **Beim Nachziehen darf nicht umgestellt werden.**"
         ]
       },

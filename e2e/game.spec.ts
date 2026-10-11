@@ -16,8 +16,6 @@ test.describe('Regeln und Minispiel', () => {
     }
     await expect(page.getByText('Bombe:')).toBeVisible();
     await expect(page.getByText('Nackte Meile:')).toBeVisible();
-    // der Admin-Text aus den Einstellungen kommt als Ergänzung dazu
-    await expect(page.getByText('Respect the table')).toBeVisible();
     await page.getByRole('link', { name: /Minispiel/ }).click();
     await expect(page).toHaveURL(/\/game$/);
   });
@@ -235,8 +233,13 @@ test.describe('Umstellen', () => {
     await throwAt(mouth(5));
     await expect(rearrangeButton).toHaveCount(0);
     await throwAt(mouth(4));
-    // Balls back, jetzt stehen vier Becher (0 bis 3): zu Beginn der neuen Runde darf ich umstellen
+    // Balls back, jetzt stehen vier Becher (0 bis 3): das ist noch derselbe Zug, umstellen geht noch nicht
     await expect(aimHint).toBeVisible({ timeout: 30_000 });
+    await expect(rearrangeButton).toHaveCount(0);
+    // zwei Fehlwürfe beenden den Zug, der Computer spielt; danach bin ich wieder dran und darf umstellen
+    await throwAt({ x: 20, y: 700 });
+    await throwAt({ x: 20, y: 700 });
+    await expect(aimHint).toBeVisible({ timeout: 60_000 });
     await expect(rearrangeButton).toBeVisible();
     await rearrangeButton.click();
     await expect(page.getByText(/freien Platz/)).toBeVisible();

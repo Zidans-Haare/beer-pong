@@ -220,6 +220,12 @@ describe('Island', () => {
         expect(r.game.cups.opp).toHaveLength(0);
     });
 
+    it('Island getroffen und danach derselbe Becher noch einmal: zwei plus drei, also fünf Becher', () => {
+        const before = twoIslands().cups.opp.length;
+        const { game } = round(twoIslands(), hit(9), hit(9), { island: [true, false] });
+        expect(before - game.cups.opp.length).toBe(5);
+    });
+
     it('Fehlversuch mit Ansage unterbricht die Serie', () => {
         const g = base();
         g.islandStreak.me = 1;
@@ -248,10 +254,26 @@ describe('Umstellen', () => {
         // auch ein verworfener erster Ball macht die Runde schon aktiv
         const missed = applyThrow(withCups(newGame('me'), 'opp', [0, 1, 2, 3]), miss).game;
         expect(canRearrange(missed, 'me')).toBe(false);
-        // in der nächsten eigenen Runde (nach Balls back oder wenn ich wieder dran bin) sind es vier: jetzt geht es
+        // zwei Treffer: Balls back. Das ist noch derselbe Zug, also darf ich jetzt nicht umstellen
         g = applyThrow(g, hit(7)).game;
         g = resolveRound(g).game;
         expect(g.cups.opp).toHaveLength(3);
+        expect(g.turn).toBe('me');
+        expect(canRearrange(g, 'me')).toBe(false);
+    });
+
+    it('nach Balls back geht Umstellen erst wieder, wenn ich nach dem Gegner wirklich dran bin', () => {
+        // sechs Becher, beide Bälle treffen: vier stehen, Balls back
+        let g = withCups(newGame('me'), 'opp', [9, 7, 8, 5, 4, 6]);
+        g = resolveRound(applyThrow(applyThrow(g, hit(9)).game, hit(7)).game).game;
+        expect(g.cups.opp).toHaveLength(4);
+        expect(g.turn).toBe('me');
+        expect(canRearrange(g, 'me')).toBe(false);
+        expect(moveCup(g, 'me', g.cups.opp[0].id, freeSlots(g, 'opp')[0])).toBe(g);
+        // ein Fehlwurf beendet den Zug, der Gegner spielt, danach bin ich wieder dran
+        g = resolveRound(applyThrow(applyThrow(g, miss).game, miss).game).game;
+        expect(g.turn).toBe('opp');
+        g = resolveRound(applyThrow(applyThrow(g, miss).game, miss).game).game;
         expect(g.turn).toBe('me');
         expect(canRearrange(g, 'me')).toBe(true);
     });

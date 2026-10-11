@@ -570,9 +570,6 @@
       "durationHintDefault": "Used until enough match data is available.",
       "tableCountLabel": "Number of Tables",
       "tableCountHint": "How many tables can be played simultaneously.",
-      "rulesLabel": "Rules",
-      "rulesPlaceholder": "Enter the rules here... (plain text or Markdown)",
-      "rulesHint": "Shown on the public rules page (/rules). Supports plain text with line breaks.",
       "save": "Save"
     },
     "broadcast": {
@@ -849,7 +846,6 @@
     "gameTitle": "Minigame",
     "gameText": "Try the rules against an opponent: rock-paper-scissors, two throws per round, bombs, islands and everything else.",
     "gameCta": "Play",
-    "adminTitle": "Additions from the admin",
     "sectionsHint": "The house rules apply to every game, including the minigame.",
     "sections": [
       {
@@ -866,6 +862,7 @@
         "title": "Hits and special throws",
         "items": [
           "**Bomb:** If both throws of a round land in the same cup, **three cups** are removed. Both balls went in, so you also get **balls back**.",
+          "**Island and bomb together:** Hit an island and then the same cup again with your second ball, and both add up: **five cups** (two for the island, three for the bomb).",
           "**Island:** A cup counts as an island when **nothing is left around it**, for example the tip once the row behind it is gone: one cup of space to the next one. Then you can call \"island\". Hit it and **two cups** are gone. Hit an island with **two throws directly in a row** and the second one is **six cups**.",
           "**Only two islands per game:** Everyone may call island twice at most. That holds for the whole game, including redemption and overtime. There are no new ones there, only unused ones.",
           "**Bounce:** If the ball bounces on the table first and then lands in the cup, the hit counts **double**. A bounce may be stopped by swatting it away after it has bounced. There are no bounces in duels, because the other player is not at the table and could not swat. Swatting can knock one of your own cups over; it then stays gone.",
@@ -878,7 +875,7 @@
         "items": [
           "Once only **four cups** are left on your opponent's side, the ones you have to hit, you may rearrange them **yourself**. It does not happen automatically, you do it.",
           "You may only move them **onto the ten places** of the ten-cup setup, where a cup stands at the start. Not freely on the table.",
-          "You may rearrange **at the start of your round**, not in the middle: if five cups stand and you hit the first, the others must stay (it could still become a bomb). You rearrange the next time it is your turn.",
+          "You may rearrange **at the start of your round**, not in the middle: if five cups stand and you hit the first, the others must stay (it could still become a bomb). You rearrange the next time it is your turn. **Not after balls back:** If you sink both balls you throw again, but that is still the same turn. You may rearrange only once it is really your turn again after your opponent's.",
           "You may rearrange **only once per game**. **No rearranging during redemption.**"
         ]
       },

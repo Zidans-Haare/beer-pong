@@ -1,6 +1,6 @@
 import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
 import { getGlobalDurationStats, getDurationBreakdown, formatDuration } from '@/lib/duration';
-import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ScrollText, ChevronDown } from 'lucide-react';
+import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
 
@@ -128,25 +128,6 @@ export default async function AdminSettingsPage() {
                     </small>
                 </div>
 
-                {/* Rules */}
-                <div className="form-group">
-                    <label htmlFor="rulesText" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                        <ScrollText size={16} />
-                        {t('rulesLabel')}
-                    </label>
-                    <textarea
-                        id="rulesText"
-                        name="rulesText"
-                        defaultValue={settings.rulesText ?? ''}
-                        rows={12}
-                        className="form-control"
-                        style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: '0.85rem' }}
-                        placeholder={t('rulesPlaceholder')}
-                    />
-                    <small style={{ color: 'var(--color-text-dim)', marginTop: 'var(--spacing-1)', display: 'block' }}>
-                        {t('rulesHint')}
-                    </small>
-                </div>
 
                 <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'var(--spacing-2)', minWidth: '160px' }}>
                     {t('save')}

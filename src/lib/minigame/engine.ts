@@ -74,6 +74,8 @@ export interface Game {
     // getroffene Becher im ganzen Spiel
     hits: Record<Side, number>;
     islandStreak: Record<Side, number>;
+    // Die laufende Runde ist nur ein Balls-back-Wurf desselben Zugs: Umstellen geht erst wieder, wenn man wirklich dran ist
+    ballsBackTurn?: boolean;
     overtime: number;
     winner: Side | null;
     nakedMile: Side | null;
@@ -224,7 +226,9 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
         const cup = g.cups[defender].find(c => c.id === cupId);
         if (!cup) continue;
         const bomb = hits.length >= 2;
-        const need = Math.max(...hits.map(h => h.remove), bomb ? 3 : 1);
+        let need = Math.max(...hits.map(h => h.remove), bomb ? 3 : 1);
+        // Island-Treffer und danach derselbe Becher noch einmal (Bombe) zählen zusammen: zwei plus drei, also fünf
+        if (bomb && need < 6 && hits.some(h => h.island)) need = 5;
         const reason = bomb && need === 3 ? 'bomb' : hits.some(h => h.remove >= 6) ? 'islandStreak' : hits.some(h => h.island) ? 'island' : hits.some(h => h.bounce) ? 'bounce' : 'hit';
         const extra = nearest(g.cups[defender], cup, need - 1, doomed, g.size);
         extra.forEach(c => doomed.add(c.id));
@@ -237,6 +241,7 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
     // Balls back: zwei versenkte Bälle in der Runde, also darf der Werfer noch einmal zwei werfen. Es zählt jeder
     // Ball, auch eine Bombe (zwei Bälle im selben Becher) und ein Treffer per Trickshot.
     const ballsBack = g.roundHits.length >= THROWS_PER_ROUND;
+    g.ballsBackTurn = false;
     g.roundHits = [];
     g.throwsLeft = THROWS_PER_ROUND;
     g.trickPending = false;
@@ -271,6 +276,7 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
             events.push({ type: 'catchUp', side: defender });
         } else finish(side);
     } else if (ballsBack) {
+        g.ballsBackTurn = true;
         events.push({ type: 'ballsBack', side });
     } else {
         g.turn = defender;
@@ -281,11 +287,12 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
 // ---- Becher umstellen ----
 // Wer wirft, darf die Becher stellen, die er treffen muss, sobald auf der Gegenseite nur noch vier stehen. `by` ist der
 // Werfer, umgestellt werden die Becher der Gegenseite. Genau einmal pro Spiel, nur zu Beginn einer eigenen Runde
-// (nicht mitten in der Runde, denn getroffene Becher stehen bis zum Rundenende noch) und nicht beim Nachziehen.
+// (nicht mitten in der Runde, denn getroffene Becher stehen bis zum Rundenende noch), nicht bei Balls back (das ist
+// noch derselbe Zug) und nicht beim Nachziehen.
 // Gestellt wird nur auf die zehn Plätze des Zehnerdreiecks, nicht frei auf den Tisch.
 export const canRearrange = (game: Game, by: Side): boolean => {
     const targets = game.cups[other(by)].length;
-    return !game.winner && !game.catchUp && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0
+    return !game.winner && !game.catchUp && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0
         && targets >= 1 && targets <= REARRANGE_MAX;
 };
 
@@ -323,7 +330,7 @@ export function moveCup(game: Game, by: Side, cupId: number, slot: number): Game
 
 // Während des Umstellens (Runde läuft noch nicht) darf weiter verschoben werden; die Bedingungen prüft canRearrange
 // zu Beginn. Hier zählt nur, dass noch nicht abgeschlossen wurde und das Spiel läuft.
-const canRearrangeNow = (game: Game, by: Side) => !game.winner && !game.catchUp && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0;
+const canRearrangeNow = (game: Game, by: Side) => !game.winner && !game.catchUp && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0;
 
 // Die Anordnung 1-1-2 des Computers als Plätze: die Spitze, ein Becher dahinter und zwei in der Reihe danach. Alle
 // berühren sich, es entsteht kein Island. Bei weniger Bechern nimmt er die ersten davon. `mirror` spiegelt links/rechts.

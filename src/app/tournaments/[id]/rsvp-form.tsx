@@ -4,6 +4,7 @@ import { submitRSVP } from '@/app/actions/rsvp';
 import { useState } from 'react';
 import { Check, HelpCircle, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { useAppDialog } from '@/components/AppDialog';
 
 export default function RSVPForm({
@@ -17,6 +18,7 @@ export default function RSVPForm({
 }) {
     const appDialog = useAppDialog();
     const t = useTranslations('rsvp');
+    const pathname = usePathname();
     const [rulesAccepted, setRulesAccepted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -148,8 +150,7 @@ export default function RSVPForm({
                     />
                     {t('acceptRules')}{' '}
                     <a
-                        href="/rules"
-                        target="_blank"
+                        href={`/rules?from=${encodeURIComponent(pathname)}`}
                         style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}
                     >
                         {t('rules')}

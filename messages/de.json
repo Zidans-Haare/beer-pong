@@ -839,6 +839,28 @@
     "title": "Diese Seite existiert nicht",
     "home": "Zur Startseite"
   },
+  "whatsNew": {
+    "title": "Neu in der App",
+    "intro": "Das Update bringt ein paar Dinge, die du gleich ausprobieren kannst.",
+    "game": {
+      "title": "Bier-Pong-Minispiel",
+      "text": "Gegen den Computer oder im Duell mit anderen, mit Statistik im Profil."
+    },
+    "figure": {
+      "title": "Deine Figur",
+      "text": "Gestalte sie selbst. Sie winkt auf der Startseite und steht auf dem Podium."
+    },
+    "film": {
+      "title": "Turnierfilm",
+      "text": "Jedes beendete Turnier als kurzer Film mit Finale und Siegerehrung."
+    },
+    "rules": {
+      "title": "Regelseite",
+      "text": "Alle Hausregeln auf einen Blick, von Bombe bis nackte Meile."
+    },
+    "later": "Später",
+    "gotIt": "Verstanden"
+  },
   "rules": {
     "title": "Offizielles Regelwerk",
     "back": "Zurück",

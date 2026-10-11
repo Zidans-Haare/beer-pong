@@ -839,6 +839,28 @@
     "title": "This page doesn't exist",
     "home": "Go to home"
   },
+  "whatsNew": {
+    "title": "New in the app",
+    "intro": "This update brings a few things you can try right away.",
+    "game": {
+      "title": "Beer pong mini game",
+      "text": "Play the computer or duel other players, with stats on your profile."
+    },
+    "figure": {
+      "title": "Your figure",
+      "text": "Design it yourself. It waves on the home page and stands on the podium."
+    },
+    "film": {
+      "title": "Tournament film",
+      "text": "Every finished tournament as a short film with the final and the ceremony."
+    },
+    "rules": {
+      "title": "Rules page",
+      "text": "All house rules at a glance, from bomb to naked mile."
+    },
+    "later": "Later",
+    "gotIt": "Got it"
+  },
   "rules": {
     "title": "Official Rules",
     "back": "Back",

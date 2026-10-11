@@ -3,6 +3,9 @@ import path from 'path';
 
 const authFile = path.join(__dirname, '.auth/user.json');
 
+// Den „Neu in der App“-Hinweis als gesehen vormerken, sonst legt er sich über jeden Test (e2e/whats-new.spec.ts testet ihn selbst)
+const markWhatsNewSeen = (page: import('@playwright/test').Page) => page.evaluate(() => window.localStorage.setItem('whats-new-seen', '2026-11'));
+
 setup('Login-State speichern', async ({ page }) => {
   setup.setTimeout(process.env.E2E_MODE === 'isolated' ? 180_000 : 60_000);
   const email = process.env.E2E_USER_EMAIL;
@@ -33,6 +36,7 @@ setup('Login-State speichern', async ({ page }) => {
   }
   await expect(page.getByRole('button', { name: /Logout/i })).toBeVisible({ timeout: 10_000 });
 
+  await markWhatsNewSeen(page);
   await page.context().storageState({ path: authFile });
 
   if (process.env.E2E_MODE === 'isolated') {
@@ -46,6 +50,7 @@ setup('Login-State speichern', async ({ page }) => {
         rolePage.waitForURL(url => !url.pathname.includes('/login'), { timeout: 30_000 }),
         rolePage.getByRole('button', { name: /Anmelden/i }).click(),
       ]);
+      await markWhatsNewSeen(rolePage);
       await context.storageState({ path: path.join(__dirname, `.auth/${role}.json`) });
       await context.close();
     }

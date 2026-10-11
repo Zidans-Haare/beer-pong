@@ -9,6 +9,7 @@ import ClientLayout from '@/components/ClientLayout';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
 import PWATracker from '@/components/PWATracker';
+import WhatsNew from '@/components/WhatsNew';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -107,6 +108,7 @@ export default async function RootLayout({
           <OfflineIndicator />
           <ServiceWorkerProvider />
           {session?.user?.id && <PWATracker userId={session.user.id} />}
+          {session?.user?.id && <WhatsNew />}
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>

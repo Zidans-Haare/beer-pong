@@ -123,6 +123,7 @@ git clone https://github.com/Zidans-Haare/beer-pong.git && cd beer-pong && npm r
 | [Email](docs/email.md) | Resend setup, DNS records, triggered events |
 | [Error Monitoring](docs/monitoring.md) | Sentry setup |
 | [Redesign & Testing](docs/redesign.md) | Design notes, isolated end-to-end tests, local preview |
+| [Rollout](docs/rollout.md) | Checkliste für das Redesign-Update, Backup und Rückfallplan |
 
 ---
 

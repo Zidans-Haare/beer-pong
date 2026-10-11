@@ -5,7 +5,7 @@
 import {
     SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, HEADING, BODY, BEAT_MS, MY_CUPS, OPP_CUPS, LIGHT_SKIN,
     clamp, lerp, ramp, easeOut, easeInOut, easeOutBack, rand, shade,
-    tablePoint, drawCup, drawBall, drawMe, drawOpponent, drawHairFront, drawBackdrop, drawTable, drawOutro,
+    tablePoint, drawCup, drawBall, drawMe, drawOpponent, drawHairFront, drawAccessoryFront, drawTorsoAccessories, fillShirt, needsEyeWhite, drawBackdrop, drawTable, drawOutro,
     roundRect, fitFont, wrapText,
     type FigureLook, type SceneAssets,
 } from '@/lib/wrapped-scene';
@@ -164,7 +164,7 @@ function camera(time: number, tl: FilmTimeline) {
     return { scale, ox, oy };
 }
 
-function drawNameTag(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, alpha: number, accent = false, maxWidth = 420, size = 36) {
+export function drawNameTag(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, alpha: number, accent = false, maxWidth = 420, size = 36) {
     if (alpha <= 0) return;
     ctx.save();
     ctx.globalAlpha *= alpha;
@@ -338,35 +338,57 @@ const STEP = {
 const FLOOR_Y = 1590;
 const MEDAL = { 1: ['#ffd95a', '#c8920a'], 2: ['#e6e9ee', '#8e96a3'], 3: ['#e0a06a', '#96592a'] } as const;
 
-interface WalkerOpts { walk: number; cheer: number; medal: number; place: 1 | 2 | 3; crown: number; time: number }
+export interface WalkerOpts { walk: number; cheer: number; medal: number; place: 1 | 2 | 3; crown: number; time: number; wave?: number }
 
 // Ganze Figur von vorn; (0,0) sind die Füße
-function drawWalker(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, look: FigureLook, o: WalkerOpts) {
+export function drawWalker(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, look: FigureLook, o: WalkerOpts) {
     const stride = Math.sin(o.time / 95) * o.walk;
     const bounce = Math.abs(Math.sin(o.time / 95)) * 10 * o.walk + Math.abs(Math.sin(o.time / 170)) * 34 * o.cheer * (o.place === 1 ? 1.5 : 1);
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(s, s);
+    // Größe der Figur aus dem Profil; Breite von Rumpf und Armen weiter unten
+    ctx.scale(s * (look.heightScale ?? 1), s * (look.heightScale ?? 1));
     // Schatten bleibt am Boden
     ctx.fillStyle = 'rgba(0,0,0,0.28)';
     ctx.beginPath(); ctx.ellipse(0, 4, 78 - bounce * 0.4, 16, 0, 0, Math.PI * 2); ctx.fill();
     ctx.translate(0, -bounce);
     ctx.lineCap = 'round';
     // Beine und Schuhe
-    ctx.strokeStyle = '#232733'; ctx.lineWidth = 36;
+    const bare = look.undies ? look.skin ?? LIGHT_SKIN : null;
+    ctx.strokeStyle = bare ?? '#232733'; ctx.lineWidth = 36;
     ctx.beginPath(); ctx.moveTo(-26, -118); ctx.lineTo(-26 + stride * 30, -16 - Math.max(0, stride) * 16); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(26, -118); ctx.lineTo(26 - stride * 30, -16 - Math.max(0, -stride) * 16); ctx.stroke();
     ctx.fillStyle = '#f4f4f4';
     roundRect(ctx, -48 + stride * 30, -22 - Math.max(0, stride) * 16, 46, 24, 11); ctx.fill();
     roundRect(ctx, 2 - stride * 30, -22 - Math.max(0, -stride) * 16, 46, 24, 11); ctx.fill();
+    // heller Schuh auf heller Seite: feiner Rand, damit man ihn sieht
+    ctx.strokeStyle = 'rgba(0,0,0,0.22)'; ctx.lineWidth = 3;
+    roundRect(ctx, -48 + stride * 30, -22 - Math.max(0, stride) * 16, 46, 24, 11); ctx.stroke();
+    roundRect(ctx, 2 - stride * 30, -22 - Math.max(0, -stride) * 16, 46, 24, 11); ctx.stroke();
+    // Arme und Rumpf in der Breite aus dem Profil
+    ctx.save();
+    ctx.scale(look.widthScale ?? 1, 1);
     // Arme: schwingen beim Laufen, gehen beim Jubeln hoch
     const wave = Math.sin(o.time / 150) * 18 * o.cheer;
-    ctx.strokeStyle = look.shirt; ctx.lineWidth = 32;
+    ctx.strokeStyle = bare ?? look.shirt; ctx.lineWidth = 32;
     ctx.beginPath(); ctx.moveTo(-62, -246); ctx.lineTo(lerp(-86 - stride * 22, -122 + wave, o.cheer), lerp(-150, -372, o.cheer)); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(62, -246); ctx.lineTo(lerp(86 - stride * 22, 122 - wave, o.cheer), lerp(-150, -372, o.cheer)); ctx.stroke();
+    // Winken: Der rechte Arm geht hoch und schwingt hin und her, der linke hängt
+    const waving = o.wave ?? 0;
+    const rightX = lerp(lerp(86 - stride * 22, 122 - wave, o.cheer), 124 + Math.sin(o.time / 130) * 38, waving);
+    const rightY = lerp(lerp(-150, -372, o.cheer), -334 + Math.abs(Math.sin(o.time / 130)) * 10, waving);
+    ctx.beginPath(); ctx.moveTo(62, -246); ctx.lineTo(rightX, rightY); ctx.stroke();
+    if (waving > 0) { ctx.fillStyle = look.skin ?? LIGHT_SKIN; ctx.beginPath(); ctx.arc(rightX, rightY, 20, 0, Math.PI * 2); ctx.fill(); }
     // Rumpf
-    ctx.fillStyle = look.shirt;
-    roundRect(ctx, -70, -276, 140, 176, 50); ctx.fill();
+    fillShirt(ctx, look, bare ?? look.shirt, () => roundRect(ctx, -70, -276, 140, 176, 50), { x: -70, y: -276, w: 140, h: 176 });
+    if (bare) {
+        // Unterhose: rot mit weißen Punkten
+        ctx.fillStyle = '#d83a3a';
+        roundRect(ctx, -74, -176, 148, 84, 30); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const [dx, dy] of [[-40, -146], [0, -128], [38, -150], [-14, -108], [44, -112]]) { ctx.beginPath(); ctx.arc(dx, dy, 7, 0, Math.PI * 2); ctx.fill(); }
+    }
+    drawTorsoAccessories(ctx, look, 'walker');
+    ctx.restore();
     // Medaille am Band
     if (o.medal > 0.03) {
         ctx.strokeStyle = '#d83a3a'; ctx.lineWidth = 9;
@@ -392,7 +414,7 @@ function drawWalker(ctx: CanvasRenderingContext2D, x: number, y: number, s: numb
     ctx.beginPath(); ctx.arc(0, 0, 60, 0, Math.PI * 2); ctx.fill();
     drawHairFront(ctx, 60, look, false);
     // auf dunkler Haut bekommen die Augen ein Weiß, sonst gehen sie unter
-    if (skin !== LIGHT_SKIN) {
+    if (needsEyeWhite(skin)) {
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.ellipse(-21, -4, 13, 10, 0, 0, Math.PI * 2); ctx.ellipse(21, -4, 13, 10, 0, 0, Math.PI * 2); ctx.fill();
     }
@@ -400,6 +422,7 @@ function drawWalker(ctx: CanvasRenderingContext2D, x: number, y: number, s: numb
     ctx.beginPath(); ctx.arc(-21, -4, 7, 0, Math.PI * 2); ctx.arc(21, -4, 7, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#2a1f14'; ctx.lineWidth = 6;
     ctx.beginPath(); ctx.moveTo(-22, 20); ctx.quadraticCurveTo(0, 20 + 16 + o.cheer * 14, 22, 20); ctx.stroke();
+    drawAccessoryFront(ctx, 60, look);
     // Krone für den Sieger: fällt von oben auf den Kopf
     if (o.crown > 0) {
         ctx.save();

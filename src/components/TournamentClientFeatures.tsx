@@ -1,71 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTournamentWakeLock } from '@/hooks/useWakeLock';
-import { CelebrationConfetti } from './Confetti';
-import { haptic } from '@/lib/haptics';
+import WinnerOverlay from '@/components/film/WinnerOverlay';
 
 interface TournamentClientFeaturesProps {
   tournamentId: string;
   tournamentStatus: string;
+  // bleibt für Aufrufer erhalten; alle drei Plätze werden gleich gefeiert
   isWinner?: boolean;
 }
 
 export default function TournamentClientFeatures({
   tournamentId,
   tournamentStatus,
-  isWinner = false,
 }: TournamentClientFeaturesProps) {
-  const [showConfetti, setShowConfetti] = useState(false);
   const isRunning = tournamentStatus === 'ACTIVE';
 
   // Wake lock for active tournaments
   const wakeLock = useTournamentWakeLock(isRunning);
 
-  // Show confetti when tournament is completed (only once per session)
-  useEffect(() => {
-    if (tournamentStatus === 'COMPLETED') {
-      // Check if we've already shown confetti for this tournament
-      const shownKey = `confetti-shown-${tournamentId}`;
-      const alreadyShown = sessionStorage.getItem(shownKey);
-
-      if (!alreadyShown) {
-        // Delay slightly for dramatic effect
-        const timer = setTimeout(() => {
-          setShowConfetti(true);
-          haptic.success();
-          sessionStorage.setItem(shownKey, 'true');
-        }, 500);
-
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [tournamentId, tournamentStatus]);
-
-  // Extra confetti if user is the winner
-  useEffect(() => {
-    if (isWinner && tournamentStatus === 'COMPLETED') {
-      const winnerKey = `winner-confetti-${tournamentId}`;
-      const alreadyShown = sessionStorage.getItem(winnerKey);
-
-      if (!alreadyShown) {
-        const timer = setTimeout(() => {
-          setShowConfetti(true);
-          haptic.heavy();
-          sessionStorage.setItem(winnerKey, 'true');
-        }, 2000);
-
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isWinner, tournamentId, tournamentStatus]);
-
   return (
     <>
-      <CelebrationConfetti
-        show={showConfetti}
-        onComplete={() => setShowConfetti(false)}
-      />
+      {/* Siegerehrung statt Konfetti: die Top 3 hüpfen am unteren Rand */}
+      <WinnerOverlay tournamentId={tournamentId} active={tournamentStatus === 'COMPLETED'} />
 
       {/* Wake lock indicator for active tournaments */}
       {isRunning && wakeLock.isActive && (

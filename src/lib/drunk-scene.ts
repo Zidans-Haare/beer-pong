@@ -1,7 +1,7 @@
 import {
     SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, OPP_CUPS, MY_CUPS, HEADING, BODY,
     clamp, lerp, ramp, easeOut, easeOutBack, rand, shade,
-    tablePoint, drawCup, drawMe, drawOpponent, drawBall, roundRect, fitFont, DARK_SKIN,
+    tablePoint, drawCup, drawMe, drawOpponent, drawBall, roundRect, fitFont, DARK_SKIN, type FigureLook,
 } from '@/lib/wrapped-scene';
 
 // Kurze Szene beim Einschalten des Betrunken-Modus: Die Figur torkelt an den Tisch,
@@ -23,6 +23,8 @@ export interface DrunkSceneModel {
     missLabel: string;
     sorryLabel: string;
     hiccupLabel: string;
+    // Figuren aus den Profilen (meine und die des Gegners)
+    looks?: { me?: FigureLook; opponent?: FigureLook };
 }
 
 const PICTURE = { x: 285, y: 650, w: 290, h: 390 };
@@ -226,6 +228,18 @@ function drawFury(ctx: CanvasRenderingContext2D, time: number, anger: number) {
     }
 }
 
+// Das Foto als ruhiges Wandbild (zum Beispiel im Minispiel): hängt an einer Nadel bei (x, y) und pendelt leicht.
+export function drawWallPicture(ctx: CanvasRenderingContext2D, name: string, timeMs: number, x: number, y: number, scale: number) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.rotate(Math.sin(timeMs / 1900) * 0.025);
+    ctx.translate(-PICTURE.x, -(PICTURE.y - PICTURE.h / 2 - 6));
+    // Zeit 0: noch kein Treffer, das Foto schaut freundlich
+    drawPicture(ctx, 0, name);
+    ctx.restore();
+}
+
 export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneModel, timeMs: number) {
     const time = clamp(timeMs, 0, DRUNK_TOTAL_MS);
     // gegen Ende schwankt das ganze Bild immer stärker
@@ -251,7 +265,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
     const dodge = ramp(time, THROW_AT + 500, 520);
     // nach dem Treffer fliegt das Bild zu Bruch und er ärgert sich
     const anger = easeOut(ramp(time, HIT_AT + 150, 400));
-    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, DARK_SKIN, anger);
+    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, DARK_SKIN, anger, model.looks?.opponent);
     if (anger > 0) drawFury(ctx, time, anger);
 
     // Tisch
@@ -307,7 +321,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
     ctx.translate(CENTER_X, 1800);
     ctx.rotate(Math.sin(time / 330) * 0.13 * stagger);
     ctx.translate(-CENTER_X, -1800);
-    drawMe(ctx, enter, throwPhase, 0, time, model.primary);
+    drawMe(ctx, enter, throwPhase, 0, time, model.primary, model.looks?.me);
     ctx.restore();
 
     // "Hicks!" neben dem Kopf

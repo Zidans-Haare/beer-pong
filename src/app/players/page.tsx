@@ -6,7 +6,7 @@ import Avatar from '@/components/Avatar';
 import { getTranslations } from 'next-intl/server';
 import PageHeader from '@/components/PageHeader';
 import { auth } from '@/auth';
-import { Settings } from 'lucide-react';
+import { Settings, Shirt } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +32,7 @@ export default async function PlayersPage() {
                     <div className="my-profile-actions">
                         <Link href={`/players/${me.id}`} className="btn btn-primary">{t('openProfile')}</Link>
                         <Link href="/settings" className="btn btn-secondary"><Settings size={16} aria-hidden="true" /> {t('accountSettings')}</Link>
+                        <Link href={`/players/${me.id}/figure`} className="btn btn-secondary"><Shirt size={16} aria-hidden="true" /> {t('myFigure')}</Link>
                     </div>
                 </section>
             )}

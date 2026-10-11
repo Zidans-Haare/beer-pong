@@ -1,5 +1,5 @@
 import { computeInsights, type InsightMatch } from '@/lib/stats-insights';
-import type { SceneModel, SceneSegment } from '@/lib/wrapped-scene';
+import type { FigureLook, SceneModel, SceneSegment } from '@/lib/wrapped-scene';
 
 // Bier Pong Wrapped: Rückblick eines Spielers über einen Zeitraum.
 // Reine Berechnung aus den Spielen, damit sie testbar bleibt.
@@ -148,7 +148,7 @@ export function computeWrapped(matches: InsightMatch[], extras: WrappedExtras): 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 // Texte für die Abschnitte: Tisch, Aufbau/Gegner, Wurf, Schlagabtausch, Sieg, Abschluss, Abspann
-export function buildScene(data: WrappedData, wrappedTitle: string, primary: string, t: Translate, locale = 'de-DE'): SceneModel {
+export function buildScene(data: WrappedData, wrappedTitle: string, primary: string, t: Translate, locale = 'de-DE', looks?: { me: FigureLook; opponent: FigureLook | null }): SceneModel {
     const percent = Math.round(data.winRate * 100);
     const medalTotal = data.medals.gold + data.medals.silver + data.medals.bronze;
     const medalsLine = t('medalsLine', { gold: data.medals.gold, silver: data.medals.silver, bronze: data.medals.bronze });
@@ -215,6 +215,6 @@ export function buildScene(data: WrappedData, wrappedTitle: string, primary: str
 
     return {
         title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary,
-        winLabel: t('winStamp'), outro: { title: t('outroTitle'), line: t('outroLine') }, segments,
+        winLabel: t('winStamp'), outro: { title: t('outroTitle'), line: t('outroLine') }, segments, looks,
     };
 }

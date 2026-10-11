@@ -1,0 +1,924 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Volume2, VolumeX, X, Mountain, ArrowDownToLine, LayoutGrid, Swords, Bot, Shuffle } from 'lucide-react';
+import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts, loadSceneLogo, skinFor, lerp, clamp, easeOut, tablePoint, type FigureLook } from '@/lib/wrapped-scene';
+import { lookFor, type FigureMap } from '@/lib/figure';
+import {
+    newGame, applyThrow, resolveRound, roundOver, canTrick, skipTrick, canRearrange, rearrange, moveCup, finishRearranging, islandsOf, isIsland, rockPaperScissors,
+    THROWS_PER_ROUND, CUP_SIZES, other, type CupSize, type Game, type Side, type Hand, type ThrowResult, type GameEvent,
+} from '@/lib/minigame/engine';
+import { planAiThrow, planAiTrick, aiRearrangeSlots, aiSwat, aiHand, ROLL_BACK_CHANCE, DIFFICULTIES, type Difficulty } from '@/lib/minigame/ai';
+import { judgeDirect, judgeBounce, cupMouth, cupAt, slotAt, hitRadii, flickLanding, tremor, type Point, type Sample } from '@/lib/minigame/aim';
+import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
+import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
+import { throwsOfRound, roundsOf, hitsOf, type ReplayThrow } from '@/lib/minigame/replay';
+import { recordCpuGame, createDuel, declineDuel, completeDuel } from '@/app/actions/minigame';
+
+type Mode = 'pick' | 'invite' | 'rps' | 'play' | 'over';
+// cpu: gegen den Rechner; run: Herausforderer legt vor; ghost: Nachziehender spielt gegen die Aufzeichnung
+type Kind = 'cpu' | 'run' | 'ghost';
+type Trick = 'eyes' | 'leg' | 'ceiling';
+
+interface Controls {
+    aim: boolean;
+    islandAvailable: boolean;
+    islandOn: boolean;
+    bounceOn: boolean;
+    bounceAvailable: boolean;
+    canRearrange: boolean;
+    islandsLeft: number;
+    rearranging: boolean;
+    trick: boolean;
+    swat: boolean;
+    rps: boolean;
+    rpsResult: string | null;
+    hint: string;
+    over: { won: boolean; mile: boolean } | null;
+}
+
+const IDLE: Controls = { aim: false, islandAvailable: false, islandOn: false, bounceOn: false, bounceAvailable: false, canRearrange: false, islandsLeft: 0, rearranging: false, trick: false, swat: false, rps: false, rpsResult: null, hint: '', over: null };
+const HAND_ICON: Record<Hand, string> = { rock: '✊', paper: '✋', scissors: '✌️' };
+const HAND = { x: SCENE_WIDTH / 2 + 150, y: 1650 };
+const OPP_HAND = { x: SCENE_WIDTH / 2 + 30, y: 880 };
+
+const key = (side: Side, id: number) => `${side}:${id}`;
+const rand = () => Math.random();
+const pick = <T,>(items: T[]): T => items[Math.floor(rand() * items.length)];
+
+type AimChoice = { type: 'throw'; point: Point; bounce: boolean; island: boolean; exact?: boolean } | { type: 'rearrange' };
+
+export interface GamePlayer { id: string; name: string }
+export interface DuelInfo { id: string; cupSize: CupSize; challengerName: string; starter: 'CHALLENGER' | 'OPPONENT'; challengerHand: Hand; opponentHand: Hand; replay: ReplayThrow[] }
+export interface OpenDuel { id: string; name: string }
+
+interface GhostState { replay: ReplayThrow[]; round: number; used: number; duelId: string }
+
+export default function BeerPongGame({ meName, players, incoming, outgoing, duel, figures, backHref }: {
+    meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; figures: FigureMap; backHref: string;
+}) {
+    const t = useTranslations('game');
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [mode, setMode] = useState<Mode>(duel ? 'invite' : 'pick');
+    const [pickKind, setPickKind] = useState<'duel' | 'cpu'>(players.length > 0 ? 'duel' : 'cpu');
+    const [busy, setBusy] = useState(false);
+    const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+    // Bechergröße: klein, mittel oder groß; wird gemerkt
+    const [cupSize, setCupSize] = useState<CupSize>('small');
+    useEffect(() => {
+        try { const saved = localStorage.getItem('game-cup-size'); if (saved === 'small' || saved === 'medium' || saved === 'large') setCupSize(saved); } catch { /* ohne Speicher */ }
+    }, []);
+    const chooseSize = (size: CupSize) => { setCupSize(size); try { localStorage.setItem('game-cup-size', size); } catch { /* ohne Speicher */ } };
+    const sizeRef = useRef<CupSize>('small');
+    const [opponent, setOpponent] = useState<string | null>(null);
+    const [ctl, setCtl] = useState<Controls>(IDLE);
+    const [status, setStatus] = useState('');
+    const [muted, setMuted] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [round, setRound] = useState(0);
+
+    const ctlRef = useRef<Controls>(IDLE);
+    const viewRef = useRef<GameView | null>(null);
+    const gameRef = useRef<Game | null>(null);
+    const runId = useRef(0);
+    const logo = useRef<HTMLImageElement | null>(null);
+    const waiter = useRef<((value: unknown) => void) | null>(null);
+    // Wischen: Punkte mit Zeit, solange der Finger unten ist
+    const aim = useRef({ waiting: false, active: false, samples: [] as Sample[], factor: 1, blind: false });
+    const drag = useRef<{ cupId: number } | null>(null);
+    const kindRef = useRef<Kind>('cpu');
+    const ghostRef = useRef<GhostState | null>(null);
+    const roundsRef = useRef({ me: 0, opp: 0 });
+    const logRef = useRef<ReplayThrow[]>([]);
+    const targetPlayer = useRef<GamePlayer | null>(null);
+    const handsRef = useRef<{ mine: Hand; theirs: Hand } | null>(null);
+    const statusRef = useRef('');
+    statusRef.current = status;
+    const difficultyRef = useRef(difficulty);
+    difficultyRef.current = difficulty;
+
+    const setControls = useCallback((patch: Partial<Controls>) => {
+        ctlRef.current = { ...ctlRef.current, ...patch };
+        setCtl(ctlRef.current);
+    }, []);
+
+    const meLook = useMemo<FigureLook>(() => lookFor(meName, 0, figures), [meName, figures]);
+    void meLook;
+
+    useEffect(() => { loadSceneFonts().then(() => loadSceneLogo()).then(image => { logo.current = image; setReady(true); }); }, []);
+
+    // ---- Hilfen für Ablauf, Ton und Stempel ----
+    const alive = (id: number) => runId.current === id;
+    const mutedRef = useRef(muted);
+    mutedRef.current = muted;
+    const fx = useCallback((kind: Fx) => { if (!mutedRef.current) { try { sharedGameAudio()?.fx(kind); } catch { /* ohne Ton weiter */ } } }, []);
+
+    const animate = useCallback((id: number, ms: number, step: (k: number) => void) => new Promise<void>(resolve => {
+        const start = performance.now();
+        const tick = () => {
+            if (runId.current !== id) return resolve();
+            const k = Math.min(1, (performance.now() - start) / ms);
+            step(k);
+            if (k < 1) requestAnimationFrame(tick); else resolve();
+        };
+        tick();
+    }), []);
+    const wait = useCallback((id: number, ms: number) => animate(id, ms, () => undefined), [animate]);
+    const input = useCallback(<T,>() => new Promise<T>(resolve => { waiter.current = resolve as (value: unknown) => void; }), []);
+    const answer = useCallback((value: unknown) => { const w = waiter.current; waiter.current = null; w?.(value); }, []);
+
+    const announce = useCallback((text: string, sound?: Fx, color?: string, delay = 0) => {
+        const view = viewRef.current;
+        if (!view) return;
+        view.stamps.push({ text, start: performance.now() + delay, color });
+        if (sound) setTimeout(() => fx(sound), delay);
+    }, [fx]);
+
+    // ---- Flugbahnen ----
+    const fly = useCallback(async (id: number, from: Point & { r: number }, to: Point & { r: number }, ms: number, height: number) => {
+        const view = viewRef.current!;
+        view.trail = [];
+        await animate(id, ms, k => {
+            const p = { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k) - Math.sin(k * Math.PI) * height, r: lerp(from.r, to.r, k) };
+            view.ball = p;
+            view.trail.push({ x: p.x, y: p.y });
+            if (view.trail.length > 6) view.trail.shift();
+        });
+        view.trail = [];
+    }, [animate]);
+
+    // Ball verschwindet im Becher
+    const sink = useCallback(async (id: number, at: Point & { r: number }) => {
+        const view = viewRef.current!;
+        await animate(id, 220, k => { view.ball = { x: at.x, y: at.y + k * 26, r: at.r * (1 - k * 0.55), alpha: 1 - k * 0.2 }; });
+        view.ball = null;
+    }, [animate]);
+
+    // Ball springt weg oder fällt vom Tisch
+    const leave = useCallback(async (id: number, from: Point & { r: number }, to: Point, ms: number, height: number) => {
+        const view = viewRef.current!;
+        await animate(id, ms, k => { view.ball = { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k) - Math.sin(k * Math.PI) * height, r: from.r * (1 + 0.3 * k), alpha: 1 - k * k }; });
+        view.ball = null;
+    }, [animate]);
+
+    // ---- Ergebnisse als Stempel und Ton ----
+    const showEvents = useCallback((events: GameEvent[], by: Side) => {
+        const view = viewRef.current!;
+        for (const e of events) {
+            if (e.type === 'hit') {
+                announce(e.island ? t('stamp.island') : e.bounce ? t('stamp.bounce') : t('stamp.hit'), e.island ? 'island' : 'plop', e.bounce || e.island ? '#ffb347' : undefined);
+                view.shake = 1;
+                if (by === 'me') { view.flinch = 1; view.mood = Math.max(-0.6, view.mood - 0.12); }
+            } else if (e.type === 'miss') announce(t('stamp.miss'), 'miss', '#ffffff');
+            else if (e.type === 'rim') announce(e.rolledBack ? t('stamp.rimBack') : t('stamp.rim'), 'rim', '#ffffff');
+            else if (e.type === 'blocked') announce(t('stamp.blocked'), 'swat', '#ff8a8a');
+            else if (e.type === 'strip') announce(t('stamp.strip'), 'strip', '#ff9fb2');
+            else if (e.type === 'dress') announce(t('stamp.dress'), 'dress', '#9be59b');
+            else if (e.type === 'trick') announce(t('stamp.trick'), 'trick', '#8fd3ff');
+            else if (e.type === 'remove' && e.reason === 'accident') announce(t('stamp.accident'), 'miss', '#ff8a8a', 700);
+        }
+    }, [announce, t]);
+
+    // ---- Wischen ----
+    const waitAim = useCallback(async (opts: { factor?: number; blind?: boolean }): Promise<AimChoice | undefined> => {
+        const a = aim.current;
+        a.waiting = true; a.active = false; a.samples = []; a.factor = opts.factor ?? 1; a.blind = !!opts.blind;
+        if (viewRef.current) viewRef.current.blind = a.blind;
+        const result = await input<AimChoice | undefined>();
+        a.waiting = false; a.active = false; a.samples = [];
+        if (viewRef.current) { viewRef.current.swipe = null; viewRef.current.blind = false; }
+        return result;
+    }, [input]);
+
+    // Ball prallt vom Becherrand ab und rollt über den Tisch zurück. Kommt er über die Mittellinie, blitzt sie auf und es
+    // gibt einen Trickshot; sonst bleibt er davor liegen.
+    const rollBack = useCallback(async (id: number, from: Point & { r: number }, thrower: Side, crossed: boolean) => {
+        const view = viewRef.current!;
+        const mid = tablePoint(0, 0.5).y;
+        // der Ball rollt zum Werfer zurück: bei mir nach unten, beim Gegner nach oben
+        const dir = thrower === 'me' ? 1 : -1;
+        const endY = crossed ? mid + dir * 150 : mid - dir * 110;
+        const endX = from.x + (rand() < 0.5 ? -1 : 1) * (40 + rand() * 60);
+        const ms = crossed ? 1000 : 800;
+        let flashed = false;
+        await animate(id, ms, k => {
+            const e = easeOut(k);
+            const x = lerp(from.x, endX, e);
+            const y = lerp(from.y, endY, e) - Math.abs(Math.sin(k * Math.PI * 3)) * 26 * (1 - k);
+            // beim Rollen wird der Ball in der Perspektive größer, wenn er zu mir kommt
+            const r = lerp(from.r, thrower === 'me' ? from.r * 1.5 : from.r * 0.8, e);
+            view.ball = { x, y, r, alpha: k > 0.85 ? 1 - (k - 0.85) / 0.15 * 0.6 : 1 };
+            if (crossed && !flashed && (thrower === 'me' ? y > mid : y < mid)) { flashed = true; view.midFlash = performance.now(); fx('rim'); }
+        });
+        view.ball = null;
+    }, [animate, fx]);
+
+    // Hand schlägt den Aufpraller weg: Hand holt aus, klatscht auf den Ball, der Ball fliegt davon. Ein Missgeschick
+    // (`lostCup`) reißt einen Becher des Schlagenden mit; er bleibt dann weg.
+    const slapAway = useCallback(async (id: number, ball: Point & { r: number }, by: Side, lostCup: number | null) => {
+        const view = viewRef.current!;
+        const g = gameRef.current!;
+        const size = g.size;
+        // Becher der Seite, die schlägt: wer wegschlägt, steht auf der Seite, deren Becher getroffen würden
+        const cupsSide: Side = by === 'me' ? 'me' : 'opp';
+        const scale = (by === 'me' ? 1 : 0.6) * (size >= 1 ? size : 1) * 1.15;
+        view.ball = { ...ball };
+        view.hand = {
+            start: performance.now(), duration: 520, x: ball.x, y: ball.y, from: by === 'me' ? 1 : -1, scale,
+            skin: view.skins[by], sleeve: view.looks[by].shirt,
+        };
+        await wait(id, 280);
+        fx('swat');
+        view.shake = 0.7;
+        const side = by === 'me' ? 1 : -1;
+        // der Ball fliegt in die Richtung des Schlags davon
+        void leave(id, ball, { x: ball.x - side * 380, y: ball.y + (by === 'me' ? 260 : 220) }, 460, 120);
+        if (lostCup !== null) {
+            // eigener Becher fliegt mit
+            view.vanishing[key(cupsSide, lostCup)] = performance.now() + 120;
+            await wait(id, 760);
+            delete view.vanishing[key(cupsSide, lostCup)];
+        } else await wait(id, 480);
+        view.hand = null;
+    }, [fx, leave, wait]);
+
+    // ---- Wurf des Spielers ----
+    const myThrow = useCallback(async (id: number, trick: Trick | null): Promise<void> => {
+        const running = kindRef.current === 'run';
+        const view = viewRef.current!;
+        let g = gameRef.current!;
+        const first = g.throwsLeft === THROWS_PER_ROUND && !trick;
+        for (;;) {
+            if (runId.current !== id) return;
+            setControls({
+                aim: true, islandAvailable: !trick && g.cups.opp.length >= 2 && islandsOf(g.cups.opp, g.size).length > 0, islandOn: false, bounceOn: false,
+                // im Duell gibt es keine Aufpraller: Der andere sitzt nicht dabei und könnte sie nicht wegschlagen
+                bounceAvailable: !trick && kindRef.current === 'cpu',
+                canRearrange: first && canRearrange(g, 'me'), rearranging: false, islandsLeft: g.islandsLeft.me, hint: trick ? t('hint.trick') : t('hint.swipe'),
+            });
+            setStatus(trick ? t('status.trick') : t('status.yourThrow', { count: g.throwsLeft }));
+            const choice = await waitAim({ factor: trick === 'eyes' ? 1.5 : trick === 'leg' ? 1.7 : trick === 'ceiling' ? 2 : 1, blind: trick === 'eyes' });
+            if (runId.current !== id || !choice) return;
+            if (choice.type === 'rearrange') {
+                setControls({ aim: false, rearranging: true, canRearrange: false, hint: t('hint.rearrange') });
+                view.rearranging = { dragging: null };
+                await input<void>();
+                view.rearranging = null;
+                if (runId.current !== id) return;
+                // Umgestellt wird nur einmal pro Spiel
+                gameRef.current = finishRearranging(gameRef.current!, 'me');
+                g = gameRef.current;
+                continue;
+            }
+            setControls({ aim: false, hint: '' });
+            // unsichtbares Zittern der Hand, je nach Stufe und bei Tricks größer
+            const jitter = choice.exact ? { x: 0, y: 0 } : tremor(DIFFICULTIES[difficultyRef.current].sway, choice.point.y, aim.current.factor, rand);
+            const point = { x: choice.point.x + jitter.x, y: choice.point.y + jitter.y };
+            const bounce = choice.bounce && !trick && kindRef.current === 'cpu';
+            const islandCalled = choice.island && !trick;
+
+            // Wurf auswerten
+            const judged = bounce ? judgeBounce(g.cups.opp, point, g.size) : judgeDirect(g.cups.opp, point, g.size);
+            // beim Vorlegen sitzt noch niemand gegenüber: Wegschlagen kann erst der Nachziehende
+            const swatted = judged.kind === 'hit' && bounce && !running ? aiSwat(g, rand, difficultyRef.current) : null;
+            let result: ThrowResult;
+            if (judged.kind === 'hit' && swatted?.swat) result = { kind: 'blocked', cupId: judged.cupId, ownCupLost: swatted.ownCupLost };
+            else if (judged.kind === 'hit') result = { kind: 'hit', cupId: judged.cupId, bounce };
+            else if (judged.kind === 'rim') result = { kind: 'rim', rolledBack: rand() < ROLL_BACK_CHANCE };
+            else result = { kind: 'miss' };
+
+            // Animation: Wurfarm, dann Ball
+            fx('throw');
+            await animate(id, 320, k => { view.throwPhase = k * 0.5; });
+            const start = { ...HAND, r: 30 };
+            const mouthOf = (cupId: number) => cupMouth(g.cups.opp.find(c => c.id === cupId)!, g.size);
+            const sc = tablePoint(0, clamp((1650 - point.y) / 690)).scale;
+            if (bounce) {
+                const landing = { x: point.x, y: point.y, r: 22 * sc + 6 };
+                await fly(id, start, landing, 420, 110);
+                fx('bounce');
+                if (result.kind === 'hit' || result.kind === 'blocked') {
+                    const m = mouthOf(result.cupId);
+                    const end = { x: m.x, y: m.y, r: 15 * m.scale + 3 };
+                    await fly(id, landing, end, 360, 130);
+                    if (result.kind === 'blocked') {
+                        // der Computer schlägt den Ball mit der Hand weg
+                        await slapAway(id, end, 'opp', result.ownCupLost);
+                    } else await sink(id, end);
+                } else await leave(id, landing, { x: landing.x + 40, y: landing.y - 220 }, 500, 140);
+            } else if (trick === 'ceiling') {
+                const mid = { x: point.x, y: 120, r: 16 };
+                await fly(id, start, mid, 420, 0);
+                const m = result.kind === 'hit' ? mouthOf(result.cupId) : null;
+                const end = { x: m ? m.x : point.x, y: m ? m.y : point.y, r: 15 };
+                await fly(id, mid, end, 420, 0);
+                if (result.kind === 'hit') await sink(id, end); else await leave(id, end, { x: end.x + 30, y: end.y + 160 }, 350, 40);
+            } else {
+                const end = { x: point.x, y: point.y, r: 15 * (0.9 + sc * 0.1) };
+                await fly(id, start, end, 700, 430);
+                if (result.kind === 'hit') await sink(id, end);
+                else if (result.kind === 'rim') await rollBack(id, end, 'me', result.rolledBack);
+                else await leave(id, end, { x: end.x + (rand() - 0.5) * 120, y: end.y + 170 }, 420, 60);
+            }
+            await animate(id, 220, k => { view.throwPhase = 0.5 + k * 0.5; });
+            view.throwPhase = 0;
+            if (runId.current !== id) return;
+
+            const out = applyThrow(g, result, { islandCalled, trick: !!trick });
+            gameRef.current = out.game; g = out.game;
+            if (running) logRef.current.push({ r: roundsRef.current.me, result, island: islandCalled, trick: !!trick });
+            showEvents(out.events, 'me');
+            await wait(id, 650);
+            return;
+        }
+    }, [animate, fly, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, waitAim]);
+
+    // ---- Wurf des Gegners ----
+    const oppThrow = useCallback(async (id: number, trick: boolean): Promise<void> => {
+        const view = viewRef.current!;
+        const g = gameRef.current!;
+        const lastHit = g.roundHits.length ? g.roundHits[g.roundHits.length - 1].cupId : null;
+        // Duell: Wurf aus der Aufzeichnung des Herausforderers, solange sie reicht, danach spielt der Rechner weiter
+        const ghost = ghostRef.current;
+        let scripted: ReplayThrow | null = null;
+        if (ghost) {
+            const next = throwsOfRound(ghost.replay, ghost.round)[ghost.used] ?? null;
+            if (next) { scripted = next; ghost.used++; }
+        }
+        let plan = trick || scripted ? null : planAiThrow(g, rand, difficultyRef.current, lastHit, kindRef.current === 'cpu');
+        let result0: ThrowResult;
+        if (scripted) {
+            const r = scripted.result;
+            // Ein Becher, den es auf diesem Tisch nicht mehr gibt, kann nicht getroffen werden
+            result0 = r.kind === 'hit' && !g.cups.me.some(c => c.id === r.cupId) ? { kind: 'miss' } : r;
+            // Aufpraller zählen im Duell nicht (ältere Aufzeichnungen können noch welche enthalten)
+            if (result0.kind === 'hit' && result0.bounce) result0 = { ...result0, bounce: false };
+        } else if (trick) result0 = planAiTrick(g, rand, difficultyRef.current);
+        else result0 = plan!.result;
+        if (!plan && !scripted && !trick) plan = null;
+        const targetId = result0.kind === 'hit' ? result0.cupId : plan?.cupId ?? g.cups.me[Math.floor(rand() * g.cups.me.length)]?.id;
+        const target = g.cups.me.find(c => c.id === targetId) ?? g.cups.me[0];
+        if (!target) return;
+        const bounce = !!plan?.bounce;
+        const islandCalled = scripted ? scripted.island : !!plan?.islandCall;
+        const isTrick = trick || !!scripted?.trick;
+        setStatus(isTrick ? t('status.oppTrick', { name: view.names.opp }) : t('status.oppThrows', { name: view.names.opp }));
+        if (islandCalled && isIsland(g.cups.me, target, g.size)) announce(t('stamp.islandCall'), 'island', '#ffe08a');
+        if (isTrick) announce(t('stamp.trick'), 'trick', '#8fd3ff');
+        await wait(id, islandCalled || isTrick ? 900 : 500);
+        if (runId.current !== id) return;
+
+        fx('throw');
+        const m = cupMouth(target, g.size);
+        const start = { ...OPP_HAND, r: 13 };
+        const end = { x: m.x, y: m.y, r: 15 * m.scale + 4 };
+        let result: ThrowResult = result0;
+        if (bounce) {
+            const base = { x: m.x + (rand() - 0.5) * 30, y: m.baseY + 118 * m.scale * 0.42, r: 18 };
+            await fly(id, start, base, 520, 120);
+            fx('bounce');
+            if (result.kind === 'hit') {
+                // Fenster zum Wegschlagen: der Ball fliegt auf den Becher zu, der Knopf ist kurz da
+                const windowMs = 850;
+                const t0 = performance.now();
+                view.swat = { start: t0, duration: windowMs };
+                setControls({ swat: true, hint: t('hint.swat') });
+                let swatAt: number | null = null;
+                void input<'swat'>().then(() => { swatAt = performance.now() - t0; });
+                const posAt = (k: number) => ({ x: lerp(base.x, end.x, k), y: lerp(base.y, end.y, k) - Math.sin(k * Math.PI) * 140, r: lerp(base.r, end.r, k) });
+                await new Promise<void>(resolve => {
+                    const tick = () => {
+                        if (runId.current !== id) return resolve();
+                        const k = Math.min(1, (performance.now() - t0) / windowMs);
+                        view.ball = posAt(swatAt !== null ? Math.min(1, swatAt / windowMs) : k);
+                        if (swatAt !== null || k >= 1) return resolve();
+                        requestAnimationFrame(tick);
+                    };
+                    tick();
+                });
+                waiter.current = null;
+                view.swat = null;
+                setControls({ swat: false, hint: '' });
+                if (runId.current !== id) return;
+                if (swatAt !== null) {
+                    // Ein Schlag zur rechten Zeit trifft sauber; zu früh oder zu spät kann ein eigener Becher mitfliegen
+                    const clean = swatAt >= 450 && swatAt <= 760;
+                    const accident = rand() < (clean ? 0.03 : 0.12) ? pick(g.cups.me).id : null;
+                    result = { kind: 'blocked', cupId: target.id, ownCupLost: accident };
+                    await slapAway(id, view.ball ?? end, 'me', accident);
+                } else await sink(id, end);
+            } else await leave(id, base, { x: base.x + 30, y: base.y + 260 }, 480, 100);
+        } else {
+            const spread = result.kind === 'hit' ? 0 : result.kind === 'rim' ? 1.25 : 2.6;
+            const { rx, ry } = hitRadii(m.scale);
+            const side = rand() < 0.5 ? -1 : 1;
+            const aimed = { x: end.x + side * rx * spread * (result.kind === 'miss' ? 0.8 + rand() * 0.6 : 1), y: end.y + (result.kind === 'miss' ? (rand() - 0.4) * ry * 3 : 0), r: end.r };
+            await fly(id, start, aimed, 720, 330);
+            if (result.kind === 'hit') await sink(id, end);
+            else if (result.kind === 'rim') await rollBack(id, aimed, 'opp', result.rolledBack);
+            else await leave(id, aimed, { x: aimed.x + side * 150, y: aimed.y + 300 }, 420, 70);
+        }
+        if (runId.current !== id) return;
+
+        const out = applyThrow(g, result, { islandCalled, trick: isTrick });
+        gameRef.current = out.game;
+        showEvents(out.events, 'opp');
+        if (out.events.some(e => e.type === 'hit')) view.mood = Math.min(0.2, view.mood + 0.2);
+        await wait(id, 650);
+    }, [announce, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, fly]);
+
+    // ---- Runde beenden ----
+    const finishRound = useCallback(async (id: number) => {
+        const view = viewRef.current!;
+        const g = gameRef.current!;
+        const out = resolveRound(g);
+        const defender = other(g.turn);
+        if (out.events.some(e => e.type === 'bomb')) { announce(t('stamp.bomb'), 'bomb', '#ff9f43'); view.shake = 1.4; await wait(id, 900); }
+        const removes = out.events.filter((e): e is Extract<GameEvent, { type: 'remove' }> => e.type === 'remove' && e.reason !== 'accident');
+        const now = performance.now();
+        for (const r of removes) {
+            r.ids.forEach(cupId => { view.vanishing[key(defender, cupId)] = now; });
+            if (r.reason === 'islandStreak') announce(t('stamp.sixCups'), 'island', '#ffe08a', 500);
+        }
+        if (removes.length) { fx('remove'); await wait(id, 800); }
+        if (runId.current !== id) return;
+        for (const k of Object.keys(view.vanishing)) delete view.vanishing[k];
+        const thrower = g.turn;
+        roundsRef.current[thrower]++;
+        if (thrower === 'opp' && ghostRef.current) { ghostRef.current.round++; ghostRef.current.used = 0; }
+        gameRef.current = kindRef.current === 'run'
+            // Beim Vorlegen wirft immer derselbe weiter, bis alle Becher weg sind
+            ? { ...out.game, turn: 'me', catchUp: false, winner: null, nakedMile: null }
+            : out.game;
+        setRound(r => r + 1);
+        view.mood = out.game.cups.opp.length <= 2 ? -0.5 : view.mood * 0.5;
+        for (const e of out.events) {
+            if (e.type === 'ballsBack') announce(t('stamp.ballsBack'), 'trick', '#9be59b');
+            // Nachziehen und Verlängerung gibt es beim Vorlegen nicht
+            if (kindRef.current === 'run') continue;
+            if (e.type === 'catchUp') announce(t('stamp.catchUp'), 'turn', '#8fd3ff');
+            if (e.type === 'overtime') announce(t('stamp.overtime'), 'turn', '#ff9f43');
+        }
+        if (out.events.some(e => e.type === 'ballsBack' || (kindRef.current !== 'run' && (e.type === 'catchUp' || e.type === 'overtime')))) await wait(id, 1500);
+    }, [announce, fx, t, wait]);
+
+    // ---- Eine ganze Runde eines Spielers ----
+    const playRound = useCallback(async (id: number) => {
+        const view = viewRef.current!;
+        const side = gameRef.current!.turn;
+        fx('turn');
+        if (side === 'opp') {
+            setStatus(t('status.oppTurn', { name: view.names.opp }));
+            // Der Computer darf die Becher stellen, die er treffen muss, und nimmt immer 1-1-2
+            const slots = aiRearrangeSlots(gameRef.current!, rand);
+            if (slots) {
+                gameRef.current = rearrange(gameRef.current!, 'opp', slots);
+                announce(t('stamp.rearranged'), 'turn', '#ffffff');
+                await wait(id, 1100);
+            } else await wait(id, 500);
+        }
+        while (runId.current === id && !roundOver(gameRef.current!)) {
+            if (side === 'me') await myThrow(id, null); else await oppThrow(id, false);
+            if (runId.current !== id) return;
+            const g = gameRef.current!;
+            if (canTrick(g)) {
+                if (side === 'me') {
+                    setControls({ trick: true, aim: false, hint: t('hint.trickChoice') });
+                    setStatus(t('status.trickOffer'));
+                    const choice = await input<Trick | 'skip' | undefined>();
+                    setControls({ trick: false, hint: '' });
+                    if (runId.current !== id || !choice) return;
+                    if (choice === 'skip') gameRef.current = skipTrick(g);
+                    else await myThrow(id, choice);
+                } else if (ghostRef.current) {
+                    // Aufzeichnung: war dort ein Trickshot, kommt er auch hier, sonst wird ausgelassen
+                    const next = throwsOfRound(ghostRef.current.replay, ghostRef.current.round)[ghostRef.current.used];
+                    if (next?.trick) await oppThrow(id, true); else gameRef.current = skipTrick(g);
+                } else await oppThrow(id, true);
+            }
+        }
+        if (runId.current === id) await finishRound(id);
+    }, [announce, finishRound, fx, input, myThrow, oppThrow, setControls, t, wait]);
+
+    // ---- Ganzes Spiel ----
+    const runGame = useCallback(async (id: number, starter: Side, oppName: string) => {
+        const view = viewRef.current!;
+        const kind = kindRef.current;
+        gameRef.current = newGame(kind === 'run' ? 'me' : starter, CUP_SIZES[sizeRef.current]);
+        roundsRef.current = { me: 0, opp: 0 };
+        logRef.current = [];
+        view.game = gameRef.current;
+        setMode('play');
+        setControls({ ...IDLE });
+        view.enter = 1;
+        announce(kind === 'run' ? t('stamp.lead') : starter === 'me' ? t('stamp.youStart') : t('stamp.oppStarts', { name: oppName }), 'turn', '#ffe08a');
+        await wait(id, 1400);
+
+        if (kind === 'run') {
+            // Vorlegen: so lange werfen, bis alle Becher weg sind, und die Runden zählen
+            setStatus(t('status.lead'));
+            while (runId.current === id && gameRef.current!.cups.opp.length > 0) await playRound(id);
+            if (runId.current !== id) return;
+            const rounds = roundsRef.current.me;
+            view.ending = { start: performance.now() + 400, winner: 'me', nakedMile: null, winLabel: t('end.leadDone', { rounds }), mileLabel: '' };
+            view.cheer = 1; view.mood = -1;
+            fx('win');
+            setControls({ ...IDLE, over: { won: true, mile: false } });
+            setMode('over');
+            setStatus(t('end.sending', { name: oppName }));
+            const replay = logRef.current;
+            const hands = handsRef.current;
+            const target = targetPlayer.current;
+            const saved = target && hands
+                ? await createDuel({ opponentPlayerId: target.id, cupSize: sizeRef.current, replay: JSON.stringify(replay), starter: starter === 'me' ? 'CHALLENGER' : 'OPPONENT', challengerHand: hands.mine, opponentHand: hands.theirs })
+                : { success: false as const, error: '' };
+            if (runId.current !== id) return;
+            setStatus(saved.success ? t('end.sent', { name: oppName, rounds: roundsOf(replay), hits: hitsOf(replay) }) : saved.error || t('end.sendFailed'));
+            return;
+        }
+
+        while (runId.current === id && !gameRef.current!.winner) await playRound(id);
+        if (runId.current !== id) return;
+        const g = gameRef.current!;
+        const winner = g.winner!;
+        const mile = g.nakedMile !== null;
+        view.ending = {
+            start: performance.now() + 400, winner, nakedMile: g.nakedMile,
+            winLabel: winner === 'me' ? t('end.youWin') : t('end.oppWins', { name: oppName }),
+            mileLabel: t('end.nakedMile', { name: g.nakedMile === 'me' ? t('end.you') : oppName }),
+        };
+        view.cheer = winner === 'me' ? 1 : 0;
+        view.mood = winner === 'me' ? -1 : 0.4;
+        fx(mile ? 'mile' : winner === 'me' ? 'win' : 'lose');
+        setStatus(mile ? t('end.nakedMileHint') : '');
+        setControls({ ...IDLE, over: { won: winner === 'me', mile } });
+        setMode('over');
+
+        // Ergebnis für die Statistik und den Herausforderer festhalten
+        const rounds = roundsRef.current;
+        const ghost = ghostRef.current;
+        const saved = ghost
+            ? await completeDuel(ghost.duelId, { won: winner === 'me', rounds: rounds.me, hits: g.hits.me, challengerRounds: rounds.opp, challengerHits: g.hits.opp, nakedMile: g.nakedMile })
+            : await recordCpuGame({ difficulty: difficultyRef.current, cupSize: sizeRef.current, won: winner === 'me', rounds: rounds.me, hits: g.hits.me, opponentRounds: rounds.opp, opponentHits: g.hits.opp, nakedMile: g.nakedMile });
+        if (runId.current === id && !saved.success) setStatus(t('end.saveFailed'));
+        else if (runId.current === id && ghost) setStatus(t('end.duelSaved', { name: oppName }));
+    }, [announce, fx, playRound, setControls, t, wait]);
+
+    // ---- Start und Schnick, Schnack, Schnuck ----
+    const begin = useCallback(async (oppName: string, kind: Kind, target: GamePlayer | null = null) => {
+        // der Ton wird direkt aus dem Klick freigeschaltet
+        try { await sharedGameAudio()?.resume(); } catch { /* ohne Ton weiter */ }
+        const id = ++runId.current;
+        kindRef.current = kind;
+        // im Duell spielt der Nachziehende mit der Bechergröße des Herausforderers
+        sizeRef.current = kind === 'ghost' && duel ? duel.cupSize : cupSize;
+        targetPlayer.current = target;
+        handsRef.current = null;
+        ghostRef.current = kind === 'ghost' && duel ? { replay: duel.replay, round: 0, used: 0, duelId: duel.id } : null;
+        const view: GameView = {
+            primary: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#006b50',
+            game: newGame('me'), names: { me: meName, opp: oppName },
+            // Haut und Aussehen kommen aus den Figuren der Spieler
+            skins: { me: lookFor(meName, 0, figures).skin ?? skinFor(meName), opp: lookFor(oppName, 0, figures).skin ?? skinFor(oppName) },
+            looks: { me: lookFor(meName, 0, figures), opp: lookFor(oppName, 0, figures) },
+            enter: 0, ball: null, trail: [], vanishing: {}, swipe: null, blind: false, islandCall: false, rearranging: null, stamps: [], status: '',
+            throwPhase: 0, mood: 0, anger: 0, flinch: 0, cheer: 0, shake: 0, swat: null, ending: null, hand: null, midFlash: null,
+            level: kind === 'cpu' ? t(`level.${difficultyRef.current}`) : null,
+        };
+        viewRef.current = view;
+        gameRef.current = null;
+        setOpponent(oppName);
+        setMode('rps');
+        setStatus(kind === 'ghost' ? t('rps.duelPrompt', { name: oppName }) : t('rps.prompt'));
+        animate(id, 1500, k => { view.enter = k; });
+        let starter: Side | null = null;
+        if (kind === 'ghost' && duel) {
+            // Der Nachziehende wählt nicht: Seine Hand wurde schon zufällig bestimmt, das Ergebnis steht fest
+            const mine = duel.opponentHand, theirs = duel.challengerHand;
+            setControls({ ...IDLE });
+            await wait(id, 1000);
+            fx('hand');
+            const shown = `${HAND_ICON[mine]}  –  ${HAND_ICON[theirs]}`;
+            starter = duel.starter === 'OPPONENT' ? 'me' : 'opp';
+            setControls({ rpsResult: shown });
+            await wait(id, 1500);
+            setControls({ rpsResult: `${shown}\n${starter === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName })}` });
+            await wait(id, 1500);
+        }
+        while (runId.current === id && !starter) {
+            setControls({ ...IDLE, rps: true, rpsResult: null });
+            const mine = await input<Hand | undefined>();
+            if (runId.current !== id || !mine) return;
+            // Der andere sitzt nicht am Tisch: Seine Hand wird zufällig gewählt
+            const theirs = aiHand(rand);
+            fx('hand');
+            const winner = rockPaperScissors(mine, theirs);
+            const shown = `${HAND_ICON[mine]}  –  ${HAND_ICON[theirs]}`;
+            setControls({ rps: false, rpsResult: shown });
+            await wait(id, 1500);
+            if (winner) {
+                starter = winner;
+                handsRef.current = { mine, theirs };
+                setControls({ rpsResult: `${shown}\n${winner === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName })}` });
+                await wait(id, 1500);
+            } else {
+                setControls({ rpsResult: `${shown}\n${t('rps.draw')}` });
+                await wait(id, 1100);
+            }
+        }
+        if (starter && runId.current === id) await runGame(id, starter, oppName);
+    }, [animate, cupSize, duel, figures, fx, input, meName, runGame, setControls, t, wait]);
+
+    useEffect(() => () => { runId.current++; const w = waiter.current; waiter.current = null; w?.(undefined); }, []);
+
+    // ---- Zeichenschleife ----
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (!canvas || !ctx || !ready || mode === 'pick') return;
+        let frame = 0;
+        const tick = (now: number) => {
+            const view = viewRef.current;
+            if (view) {
+                view.shake = Math.max(0, view.shake - 0.04);
+                if (view.flinch > 0) view.flinch = Math.max(0, view.flinch - 0.05);
+                view.islandCall = ctlRef.current.islandOn;
+                if (gameRef.current) view.game = gameRef.current;
+                view.status = statusRef.current;
+                drawGameFrame(ctx, view, now, { logo: logo.current });
+            } else {
+                ctx.fillStyle = '#0b1210';
+                ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+            }
+            frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [ready, mode]);
+
+    // ---- Eingabe ----
+    const toCanvas = (event: React.PointerEvent<HTMLCanvasElement>): Point => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        return { x: ((event.clientX - rect.left) / rect.width) * SCENE_WIDTH, y: ((event.clientY - rect.top) / rect.height) * SCENE_HEIGHT };
+    };
+
+    const lastPoint = useRef<Point>({ x: 0, y: 0 });
+    const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+        const point = toCanvas(event);
+        lastPoint.current = point;
+        const a = aim.current;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        if (ctlRef.current.rearranging && gameRef.current && viewRef.current?.rearranging) {
+            const g = gameRef.current;
+            const picked = viewRef.current.rearranging.dragging;
+            const cup = cupAt(g, 'opp', point);
+            if (cup) { drag.current = { cupId: cup.id }; viewRef.current.rearranging.dragging = cup.id; return; }
+            // erst einen Becher antippen, dann einen freien Platz: Der Becher wandert dorthin
+            const slot = slotAt(g, 'opp', point);
+            if (slot !== null && picked !== null) { gameRef.current = moveCup(g, 'me', picked, slot); viewRef.current.rearranging.dragging = null; }
+            return;
+        }
+        if (!a.waiting) return;
+        a.active = true;
+        a.samples = [{ ...point, t: event.timeStamp }];
+        if (viewRef.current) viewRef.current.swipe = [point];
+    };
+    const onPointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+        const point = toCanvas(event);
+        lastPoint.current = point;
+        if (drag.current) return;
+        const a = aim.current;
+        if (!a.waiting || !a.active) return;
+        a.samples.push({ ...point, t: event.timeStamp });
+        if (a.samples.length > 60) a.samples.shift();
+        if (viewRef.current) viewRef.current.swipe = a.samples.map(({ x, y }) => ({ x, y }));
+    };
+    const release = () => {
+        const a = aim.current;
+        if (drag.current) {
+            // Becher auf einen freien Platz ziehen und loslassen; sonst bleibt er ausgewählt und ein Antippen des Platzes genügt
+            const g = gameRef.current;
+            const slot = g ? slotAt(g, 'opp', lastPoint.current) : null;
+            if (g && slot !== null) { gameRef.current = moveCup(g, 'me', drag.current.cupId, slot); if (viewRef.current?.rearranging) viewRef.current.rearranging.dragging = null; }
+            drag.current = null;
+            return;
+        }
+        if (!a.waiting || !a.active) return;
+        a.active = false;
+        const flick = flickLanding(a.samples);
+        a.samples = [];
+        if (viewRef.current) viewRef.current.swipe = null;
+        // zu kurz oder zur Seite gewischt: kein Wurf, der Spieler darf es noch einmal versuchen
+        if (!flick.ok) { setControls({ hint: flick.reason === 'short' ? t('hint.tooShort') : t('hint.tooSideways') }); return; }
+        answer({ type: 'throw', point: flick.landing, bounce: ctlRef.current.bounceOn, island: ctlRef.current.islandOn } satisfies AimChoice);
+    };
+
+    // Nur in der Entwicklung: Tests werfen auf einen genauen Punkt, statt zu wischen
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'production') return;
+        const w = window as unknown as { __bpThrow?: (point: Point) => boolean; __bpGame?: () => Game | null };
+        w.__bpGame = () => gameRef.current;
+        w.__bpThrow = point => {
+            if (!aim.current.waiting) return false;
+            answer({ type: 'throw', point, bounce: ctlRef.current.bounceOn, island: ctlRef.current.islandOn, exact: true } satisfies AimChoice);
+            return true;
+        };
+        return () => { delete w.__bpThrow; delete w.__bpGame; };
+    }, [answer]);
+
+    const replay = () => { if (opponent && kindRef.current !== 'ghost') { runId.current++; answer(undefined); void begin(opponent, kindRef.current, targetPlayer.current); } };
+    const choose = () => { runId.current++; answer(undefined); viewRef.current = null; gameRef.current = null; ghostRef.current = null; setStatus(''); setControls({ ...IDLE }); setMode('pick'); };
+
+    const startDuel = (player: GamePlayer) => void begin(player.name, 'run', player);
+    const accept = () => { if (duel) void begin(duel.challengerName, 'ghost'); };
+    const decline = async () => {
+        if (!duel) return;
+        setBusy(true);
+        await declineDuel(duel.id);
+        window.location.assign('/game');
+    };
+
+    // ---- Oberfläche ----
+    if (mode === 'invite' && duel) {
+        return (
+            <div className="container page-content game-pick">
+                <Link href={backHref} className="gp-back">&larr; {t('back')}</Link>
+                <section className="gp-card gp-invite">
+                    <span className="gp-avatar" style={{ background: lookFor(duel.challengerName, 0, figures).shirt }} aria-hidden="true">{duel.challengerName.slice(0, 1).toUpperCase()}</span>
+                    <h1>{t('invite.title')}</h1>
+                    <p>{t('invite.text', { name: duel.challengerName })}</p>
+                    <p className="gp-sub">{duel.starter === 'OPPONENT' ? t('invite.youStart') : t('invite.theyStart', { name: duel.challengerName })}</p>
+                    <div className="gp-actions">
+                        <button type="button" className="gp-button is-primary" disabled={!ready || busy} onClick={accept}>{t('invite.accept')}</button>
+                        <button type="button" className="gp-button" disabled={busy} onClick={decline}>{t('invite.decline')}</button>
+                        <Link href="/game" className="gp-button">{t('invite.later')}</Link>
+                    </div>
+                </section>
+            </div>
+        );
+    }
+
+    if (mode === 'pick') {
+        const segment = <T extends string>(label: string, items: readonly T[], current: T, onPick: (v: T) => void, text: (v: T) => string) => (
+            <div className="gp-setting">
+                <span className="gp-setting-label" id={`gp-${label}`}>{label}</span>
+                <div className="gp-segment" role="radiogroup" aria-labelledby={`gp-${label}`}>
+                    {items.map(item => (
+                        <button key={item} type="button" role="radio" aria-checked={current === item} className={current === item ? 'is-on' : ''} onClick={() => onPick(item)}>{text(item)}</button>
+                    ))}
+                </div>
+            </div>
+        );
+        return (
+            <div className="container page-content game-pick">
+                <Link href={backHref} className="gp-back">&larr; {t('back')}</Link>
+                <header className="gp-hero">
+                    <h1>{t('title')}</h1>
+                    <p>{t('pickText')}</p>
+                </header>
+
+                {incoming.length > 0 && (
+                    <section className="gp-card is-hot" aria-label={t('open.incoming')}>
+                        <h2>{t('open.incoming')}</h2>
+                        <ul className="gp-open">
+                            {incoming.map(d => (
+                                <li key={d.id}>
+                                    <span className="gp-dot" style={{ background: lookFor(d.name, 0, figures).shirt }} aria-hidden="true" />
+                                    <span className="gp-open-text">{t('open.from', { name: d.name })}</span>
+                                    <Link href={`/game?duel=${d.id}`} className="gp-button is-primary is-small" aria-label={t('open.from', { name: d.name })}>{t('invite.open')}</Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+                {outgoing.length > 0 && (
+                    <section className="gp-card" aria-label={t('open.outgoing')}>
+                        <h2>{t('open.outgoing')}</h2>
+                        <ul className="gp-open is-quiet">
+                            {outgoing.map(d => (
+                                <li key={d.id}>
+                                    <span className="gp-dot" style={{ background: lookFor(d.name, 0, figures).shirt }} aria-hidden="true" />
+                                    <span className="gp-open-text">{t('open.waiting', { name: d.name })}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                <section className="gp-card">
+                    <h2>{t('pickKind')}</h2>
+                    <div className="gp-modes" role="radiogroup" aria-label={t('pickKind')}>
+                        <button type="button" role="radio" aria-checked={pickKind === 'duel'} aria-label={t('kind.duel')} disabled={players.length === 0} className={pickKind === 'duel' ? 'is-on' : ''} onClick={() => setPickKind('duel')}>
+                            <Swords size={26} aria-hidden="true" />
+                            <strong>{t('kind.duel')}</strong>
+                            <small>{t('kind.duelShort')}</small>
+                        </button>
+                        <button type="button" role="radio" aria-checked={pickKind === 'cpu'} aria-label={t('kind.cpu')} className={pickKind === 'cpu' ? 'is-on' : ''} onClick={() => setPickKind('cpu')}>
+                            <Bot size={26} aria-hidden="true" />
+                            <strong>{t('kind.cpu')}</strong>
+                            <small>{t('kind.cpuShort')}</small>
+                        </button>
+                    </div>
+                    <p className="gp-sub">{pickKind === 'duel' ? t('kind.duelText') : t('kind.cpuText')}</p>
+                </section>
+
+                <section className="gp-card">
+                    <h2>{t('settings')}</h2>
+                    {segment(t('cupSize'), ['small', 'medium', 'large'] as const, cupSize, chooseSize, v => t(`size.${v}`))}
+                    {pickKind === 'cpu' && segment(t('difficulty'), ['easy', 'normal', 'hard'] as const, difficulty, setDifficulty, v => t(`level.${v}`))}
+                </section>
+
+                <section className="gp-card">
+                    <h2>{t('pickTitle')}</h2>
+                    {players.length === 0 ? <p className="gp-sub">{t('noPlayers')}</p> : (
+                        <ul className="game-players gp-tiles">
+                            {pickKind === 'cpu' && (
+                                <li>
+                                    <button type="button" className="gp-tile is-random" disabled={!ready} onClick={() => { const p = pick(players); void begin(p.name, 'cpu', p); }}>
+                                        <Shuffle size={18} aria-hidden="true" />
+                                        <span>{t('pickRandom')}</span>
+                                    </button>
+                                </li>
+                            )}
+                            {players.map(p => (
+                                <li key={p.id}>
+                                    <button type="button" className="gp-tile" disabled={!ready} onClick={() => (pickKind === 'duel' ? startDuel(p) : void begin(p.name, 'cpu', p))}>
+                                        <span className="gp-dot" style={{ background: lookFor(p.name, 0, figures).shirt }} aria-hidden="true" />
+                                        <span>{p.name}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {players.length === 0 && <button type="button" className="gp-button is-primary" disabled={!ready} onClick={() => void begin(t('cpuName'), 'cpu')}>{t('kind.cpu')}</button>}
+                </section>
+                <Link href="/rules" className="game-rules-link">{t('rulesLink')}</Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="game">
+            <canvas ref={canvasRef} className="game-canvas" width={SCENE_WIDTH} height={SCENE_HEIGHT} role="img" aria-label={status || t('title')}
+                onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={release} onPointerCancel={release} />
+            <p className="sr-only" aria-live="polite">{status}</p>
+            <div className="game-top">
+                <button type="button" className="wrapped-icon" aria-label={muted ? t('soundOn') : t('soundOff')} aria-pressed={!muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={22} /> : <Volume2 size={22} />}</button>
+                <button type="button" className="wrapped-icon" aria-label={t('quit')} onClick={choose}><X size={24} /></button>
+            </div>
+
+            {/* Optionen für den nächsten Wurf am rechten Rand: schmale runde Knöpfe, damit der Tisch frei bleibt */}
+            {ctl.aim && (
+                <div className="game-side" role="group" aria-label={t('options')}>
+                    {ctl.islandAvailable && (
+                        <button type="button" className={`game-side-button${ctl.islandOn ? ' is-on' : ''}`} aria-pressed={ctl.islandOn} aria-label={`${t('island')} (${t('islandsLeft', { count: ctl.islandsLeft })})`} disabled={ctl.islandsLeft <= 0} onClick={() => setControls({ islandOn: !ctl.islandOn })}>
+                            <span className="game-side-icon"><Mountain size={22} aria-hidden="true" /><span className="game-side-badge">{ctl.islandsLeft}</span></span>
+                            <span className="game-side-label">{t('island')}</span>
+                        </button>
+                    )}
+                    {ctl.bounceAvailable && (
+                        <button type="button" className={`game-side-button${ctl.bounceOn ? ' is-on' : ''}`} aria-pressed={ctl.bounceOn} aria-label={t('bounce')} onClick={() => setControls({ bounceOn: !ctl.bounceOn })}>
+                            <span className="game-side-icon"><ArrowDownToLine size={22} aria-hidden="true" /></span>
+                            <span className="game-side-label">{t('bounceShort')}</span>
+                        </button>
+                    )}
+                    {ctl.canRearrange && (
+                        <button type="button" className="game-side-button" aria-label={`${t('rearrange')} (${t('rearrangeOnce')})`} onClick={() => answer({ type: 'rearrange' } satisfies AimChoice)}>
+                            <span className="game-side-icon"><LayoutGrid size={22} aria-hidden="true" /></span>
+                            <span className="game-side-label">{t('rearrangeShort')}</span>
+                        </button>
+                    )}
+                </div>
+            )}
+
+            <div className="game-controls" data-round={round}>
+                {ctl.hint && <p className="game-hint">{ctl.hint}</p>}
+                {ctl.rpsResult && <p className="game-rps-result">{ctl.rpsResult}</p>}
+                {ctl.rps && (
+                    <div className="game-row">
+                        {(['rock', 'paper', 'scissors'] as const).map(hand => (
+                            <button key={hand} type="button" className="game-button is-hand" onClick={() => answer(hand)}><span aria-hidden="true">{HAND_ICON[hand]}</span>{t(`rps.${hand}`)}</button>
+                        ))}
+                    </div>
+                )}
+                {ctl.rearranging && <div className="game-row"><button type="button" className="game-button is-strong" onClick={() => answer(undefined)}>{t('rearrangeDone')}</button></div>}
+                {ctl.trick && (
+                    <div className="game-row">
+                        {(['eyes', 'leg', 'ceiling'] as const).map(kind => <button key={kind} type="button" className="game-button" onClick={() => answer(kind)}>{t(`trick.${kind}`)}</button>)}
+                        <button type="button" className="game-button" onClick={() => answer('skip')}>{t('trick.skip')}</button>
+                    </div>
+                )}
+                {ctl.swat && <div className="game-row"><button type="button" className="game-button is-strong is-big" onClick={() => answer('swat')}>{t('swat')}</button></div>}
+                {ctl.over && (
+                    <div className="game-row">
+                        {kindRef.current !== 'ghost' && kindRef.current !== 'run' && <button type="button" className="game-button is-strong" onClick={replay}>{t('end.again')}</button>}
+                        <button type="button" className="game-button" onClick={choose}>{t('end.otherOpponent')}</button>
+                        <Link href="/rules" className="game-button">{t('end.rules')}</Link>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, Tv2, MessageSquare, Menu, Settings, BookOpen, ChevronRight } from 'lucide-react';
+import { Home, Trophy, BarChart2, Users, Bell, Command, QrCode, Tv2, MessageSquare, Menu, Settings, BookOpen, ChevronRight, Gamepad2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { haptic } from '@/lib/haptics';
 import SheetDialog from './SheetDialog';
@@ -58,6 +58,7 @@ export default function BottomNav({ isAdmin, isLoggedIn, hasLiveStream }: { isAd
         { href: '/notifications', icon: Bell, label: t('notifications'), badge: unreadCount },
         { href: '/streaming', icon: Tv2, label: t('streaming'), live: hasLiveStream },
         { href: '/settings', icon: Settings, label: t('settings') },
+        { href: '/game', icon: Gamepad2, label: t('game') },
         { href: '/rules', icon: BookOpen, label: t('rules') },
         ...(isAdmin ? [{ href: '/admin', icon: Command, label: 'Admin' }] : []),
     ];

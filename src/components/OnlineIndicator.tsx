@@ -55,11 +55,12 @@ export default function OnlineIndicator() {
         : count === 1 ? t('onePerson') : t('personsOnline', { count });
 
     return (
-        <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '7px',
-            padding: '5px 14px', borderRadius: "var(--radius-md)",
+        // gleiche Höhe wie der Nüchtern-Schalter daneben und feste Breite, damit die Box nicht mit dem Text wächst
+        <div className="online-box" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+            padding: '0 14px', borderRadius: "var(--radius-md)",
             background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            fontSize: '0.82rem', color: 'var(--color-text-dim)', fontWeight: 500,
+            fontSize: '0.82rem', color: 'var(--color-text-dim)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0,
         }}>
             <span style={{
                 width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,

@@ -1,4 +1,4 @@
-import { skinFor, DARK_SKIN, type FigureLook } from '@/lib/wrapped-scene';
+import { lookFor, type FigureMap } from '@/lib/figure';
 import type { FilmKey, FilmModel, FilmSide, FilmStep } from '@/lib/tournament-scene';
 
 // Turnierfilm: baut aus den Spielen eines Turniers das Modell für die Szene.
@@ -29,28 +29,16 @@ export interface FilmInput {
     // Spieler-ID -> Medaille, wie in der Statistik berechnet
     podium: Map<string, Medal>;
     playerNames: Map<string, string>;
+    // Figuren der Spieler nach Namen; ohne Eintrag gilt das Aussehen aus dem Namen
+    figures?: FigureMap;
 }
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-const SHIRTS = ['#e4572e', '#3a86ff', '#8338ec', '#ff9f1c', '#2ec4b6', '#ef476f', '#f4d35e', '#5c7cfa', '#fb8500', '#d0d4dc'];
-const HAIR = ['#3b2a1a', '#1f1a17', '#7a4a21', '#c9a15a', '#a3401f'];
+// Das Aussehen kommt aus den Figuren der Spieler (siehe figure.ts); wer nichts eingestellt hat, bekommt eines aus dem Namen
+export { lookFor };
 
-function hash(text: string): number {
-    let h = 2166136261;
-    for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return h >>> 0;
-}
-
-// Trikot- und Haarfarbe, fest aus dem Namen abgeleitet: derselbe Spieler sieht in jedem Film gleich aus
-export function lookFor(name: string, shift = 0): FigureLook {
-    const h = hash(name.trim().toLowerCase());
-    const skin = skinFor(name);
-    // Frisur bleibt bei allen kurz: Aus dem Namen lässt sich nicht ableiten, wer lange Haare hat
-    return { shirt: SHIRTS[(h + shift) % SHIRTS.length], hair: skin === DARK_SKIN ? '#1f1a17' : HAIR[(h >>> 8) % HAIR.length], style: 0, skin };
-}
-
-const side = (party: FilmParty): FilmSide => ({ label: party.label, names: party.names, looks: party.names.slice(0, 2).map(n => lookFor(n)) });
+const side = (party: FilmParty, figures?: FigureMap): FilmSide => ({ label: party.label, names: party.names, looks: party.names.slice(0, 2).map(n => lookFor(n, 0, figures)) });
 
 // Endspiel: das letzte Spiel, in dem Gold gegen Silber gewonnen hat (K.-o.-Runde vor Liga)
 export function findFinal(matches: FilmMatch[], podium: Map<string, Medal>): FilmMatch | null {
@@ -64,12 +52,10 @@ export function findFinal(matches: FilmMatch[], podium: Map<string, Medal>): Fil
     return candidates[0] ?? null;
 }
 
-export function buildTournamentFilm(input: FilmInput, primary: string, t: Translate, locale = 'de-DE'): FilmModel {
-    const { matches, podium } = input;
-    const played = matches.filter(m => m.winner);
-    const parties = played.flatMap(m => [m.side1, m.side2]);
-
-    // ---- Podium: Spieler je Medaille, Teams bleiben zusammen ----
+// Podium: Spieler je Medaille, Teams bleiben zusammen
+export function buildPodium(input: Pick<FilmInput, 'matches' | 'podium' | 'playerNames' | 'figures'>): FilmStep[] {
+    const { podium } = input;
+    const parties = input.matches.filter(m => m.winner).flatMap(m => [m.side1, m.side2]);
     const steps: FilmStep[] = [];
     (['gold', 'silver', 'bronze'] as const).forEach((medal, index) => {
         const ids = [...podium.entries()].filter(([, m]) => m === medal).map(([id]) => id);
@@ -91,18 +77,27 @@ export function buildTournamentFilm(input: FilmInput, primary: string, t: Transl
             }
         }
         if (names.length === 0) return;
-        steps.push({ place: (index + 1) as 1 | 2 | 3, label: labels.join(' & '), names, looks: names.slice(0, 2).map(n => lookFor(n)) });
+        steps.push({ place: (index + 1) as 1 | 2 | 3, label: labels.join(' & '), names, looks: names.slice(0, 2).map(n => lookFor(n, 0, input.figures)) });
     });
+    return steps;
+}
+
+export function buildTournamentFilm(input: FilmInput, primary: string, t: Translate, locale = 'de-DE'): FilmModel {
+    const { matches, podium } = input;
+    const played = matches.filter(m => m.winner);
+    const parties = played.flatMap(m => [m.side1, m.side2]);
+
+    const steps = buildPodium(input);
 
     // ---- Endspiel ----
     const finalMatch = findFinal(played, podium);
     let final: FilmModel['final'] = null;
     if (finalMatch) {
         const first = finalMatch.winner === 1;
-        const winner = side(first ? finalMatch.side1 : finalMatch.side2);
-        const loser = side(first ? finalMatch.side2 : finalMatch.side1);
+        const winner = side(first ? finalMatch.side1 : finalMatch.side2, input.figures);
+        const loser = side(first ? finalMatch.side2 : finalMatch.side1, input.figures);
         // gleiche Trikotfarbe am Tisch vermeiden
-        if (winner.looks[0] && loser.looks[0]?.shirt === winner.looks[0].shirt) loser.looks = loser.names.slice(0, 2).map(n => lookFor(n, 3));
+        if (winner.looks[0] && loser.looks[0]?.shirt === winner.looks[0].shirt) loser.looks = loser.names.slice(0, 2).map(n => lookFor(n, 3, input.figures));
         final = {
             winner, loser,
             winnerScore: first ? finalMatch.score1 : finalMatch.score2,

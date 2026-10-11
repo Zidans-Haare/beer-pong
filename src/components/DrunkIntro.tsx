@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts } from '@/lib/wrapped-scene';
 import { drawDrunkFrame, DRUNK_TOTAL_MS, type DrunkSceneModel } from '@/lib/drunk-scene';
 import { sharedDrunkAudio } from '@/lib/drunk-audio';
+import { lookFor, type FigureMap } from '@/lib/figure';
 
 // Szene beim Einschalten des Betrunken-Modus. Tippen überspringt sie.
 // frozenAt hält die Szene an einer Stelle an (nur zum Prüfen in der Entwicklung).
@@ -30,8 +31,14 @@ export default function DrunkIntro({ onDone, frozenAt }: { onDone: () => void; f
         let start = 0;
         let finish: ReturnType<typeof setTimeout> | null = null;
 
-        loadSceneFonts().then(() => {
+        // Figuren aus den Profilen holen; dauert es zu lange, startet die Szene mit dem Standardaussehen
+        const figures = fetch('/api/figures', { cache: 'no-store' })
+            .then(r => (r.ok ? r.json() as Promise<{ me: string | null; figures: FigureMap }> : null))
+            .catch(() => null);
+        const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 800));
+        Promise.all([loadSceneFonts(), Promise.race([figures, timeout])]).then(([, data]) => {
             if (!alive) return;
+            if (data) model.looks = { me: data.me ? lookFor(data.me, 0, data.figures) : undefined, opponent: lookFor(model.opponentName, 0, data.figures) };
             if (frozenAt !== undefined) { drawDrunkFrame(ctx, model, frozenAt); return; }
             const tick = (now: number) => {
                 if (!start) {

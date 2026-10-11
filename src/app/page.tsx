@@ -13,10 +13,14 @@ import { getTranslations } from 'next-intl/server';
 import { getActiveWrapped, WRAPPED_HOME_DAYS } from '@/lib/wrapped-server';
 import { prisma } from '@/lib/prisma';
 import WrappedBanner from '@/components/wrapped/WrappedBanner';
+import { normalizeFigure } from '@/lib/figure';
 
 export default async function Home() {
   const session = await auth();
   const stats = await getAllPlayerStats();
+  // die eigene Figur winkt oben auf der Startseite, aber nur, wenn sie gestaltet wurde
+  const mine = session?.user?.id ? await prisma.player.findUnique({ where: { userId: session.user.id }, select: { name: true, figure: true } }).catch(() => null) : null;
+  const myFigure = mine ? normalizeFigure(mine.figure) : null;
   // Rückblick-Hinweis nur für angemeldete Nutzer, solange einer veröffentlicht ist
   const wrapped = session?.user?.id ? await getActiveWrapped().catch(() => null) : null;
   const tw = wrapped ? await getTranslations('wrapped') : null;
@@ -29,7 +33,7 @@ export default async function Home() {
   return (
     <div className="container">
 
-      <HeroSection userName={session?.user?.name} />
+      <HeroSection userName={session?.user?.name} figure={mine && myFigure ? { name: mine.name.trim(), spec: myFigure } : null} />
 
       {wrapped && tw && !wrappedExpired && (
         <WrappedBanner seen={!!view} title={view ? wrapped.title : tw('bannerTitle', { title: wrapped.title })} text={view ? tw('bannerSeenText') : tw('bannerText')} cta={view ? tw('bannerSeenCta') : tw('bannerCta')} />

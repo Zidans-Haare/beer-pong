@@ -7,6 +7,8 @@ import { isAdmin } from '@/lib/admin';
 import { getActiveWrapped, loadWrapped } from '@/lib/wrapped-server';
 import { buildScene } from '@/lib/wrapped';
 import { getCurrentSeason, accentCssVariables, DEFAULT_ACCENT } from '@/lib/seasons';
+import { loadFigureMap } from '@/lib/figure-server';
+import { lookFor } from '@/lib/figure';
 import WrappedStory from '@/components/wrapped/WrappedStory';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +49,10 @@ export default async function WrappedPage({ searchParams }: { searchParams: Prom
     if (!data) return empty(t('noGames'));
 
     const primary = accentCssVariables(season?.accentColor ?? DEFAULT_ACCENT)['--color-primary'];
-    const model = buildScene(data, wrapped.title, primary, (key, values) => t(key, values), await getLocale());
+    // Figuren aus den Profilen: meine und die meines Rivalen
+    const figures = await loadFigureMap();
+    const looks = { me: lookFor(data.playerName, 0, figures), opponent: data.rival ? lookFor(data.rival.name, 0, figures) : null };
+    const model = buildScene(data, wrapped.title, primary, (key, values) => t(key, values), await getLocale(), looks);
     // ?at=<Millisekunden> hält die Vorschau an einer Stelle an (nur Admin-Vorschau)
     const startAt = preview && at && !isNaN(Number(at)) ? Number(at) : undefined;
 

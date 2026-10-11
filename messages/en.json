@@ -134,15 +134,16 @@
     "players": "Players",
     "notifications": "Notifications",
     "stats": "Stats",
-    "chat": "Chat"
+    "chat": "Chat",
+    "game": "Minigame"
   },
   "home": {
     "join": "Join",
     "welcomeBack": "Welcome back",
     "getStarted": "Get started",
-    "aloneOnline": "Just you online",
-    "onePerson": "1 person online",
-    "personsOnline": "{count} people online",
+    "aloneOnline": "Just you",
+    "onePerson": "1 online",
+    "personsOnline": "{count} online",
     "liveTournament": "Live Tournament",
     "noActiveTournament": "No active tournament.",
     "startTournament": "Start Tournament",
@@ -287,7 +288,9 @@
     "tournamentHistory": "Tournament History",
     "noTournaments": "No tournaments played yet.",
     "unknownDate": "Unknown date",
-    "aboutMe": "About me"
+    "aboutMe": "About me",
+    "myFigure": "Customise figure",
+    "figureLabel": "Figure of {name}"
   },
   "paceStats": {
     "title": "Match Pace",
@@ -842,7 +845,66 @@
   "rules": {
     "title": "Official Rules",
     "back": "Back",
-    "empty": "No rules set yet. An admin can add them under Settings."
+    "empty": "No rules set yet. An admin can add them under Settings.",
+    "gameTitle": "Minigame",
+    "gameText": "Try the rules against an opponent: rock-paper-scissors, two throws per round, bombs, islands and everything else.",
+    "gameCta": "Play",
+    "adminTitle": "Additions from the admin",
+    "sectionsHint": "The house rules apply to every game, including the minigame.",
+    "sections": [
+      {
+        "title": "Basics",
+        "items": [
+          "**Ten cups** per side, set up as a triangle. Played 1 vs 1 or in teams (2 vs 2).",
+          "**Who starts** is decided by a rock-paper-scissors duel. The winner starts.",
+          "**Two throws per round.** Then it is the other side's turn. Hit cups are only removed at the end of the round.",
+          "**Balls back:** If you sink **both balls** in a round, you get them back and may **throw two more**. That goes on until you no longer hit both. Every sunk ball counts, including one from a trick shot.",
+          "**Your elbow stays behind the edge of the table.** Otherwise the throw is void."
+        ]
+      },
+      {
+        "title": "Hits and special throws",
+        "items": [
+          "**Bomb:** If both throws of a round land in the same cup, **three cups** are removed. Both balls went in, so you also get **balls back**.",
+          "**Island:** A cup counts as an island when **nothing is left around it**, for example the tip once the row behind it is gone: one cup of space to the next one. Then you can call \"island\". Hit it and **two cups** are gone. Hit an island with **two throws directly in a row** and the second one is **six cups**.",
+          "**Only two islands per game:** Everyone may call island twice at most. That holds for the whole game, including redemption and overtime. There are no new ones there, only unused ones.",
+          "**Bounce:** If the ball bounces on the table first and then lands in the cup, the hit counts **double**. A bounce may be stopped by swatting it away after it has bounced. There are no bounces in duels, because the other player is not at the table and could not swat. Swatting can knock one of your own cups over; it then stays gone.",
+          "**Trick shot:** If the ball bounces off a cup and rolls back at least past the middle of the table, you may try a trick shot, for example with your eyes closed, under your leg or off the ceiling.",
+          "**Rolling over cups:** If the ball rolls over cups, the cups whose rim it rolled over do **not** count."
+        ]
+      },
+      {
+        "title": "Rearranging cups",
+        "items": [
+          "Once only **four cups** are left on your opponent's side, the ones you have to hit, you may rearrange them **yourself**. It does not happen automatically, you do it.",
+          "You may only move them **onto the ten places** of the ten-cup setup, where a cup stands at the start. Not freely on the table.",
+          "You may rearrange **at the start of your round**, not in the middle: if five cups stand and you hit the first, the others must stay (it could still become a bomb). You rearrange the next time it is your turn.",
+          "You may rearrange **only once per game**. **No rearranging during redemption.**"
+        ]
+      },
+      {
+        "title": "The end of a game",
+        "items": [
+          "**Redemption:** If the player who started hits the last cup, **only the one who did not start** may catch up **once**. It is a single turn that only continues with balls back.",
+          "**Overtime:** If they hit all remaining cups, nothing is left on either side. The **front three cups per side** are set up again and play continues until someone wins. That repeats as often as needed.",
+          "If the player who did not start is the first to hit all cups, they win right away."
+        ]
+      },
+      {
+        "title": "Penalties and fun",
+        "items": [
+          "**Strip cup:** Whoever is the **very first in the whole game** to hit the **middle cup of the third row from the front** has to stand at the table in underwear. Only with the next hit may they get dressed again.",
+          "**Naked mile:** Whoever loses a whole game without hitting a single cup runs a lap around the block naked. It never happens, but it is funny anyway."
+        ]
+      },
+      {
+        "title": "Fair play",
+        "items": [
+          "If you knock over the opponent's cups in front of you by accident, for example while swatting a bounce, **they stay gone**. Your own fault.",
+          "You may **not blow into** or **reach into** hit cups to get a spinning ball out and prevent the hit."
+        ]
+      }
+    ]
   },
   "settings": {
     "back": "Back",
@@ -995,7 +1057,15 @@
     "gold": "Gold",
     "silver": "Silver",
     "bronze": "Bronze",
-    "totalMedals": "Total"
+    "totalMedals": "Total",
+    "miniTitle": "Minigame",
+    "miniPlay": "Play now",
+    "miniHint": "Wins and games in the beer pong minigame, against the computer and in duels.",
+    "miniPlayer": "Player",
+    "miniWins": "Wins",
+    "miniDuels": "Duels",
+    "miniBest": "Best rounds",
+    "miniCups": "Cups"
   },
   "costSplit": {
     "settlement": "Cost Settlement",
@@ -1055,5 +1125,253 @@
     "linkText": "Watch the final and the award ceremony as a film",
     "notAvailable": "There is no film for this tournament yet. It is created once the tournament has finished.",
     "backToTournament": "Back to tournament"
+  },
+  "game": {
+    "title": "Beer Pong Minigame",
+    "back": "Back",
+    "pickText": "A duel with a friend or practice against the computer. The rules from the rulebook apply.",
+    "pickTitle": "Choose an opponent",
+    "pickRandom": "Random opponent",
+    "noPlayers": "There are no other signed-in players yet.",
+    "difficulty": "Difficulty",
+    "level": {
+      "easy": "Easy",
+      "normal": "Normal",
+      "hard": "Hard"
+    },
+    "rulesLink": "See all rules",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "quit": "Quit game",
+    "rps": {
+      "prompt": "Rock, paper, scissors: the winner starts",
+      "rock": "Rock",
+      "paper": "Paper",
+      "scissors": "Scissors",
+      "draw": "Draw, again!",
+      "youStart": "You start!",
+      "oppStarts": "{name} starts!",
+      "duelPrompt": "Rock, paper, scissors against {name}: your hand was drawn at random"
+    },
+    "island": "Island!",
+    "bounce": "Bounce",
+    "rearrange": "Rearrange cups",
+    "rearrangeDone": "Done",
+    "swat": "Swat it!",
+    "trick": {
+      "eyes": "Eyes closed",
+      "leg": "Under the leg",
+      "ceiling": "Off the ceiling",
+      "skip": "Skip"
+    },
+    "hint": {
+      "aim": "Drag to aim, release to throw. The crosshair sways.",
+      "trick": "Trick shot: swipe forward, it wobbles even more.",
+      "trickChoice": "The ball rolled back: want a trick shot?",
+      "rearrange": "Tap one of your opponent's cups and then a free place, or drag it there. Then tap Done.",
+      "swat": "Quick: swat the bounce away!",
+      "swipe": "Swipe forward: faster swipe = further, the direction sets the aim.",
+      "tooShort": "Swipe too short. Flick firmly forward.",
+      "tooSideways": "That went sideways. Swipe forward towards the table."
+    },
+    "status": {
+      "yourThrow": "Your throw – {count, plural, one {# throw} other {# throws}} left",
+      "trick": "Your trick shot",
+      "trickOffer": "Trick shot?",
+      "oppTurn": "{name}'s turn",
+      "oppThrows": "{name} throws",
+      "oppTrick": "{name} tries a trick shot",
+      "lead": "Hit all the cups as fast as you can"
+    },
+    "stamp": {
+      "hit": "HIT!",
+      "miss": "MISS!",
+      "rim": "CLOSE!",
+      "rimBack": "ROLLED BACK!",
+      "bounce": "BOUNCE!",
+      "island": "ISLAND!",
+      "islandCall": "ISLAND!",
+      "sixCups": "SIX CUPS!",
+      "bomb": "BOMB!",
+      "blocked": "SWATTED!",
+      "trick": "TRICK SHOT!",
+      "strip": "STRIP CUP!",
+      "dress": "DRESSED AGAIN",
+      "accident": "YOUR OWN FAULT!",
+      "catchUp": "REDEMPTION!",
+      "overtime": "OVERTIME!",
+      "rearranged": "REARRANGED",
+      "youStart": "YOU START",
+      "oppStarts": "{name} STARTS",
+      "lead": "YOU GO FIRST",
+      "ballsBack": "BALLS BACK!"
+    },
+    "end": {
+      "youWin": "YOU WIN!",
+      "oppWins": "{name} wins",
+      "you": "You",
+      "nakedMile": "{name}: naked mile!",
+      "nakedMileHint": "Lost a whole game without a single hit: one lap around the block.",
+      "again": "Again",
+      "otherOpponent": "Other opponent",
+      "rules": "Rules",
+      "leadDone": "{rounds} rounds!",
+      "sending": "Sending the duel to {name} …",
+      "sent": "Duel sent to {name}: {rounds} rounds, {hits} hits. You will get a message once they have caught up.",
+      "sendFailed": "The duel could not be sent.",
+      "saveFailed": "The result could not be saved.",
+      "duelSaved": "Result saved. {name} will be notified."
+    },
+    "pickKind": "How do you want to play?",
+    "cpuName": "Computer",
+    "kind": {
+      "duel": "Duel",
+      "cpu": "Vs computer",
+      "duelText": "You go first: hit all cups in as few rounds as you can. Your opponent gets a message and catches up, playing against your recorded throws, round by round. There are no bounces in duels.",
+      "cpuText": "You play the computer right away. It throws at random like the player you pick, and misses too.",
+      "duelShort": "You go first, they catch up",
+      "cpuShort": "Right away vs the computer"
+    },
+    "open": {
+      "incoming": "Challenges for you",
+      "outgoing": "Waiting for a reply",
+      "from": "{name} wants a duel",
+      "waiting": "{name} has not caught up yet"
+    },
+    "invite": {
+      "title": "Duel",
+      "text": "{name} has gone first and wants a duel. You catch up and play against the throws {name} recorded.",
+      "youStart": "Rock-paper-scissors is already done: you start.",
+      "theyStart": "Rock-paper-scissors is already done: {name} starts.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "later": "Later",
+      "open": "View"
+    },
+    "options": "Options",
+    "islandsLeft": "{count} left",
+    "rearrangeOnce": "once only",
+    "cupSize": "Cups",
+    "size": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "bounceShort": "Bounce",
+    "rearrangeShort": "Arrange",
+    "settings": "Settings"
+  },
+  "figure": {
+    "title": "My figure",
+    "lead": "This is how you look in the animations: in award ceremonies, tournament films, wrapped, duels and the minigame.",
+    "back": "Back",
+    "forbiddenTitle": "No permission",
+    "forbiddenText": "You can only design your own figure.",
+    "previewFront": "Figure from the front",
+    "previewBack": "Figure from behind at the table",
+    "cheer": "Cheer",
+    "skin": "Skin",
+    "skinLocked": "Your skin colour is fixed.",
+    "hair": "Hairstyle",
+    "hairColor": "Hair colour",
+    "hairStyle": {
+      "short": "Short",
+      "buzz": "Buzz cut",
+      "long": "Long",
+      "bun": "Bun",
+      "curly": "Curly",
+      "bald": "Bald"
+    },
+    "outfit": "Top",
+    "shirtColor": "Colour",
+    "patternLabel": "Pattern",
+    "pattern": {
+      "plain": "Plain",
+      "stripes": "Stripes",
+      "dots": "Dots"
+    },
+    "body": "Body",
+    "heightLabel": "Height",
+    "buildLabel": "Build",
+    "height": {
+      "0": "Short",
+      "1": "Normal",
+      "2": "Tall"
+    },
+    "build": {
+      "0": "Slim",
+      "1": "Normal",
+      "2": "Sturdy"
+    },
+    "accessory": "Accessory",
+    "acc": {
+      "none": "None",
+      "cap": "Cap",
+      "beanie": "Beanie",
+      "beerhat": "Beer hat",
+      "headband": "Headband",
+      "glasses": "Glasses",
+      "sunglasses": "Sunglasses",
+      "beard": "Beard",
+      "earring": "Earring",
+      "chain": "Gold chain",
+      "scarf": "Scarf"
+    },
+    "save": "Save",
+    "random": "Random",
+    "reset": "Reset",
+    "saved": "Saved. Your figure now shows up everywhere.",
+    "resetDone": "Reset to the default look.",
+    "where": "Glasses and beard only show from the front (award ceremony, opponent at the table). At the table you see yourself from behind: hair, cap and top.",
+    "accessoryHint": "You can combine several pieces: one headwear, one pair of glasses and any extras.",
+    "headwear": "Headwear",
+    "eyewear": "Glasses",
+    "extras": "Extras",
+    "unsaved": "Unsaved changes",
+    "allSaved": "All saved",
+    "notYet": "Still the default look"
+  },
+  "profileGame": {
+    "title": "Minigame",
+    "games": "Games",
+    "wins": "Wins",
+    "winRate": "Win rate",
+    "bestRounds": "Best rounds",
+    "averageRounds": "Avg rounds in wins",
+    "hits": "Cups hit",
+    "duels": "Duels",
+    "noDuels": "No finished duels yet.",
+    "duelRecord": "Record",
+    "winsShort": "wins",
+    "lossesShort": "losses",
+    "asChallenger": "As challenger (went first)",
+    "asOpponent": "Catching up",
+    "waitingForMe": "{count} waiting for a reply",
+    "waitingForThem": "{count} still open",
+    "openGame": "To the game",
+    "vsComputer": "Against the computer",
+    "noCpu": "Not played against the computer yet.",
+    "level": {
+      "easy": "Easy",
+      "normal": "Normal",
+      "hard": "Hard"
+    },
+    "nakedMiles": "Naked mile: ran {ran} times, caused {made} times",
+    "headToHead": "Duel head to head",
+    "recentDuels": "Recent duels",
+    "won": "Win",
+    "lost": "Loss",
+    "against": "vs {name}",
+    "roleChallenger": "went first",
+    "roleOpponent": "caught up",
+    "rounds": "Rounds {mine}:{theirs}",
+    "hitsLine": "Cups {mine}:{theirs}",
+    "size": {
+      "small": "small cups",
+      "medium": "medium cups",
+      "large": "large cups"
+    },
+    "nakedMe": "ran the naked mile",
+    "nakedThem": "opponent ran the naked mile"
   }
 }

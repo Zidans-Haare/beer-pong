@@ -17,6 +17,8 @@ model Player {
   motto            String?
   userId           String?                 @unique
   isGuest          Boolean                 @default(false)
+  // Figur für die Animationen (JSON, siehe src/lib/figure.ts)
+  figure           String?
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
   matchesAsPlayer2 Match[]                 @relation("Player2Matches")
@@ -27,6 +29,8 @@ model Player {
   teamsAsPlayer1   Team[]                  @relation("TeamPlayer1")
   tournaments      TournamentParticipant[]
   standings        TournamentStanding[]
+  miniGamesAsChallenger MiniGame[] @relation("MiniGameChallenger")
+  miniGamesAsOpponent   MiniGame[] @relation("MiniGameOpponent")
 }
 
 model Tournament {
@@ -360,4 +364,36 @@ model WrappedView {
   wrapped   Wrapped  @relation(fields: [wrappedId], references: [id], onDelete: Cascade)
 
   @@unique([wrappedId, userId])
+}
+
+// Minispiel: gegen den Rechner oder als Duell. Beim Duell legt der Herausforderer vor (replay),
+// der andere zieht später nach und spielt dabei gegen die aufgezeichneten Würfe.
+model MiniGame {
+  id               String    @id @default(uuid())
+  mode             String // CPU | DUEL
+  status           String    @default("COMPLETED") // PENDING | COMPLETED | DECLINED
+  difficulty       String?
+  // Bechergröße: small | medium | large
+  cupSize          String?
+  challengerId     String
+  opponentId       String?
+  // Schnick, Schnack, Schnuck: wer anfängt (CHALLENGER | OPPONENT) und die gezeigten Hände
+  starter          String?
+  challengerHand   String?
+  opponentHand     String?
+  challengerRounds Int?
+  opponentRounds   Int?
+  challengerHits   Int?
+  opponentHits     Int?
+  winner           String? // CHALLENGER | OPPONENT
+  nakedMile        String? // CHALLENGER | OPPONENT
+  // JSON: Würfe des Herausforderers, Runde für Runde
+  replay           String?
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+  challenger       Player    @relation("MiniGameChallenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  opponent         Player?   @relation("MiniGameOpponent", fields: [opponentId], references: [id], onDelete: Cascade)
+
+  @@index([challengerId])
+  @@index([opponentId, status])
 }

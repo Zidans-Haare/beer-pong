@@ -134,15 +134,16 @@
     "players": "Spieler",
     "notifications": "Benachrichtigungen",
     "stats": "Stats",
-    "chat": "Chat"
+    "chat": "Chat",
+    "game": "Minispiel"
   },
   "home": {
     "join": "Beitreten",
     "welcomeBack": "Willkommen zurück",
     "getStarted": "Loslegen",
-    "aloneOnline": "Nur du online",
-    "onePerson": "1 Person online",
-    "personsOnline": "{count} Personen online",
+    "aloneOnline": "Nur du",
+    "onePerson": "1 Online",
+    "personsOnline": "{count} Online",
     "liveTournament": "Live Tournament",
     "noActiveTournament": "Kein aktives Turnier.",
     "startTournament": "Turnier Starten",
@@ -287,7 +288,9 @@
     "tournamentHistory": "Turnier Historie",
     "noTournaments": "Noch keine Turniere gespielt.",
     "unknownDate": "Datum unbekannt",
-    "aboutMe": "Über mich"
+    "aboutMe": "Über mich",
+    "myFigure": "Figur gestalten",
+    "figureLabel": "Figur von {name}"
   },
   "paceStats": {
     "title": "Spieltempo",
@@ -842,7 +845,66 @@
   "rules": {
     "title": "Offizielles Regelwerk",
     "back": "Zurück",
-    "empty": "Noch keine Regeln hinterlegt. Ein Admin kann sie unter Einstellungen hinzufügen."
+    "empty": "Noch keine Regeln hinterlegt. Ein Admin kann sie unter Einstellungen hinzufügen.",
+    "gameTitle": "Minispiel",
+    "gameText": "Probier die Regeln gegen einen Mitspieler aus: Schnick, Schnack, Schnuck, zwei Würfe pro Runde, Bomben, Islands und alles andere.",
+    "gameCta": "Spielen",
+    "adminTitle": "Ergänzungen vom Admin",
+    "sectionsHint": "Die Hausregeln gelten für jedes Spiel, auch für das Minispiel.",
+    "sections": [
+      {
+        "title": "Grundlagen",
+        "items": [
+          "**Zehn Becher** pro Seite, als Dreieck aufgestellt. Gespielt wird 1 gegen 1 oder im Team (2 gegen 2).",
+          "**Wer anfängt**, entscheidet ein Schnick-Schnack-Schnuck-Duell. Der Gewinner beginnt.",
+          "**Zwei Würfe pro Runde.** Danach ist der andere dran. Getroffene Becher werden erst am Ende der Runde weggestellt.",
+          "**Balls back:** Versenkst du in einer Runde **beide Bälle**, bekommst du sie zurück und darfst **noch einmal zwei werfen**. Das geht so lange weiter, bis du nicht mehr beide triffst. Es zählt jeder versenkte Ball, auch einer per Trickshot.",
+          "**Der Ellenbogen bleibt hinter der Kante der Tischplatte.** Sonst ist der Wurf ungültig."
+        ]
+      },
+      {
+        "title": "Treffer und Sonderwürfe",
+        "items": [
+          "**Bombe:** Landen beide Würfe einer Runde im selben Becher, werden **drei Becher** weggestellt. Beide Bälle waren drin, also gibt es auch **Balls back**.",
+          "**Island:** Ein Becher gilt als Island, wenn **um ihn herum nichts mehr steht**, zum Beispiel die Spitze, wenn die Reihe dahinter fehlt: ein Becher Abstand bis zum nächsten. Dann kannst du „Island“ ansagen. Triffst du ihn, sind **zwei Becher** weg. Triffst du mit **zwei Würfen direkt hintereinander** ein Island, sind es beim zweiten **sechs Becher**.",
+          "**Nur zwei Islands pro Spiel:** Jeder darf höchstens zweimal Island ansagen. Das gilt für das ganze Spiel, auch für Nachziehen und Verlängerung. Neue gibt es dort nicht, nur noch nicht benutzte.",
+          "**Aufpraller:** Springt der Ball vorher auf dem Tisch auf und landet dann im Becher, zählt der Treffer **doppelt**. Ein Aufpraller darf nach dem Aufprall durch Wegschlagen aufgehalten werden. Im Duell gibt es keine Aufpraller, weil der andere nicht mit am Tisch sitzt und nicht wegschlagen könnte. Beim Wegschlagen kann ein eigener Becher mitfliegen; der bleibt dann weg.",
+          "**Trickshot:** Prallt der Ball an einem Becher ab und rollt mindestens über die Mitte des Tisches zurück, darfst du einen Trickshot versuchen, zum Beispiel mit geschlossenen Augen, unter dem Bein durch oder über die Decke.",
+          "**Rollen über Becher:** Rollt der Ball über Becher, zählen die Becher, über deren Rand er gerollt ist, **nicht** mit."
+        ]
+      },
+      {
+        "title": "Becher umstellen",
+        "items": [
+          "Stehen auf der Seite deines Gegners nur noch **vier Becher**, die du treffen musst, darfst du sie **selbst** umstellen. Das passiert nicht automatisch, das machst du.",
+          "Umgestellt wird **nur auf die zehn Plätze** der Zehneraufstellung, also dorthin, wo beim Aufbau ein Becher steht. Nicht frei auf den Tisch.",
+          "Umstellen darfst du **zu Beginn deiner Runde**, nicht mittendrin: Triffst du bei fünf Bechern den ersten, müssen die anderen stehen bleiben (es kann ja noch eine Bombe werden). Umgestellt wird beim nächsten Mal, wenn du dran bist.",
+          "Umgestellt wird **nur einmal pro Spiel**. **Beim Nachziehen darf nicht umgestellt werden.**"
+        ]
+      },
+      {
+        "title": "Das Ende eines Spiels",
+        "items": [
+          "**Nachziehen:** Trifft der Spieler, der angefangen hat, den letzten Becher, darf **nur der, der nicht begonnen hat,** noch **einmal** nachziehen. Das ist ein einziger Zug, der sich nur mit Balls back verlängert.",
+          "**Verlängerung:** Trifft er dabei alle verbleibenden Becher, ist auf beiden Seiten nichts mehr übrig. Dann werden die **vordersten drei Becher pro Seite** wieder aufgestellt und es wird weitergeworfen, bis einer gewinnt. Das wiederholt sich so oft, bis es entschieden ist.",
+          "Trifft der Spieler, der nicht angefangen hat, als Erster alle Becher, hat er sofort gewonnen."
+        ]
+      },
+      {
+        "title": "Strafen und Spaß",
+        "items": [
+          "**Ausziehbecher:** Wer als **allererster im ganzen Spiel** den **mittleren Becher der dritten Reihe von vorne** trifft, muss in Unterhose am Tisch stehen. Erst mit dem nächsten Treffer darf er sich wieder anziehen.",
+          "**Nackte Meile:** Wer ein ganzes Spiel verliert, ohne einen einzigen Becher zu treffen, läuft nackt eine Runde um den Block. Das passiert nie, ist aber trotzdem lustig."
+        ]
+      },
+      {
+        "title": "Fair Play",
+        "items": [
+          "Räumst du aus Versehen gegnerische Becher vor dir ab, zum Beispiel beim Umwerfen, um einen Aufpraller zu verhindern, **bleiben sie weg**. Eigene Schuld.",
+          "In getroffene Becher darf **nicht gepustet** und **nicht hineingegriffen** werden, um einen drehenden Ball herauszuholen und den Treffer zu verhindern."
+        ]
+      }
+    ]
   },
   "settings": {
     "back": "Zurück",
@@ -995,7 +1057,15 @@
     "gold": "Gold",
     "silver": "Silber",
     "bronze": "Bronze",
-    "totalMedals": "Gesamt"
+    "totalMedals": "Gesamt",
+    "miniTitle": "Minispiel",
+    "miniPlay": "Jetzt spielen",
+    "miniHint": "Siege und Spiele im Bier-Pong-Minispiel, gegen den Rechner und im Duell.",
+    "miniPlayer": "Spieler",
+    "miniWins": "Siege",
+    "miniDuels": "Duelle",
+    "miniBest": "Beste Runden",
+    "miniCups": "Becher"
   },
   "costSplit": {
     "settlement": "Kostenabrechnung",
@@ -1055,5 +1125,253 @@
     "linkText": "Finale und Siegerehrung als Film ansehen",
     "notAvailable": "Für dieses Turnier gibt es noch keinen Film. Er entsteht, sobald das Turnier beendet ist.",
     "backToTournament": "Zum Turnier"
+  },
+  "game": {
+    "title": "Bier-Pong-Minispiel",
+    "back": "Zurück",
+    "pickText": "Duell mit einem Mitspieler oder Übung gegen den Rechner. Es gelten die Regeln aus dem Regelwerk.",
+    "pickTitle": "Gegner wählen",
+    "pickRandom": "Zufälliger Gegner",
+    "noPlayers": "Es gibt noch keine anderen angemeldeten Spieler.",
+    "difficulty": "Schwierigkeit",
+    "level": {
+      "easy": "Leicht",
+      "normal": "Normal",
+      "hard": "Schwer"
+    },
+    "rulesLink": "Alle Regeln ansehen",
+    "soundOn": "Ton einschalten",
+    "soundOff": "Ton ausschalten",
+    "quit": "Spiel beenden",
+    "rps": {
+      "prompt": "Schnick, Schnack, Schnuck: Der Gewinner fängt an",
+      "rock": "Stein",
+      "paper": "Papier",
+      "scissors": "Schere",
+      "draw": "Unentschieden, nochmal!",
+      "youStart": "Du fängst an!",
+      "oppStarts": "{name} fängt an!",
+      "duelPrompt": "Schnick, Schnack, Schnuck gegen {name}: Deine Hand wurde ausgelost"
+    },
+    "island": "Island!",
+    "bounce": "Aufpraller",
+    "rearrange": "Becher umstellen",
+    "rearrangeDone": "Fertig",
+    "swat": "Wegschlagen!",
+    "trick": {
+      "eyes": "Augen zu",
+      "leg": "Unterm Bein",
+      "ceiling": "Über die Decke",
+      "skip": "Auslassen"
+    },
+    "hint": {
+      "aim": "Ziehen zum Zielen, Loslassen wirft. Das Kreuz wackelt.",
+      "trick": "Trickshot: Wisch nach vorn, es wackelt noch mehr.",
+      "trickChoice": "Der Ball ist zurückgerollt: Trickshot gefällig?",
+      "rearrange": "Tippe einen Becher deines Gegners an und dann einen freien Platz, oder zieh ihn dorthin. Dann tippe auf Fertig.",
+      "swat": "Schnell: schlag den Aufpraller weg!",
+      "swipe": "Nach vorn wischen: schneller wischen = weiter, die Richtung bestimmt das Ziel.",
+      "tooShort": "Zu kurz gewischt. Zieh einmal kräftig nach vorn.",
+      "tooSideways": "Das war zur Seite. Wisch nach vorn auf den Tisch zu."
+    },
+    "status": {
+      "yourThrow": "Dein Wurf – noch {count, plural, one {# Wurf} other {# Würfe}}",
+      "trick": "Dein Trickshot",
+      "trickOffer": "Trickshot?",
+      "oppTurn": "{name} ist dran",
+      "oppThrows": "{name} wirft",
+      "oppTrick": "{name} versucht einen Trickshot",
+      "lead": "Triff alle Becher, so schnell du kannst"
+    },
+    "stamp": {
+      "hit": "TREFFER!",
+      "miss": "DANEBEN!",
+      "rim": "KNAPP!",
+      "rimBack": "ZURÜCKGEROLLT!",
+      "bounce": "AUFPRALLER!",
+      "island": "ISLAND!",
+      "islandCall": "ISLAND!",
+      "sixCups": "SECHS BECHER!",
+      "bomb": "BOMBE!",
+      "blocked": "WEGGESCHLAGEN!",
+      "trick": "TRICKSHOT!",
+      "strip": "AUSZIEHBECHER!",
+      "dress": "WIEDER ANGEZOGEN",
+      "accident": "EIGENE SCHULD!",
+      "catchUp": "NACHZIEHEN!",
+      "overtime": "VERLÄNGERUNG!",
+      "rearranged": "UMGESTELLT",
+      "youStart": "DU FÄNGST AN",
+      "oppStarts": "{name} FÄNGT AN",
+      "lead": "DU LEGST VOR",
+      "ballsBack": "BALLS BACK!"
+    },
+    "end": {
+      "youWin": "DU GEWINNST!",
+      "oppWins": "{name} gewinnt",
+      "you": "Du",
+      "nakedMile": "{name}: Nackte Meile!",
+      "nakedMileHint": "Ein ganzes Spiel ohne Treffer verloren: eine Runde um den Block.",
+      "again": "Nochmal",
+      "otherOpponent": "Anderer Gegner",
+      "rules": "Regeln",
+      "leadDone": "{rounds} Runden!",
+      "sending": "Duell an {name} wird gesendet …",
+      "sent": "Duell an {name} gesendet: {rounds} Runden, {hits} Treffer. Du bekommst eine Nachricht, sobald nachgezogen wurde.",
+      "sendFailed": "Das Duell konnte nicht gesendet werden.",
+      "saveFailed": "Das Ergebnis konnte nicht gespeichert werden.",
+      "duelSaved": "Ergebnis gespeichert. {name} wird benachrichtigt."
+    },
+    "pickKind": "Wie willst du spielen?",
+    "cpuName": "Rechner",
+    "kind": {
+      "duel": "Duell",
+      "cpu": "Gegen Computer",
+      "duelText": "Du legst vor: Triff alle Becher in möglichst wenigen Runden. Dein Gegner bekommt eine Nachricht und zieht nach. Er spielt gegen deine aufgezeichneten Würfe, Runde für Runde. Aufpraller gibt es im Duell nicht.",
+      "cpuText": "Du spielst sofort gegen den Rechner. Er wirft zufällig wie der gewählte Mitspieler und verwirft auch mal.",
+      "duelShort": "Du legst vor, der andere zieht nach",
+      "cpuShort": "Sofort gegen den Rechner"
+    },
+    "open": {
+      "incoming": "Herausforderungen für dich",
+      "outgoing": "Warten auf Antwort",
+      "from": "{name} will ein Duell",
+      "waiting": "{name} hat noch nicht nachgezogen"
+    },
+    "invite": {
+      "title": "Duell",
+      "text": "{name} hat vorgelegt und will ein Duell. Du ziehst nach und spielst gegen die Würfe, die {name} aufgezeichnet hat.",
+      "youStart": "Schnick, Schnack, Schnuck ist schon gefallen: Du fängst an.",
+      "theyStart": "Schnick, Schnack, Schnuck ist schon gefallen: {name} fängt an.",
+      "accept": "Annehmen",
+      "decline": "Ablehnen",
+      "later": "Später",
+      "open": "Ansehen"
+    },
+    "options": "Optionen",
+    "islandsLeft": "{count} übrig",
+    "rearrangeOnce": "nur einmal",
+    "cupSize": "Becher",
+    "size": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß"
+    },
+    "bounceShort": "Aufprall",
+    "rearrangeShort": "Stellen",
+    "settings": "Einstellungen"
+  },
+  "figure": {
+    "title": "Meine Figur",
+    "lead": "So siehst du in den Animationen aus: in der Siegerehrung, im Turnierfilm, im Wrapped, in Duellen und im Minispiel.",
+    "back": "Zurück",
+    "forbiddenTitle": "Keine Berechtigung",
+    "forbiddenText": "Du kannst nur deine eigene Figur gestalten.",
+    "previewFront": "Figur von vorn",
+    "previewBack": "Figur von hinten am Tisch",
+    "cheer": "Jubeln",
+    "skin": "Hautfarbe",
+    "skinLocked": "Bei dir ist die Hautfarbe fest.",
+    "hair": "Frisur",
+    "hairColor": "Haarfarbe",
+    "hairStyle": {
+      "short": "Kurz",
+      "buzz": "Raspelkurz",
+      "long": "Lang",
+      "bun": "Dutt",
+      "curly": "Locken",
+      "bald": "Glatze"
+    },
+    "outfit": "Oberteil",
+    "shirtColor": "Farbe",
+    "patternLabel": "Muster",
+    "pattern": {
+      "plain": "Einfarbig",
+      "stripes": "Streifen",
+      "dots": "Punkte"
+    },
+    "body": "Körper",
+    "heightLabel": "Größe",
+    "buildLabel": "Statur",
+    "height": {
+      "0": "Klein",
+      "1": "Normal",
+      "2": "Groß"
+    },
+    "build": {
+      "0": "Schlank",
+      "1": "Normal",
+      "2": "Kräftig"
+    },
+    "accessory": "Zubehör",
+    "acc": {
+      "none": "Keine",
+      "cap": "Kappe",
+      "beanie": "Mütze",
+      "beerhat": "Bierhut",
+      "headband": "Stirnband",
+      "glasses": "Brille",
+      "sunglasses": "Sonnenbrille",
+      "beard": "Bart",
+      "earring": "Ohrring",
+      "chain": "Goldkette",
+      "scarf": "Schal"
+    },
+    "save": "Speichern",
+    "random": "Zufall",
+    "reset": "Zurücksetzen",
+    "saved": "Gespeichert. Deine Figur erscheint jetzt überall.",
+    "resetDone": "Zurückgesetzt auf das Standardaussehen.",
+    "where": "Brille und Bart siehst du nur von vorn (Siegerehrung, Gegner am Tisch). Am Tisch siehst du dich von hinten: Haare, Kappe und Oberteil.",
+    "accessoryHint": "Du kannst mehrere Teile kombinieren: eine Kopfbedeckung, eine Brille und beliebig viele Extras.",
+    "headwear": "Kopfbedeckung",
+    "eyewear": "Brille",
+    "extras": "Extras",
+    "unsaved": "Nicht gespeicherte Änderungen",
+    "allSaved": "Alles gespeichert",
+    "notYet": "Noch das Standardaussehen"
+  },
+  "profileGame": {
+    "title": "Minispiel",
+    "games": "Spiele",
+    "wins": "Siege",
+    "winRate": "Quote",
+    "bestRounds": "Beste Runden",
+    "averageRounds": "Ø Runden im Sieg",
+    "hits": "Treffer",
+    "duels": "Duelle",
+    "noDuels": "Noch keine abgeschlossenen Duelle.",
+    "duelRecord": "Bilanz",
+    "winsShort": "Siege",
+    "lossesShort": "Niederlagen",
+    "asChallenger": "Als Herausforderer (vorgelegt)",
+    "asOpponent": "Als Nachziehender",
+    "waitingForMe": "{count} wartet auf Antwort",
+    "waitingForThem": "{count} noch offen",
+    "openGame": "Zum Spiel",
+    "vsComputer": "Gegen den Computer",
+    "noCpu": "Noch nicht gegen den Computer gespielt.",
+    "level": {
+      "easy": "Leicht",
+      "normal": "Normal",
+      "hard": "Schwer"
+    },
+    "nakedMiles": "Nackte Meile: {ran} mal gelaufen, {made} mal verursacht",
+    "headToHead": "Direkter Vergleich im Duell",
+    "recentDuels": "Letzte Duelle",
+    "won": "Sieg",
+    "lost": "Niederlage",
+    "against": "gegen {name}",
+    "roleChallenger": "vorgelegt",
+    "roleOpponent": "nachgezogen",
+    "rounds": "Runden {mine}:{theirs}",
+    "hitsLine": "Becher {mine}:{theirs}",
+    "size": {
+      "small": "kleine Becher",
+      "medium": "mittlere Becher",
+      "large": "große Becher"
+    },
+    "nakedMe": "lief die nackte Meile",
+    "nakedThem": "Gegner lief die nackte Meile"
   }
 }

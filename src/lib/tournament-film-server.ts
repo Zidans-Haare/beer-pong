@@ -1,6 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { computePlacements } from '@/lib/stats';
+import { loadFigureMap } from '@/lib/figure-server';
 import type { FilmInput, FilmMatch, FilmParty } from '@/lib/tournament-film';
 
 type Person = { id: string; name: string } | null;
@@ -56,5 +57,6 @@ export async function loadTournamentFilm(id: string): Promise<FilmInput | null> 
     return {
         name: tournament.name, date: tournament.date, playerCount: ids.size, matches, podium,
         playerNames: new Map(players.map(p => [p.id, p.name.trim()])),
+        figures: await loadFigureMap(),
     };
 }

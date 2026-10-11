@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Trophy, Swords, Flame, TrendingUp, Medal, User, FileSpreadsheet, Sparkles, ArrowRight } from 'lucide-react';
+import { Trophy, Swords, Flame, TrendingUp, Medal, User, FileSpreadsheet, Sparkles, ArrowRight, Gamepad2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
 import { auth } from '@/auth';
@@ -15,6 +15,7 @@ import StatsRanking, { type RankingRow } from '@/components/stats/StatsRanking';
 import HeadToHead from '@/components/stats/HeadToHead';
 import FormDots from '@/components/stats/FormDots';
 import WrappedLink from '@/components/wrapped/WrappedLink';
+import { getMiniGameStats } from '@/lib/minigame/stats-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
     const dates = dateFilter(range);
 
     const session = await auth();
-    const [allStats, insights, me, historicalCount, wrappeds] = await Promise.all([
+    const [allStats, insights, me, historicalCount, wrappeds, miniGames] = await Promise.all([
         // der letzte Eintrag: alle veröffentlichten Rückblicke samt eigenem Gesehen-Vermerk
         getAllPlayerStats(onlyRanked, 'all', range),
         getStatsInsights(onlyRanked, range),
@@ -42,6 +43,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
             orderBy: { publishedAt: 'desc' },
             include: { views: { where: { userId: session?.user?.id ?? '' }, select: { id: true } } },
         }).catch(() => []),
+        getMiniGameStats(),
     ]);
 
     // Nur Spieler mit Spielen oder Medaillen im gewählten Zeitraum
@@ -193,6 +195,35 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
                                 </div>
                             );
                         })}
+                    </div>
+                </section>
+            )}
+
+            {/* Minispiel */}
+            {miniGames.length > 0 && (
+                <section className="stats-section">
+                    <div className="stats-section-head">
+                        <h2><Gamepad2 size={18} aria-hidden="true" /> {t('miniTitle')}</h2>
+                        <Link className="record-link" href="/game">{t('miniPlay')}</Link>
+                    </div>
+                    <p className="stats-section-sub">{t('miniHint')}</p>
+                    <div className="mini-table" role="table" aria-label={t('miniTitle')}>
+                        <div className="mini-row mini-head" role="row">
+                            <span role="columnheader">{t('miniPlayer')}</span>
+                            <span role="columnheader">{t('miniWins')}</span>
+                            <span role="columnheader">{t('miniDuels')}</span>
+                            <span role="columnheader">{t('miniBest')}</span>
+                            <span role="columnheader">{t('miniCups')}</span>
+                        </div>
+                        {miniGames.map(r => (
+                            <div key={r.id} className={`mini-row${r.id === me?.id ? ' is-me' : ''}`} role="row">
+                                <span role="cell" className="mini-name">{r.name}</span>
+                                <span role="cell">{r.wins}/{r.games}</span>
+                                <span role="cell">{r.duels > 0 ? `${r.duelWins}/${r.duels}` : '–'}</span>
+                                <span role="cell">{r.bestRounds ?? '–'}</span>
+                                <span role="cell">{r.hits}</span>
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}

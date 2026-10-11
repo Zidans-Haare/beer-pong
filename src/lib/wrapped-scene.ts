@@ -28,6 +28,8 @@ export interface SceneModel {
     winLabel: string;
     // Abspann: App-Name und Absender
     outro: { title: string; line: string };
+    // Figuren aus den Profilen; ohne Angabe gilt das Standardaussehen
+    looks?: { me: FigureLook; opponent: FigureLook | null };
     segments: SceneSegment[];
 }
 
@@ -68,6 +70,12 @@ export const CENTER_X = 540;
 export function tablePoint(u: number, v: number) {
     const f = Math.pow(v, 0.85);
     return { x: CENTER_X + u * lerp(NEAR_HALF, FAR_HALF, f), y: lerp(NEAR_Y, FAR_Y, f), scale: lerp(1, 0.54, f) };
+}
+
+// Umkehrung von tablePoint: Bildschirmpunkt -> Tischkoordinaten (u quer, v längs)
+export function tableUV(x: number, y: number) {
+    const f = clamp((NEAR_Y - y) / (NEAR_Y - FAR_Y), 0, 1);
+    return { u: (x - CENTER_X) / lerp(NEAR_HALF, FAR_HALF, f), v: Math.pow(f, 1 / 0.85) };
 }
 
 interface CupSpot { u: number; v: number; row: number }
@@ -193,7 +201,27 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
 }
 
 // Aussehen einer Figur; ohne Angabe gelten die Farben aus dem Wrapped
-export interface FigureLook { shirt: string; hair: string; style: 0 | 1 | 2; skin?: string }
+export type HairStyle = 'short' | 'buzz' | 'long' | 'bun' | 'curly' | 'bald';
+export type ShirtPattern = 'plain' | 'stripes' | 'dots';
+// Kopfbedeckung (eine), Brille (eine) und Extras (beliebig viele)
+export type Accessory = 'cap' | 'beanie' | 'beerhat' | 'headband' | 'glasses' | 'sunglasses' | 'beard' | 'earring' | 'chain' | 'scarf';
+
+// Aussehen einer Figur. `style` ist die alte Kurzform der Frisur (0 kurz, 1 lang, 2 Dutt), `hairStyle` hat Vorrang.
+export interface FigureLook {
+    shirt: string; hair: string; style: 0 | 1 | 2; skin?: string; undies?: boolean;
+    hairStyle?: HairStyle; pattern?: ShirtPattern; accessories?: Accessory[];
+    // Körper: Größe (1 = normal) und Breite (1 = normal)
+    heightScale?: number; widthScale?: number;
+}
+
+const LEGACY_STYLES: HairStyle[] = ['short', 'long', 'bun'];
+export const hairStyleOf = (look: FigureLook): HairStyle => look.hairStyle ?? LEGACY_STYLES[look.style];
+
+// Auf dunkler Haut bekommen die Augen ein Weiß, sonst gehen sie unter
+export function needsEyeWhite(skin: string): boolean {
+    const [r, g, b] = hexToRgb(skin);
+    return 0.299 * r + 0.587 * g + 0.114 * b < 175;
+}
 
 export const LIGHT_SKIN = '#fbe3c0';
 export const DARK_SKIN = '#7a4b2a';
@@ -202,16 +230,209 @@ export function skinFor(name: string | null | undefined): string {
     return name?.trim().toLowerCase() === 'moonzy' ? DARK_SKIN : LIGHT_SKIN;
 }
 
-// Frisur von vorn, um einen Kopf mit Radius r im Ursprung: 0 kurz, 1 lang, 2 Dutt
+// Frisur von vorn, um einen Kopf mit Radius r im Ursprung. `behind` malt, was hinter dem Kopf liegt.
 export function drawHairFront(ctx: CanvasRenderingContext2D, r: number, look: FigureLook, behind: boolean) {
+    const style = hairStyleOf(look);
     ctx.fillStyle = look.hair;
     if (behind) {
         // lange Haare fallen hinter dem Kopf auf die Schultern, der Dutt sitzt oben
-        if (look.style === 1) { roundRect(ctx, -r * 1.12, -r * 0.5, r * 2.24, r * 1.95, r * 0.5); ctx.fill(); }
-        if (look.style === 2) { ctx.beginPath(); ctx.arc(0, -r * 1.12, r * 0.42, 0, Math.PI * 2); ctx.fill(); }
+        if (style === 'long') { roundRect(ctx, -r * 1.12, -r * 0.5, r * 2.24, r * 1.95, r * 0.5); ctx.fill(); }
+        if (style === 'bun') { ctx.beginPath(); ctx.arc(0, -r * 1.12, r * 0.42, 0, Math.PI * 2); ctx.fill(); }
+        return;
+    }
+    if (style === 'bald') return;
+    if (style === 'buzz') {
+        // kurz rasiert: nur ein schmaler Rand oben
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.02, Math.PI * 1.14, Math.PI * 1.86); ctx.arc(0, -r * 0.1, r * 0.82, Math.PI * 1.86, Math.PI * 1.14, true); ctx.closePath(); ctx.fill();
         return;
     }
     ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.02, Math.PI * 1.08, Math.PI * 1.92); ctx.closePath(); ctx.fill();
+    if (style === 'curly') {
+        // Locken: kleine Kugeln entlang des Haaransatzes
+        for (let i = 0; i < 7; i++) {
+            const a = Math.PI * (1.04 + (i / 6) * 0.92);
+            ctx.beginPath(); ctx.arc(Math.cos(a) * r * 1.0, -r * 0.1 + Math.sin(a) * r * 1.0, r * 0.3, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    if (style === 'long') {
+        // Strähnen seitlich am Gesicht
+        roundRect(ctx, -r * 1.02, -r * 0.2, r * 0.3, r * 1.1, r * 0.15); ctx.fill();
+        roundRect(ctx, r * 0.72, -r * 0.2, r * 0.3, r * 1.1, r * 0.15); ctx.fill();
+    }
+}
+
+const HEADWEAR: Accessory[] = ['cap', 'beanie', 'beerhat', 'headband'];
+const has = (look: FigureLook, item: Accessory) => !!look.accessories?.includes(item);
+const headwearOf = (look: FigureLook) => HEADWEAR.find(item => has(look, item)) ?? null;
+
+// Hut in Form eines gefüllten Bierglases: goldenes Bier, Schaumkrone, Henkel. `r` ist der Kopfradius, der Hut sitzt oben auf dem Kopf.
+export function drawBeerHat(ctx: CanvasRenderingContext2D, r: number) {
+    ctx.save();
+    const w = r * 1.5, h = r * 1.35, bottom = -r * 0.5, top = bottom - h;
+    // Henkel rechts
+    ctx.strokeStyle = 'rgba(235,245,250,0.9)'; ctx.lineWidth = r * 0.13; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.ellipse(w / 2 + r * 0.14, bottom - h * 0.5, r * 0.3, r * 0.42, 0, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+    // Glas mit Bier
+    const beer = ctx.createLinearGradient(0, top, 0, bottom);
+    beer.addColorStop(0, '#ffc533'); beer.addColorStop(1, '#e58a00');
+    ctx.fillStyle = beer;
+    ctx.beginPath();
+    ctx.moveTo(-w / 2, top); ctx.lineTo(w / 2, top); ctx.lineTo(w / 2 - r * 0.07, bottom); ctx.lineTo(-w / 2 + r * 0.07, bottom); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(235,245,250,0.85)'; ctx.lineWidth = r * 0.08; ctx.lineJoin = 'round'; ctx.stroke();
+    // Glanzstreifen und Bläschen
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    roundRect(ctx, -w / 2 + r * 0.16, top + r * 0.2, r * 0.13, h * 0.7, r * 0.06); ctx.fill();
+    ctx.fillStyle = 'rgba(255,248,210,0.8)';
+    for (const [bx, by, br] of [[0.1, 0.78, 0.06], [-0.12, 0.55, 0.045], [0.24, 0.42, 0.05], [0.0, 0.25, 0.04]]) { ctx.beginPath(); ctx.arc(bx * r * 2, top + h * by, br * r, 0, Math.PI * 2); ctx.fill(); }
+    // Schaumkrone, die über den Rand quillt
+    ctx.fillStyle = '#ffffff';
+    for (const [fx, fy, fr] of [[-0.62, 0.02, 0.26], [-0.2, -0.1, 0.3], [0.22, -0.06, 0.29], [0.6, 0.03, 0.25], [-0.45, 0.2, 0.14], [0.42, 0.22, 0.13]]) { ctx.beginPath(); ctx.arc(fx * w * 0.8, top + fy * r, fr * r, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+}
+
+// Zubehör im Gesicht und auf dem Kopf, von vorn gesehen; nach Augen und Mund zu malen
+export function drawAccessoryFront(ctx: CanvasRenderingContext2D, r: number, look: FigureLook) {
+    if (!look.accessories?.length) return;
+    ctx.save();
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (has(look, 'earring')) {
+        ctx.fillStyle = '#ffd95a'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = r * 0.03;
+        for (const side of [-1, 1]) { ctx.beginPath(); ctx.arc(side * r * 0.99, r * 0.18, r * 0.09, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+    }
+    if (has(look, 'beard')) {
+        ctx.fillStyle = look.hair;
+        ctx.beginPath();
+        ctx.moveTo(-r * 0.95, r * 0.05);
+        ctx.quadraticCurveTo(-r * 0.9, r * 1.05, 0, r * 1.08);
+        ctx.quadraticCurveTo(r * 0.9, r * 1.05, r * 0.95, r * 0.05);
+        ctx.quadraticCurveTo(r * 0.55, r * 0.5, 0, r * 0.45);
+        ctx.quadraticCurveTo(-r * 0.55, r * 0.5, -r * 0.95, r * 0.05);
+        ctx.closePath(); ctx.fill();
+        // Schnurrbart über dem Mund
+        ctx.beginPath(); ctx.ellipse(0, r * 0.33, r * 0.34, r * 0.1, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (has(look, 'glasses') || has(look, 'sunglasses')) {
+        const eyeY = -r * 0.13, dx = r * 0.36;
+        ctx.strokeStyle = '#1d232b'; ctx.lineWidth = r * 0.07;
+        if (has(look, 'sunglasses')) {
+            ctx.fillStyle = '#10151b';
+            for (const side of [-1, 1]) { roundRect(ctx, side * dx - r * 0.25, eyeY - r * 0.16, r * 0.5, r * 0.32, r * 0.12); ctx.fill(); }
+            ctx.beginPath(); ctx.moveTo(-dx + r * 0.25, eyeY - r * 0.05); ctx.lineTo(dx - r * 0.25, eyeY - r * 0.05); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            for (const side of [-1, 1]) { ctx.beginPath(); ctx.ellipse(side * dx - r * 0.1, eyeY - r * 0.07, r * 0.07, r * 0.03, -0.4, 0, Math.PI * 2); ctx.fill(); }
+        } else {
+            for (const side of [-1, 1]) { ctx.beginPath(); ctx.arc(side * dx, eyeY, r * 0.2, 0, Math.PI * 2); ctx.stroke(); }
+            ctx.beginPath(); ctx.moveTo(-dx + r * 0.2, eyeY); ctx.lineTo(dx - r * 0.2, eyeY); ctx.stroke();
+        }
+    }
+    const hat = headwearOf(look);
+    if (hat === 'headband') {
+        ctx.strokeStyle = '#d83a3a'; ctx.lineWidth = r * 0.2;
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 0.93, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = r * 0.04;
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 0.93, Math.PI * 1.3, Math.PI * 1.7); ctx.stroke();
+    } else if (hat === 'cap') {
+        ctx.fillStyle = look.shirt === '#1d232b' ? '#3a86ff' : '#1d232b';
+        ctx.beginPath(); ctx.arc(0, -r * 0.12, r * 1.04, Math.PI * 1.04, Math.PI * 1.96); ctx.closePath(); ctx.fill();
+        // Schirm nach vorn
+        ctx.beginPath(); ctx.ellipse(0, -r * 0.42, r * 0.95, r * 0.2, 0, 0, Math.PI); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath(); ctx.arc(0, -r * 0.72, r * 0.1, 0, Math.PI * 2); ctx.fill();
+    } else if (hat === 'beanie') {
+        ctx.fillStyle = '#e4572e';
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.06, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#b8401f';
+        roundRect(ctx, -r * 1.04, -r * 0.5, r * 2.08, r * 0.3, r * 0.1); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(0, -r * 1.14, r * 0.17, 0, Math.PI * 2); ctx.fill();
+    } else if (hat === 'beerhat') {
+        drawBeerHat(ctx, r);
+    }
+    ctx.restore();
+}
+
+// Schal und Kette am Oberkörper. `kind` bestimmt Lage und Größe: Figur von vorn (walker), Gegner hinter dem Tisch (opponent), Figur von hinten (back)
+export function drawTorsoAccessories(ctx: CanvasRenderingContext2D, look: FigureLook | undefined, kind: 'walker' | 'opponent' | 'back') {
+    if (!look?.accessories?.length || look.undies) return;
+    const g = { walker: { y: -276, w: 70, k: 1 }, opponent: { y: 46, w: 92, k: 1.3 }, back: { y: 84, w: 190, k: 2.6 } }[kind];
+    ctx.save();
+    ctx.lineCap = 'round';
+    if (has(look, 'scarf')) {
+        const sw = g.w * 1.7;
+        ctx.fillStyle = '#d83a3a';
+        roundRect(ctx, -sw / 2, g.y - 16 * g.k, sw, 38 * g.k, 17 * g.k); ctx.fill();
+        // Zipfel hängt vorn bzw. hinten herunter
+        roundRect(ctx, sw * 0.12, g.y + 6 * g.k, 30 * g.k, 78 * g.k, 12 * g.k); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        for (let i = 0; i < 4; i++) ctx.fillRect(-sw / 2 + sw * (0.14 + i * 0.22), g.y - 14 * g.k, 9 * g.k, 34 * g.k);
+        ctx.fillRect(sw * 0.12, g.y + 56 * g.k, 30 * g.k, 9 * g.k);
+    }
+    if (has(look, 'chain') && kind !== 'back') {
+        ctx.strokeStyle = '#ffd95a'; ctx.lineWidth = 5 * g.k;
+        ctx.beginPath(); ctx.moveTo(-g.w * 0.45, g.y + 4 * g.k); ctx.quadraticCurveTo(0, g.y + 70 * g.k, g.w * 0.45, g.y + 4 * g.k); ctx.stroke();
+        ctx.fillStyle = '#ffd95a'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 2 * g.k;
+        ctx.beginPath(); ctx.arc(0, g.y + 54 * g.k, 10 * g.k, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+}
+
+// Hinterkopf mit Haaren und Zubehör (die Figur am Tisch, von hinten), Kopfradius r im Ursprung
+export function drawHeadBack(ctx: CanvasRenderingContext2D, r: number, look: FigureLook) {
+    const style = hairStyleOf(look);
+    ctx.fillStyle = look.hair;
+    if (style === 'long') {
+        // lange Haare bedecken von hinten den ganzen Kopf bis auf die Schultern
+        ctx.beginPath(); ctx.arc(0, 0, r * 1.02, 0, Math.PI * 2); ctx.fill();
+        roundRect(ctx, -r * 1.02, 0, r * 2.04, r * 1.44, r * 0.48); ctx.fill();
+    } else if (style !== 'bald') {
+        const reach = style === 'buzz' ? 0.8 : 1;
+        ctx.beginPath(); ctx.arc(0, -r * 0.14, r, Math.PI * (1.02 + (1 - reach) * 0.4), Math.PI * (1.98 - (1 - reach) * 0.4)); ctx.closePath(); ctx.fill();
+        if (style === 'bun') { ctx.beginPath(); ctx.arc(0, -r * 1.08, r * 0.42, 0, Math.PI * 2); ctx.fill(); }
+        if (style === 'curly') for (let i = 0; i < 8; i++) { const a = Math.PI * (1.05 + (i / 7) * 0.9); ctx.beginPath(); ctx.arc(Math.cos(a) * r, -r * 0.14 + Math.sin(a) * r, r * 0.28, 0, Math.PI * 2); ctx.fill(); }
+    }
+    const hat = headwearOf(look);
+    if (hat === 'cap') {
+        ctx.fillStyle = look.shirt === '#1d232b' ? '#3a86ff' : '#1d232b';
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.04, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+        // Verschluss hinten
+        ctx.fillStyle = 'rgba(255,255,255,0.8)'; roundRect(ctx, -r * 0.22, -r * 0.34, r * 0.44, r * 0.12, r * 0.05); ctx.fill();
+    } else if (hat === 'beanie') {
+        ctx.fillStyle = '#e4572e';
+        ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.06, Math.PI * 1.0, Math.PI * 2.0); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#b8401f'; roundRect(ctx, -r * 1.06, -r * 0.34, r * 2.12, r * 0.3, r * 0.1); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, -r * 1.14, r * 0.17, 0, Math.PI * 2); ctx.fill();
+    } else if (hat === 'headband') {
+        ctx.strokeStyle = '#d83a3a'; ctx.lineWidth = r * 0.2; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(-r * 0.97, -r * 0.2); ctx.lineTo(r * 0.97, -r * 0.2); ctx.stroke();
+    } else if (hat === 'beerhat') {
+        drawBeerHat(ctx, r);
+    }
+    if (has(look, 'earring')) {
+        ctx.fillStyle = '#ffd95a';
+        for (const side of [-1, 1]) { ctx.beginPath(); ctx.arc(side * r * 1.0, r * 0.22, r * 0.08, 0, Math.PI * 2); ctx.fill(); }
+    }
+}
+
+// Oberteil mit Muster: füllt die Form, die `shape` als Pfad anlegt, und legt Streifen oder Punkte darüber
+export function fillShirt(ctx: CanvasRenderingContext2D, look: FigureLook | undefined, color: string, shape: () => void, bounds: { x: number; y: number; w: number; h: number }) {
+    ctx.fillStyle = color;
+    shape(); ctx.fill();
+    const pattern = look?.pattern ?? 'plain';
+    if (!look || look.undies || pattern === 'plain') return;
+    ctx.save();
+    shape(); ctx.clip();
+    if (pattern === 'stripes') {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        const step = bounds.h / 7;
+        for (let y = bounds.y + step * 0.5; y < bounds.y + bounds.h; y += step * 2) ctx.fillRect(bounds.x, y, bounds.w, step);
+    } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        const step = bounds.w / 5;
+        for (let row = 0, y = bounds.y + step * 0.6; y < bounds.y + bounds.h; y += step * 0.9, row++) {
+            for (let x = bounds.x + (row % 2 ? step * 0.5 : 0) + step * 0.35; x < bounds.x + bounds.w; x += step) { ctx.beginPath(); ctx.arc(x, y, step * 0.13, 0, Math.PI * 2); ctx.fill(); }
+        }
+    }
+    ctx.restore();
 }
 
 // skin: Hautton der Figur
@@ -226,14 +447,20 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     // Wut: er bebt vor Ärger
     ctx.translate(CENTER_X + Math.sin(time / 38) * 7 * anger, y + Math.sin(time / 53) * 4 * anger);
     ctx.rotate(sad * 0.07);
+    // Größe der Figur (um den Hals gedehnt) und Breite des Körpers
+    const hs = look?.heightScale ?? 1, ws = look?.widthScale ?? 1;
+    ctx.scale(hs, hs);
     // Körper (unterer Teil verschwindet hinter dem Tisch)
-    const shirt = look?.shirt ?? '#f2b24a';
-    ctx.fillStyle = shirt;
-    roundRect(ctx, -92, 46, 184, 220, 60); ctx.fill();
+    const shirt = look?.undies ? skin : look?.shirt ?? '#f2b24a';
+    ctx.save();
+    ctx.scale(ws, 1);
+    fillShirt(ctx, look, shirt, () => roundRect(ctx, -92, 46, 184, 220, 60), { x: -92, y: 46, w: 184, h: 220 });
     // hängende Arme, wenn traurig
     ctx.strokeStyle = shirt; ctx.lineWidth = 34; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-84, 96); ctx.lineTo(-112 - sad * 8, 96 + 70 + sad * 30); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(84, 96); ctx.lineTo(112 + sad * 8, 96 + 70 + sad * 30); ctx.stroke();
+    drawTorsoAccessories(ctx, look, 'opponent');
+    ctx.restore();
     // Kopf
     if (look) drawHairFront(ctx, 62, look, true);
     ctx.fillStyle = skin;
@@ -247,7 +474,7 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     // beim Schreck werden die Augen groß
     const eye = (7 + Math.sin(flinch * Math.PI) * 5) * (1 - anger * 0.2);
     // auf dunkler Haut bekommen die Augen ein Weiß, sonst gehen sie unter
-    if (skin !== '#fbe3c0') {
+    if (needsEyeWhite(skin)) {
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.ellipse(-22, eyeY, eye + 6, eye + 3, 0, 0, Math.PI * 2); ctx.ellipse(22, eyeY, eye + 6, eye + 3, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#2a1f14';
@@ -268,6 +495,7 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
         ctx.fillStyle = `rgba(120,190,255,${(1 - drop) * 0.95})`;
         ctx.beginPath(); ctx.ellipse(-28, eyeY + 14 + drop * 54, 6, 9, 0, 0, Math.PI * 2); ctx.fill();
     }
+    if (look) drawAccessoryFront(ctx, 62, look);
     ctx.restore();
 
     if (name) {
@@ -292,10 +520,14 @@ export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase:
     ctx.save();
     // leichtes Wippen im Stand
     ctx.translate(CENTER_X + Math.sin(time / 700) * 6 * (1 - cheer), y);
-    const shirt = look?.shirt ?? shade(primary, 1.5);
+    // Größe der Figur (um die Körpermitte) und Breite von Rumpf und Armen
+    const hs = look?.heightScale ?? 1, ws = look?.widthScale ?? 1;
+    ctx.translate(0, 300); ctx.scale(hs, hs); ctx.translate(0, -300);
+    const shirt = look?.undies ? look.skin ?? LIGHT_SKIN : look?.shirt ?? shade(primary, 1.5);
     // Rumpf
-    ctx.fillStyle = shirt;
-    roundRect(ctx, -190, 84, 380, 420, 120); ctx.fill();
+    ctx.save();
+    ctx.scale(ws, 1);
+    fillShirt(ctx, look, shirt, () => roundRect(ctx, -190, 84, 380, 420, 120), { x: -190, y: 84, w: 380, h: 420 });
     ctx.strokeStyle = shirt; ctx.lineWidth = 62; ctx.lineCap = 'round';
     // linker Arm
     const wave = Math.sin(time / 160) * 26 * cheer;
@@ -308,18 +540,12 @@ export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase:
     const handY = lerp(lerp(310, 40, wind), -150, forward * (throwPhase > 0 && throwPhase < 1 ? 1 : 0));
     ctx.beginPath(); ctx.moveTo(170, 150);
     ctx.lineTo(lerp(handX, 250 - wave, cheer), lerp(handY, -90, cheer)); ctx.stroke();
+    drawTorsoAccessories(ctx, look, 'back');
+    ctx.restore();
     // Kopf
     ctx.fillStyle = look?.skin ?? LIGHT_SKIN;
     ctx.beginPath(); ctx.arc(0, 0, 104, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = look?.hair ?? '#3b2a1a';
-    if (look?.style === 1) {
-        // lange Haare bedecken von hinten den ganzen Kopf bis auf die Schultern
-        ctx.beginPath(); ctx.arc(0, 0, 106, 0, Math.PI * 2); ctx.fill();
-        roundRect(ctx, -106, 0, 212, 150, 50); ctx.fill();
-    } else {
-        ctx.beginPath(); ctx.arc(0, -14, 104, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
-        if (look?.style === 2) { ctx.beginPath(); ctx.arc(0, -112, 44, 0, Math.PI * 2); ctx.fill(); }
-    }
+    drawHeadBack(ctx, 104, look ?? { shirt, hair: '#3b2a1a', style: 0 });
     ctx.restore();
 }
 
@@ -516,7 +742,8 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     const mood = time >= tl.win + 700 ? -easeInOut(ramp(time, tl.win + 700, 900)) : -Math.min(0.45, hits * 0.12);
     const lastHit = [...tl.throws].reverse().find(t => time >= t.start + THROW_MS);
     const flinch = lastHit ? ramp(time, lastHit.start + THROW_MS, 420) : 0;
-    drawOpponent(ctx, oppEnter, mood, model.opponentName, time, flinch < 1 ? flinch : 0, skinFor(model.opponentName));
+    const oppLook = model.looks?.opponent ?? undefined;
+    drawOpponent(ctx, oppEnter, mood, model.opponentName, time, flinch < 1 ? flinch : 0, oppLook?.skin ?? skinFor(model.opponentName), 0, oppLook);
 
     // ---- Tisch ----
     ctx.save();
@@ -634,7 +861,7 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     const cheer = easeOut(ramp(time, tl.stamp, 500)) * (1 - ramp(time, tl.final, 600));
     // eigene Figur: Farben wie bisher, nur der Hautton richtet sich nach dem Spieler
     const mySkin = skinFor(model.playerName);
-    drawMe(ctx, meEnter, throwPhase, cheer, time, model.primary, mySkin === LIGHT_SKIN ? undefined : { shirt: shade(model.primary, 1.5), hair: '#1f1a17', style: 0, skin: mySkin });
+    drawMe(ctx, meEnter, throwPhase, cheer, time, model.primary, model.looks?.me ?? (mySkin === LIGHT_SKIN ? undefined : { shirt: shade(model.primary, 1.5), hair: '#1f1a17', style: 0, skin: mySkin }));
 
     ctx.restore(); // Kamera
 

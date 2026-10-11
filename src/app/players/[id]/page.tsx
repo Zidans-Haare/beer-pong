@@ -7,10 +7,14 @@ import { deletePlayer } from '@/app/actions/players';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import { isAdmin } from '@/lib/admin';
 import { getPlayerPaceStats, formatDuration } from '@/lib/duration';
-import { Pencil } from 'lucide-react';
+import { Pencil, Shirt } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import PaceStatsWidget from '@/components/PaceStatsWidget';
 import { getTranslations } from 'next-intl/server';
+import FigureStage from '@/components/figure/FigureStage';
+import { normalizeFigure } from '@/lib/figure';
+import MiniGameProfile from '@/components/game/MiniGameProfile';
+import { getMiniGameProfile } from '@/lib/minigame/stats-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +47,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
     // Get pace stats for duration tracking
     const paceStats = await getPlayerPaceStats(player.id);
+    const miniGame = await getMiniGameProfile(player.id);
 
     return (
         <div className="container page-content">
@@ -60,17 +65,33 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                     <div style={{ minWidth: 0, flex: 1 }}>
                         <h1 style={{ marginBottom: 'var(--spacing-2)', fontSize: '2.25rem' }}>{player.name}</h1>
                         {player.motto && <p style={{ fontStyle: 'italic', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-2)' }}>&quot;{player.motto}&quot;</p>}
-
-                        {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
-                            <Link href={`/players/${player.id}/edit`} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <Pencil size={14} /> {t('editProfile')}
-                            </Link>
-                        )}
                     </div>
                 </div>
 
                 {session?.user && <AdminDeleteButton id={player.id} type="Player" deleteAction={deletePlayer} />}
             </header>
+
+            {/* Knöpfe nebeneinander unter dem Kopf, damit sie auch auf dem Handy in einer Zeile stehen */}
+            {(session?.user?.id === player.userId || isAdmin(session?.user?.email)) && (
+                <div className="profile-actions">
+                    <Link href={`/players/${player.id}/edit`} className="btn btn-secondary profile-action">
+                        <Pencil size={14} aria-hidden="true" /> {t('editProfile')}
+                    </Link>
+                    {session?.user?.id === player.userId && (
+                        <Link href={`/players/${player.id}/figure`} className="btn btn-secondary profile-action">
+                            <Shirt size={14} aria-hidden="true" /> {t('myFigure')}
+                        </Link>
+                    )}
+                </div>
+            )}
+
+            {/* Die Figur des Spielers tanzt auf seinem Profil */}
+            {/* nur, wenn der Spieler seine Figur gestaltet hat */}
+            {normalizeFigure(player.figure) && (
+                <section className="profile-figure" aria-label={t('figureLabel', { name: player.name })}>
+                    <FigureStage name={player.name} figure={normalizeFigure(player.figure)} />
+                </section>
+            )}
 
             {/* Stats Grid */}
             <div className="profile-stats">
@@ -78,6 +99,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 <StatBox label={t('games')} value={matchesPlayed} />
                 <StatBox label={t('winRate')} value={`${winRate}%`} />
             </div>
+
+            {/* Minispiel: Gesamt, gegen den Computer, Duelle, direkter Vergleich */}
+            <MiniGameProfile profile={miniGame} own={session?.user?.id === player.userId} />
 
             {/* Pace Stats */}
             {paceStats.totalMatches > 0 && <PaceStatsWidget paceStats={paceStats} />}

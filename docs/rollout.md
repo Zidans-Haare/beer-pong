@@ -43,6 +43,7 @@ Wichtigste Regel: **Die Datenbank darf nicht kaputtgehen.** Alles andere lässt 
 - [ ] Weitere Variablen prüfen: `ADMIN_EMAIL`, `AUTH_SECRET`, `DATABASE_URL`, VAPID-Schlüssel.
 - [ ] HTTPS aktiv (Teilen-Menü, Passkeys, Push und Service Worker brauchen es).
 - [ ] `deploy.sh` und `scripts/update.sh` rufen `fix-migration-table.js` vor `migrate deploy` auf (in beiden eingetragen). Die Zeile prüfen, bevor man sich darauf verlässt.
+- [ ] Plattenplatz prüfen (`df -h /`): Am 11.10.2026 waren nur 4,3 GB frei. Ein bis zwei Tage **vor** dem Rollout den npm-Cache leeren (`npm cache clean --force`, rund 8 GB). Laufende Apps betrifft das nicht, nur das nächste `npm ci` lädt alle Pakete einmal neu. Deshalb nicht erst im Wartungsfenster leeren.
 
 ## 4. Backup und Wiederherstellung
 

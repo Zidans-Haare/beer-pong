@@ -17,6 +17,8 @@ echo "Backup erstellt: $BACKUP_FILE"
 # 2. Dependencies & Prisma
 npm install
 npx prisma generate
+# Textzeitstempel in _prisma_migrations lassen die Schema-Engine abstürzen — vorher reparieren
+node scripts/fix-migration-table.js
 npx prisma migrate deploy
 echo "Dependencies & Migrationen fertig."
 

@@ -30,7 +30,9 @@ test.describe('Isolated admin redesign', () => {
     await expect(page).toHaveURL('/admin/passkeys', { timeout: 30_000 });
   });
 
-  test('approval still activates a pending user', async ({ page }) => {
+  test('approval still activates a pending user', async ({ page }, testInfo) => {
+    // Der Test verbraucht den einzigen vorbereiteten Wartenden; in den anderen Projekten desselben Laufs wäre er weg.
+    test.skip(testInfo.project.name !== 'chromium', 'Freigabe läuft nur einmal pro Lauf');
     await page.goto('/admin/approvals');
     requireIsolatedMode(page);
     await expect(page.getByText('pending@matchday.test')).toBeVisible();

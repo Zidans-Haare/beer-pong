@@ -38,6 +38,8 @@ echo "🔄  Generating Prisma client..."
 npx prisma generate
 
 echo "🗄️   Running migrations..."
+# Textzeitstempel in _prisma_migrations lassen die Schema-Engine abstürzen — vorher reparieren
+node scripts/fix-migration-table.js
 npx prisma migrate deploy
 
 echo "🔨  Building app..."

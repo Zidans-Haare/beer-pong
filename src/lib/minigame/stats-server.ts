@@ -60,7 +60,7 @@ export async function getMiniGameProfile(playerId: string): Promise<MiniGameProf
     }).catch(() => []);
     const games: ProfileGame[] = rows.map(r => ({
         id: r.id, mode: r.mode === 'DUEL' ? 'DUEL' : 'CPU',
-        status: r.status === 'PENDING' ? 'PENDING' : r.status === 'DECLINED' ? 'DECLINED' : 'COMPLETED',
+        status: r.status === 'PENDING' || r.status === 'PLAYING' ? 'PENDING' : r.status === 'DECLINED' ? 'DECLINED' : 'COMPLETED',
         difficulty: r.difficulty, cupSize: r.cupSize, challengerId: r.challengerId, opponentId: r.opponentId,
         challengerName: r.challenger.name, opponentName: r.opponent?.name ?? null,
         challengerRounds: r.challengerRounds, opponentRounds: r.opponentRounds, challengerHits: r.challengerHits, opponentHits: r.opponentHits,

@@ -8,7 +8,7 @@ import { loadSceneFonts } from '@/lib/wrapped-scene';
 import { drawWinnerFrame, WINNER_WIDTH, WINNER_HEIGHT, WINNER_TOTAL_MS } from '@/lib/winner-scene';
 import { haptic } from '@/lib/haptics';
 
-// Siegerehrung am unteren Rand: Die Top 3 laufen ein und hüpfen. Läuft pro Turnier einmal je Sitzung,
+// Siegerehrung am unteren Rand: Die Top 3 laufen ein und hüpfen. Läuft bei jedem Öffnen eines beendeten Turniers,
 // Tippen schließt sie. Die Daten kommen erst, wenn das Overlay wirklich gezeigt wird.
 export default function WinnerOverlay({ tournamentId, active }: { tournamentId: string; active: boolean }) {
     const t = useTranslations('film');
@@ -17,11 +17,9 @@ export default function WinnerOverlay({ tournamentId, active }: { tournamentId: 
     const [podium, setPodium] = useState<FilmStep[] | null>(null);
     const [open, setOpen] = useState(false);
 
-    // Nur laden, wenn das Turnier beendet ist und das Overlay in dieser Sitzung noch nicht lief
+    // Nur laden, wenn das Turnier beendet ist
     useEffect(() => {
         if (!active || reducedMotion) return;
-        const key = `winner-overlay-${tournamentId}`;
-        try { if (sessionStorage.getItem(key)) return; } catch { /* ohne Speicher: einfach zeigen */ }
         let alive = true;
         // Keine Wartezeit: Die Abfrage startet sofort, damit die Top 3 gleich nach dem Öffnen im Bild sind
         performance.mark(`winner-overlay-start-${tournamentId}`);
@@ -31,7 +29,6 @@ export default function WinnerOverlay({ tournamentId, active }: { tournamentId: 
                 if (!res.ok) return;
                 const data = await res.json() as { podium: FilmStep[] };
                 if (!alive || data.podium.length === 0) return;
-                try { sessionStorage.setItem(key, '1'); } catch { /* egal */ }
                 setPodium(data.podium);
                 setOpen(true);
                 haptic.success();

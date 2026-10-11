@@ -381,4 +381,53 @@ test.describe('Duell', () => {
     await expect(page).toHaveURL(/\/game$/);
     await expect(page.getByRole('link', { name: /will ein Duell/ })).toHaveCount(0);
   });
+  // legt ein offenes Duell an und liest später den Stand aus der Test-Datenbank
+  const withDb = async <T,>(run: (db: import('better-sqlite3').Database) => T): Promise<T> => {
+    const { default: Database } = await import('better-sqlite3');
+    const fs = await import('fs');
+    const path = await import('path');
+    const file = fs.readdirSync('e2e/.auth').filter(f => /^isolated-\d+\.db$/.test(f)).sort().pop()!;
+    const db = new Database(path.join('e2e/.auth', file));
+    try { return run(db); } finally { db.close(); }
+  };
+  const insertDuel = (id: string) => withDb(db => {
+    db.prepare('delete from MiniGame where id = ?').run(id);
+    db.prepare("insert into MiniGame (id, mode, status, challengerId, opponentId, starter, challengerHand, opponentHand, challengerRounds, challengerHits, replay) values (?, 'DUEL', 'PENDING', 'e2e-player-player', 'e2e-host-player', 'OPPONENT', 'paper', 'rock', 5, 10, ?)").run(id, JSON.stringify(replay));
+  });
+  const duelRow = (id: string) => withDb(db => db.prepare('select status, winner, opponentHits from MiniGame where id = ?').get(id) as { status: string; winner: string | null; opponentHits: number | null });
+
+  test('Kreuz mitten im Duell: nach Bestätigung aufgegeben, das Duell zählt als verloren', async ({ page }) => {
+    await insertDuel('duel-3');
+    await page.goto('/game?duel=duel-3');
+    await page.getByRole('button', { name: 'Annehmen', exact: true }).click();
+    await expect(page.locator('canvas.game-canvas')).toBeVisible();
+    expect((await duelRow('duel-3')).status).toBe('PLAYING');
+    await page.getByRole('button', { name: 'Spiel beenden' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText(/zählt das Duell als verloren/)).toBeVisible();
+    // „Abbrechen“ lässt das Duell weiterlaufen
+    await dialog.getByRole('button', { name: 'Abbrechen' }).click();
+    await expect(page.locator('canvas.game-canvas')).toBeVisible();
+    expect((await duelRow('duel-3')).status).toBe('PLAYING');
+    await page.getByRole('button', { name: 'Spiel beenden' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aufgeben' }).click();
+    await expect(page).toHaveURL(/\/game$/, { timeout: 30_000 });
+    await expect(page.getByRole('link', { name: /will ein Duell/ })).toHaveCount(0);
+    expect(await duelRow('duel-3')).toMatchObject({ status: 'COMPLETED', winner: 'CHALLENGER', opponentHits: 0 });
+  });
+
+  test('Seite mitten im Duell neu laden: das Duell zählt als aufgegeben und lässt sich nicht neu starten', async ({ page }) => {
+    await insertDuel('duel-4');
+    await page.goto('/game?duel=duel-4');
+    await page.getByRole('button', { name: 'Annehmen', exact: true }).click();
+    await expect(page.locator('canvas.game-canvas')).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('dialog').getByText(/nicht zu Ende gespielt/)).toBeVisible({ timeout: 30_000 });
+    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await expect(page).toHaveURL(/\/game$/, { timeout: 30_000 });
+    expect(await duelRow('duel-4')).toMatchObject({ status: 'COMPLETED', winner: 'CHALLENGER' });
+    // der alte Link führt nicht mehr zum Duell
+    await page.goto('/game?duel=duel-4');
+    await expect(page.getByRole('button', { name: 'Annehmen', exact: true })).toHaveCount(0);
+  });
 });

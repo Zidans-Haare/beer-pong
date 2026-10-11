@@ -26,13 +26,15 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
     const others = players.filter(p => p.userId !== userId).map(p => ({ id: p.id, name: p.name.trim() }));
 
     // offene Duelle: für mich zum Nachziehen und von mir, auf die noch gewartet wird
-    const [incoming, outgoing, invited] = me
+    const [incoming, outgoing, invited, abandoned] = me
         ? await Promise.all([
             prisma.miniGame.findMany({ where: { opponentId: me.id, status: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, challenger: { select: { name: true } } } }),
-            prisma.miniGame.findMany({ where: { challengerId: me.id, status: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, opponent: { select: { name: true } } } }),
+            prisma.miniGame.findMany({ where: { challengerId: me.id, status: { in: ['PENDING', 'PLAYING'] } }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, opponent: { select: { name: true } } } }),
             duelParam ? prisma.miniGame.findFirst({ where: { id: duelParam, opponentId: me.id, status: 'PENDING' }, include: { challenger: { select: { name: true } } } }) : null,
+            // angenommen, aber nicht zu Ende gespielt (Seite verlassen oder neu geladen): zählt als aufgegeben
+            prisma.miniGame.findMany({ where: { opponentId: me.id, status: 'PLAYING' }, select: { id: true } }),
         ])
-        : [[], [], null];
+        : [[], [], null, []];
 
     let duel: DuelInfo | null = null;
     const replay = invited ? parseReplay(invited.replay) : null;
@@ -48,6 +50,7 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
             incoming={incoming.map(d => ({ id: d.id, name: d.challenger.name.trim() }))}
             outgoing={outgoing.map(d => ({ id: d.id, name: d.opponent?.name.trim() ?? '' }))}
             duel={duel}
+            abandoned={abandoned.map(d => d.id)}
             figures={await loadFigureMap()}
             backHref="/"
         />

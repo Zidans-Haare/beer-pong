@@ -107,4 +107,28 @@ describe('Minispiel-Aktionen', () => {
         const { prisma } = await import('@/lib/prisma');
         expect((await prisma.miniGame.findMany({ where: { mode: 'CPU' }, orderBy: { createdAt: 'asc' } })).map(g => g.difficulty)).toEqual(['hard', 'normal']);
     });
+    it('ein angenommenes Duell, das nicht zu Ende gespielt wird, zählt als verloren', async () => {
+        const { startDuel, forfeitDuel, completeDuel, declineDuel } = await import('./minigame');
+        const { prisma } = await import('@/lib/prisma');
+        const game = (await prisma.miniGame.findFirst({ where: { status: 'PENDING', mode: 'DUEL' }, orderBy: { createdAt: 'asc' } }))!;
+        // nur der Eingeladene kann annehmen, und nur einmal
+        currentUser = 'user-nick';
+        expect((await startDuel(game.id)).success).toBe(false);
+        currentUser = 'user-paul';
+        expect((await startDuel(game.id)).success).toBe(true);
+        expect((await startDuel(game.id)).success).toBe(false);
+        expect((await prisma.miniGame.findUnique({ where: { id: game.id } }))!.status).toBe('PLAYING');
+        // ein laufendes Duell lässt sich nicht mehr ablehnen und zählt weiter als offen
+        expect((await declineDuel(game.id)).success).toBe(false);
+        // aufgeben: verloren, der Herausforderer gewinnt und wird benachrichtigt
+        currentUser = 'user-nick';
+        expect((await forfeitDuel(game.id)).success).toBe(false);
+        currentUser = 'user-paul';
+        expect((await forfeitDuel(game.id)).success).toBe(true);
+        expect((await forfeitDuel(game.id)).success).toBe(false);
+        expect(await prisma.miniGame.findUnique({ where: { id: game.id } })).toMatchObject({ status: 'COMPLETED', winner: 'CHALLENGER', opponentHits: 0, opponentRounds: game.challengerRounds });
+        expect(pushed.at(-1)).toMatchObject({ userId: 'user-nick', title: 'Duell gewonnen' });
+        // danach lässt es sich nicht mehr nachträglich als gewonnen melden
+        expect((await completeDuel(game.id, { won: true, rounds: 1, hits: 10, challengerRounds: 4, challengerHits: 8, nakedMile: null })).success).toBe(false);
+    });
 });

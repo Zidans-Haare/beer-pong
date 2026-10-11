@@ -1161,6 +1161,13 @@
     "rulesLink": "Alle Regeln ansehen",
     "soundOn": "Ton einschalten",
     "soundOff": "Ton ausschalten",
+    "duel": {
+      "quitTitle": "Duell aufgeben?",
+      "quitConfirm": "Wenn du jetzt aufhörst, zählt das Duell als verloren. Du kannst es nicht noch einmal starten.",
+      "quitLabel": "Aufgeben",
+      "abandoned": "Du hast ein angenommenes Duell nicht zu Ende gespielt. Es zählt als verloren.",
+      "gone": "Dieses Duell gibt es nicht mehr."
+    },
     "quit": "Spiel beenden",
     "rps": {
       "prompt": "Schnick, Schnack, Schnuck: Der Gewinner fängt an",

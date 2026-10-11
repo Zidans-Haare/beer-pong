@@ -15,7 +15,8 @@ import { judgeDirect, judgeBounce, cupMouth, cupAt, slotAt, hitRadii, flickLandi
 import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
 import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
 import { throwsOfRound, roundsOf, hitsOf, type ReplayThrow } from '@/lib/minigame/replay';
-import { recordCpuGame, createDuel, declineDuel, completeDuel } from '@/app/actions/minigame';
+import { recordCpuGame, createDuel, declineDuel, completeDuel, startDuel as startDuelAction, forfeitDuel } from '@/app/actions/minigame';
+import { useAppDialog } from '@/components/AppDialog';
 
 type Mode = 'pick' | 'invite' | 'rps' | 'play' | 'over';
 // cpu: gegen den Rechner; run: Herausforderer legt vor; ghost: Nachziehender spielt gegen die Aufzeichnung
@@ -56,10 +57,11 @@ export interface OpenDuel { id: string; name: string }
 
 interface GhostState { replay: ReplayThrow[]; round: number; used: number; duelId: string }
 
-export default function BeerPongGame({ meName, players, incoming, outgoing, duel, figures, backHref }: {
-    meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; figures: FigureMap; backHref: string;
+export default function BeerPongGame({ meName, players, incoming, outgoing, duel, abandoned, figures, backHref }: {
+    meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; abandoned: string[]; figures: FigureMap; backHref: string;
 }) {
     const t = useTranslations('game');
+    const dialog = useAppDialog();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [mode, setMode] = useState<Mode>(duel ? 'invite' : 'pick');
     const [pickKind, setPickKind] = useState<'duel' | 'cpu'>(players.length > 0 ? 'duel' : 'cpu');
@@ -107,6 +109,17 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     const meLook = useMemo<FigureLook>(() => lookFor(meName, 0, figures), [meName, figures]);
     void meLook;
 
+    // Ein angenommenes, aber nicht beendetes Duell (Seite neu geladen, App geschlossen) gilt als aufgegeben
+    useEffect(() => {
+        if (abandoned.length === 0) return;
+        void (async () => {
+            await Promise.all(abandoned.map(id => forfeitDuel(id)));
+            await dialog.alert(t('duel.abandoned'));
+            window.location.assign('/game');
+        })();
+        // nur beim ersten Anzeigen der Seite
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     useEffect(() => { loadSceneFonts().then(() => loadSceneLogo()).then(image => { logo.current = image; setReady(true); }); }, []);
 
     // ---- Hilfen für Ablauf, Ton und Stempel ----
@@ -732,7 +745,26 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     const choose = () => { runId.current++; answer(undefined); viewRef.current = null; gameRef.current = null; ghostRef.current = null; setStatus(''); setControls({ ...IDLE }); setMode('pick'); };
 
     const startDuel = (player: GamePlayer) => void begin(player.name, 'run', player);
-    const accept = () => { if (duel) void begin(duel.challengerName, 'ghost'); };
+    // Angenommen heißt: Ab jetzt zählt das Duell. Wer es verlässt oder neu lädt, hat aufgegeben
+    const accept = async () => {
+        if (!duel) return;
+        setBusy(true);
+        const started = await startDuelAction(duel.id);
+        setBusy(false);
+        if (!started.success) { await dialog.alert(t('duel.gone')); window.location.assign('/game'); return; }
+        void begin(duel.challengerName, 'ghost');
+    };
+    const quit = async () => {
+        const ghost = ghostRef.current;
+        if (ghost && mode !== 'over') {
+            if (!(await dialog.confirm(t('duel.quitConfirm'), { title: t('duel.quitTitle'), confirmLabel: t('duel.quitLabel'), danger: true }))) return;
+            runId.current++; answer(undefined);
+            await forfeitDuel(ghost.duelId);
+            window.location.assign('/game');
+            return;
+        }
+        choose();
+    };
     const decline = async () => {
         if (!duel) return;
         setBusy(true);
@@ -866,7 +898,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             <p className="sr-only" aria-live="polite">{status}</p>
             <div className="game-top">
                 <button type="button" className="wrapped-icon" aria-label={muted ? t('soundOn') : t('soundOff')} aria-pressed={!muted} onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={22} /> : <Volume2 size={22} />}</button>
-                <button type="button" className="wrapped-icon" aria-label={t('quit')} onClick={choose}><X size={24} /></button>
+                <button type="button" className="wrapped-icon" aria-label={t('quit')} onClick={() => void quit()}><X size={24} /></button>
             </div>
 
             {/* Optionen für den nächsten Wurf am rechten Rand: schmale runde Knöpfe, damit der Tisch frei bleibt */}

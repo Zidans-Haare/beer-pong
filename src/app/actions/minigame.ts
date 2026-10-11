@@ -76,7 +76,7 @@ export async function createDuel(input: DuelInput): Promise<Result<{ id: string 
     if (!opponent || !opponent.userId || opponent.id === player.id) return { success: false, error: 'Gegner nicht gefunden' };
 
     // nicht beliebig viele offene Duelle gleichzeitig
-    const open = await prisma.miniGame.count({ where: { challengerId: player.id, status: 'PENDING' } });
+    const open = await prisma.miniGame.count({ where: { challengerId: player.id, status: { in: ['PENDING', 'PLAYING'] } } });
     if (open >= 5) return { success: false, error: 'Du hast schon fünf offene Duelle. Warte, bis jemand nachzieht.' };
 
     try {
@@ -107,6 +107,32 @@ export async function declineDuel(id: string): Promise<Result> {
     return { success: true };
 }
 
+// Der Nachziehende hat das Duell angenommen und fängt an. Ab jetzt gilt es als begonnen: Wer abbricht, hat verloren.
+export async function startDuel(id: string): Promise<Result> {
+    const player = await me();
+    if (!player) return { success: false, error: 'Nicht angemeldet' };
+    const started = await prisma.miniGame.updateMany({ where: { id, opponentId: player.id, status: 'PENDING' }, data: { status: 'PLAYING' } });
+    return started.count === 1 ? { success: true } : { success: false, error: 'Duell nicht gefunden' };
+}
+
+// Aufgegeben oder mittendrin abgebrochen: Das Duell zählt als verloren, der Herausforderer hat gewonnen
+export async function forfeitDuel(id: string): Promise<Result> {
+    const player = await me();
+    if (!player) return { success: false, error: 'Nicht angemeldet' };
+    const game = await prisma.miniGame.findFirst({ where: { id, opponentId: player.id, status: 'PLAYING' }, include: { challenger: { select: { userId: true } } } });
+    if (!game) return { success: false, error: 'Duell nicht gefunden' };
+    const done = await prisma.miniGame.updateMany({
+        where: { id, status: 'PLAYING' },
+        data: { status: 'COMPLETED', completedAt: new Date(), winner: 'CHALLENGER', opponentHits: 0, opponentRounds: game.challengerRounds },
+    });
+    if (done.count === 1 && game.challenger.userId) {
+        await sendPushToUser(game.challenger.userId, 'Duell gewonnen', `${player.name.trim()} hat aufgegeben. Das Duell geht an dich!`, '/game');
+    }
+    revalidatePath('/game');
+    revalidatePath('/stats');
+    return { success: true };
+}
+
 export interface DuelResult {
     // Sicht des Nachziehenden
     won: boolean;
@@ -120,7 +146,7 @@ export interface DuelResult {
 export async function completeDuel(id: string, result: DuelResult): Promise<Result> {
     const player = await me();
     if (!player) return { success: false, error: 'Nicht angemeldet' };
-    const game = await prisma.miniGame.findFirst({ where: { id, opponentId: player.id, status: 'PENDING' }, include: { challenger: { select: { userId: true } } } });
+    const game = await prisma.miniGame.findFirst({ where: { id, opponentId: player.id, status: { in: ['PENDING', 'PLAYING'] } }, include: { challenger: { select: { userId: true } } } });
     if (!game) return { success: false, error: 'Duell nicht gefunden' };
     try {
         await prisma.miniGame.update({

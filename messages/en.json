@@ -1161,6 +1161,13 @@
     "rulesLink": "See all rules",
     "soundOn": "Turn sound on",
     "soundOff": "Turn sound off",
+    "duel": {
+      "quitTitle": "Give up the duel?",
+      "quitConfirm": "If you stop now, the duel counts as lost. You cannot start it again.",
+      "quitLabel": "Give up",
+      "abandoned": "You accepted a duel but did not finish it. It counts as lost.",
+      "gone": "This duel no longer exists."
+    },
     "quit": "Quit game",
     "rps": {
       "prompt": "Rock, paper, scissors: the winner starts",

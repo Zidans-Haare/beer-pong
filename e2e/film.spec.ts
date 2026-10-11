@@ -37,7 +37,7 @@ test.describe('Turnierfilm', () => {
     await expect(page.getByRole('link', { name: /Zum Turnier|Back to tournament/i })).toBeVisible();
   });
 
-  test('Sieger-Overlay erscheint einmal pro Sitzung und lässt sich wegtippen', async ({ page }) => {
+  test('Sieger-Overlay erscheint bei jedem Öffnen eines beendeten Turniers und lässt sich wegtippen', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
 
@@ -60,9 +60,13 @@ test.describe('Turnierfilm', () => {
     await overlay.click();
     await expect(overlay).toHaveCount(0);
 
-    // zweiter Besuch in derselben Sitzung: kein Overlay mehr
+    // zweiter Besuch in derselben Sitzung: das Overlay kommt wieder
     await page.goto('/tournaments/e2e-completed');
-    await expect(page.getByRole('link', { name: /Turnierfilm|Tournament film/i })).toBeVisible();
+    await expect(page.locator('.winner-overlay')).toBeVisible();
+    await page.locator('.winner-overlay').click();
+    await expect(page.locator('.winner-overlay')).toHaveCount(0);
+    // ein laufendes Turnier zeigt keines
+    await page.goto('/tournaments/e2e-active');
     await page.waitForTimeout(1500);
     await expect(page.locator('.winner-overlay')).toHaveCount(0);
     expect(errors).toEqual([]);

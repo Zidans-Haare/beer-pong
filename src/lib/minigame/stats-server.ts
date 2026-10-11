@@ -17,7 +17,8 @@ export interface MiniGameRow {
 // Bilanz aller abgeschlossenen Minispiele je Spieler. Spiele gegen den Rechner und Duelle zählen beide.
 export async function getMiniGameStats(): Promise<MiniGameRow[]> {
     const games = await prisma.miniGame.findMany({
-        where: { status: 'COMPLETED' },
+        // Verlängerungen (stage > 0) sind Teil des ursprünglichen Duells und zählen nicht extra
+        where: { status: 'COMPLETED', stage: 0 },
         select: {
             mode: true, winner: true, challengerId: true, opponentId: true, challengerRounds: true, opponentRounds: true, challengerHits: true, opponentHits: true,
             challenger: { select: { id: true, name: true } }, opponent: { select: { id: true, name: true } },
@@ -53,14 +54,14 @@ export async function getMiniGameStats(): Promise<MiniGameRow[]> {
 // Aufgeschlüsselte Bilanz eines Spielers für sein Profil
 export async function getMiniGameProfile(playerId: string): Promise<MiniGameProfile> {
     const rows = await prisma.miniGame.findMany({
-        where: { OR: [{ challengerId: playerId }, { opponentId: playerId }] },
+        where: { stage: 0, OR: [{ challengerId: playerId }, { opponentId: playerId }] },
         orderBy: { createdAt: 'desc' },
         take: 500,
         include: { challenger: { select: { name: true } }, opponent: { select: { name: true } } },
     }).catch(() => []);
     const games: ProfileGame[] = rows.map(r => ({
         id: r.id, mode: r.mode === 'DUEL' ? 'DUEL' : 'CPU',
-        status: r.status === 'PENDING' || r.status === 'PLAYING' ? 'PENDING' : r.status === 'DECLINED' ? 'DECLINED' : 'COMPLETED',
+        status: r.status === 'PENDING' || r.status === 'PLAYING' ? 'PENDING' : r.status === 'OVERTIME' ? 'OVERTIME' : r.status === 'DECLINED' ? 'DECLINED' : 'COMPLETED',
         difficulty: r.difficulty, cupSize: r.cupSize, challengerId: r.challengerId, opponentId: r.opponentId,
         challengerName: r.challenger.name, opponentName: r.opponent?.name ?? null,
         challengerRounds: r.challengerRounds, opponentRounds: r.opponentRounds, challengerHits: r.challengerHits, opponentHits: r.opponentHits,

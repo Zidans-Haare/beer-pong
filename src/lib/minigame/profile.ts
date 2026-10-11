@@ -4,7 +4,7 @@
 export interface ProfileGame {
     id: string;
     mode: 'CPU' | 'DUEL';
-    status: 'COMPLETED' | 'PENDING' | 'DECLINED';
+    status: 'COMPLETED' | 'PENDING' | 'DECLINED' | 'OVERTIME';
     difficulty: string | null;
     cupSize: string | null;
     challengerId: string;
@@ -79,6 +79,8 @@ export function buildMiniGameProfile(playerId: string, games: ProfileGame[], rec
         const iAmOpponent = g.opponentId === playerId;
         if (!iAmChallenger && !iAmOpponent) continue;
 
+        // Verlängerung läuft: Der Herausforderer ist dran, der andere wartet auf ihn
+        if (g.status === 'OVERTIME') { if (iAmChallenger) profile.duels.waitingForMe++; else profile.duels.waitingForThem++; continue; }
         if (g.status === 'PENDING') { if (iAmOpponent) profile.duels.waitingForMe++; else profile.duels.waitingForThem++; continue; }
         if (g.status === 'DECLINED') { profile.duels.declined++; continue; }
 

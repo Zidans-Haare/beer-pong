@@ -100,11 +100,42 @@
       }
     }
   },
-  "broadcast": { "back": "Back to tournament", "zoomOut": "Zoom out", "zoomIn": "Zoom in", "rotate": "Rotate", "mirror": "Mirror", "flip": "Switch camera", "start": "Start stream", "stop": "Stop stream" },
-  "pwaUpdate": { "title": "Update available", "description": "A new version is ready.", "dismiss": "Later", "reload": "Reload now" },
-  "connection": { "online": "Back online", "offline": "No connection" },
-  "tv": { "fullscreen": "Fullscreen", "exitFullscreen": "Exit fullscreen" },
-  "ui": {"genericError": "That did not work. Please try again.", "confirmTitle": "Please confirm", "noticeTitle": "Notice", "confirm": "Confirm", "ok": "OK",  "close": "Close", "back": "Back", "save": "Save", "cancel": "Cancel", "loading": "Loading..." },
+  "broadcast": {
+    "back": "Back to tournament",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "rotate": "Rotate",
+    "mirror": "Mirror",
+    "flip": "Switch camera",
+    "start": "Start stream",
+    "stop": "Stop stream"
+  },
+  "pwaUpdate": {
+    "title": "Update available",
+    "description": "A new version is ready.",
+    "dismiss": "Later",
+    "reload": "Reload now"
+  },
+  "connection": {
+    "online": "Back online",
+    "offline": "No connection"
+  },
+  "tv": {
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
+  },
+  "ui": {
+    "genericError": "That did not work. Please try again.",
+    "confirmTitle": "Please confirm",
+    "noticeTitle": "Notice",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "close": "Close",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
   "auth": {
     "loginWithEmail": "or with email",
     "password": "Password",
@@ -339,8 +370,7 @@
     "scanBtn": "Scan QR",
     "scanTitle": "Scan QR Code",
     "scanHint": "Hold the QR code in the frame",
-    "cameraError": "Camera access denied. Please allow access in settings.",
-    "retry": "Try again"
+    "cameraError": "Camera access denied. Please allow access in settings."
   },
   "admin": {
     "wrapped": {
@@ -905,7 +935,7 @@
         "title": "The end of a game",
         "items": [
           "**Redemption:** If the player who started hits the last cup, **only the one who did not start** may catch up **once**. It is a single turn that only continues with balls back.",
-          "**Overtime:** If they hit all remaining cups, nothing is left on either side. The **front three cups per side** are set up again and play continues until someone wins. That repeats as often as needed.",
+          "**Overtime:** If they hit all remaining cups, nothing is left on either side. The **front three cups per side** are set up again and play continues until someone wins. That repeats as often as needed. In the mini game duel each player plays the overtime separately: whoever is playing clears their three cups alone, then the other one has to answer. If both clear, the next overtime follows.",
           "If the player who did not start is the first to hit all cups, they win right away."
         ]
       },
@@ -1207,7 +1237,8 @@
       "oppTurn": "{name}'s turn",
       "oppThrows": "{name} throws",
       "oppTrick": "{name} tries a trick shot",
-      "lead": "Hit all the cups as fast as you can"
+      "lead": "Hit all the cups as fast as you can",
+      "overtimeRun": "Overtime: clear the three cups"
     },
     "stamp": {
       "hit": "HIT!",
@@ -1230,7 +1261,8 @@
       "youStart": "YOU START",
       "oppStarts": "{name} STARTS",
       "lead": "YOU GO FIRST",
-      "ballsBack": "BALLS BACK!"
+      "ballsBack": "BALLS BACK!",
+      "overtimeRun": "OVERTIME! YOUR THREE CUPS"
     },
     "end": {
       "youWin": "YOU WIN!",
@@ -1246,7 +1278,8 @@
       "sent": "Duel sent to {name}: {rounds} rounds, {hits} hits. You will get a message once they have caught up.",
       "sendFailed": "The duel could not be sent.",
       "saveFailed": "The result could not be saved.",
-      "duelSaved": "Result saved. {name} will be notified."
+      "duelSaved": "Result saved. {name} will be notified.",
+      "overtimeSent": "Overtime sent to {name}: {rounds} rounds, {hits} hits. {name} has to answer now and gets a message."
     },
     "pickKind": "How do you want to play?",
     "cpuName": "Computer",
@@ -1262,7 +1295,9 @@
       "incoming": "Challenges for you",
       "outgoing": "Waiting for a reply",
       "from": "{name} wants a duel",
-      "waiting": "{name} has not caught up yet"
+      "waiting": "{name} has not caught up yet",
+      "overtimeFrom": "{name}: overtime, your turn",
+      "overtimeWaiting": "Overtime: {name} has to answer"
     },
     "invite": {
       "title": "Duel",
@@ -1272,7 +1307,11 @@
       "accept": "Accept",
       "decline": "Decline",
       "later": "Later",
-      "open": "View"
+      "open": "View",
+      "overtimeTitle": "Overtime",
+      "overtimeText": "You and {name} both cleared the table. {name} has already played the overtime: you answer with three cups.",
+      "overtimeYouStart": "You go first.",
+      "overtimeTheyStart": "{name} goes first."
     },
     "options": "Options",
     "islandsLeft": "{count} left",

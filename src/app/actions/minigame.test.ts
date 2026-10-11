@@ -131,4 +131,62 @@ describe('Minispiel-Aktionen', () => {
         // danach lässt es sich nicht mehr nachträglich als gewonnen melden
         expect((await completeDuel(game.id, { won: true, rounds: 1, hits: 10, challengerRounds: 4, challengerHits: 8, nakedMile: null })).success).toBe(false);
     });
+    it('Verlängerung: wer gerade spielt, legt vor, der andere zieht nach, das Ergebnis geht an das ursprüngliche Duell', async () => {
+        const { createDuel, startDuel, createOvertime, declineDuel, completeDuel } = await import('./minigame');
+        const { prisma } = await import('@/lib/prisma');
+        const { getMiniGameStats } = await import('@/lib/minigame/stats-server');
+        // Paul fordert Nick heraus und fängt an
+        currentUser = 'user-paul';
+        expect((await createDuel({ opponentPlayerId: 'p-nick', replay: replay(5), starter: 'CHALLENGER', challengerHand: 'rock', opponentHand: 'scissors' })).success).toBe(true);
+        const root = (await prisma.miniGame.findFirst({ where: { challengerId: 'p-paul', stage: 0 }, orderBy: { createdAt: 'desc' } }))!;
+        const before = await getMiniGameStats();
+        // Nick zieht nach, räumt ebenfalls alles ab: Verlängerung. Nur wer gerade spielt (und angenommen hat), darf sie anlegen.
+        currentUser = 'user-nick';
+        expect((await createOvertime(root.id, JSON.stringify(JSON.parse(replay(3))), { rounds: 5, hits: 10 })).success).toBe(false);
+        expect((await startDuel(root.id)).success).toBe(true);
+        currentUser = 'user-paul';
+        expect((await createOvertime(root.id, replay(3))).success).toBe(false);
+        currentUser = 'user-nick';
+        expect((await createOvertime(root.id, 'kaputt')).success).toBe(false);
+        const made = await createOvertime(root.id, replay(3), { rounds: 5, hits: 10 });
+        expect(made.success).toBe(true);
+        const stage = (await prisma.miniGame.findFirst({ where: { parentId: root.id } }))!;
+        expect(await prisma.miniGame.findUnique({ where: { id: root.id } })).toMatchObject({ status: 'OVERTIME', opponentRounds: 5, opponentHits: 10, winner: null });
+        // die Verlängerung gehört Paul: Nick hat vorgelegt, Paul zieht nach, und Paul fängt an wie im Duell
+        expect(stage).toMatchObject({ stage: 1, status: 'PENDING', challengerId: 'p-nick', opponentId: 'p-paul', starter: 'OPPONENT', challengerRounds: 3, challengerHits: 6, cupSize: root.cupSize });
+        expect(pushed.at(-1)).toMatchObject({ userId: 'user-paul', title: 'Verlängerung!', link: `/game?duel=${stage.id}` });
+        // eine Verlängerung lässt sich nicht ablehnen und zählt nicht extra in der Statistik
+        currentUser = 'user-paul';
+        expect((await declineDuel(stage.id)).success).toBe(false);
+        expect(await getMiniGameStats()).toEqual(before);
+        // Paul zieht nach und verliert: Nick gewinnt das ganze Duell
+        expect((await startDuel(stage.id)).success).toBe(true);
+        expect((await completeDuel(stage.id, { won: false, rounds: 4, hits: 2, challengerRounds: 3, challengerHits: 8, nakedMile: null })).success).toBe(true);
+        expect(await prisma.miniGame.findUnique({ where: { id: stage.id } })).toMatchObject({ status: 'COMPLETED', winner: 'CHALLENGER' });
+        expect(await prisma.miniGame.findUnique({ where: { id: root.id } })).toMatchObject({ status: 'COMPLETED', winner: 'OPPONENT', opponentRounds: 5, challengerRounds: 5 });
+        const after = await getMiniGameStats();
+        const gain = (name: string, key: 'duels' | 'duelWins') => (after.find(r => r.name === name)?.[key] ?? 0) - (before.find(r => r.name === name)?.[key] ?? 0);
+        expect(gain('Nick', 'duels')).toBe(1);
+        expect(gain('Nick', 'duelWins')).toBe(1);
+        expect(gain('Paul', 'duels')).toBe(1);
+        expect(gain('Paul', 'duelWins')).toBe(0);
+    });
+
+    it('Aufgeben in der Verlängerung entscheidet das ursprüngliche Duell', async () => {
+        const { createDuel, startDuel, createOvertime, forfeitDuel } = await import('./minigame');
+        const { prisma } = await import('@/lib/prisma');
+        currentUser = 'user-paul';
+        await createDuel({ opponentPlayerId: 'p-nick', replay: replay(5), starter: 'OPPONENT', challengerHand: 'paper', opponentHand: 'rock' });
+        const root = (await prisma.miniGame.findFirst({ where: { challengerId: 'p-paul', stage: 0, status: 'PENDING' }, orderBy: { createdAt: 'desc' } }))!;
+        currentUser = 'user-nick';
+        await startDuel(root.id);
+        await createOvertime(root.id, replay(2), { rounds: 6, hits: 9 });
+        const stage = (await prisma.miniGame.findFirst({ where: { parentId: root.id } }))!;
+        // Nick hat im Duell angefangen (OPPONENT = Nick), also fängt er auch in der Verlängerung an
+        expect(stage.starter).toBe('CHALLENGER');
+        currentUser = 'user-paul';
+        await startDuel(stage.id);
+        expect((await forfeitDuel(stage.id)).success).toBe(true);
+        expect(await prisma.miniGame.findUnique({ where: { id: root.id } })).toMatchObject({ status: 'COMPLETED', winner: 'OPPONENT' });
+    });
 });

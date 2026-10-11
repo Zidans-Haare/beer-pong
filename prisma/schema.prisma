@@ -389,6 +389,9 @@ model MiniGame {
   nakedMile        String? // CHALLENGER | OPPONENT
   // JSON: Würfe des Herausforderers, Runde für Runde
   replay           String?
+  // Verlängerung eines Duells: Das ursprüngliche Duell ist `parentId`, `stage` zählt die Verlängerungen (0 = das Duell selbst)
+  parentId         String?
+  stage            Int       @default(0)
   createdAt        DateTime  @default(now())
   completedAt      DateTime?
   challenger       Player    @relation("MiniGameChallenger", fields: [challengerId], references: [id], onDelete: Cascade)

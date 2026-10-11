@@ -7,7 +7,7 @@ import { Volume2, VolumeX, X, Mountain, ArrowDownToLine, LayoutGrid, Swords, Bot
 import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts, loadSceneLogo, skinFor, lerp, clamp, easeOut, tablePoint, type FigureLook } from '@/lib/wrapped-scene';
 import { lookFor, type FigureMap } from '@/lib/figure';
 import {
-    newGame, applyThrow, resolveRound, roundOver, canTrick, skipTrick, canRearrange, rearrange, moveCup, finishRearranging, islandsOf, isIsland, rockPaperScissors,
+    newGame, newOvertimeGame, applyThrow, resolveRound, roundOver, canTrick, skipTrick, canRearrange, rearrange, moveCup, finishRearranging, islandsOf, isIsland, rockPaperScissors,
     THROWS_PER_ROUND, CUP_SIZES, other, type CupSize, type Game, type Side, type Hand, type ThrowResult, type GameEvent,
 } from '@/lib/minigame/engine';
 import { planAiThrow, planAiTrick, aiRearrangeSlots, aiSwat, aiHand, ROLL_BACK_CHANCE, DIFFICULTIES, type Difficulty } from '@/lib/minigame/ai';
@@ -15,7 +15,7 @@ import { judgeDirect, judgeBounce, cupMouth, cupAt, slotAt, hitRadii, flickLandi
 import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
 import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
 import { throwsOfRound, roundsOf, hitsOf, type ReplayThrow } from '@/lib/minigame/replay';
-import { recordCpuGame, createDuel, declineDuel, completeDuel, startDuel as startDuelAction, forfeitDuel } from '@/app/actions/minigame';
+import { recordCpuGame, createDuel, createOvertime, declineDuel, completeDuel, startDuel as startDuelAction, forfeitDuel } from '@/app/actions/minigame';
 import { useAppDialog } from '@/components/AppDialog';
 
 type Mode = 'pick' | 'invite' | 'rps' | 'play' | 'over';
@@ -52,8 +52,9 @@ const pick = <T,>(items: T[]): T => items[Math.floor(rand() * items.length)];
 type AimChoice = { type: 'throw'; point: Point; bounce: boolean; island: boolean; exact?: boolean } | { type: 'rearrange' };
 
 export interface GamePlayer { id: string; name: string }
-export interface DuelInfo { id: string; cupSize: CupSize; challengerName: string; starter: 'CHALLENGER' | 'OPPONENT'; challengerHand: Hand; opponentHand: Hand; replay: ReplayThrow[] }
-export interface OpenDuel { id: string; name: string }
+// overtime: Verlängerung eines Duells (drei Becher pro Seite, kein Schnick, Schnack, Schnuck, nicht ablehnbar)
+export interface DuelInfo { id: string; cupSize: CupSize; challengerName: string; starter: 'CHALLENGER' | 'OPPONENT'; challengerHand: Hand; opponentHand: Hand; replay: ReplayThrow[]; overtime?: boolean }
+export interface OpenDuel { id: string; name: string; overtime?: boolean }
 
 interface GhostState { replay: ReplayThrow[]; round: number; used: number; duelId: string }
 
@@ -96,6 +97,10 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     const ghostRef = useRef<GhostState | null>(null);
     const roundsRef = useRef({ me: 0, opp: 0 });
     const logRef = useRef<ReplayThrow[]>([]);
+    // Verlängerung im Duell: läuft das aktuelle Spiel als Verlängerung, ist das Duell, das sie beendet, und soll nach dem Nachziehen die Verlängerung gespielt werden
+    const overtimeRef = useRef(false);
+    const overtimeSwitchRef = useRef(false);
+    const overtimeRowRef = useRef<string | null>(null);
     const targetPlayer = useRef<GamePlayer | null>(null);
     const handsRef = useRef<{ mine: Hand; theirs: Hand } | null>(null);
     const statusRef = useRef('');
@@ -268,7 +273,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         for (;;) {
             if (runId.current !== id) return;
             setControls({
-                aim: true, islandAvailable: !trick && g.cups.opp.length >= 2 && islandsOf(g.cups.opp, g.size).length > 0, islandOn: false, bounceOn: false,
+                aim: true, islandAvailable: !trick && g.islandsLeft.me > 0 && g.cups.opp.length >= 2 && islandsOf(g.cups.opp, g.size).length > 0, islandOn: false, bounceOn: false,
                 // im Duell gibt es keine Aufpraller: Der andere sitzt nicht dabei und könnte sie nicht wegschlagen
                 bounceAvailable: !trick && kindRef.current === 'cpu',
                 canRearrange: first && canRearrange(g, 'me'), rearranging: false, islandsLeft: g.islandsLeft.me, hint: trick ? t('hint.trick') : t('hint.swipe'),
@@ -476,6 +481,8 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             if (e.type === 'catchUp') announce(t('stamp.catchUp'), 'turn', '#8fd3ff');
             if (e.type === 'overtime') announce(t('stamp.overtime'), 'turn', '#ff9f43');
         }
+        // Duell: Beide haben alles abgeräumt. Die Verlängerung spielt jeder für sich, der andere zieht danach gegen die Aufzeichnung nach.
+        if (ghostRef.current && out.events.some(e => e.type === 'overtime')) overtimeSwitchRef.current = true;
         if (out.events.some(e => e.type === 'ballsBack' || (kindRef.current !== 'run' && (e.type === 'catchUp' || e.type === 'overtime')))) await wait(id, 1500);
     }, [announce, fx, t, wait]);
 
@@ -517,45 +524,83 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         if (runId.current === id) await finishRound(id);
     }, [announce, finishRound, fx, input, myThrow, oppThrow, setControls, t, wait]);
 
+    // ---- Vorlegen allein: so lange werfen, bis alle Becher weg sind, und die Runden zählen ----
+    // `send` schickt die Aufzeichnung ab (Duell vorlegen oder Verlängerung); das Ergebnis erscheint im Status
+    const playSolo = useCallback(async (id: number, oppName: string, send: (replay: ReplayThrow[]) => Promise<{ success: boolean; error?: string }>, doneLabel: (replay: ReplayThrow[]) => string) => {
+        const view = viewRef.current!;
+        setStatus(overtimeRef.current ? t('status.overtimeRun') : t('status.lead'));
+        while (runId.current === id && gameRef.current!.cups.opp.length > 0) await playRound(id);
+        if (runId.current !== id) return;
+        const rounds = roundsRef.current.me;
+        view.ending = { start: performance.now() + 400, winner: 'me', nakedMile: null, winLabel: t('end.leadDone', { rounds }), mileLabel: '' };
+        view.cheer = 1; view.mood = -1;
+        fx('win');
+        setControls({ ...IDLE, over: { won: true, mile: false } });
+        setMode('over');
+        setStatus(t('end.sending', { name: oppName }));
+        const replay = logRef.current;
+        const saved = await send(replay);
+        if (runId.current !== id) return;
+        setStatus(saved.success ? doneLabel(replay) : saved.error || t('end.sendFailed'));
+    }, [fx, playRound, setControls, t]);
+
+    // ---- Verlängerung im Duell: Beide haben alles abgeräumt, jetzt spiele ich meine drei Becher allein ----
+    const playOvertimeRun = useCallback(async (id: number, oppName: string) => {
+        const view = viewRef.current!;
+        const ghost = ghostRef.current!;
+        const rowId = ghost.duelId;
+        const main = { rounds: roundsRef.current.me, hits: gameRef.current!.hits.me };
+        overtimeRowRef.current = rowId;
+        // ab jetzt gibt es keine Aufzeichnung des anderen mehr, ich lege selbst vor
+        ghostRef.current = null;
+        kindRef.current = 'run';
+        overtimeRef.current = true;
+        overtimeSwitchRef.current = false;
+        roundsRef.current = { me: 0, opp: 0 };
+        logRef.current = [];
+        gameRef.current = newOvertimeGame('me', CUP_SIZES[sizeRef.current]);
+        view.game = gameRef.current;
+        view.ending = null; view.cheer = 0; view.mood = 0;
+        setControls({ ...IDLE });
+        announce(t('stamp.overtimeRun'), 'turn', '#ff9f43');
+        await wait(id, 2200);
+        if (runId.current !== id) return;
+        await playSolo(id, oppName,
+            replay => createOvertime(rowId, JSON.stringify(replay), main),
+            replay => t('end.overtimeSent', { name: oppName, rounds: roundsOf(replay), hits: hitsOf(replay) }));
+    }, [announce, playSolo, setControls, t, wait]);
+
     // ---- Ganzes Spiel ----
     const runGame = useCallback(async (id: number, starter: Side, oppName: string) => {
         const view = viewRef.current!;
         const kind = kindRef.current;
-        gameRef.current = newGame(kind === 'run' ? 'me' : starter, CUP_SIZES[sizeRef.current]);
+        const size = CUP_SIZES[sizeRef.current];
+        gameRef.current = overtimeRef.current ? newOvertimeGame(kind === 'run' ? 'me' : starter, size) : newGame(kind === 'run' ? 'me' : starter, size);
         roundsRef.current = { me: 0, opp: 0 };
         logRef.current = [];
+        overtimeSwitchRef.current = false;
         view.game = gameRef.current;
         setMode('play');
         setControls({ ...IDLE });
         view.enter = 1;
-        announce(kind === 'run' ? t('stamp.lead') : starter === 'me' ? t('stamp.youStart') : t('stamp.oppStarts', { name: oppName }), 'turn', '#ffe08a');
+        announce(kind === 'run' ? t('stamp.lead') : overtimeRef.current ? t('stamp.overtime') : starter === 'me' ? t('stamp.youStart') : t('stamp.oppStarts', { name: oppName }), 'turn', '#ffe08a');
         await wait(id, 1400);
 
         if (kind === 'run') {
-            // Vorlegen: so lange werfen, bis alle Becher weg sind, und die Runden zählen
-            setStatus(t('status.lead'));
-            while (runId.current === id && gameRef.current!.cups.opp.length > 0) await playRound(id);
-            if (runId.current !== id) return;
-            const rounds = roundsRef.current.me;
-            view.ending = { start: performance.now() + 400, winner: 'me', nakedMile: null, winLabel: t('end.leadDone', { rounds }), mileLabel: '' };
-            view.cheer = 1; view.mood = -1;
-            fx('win');
-            setControls({ ...IDLE, over: { won: true, mile: false } });
-            setMode('over');
-            setStatus(t('end.sending', { name: oppName }));
-            const replay = logRef.current;
             const hands = handsRef.current;
             const target = targetPlayer.current;
-            const saved = target && hands
-                ? await createDuel({ opponentPlayerId: target.id, cupSize: sizeRef.current, replay: JSON.stringify(replay), starter: starter === 'me' ? 'CHALLENGER' : 'OPPONENT', challengerHand: hands.mine, opponentHand: hands.theirs })
-                : { success: false as const, error: '' };
-            if (runId.current !== id) return;
-            setStatus(saved.success ? t('end.sent', { name: oppName, rounds: roundsOf(replay), hits: hitsOf(replay) }) : saved.error || t('end.sendFailed'));
+            await playSolo(id, oppName,
+                replay => target && hands
+                    ? createDuel({ opponentPlayerId: target.id, cupSize: sizeRef.current, replay: JSON.stringify(replay), starter: starter === 'me' ? 'CHALLENGER' : 'OPPONENT', challengerHand: hands.mine, opponentHand: hands.theirs })
+                    : Promise.resolve({ success: false as const, error: '' }),
+                replay => t('end.sent', { name: oppName, rounds: roundsOf(replay), hits: hitsOf(replay) }));
             return;
         }
 
-        while (runId.current === id && !gameRef.current!.winner) await playRound(id);
+        while (runId.current === id && !gameRef.current!.winner && !overtimeSwitchRef.current) await playRound(id);
         if (runId.current !== id) return;
+        // Duell: Beide haben alles abgeräumt, die Verlängerung wird einzeln gespielt
+        if (overtimeSwitchRef.current && ghostRef.current) { await playOvertimeRun(id, oppName); return; }
         const g = gameRef.current!;
         const winner = g.winner!;
         const mile = g.nakedMile !== null;
@@ -579,7 +624,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             : await recordCpuGame({ difficulty: difficultyRef.current, cupSize: sizeRef.current, won: winner === 'me', rounds: rounds.me, hits: g.hits.me, opponentRounds: rounds.opp, opponentHits: g.hits.opp, nakedMile: g.nakedMile });
         if (runId.current === id && !saved.success) setStatus(t('end.saveFailed'));
         else if (runId.current === id && ghost) setStatus(t('end.duelSaved', { name: oppName }));
-    }, [announce, fx, playRound, setControls, t, wait]);
+    }, [announce, fx, playOvertimeRun, playRound, playSolo, setControls, t, wait]);
 
     // ---- Start und Schnick, Schnack, Schnuck ----
     const begin = useCallback(async (oppName: string, kind: Kind, target: GamePlayer | null = null) => {
@@ -592,6 +637,9 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         targetPlayer.current = target;
         handsRef.current = null;
         ghostRef.current = kind === 'ghost' && duel ? { replay: duel.replay, round: 0, used: 0, duelId: duel.id } : null;
+        overtimeRef.current = kind === 'ghost' && !!duel?.overtime;
+        overtimeSwitchRef.current = false;
+        overtimeRowRef.current = kind === 'ghost' && duel ? duel.id : null;
         const view: GameView = {
             primary: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#006b50',
             game: newGame('me'), names: { me: meName, opp: oppName },
@@ -609,7 +657,12 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         setStatus(kind === 'ghost' ? t('rps.duelPrompt', { name: oppName }) : t('rps.prompt'));
         animate(id, 1500, k => { view.enter = k; });
         let starter: Side | null = null;
-        if (kind === 'ghost' && duel) {
+        if (kind === 'ghost' && duel?.overtime) {
+            // Verlängerung: Schnick, Schnack, Schnuck gab es schon, wer anfängt steht fest
+            starter = duel.starter === 'OPPONENT' ? 'me' : 'opp';
+            setControls({ ...IDLE });
+            await wait(id, 800);
+        } else if (kind === 'ghost' && duel) {
             // Der Nachziehende wählt nicht: Seine Hand wurde schon zufällig bestimmt, das Ergebnis steht fest
             const mine = duel.opponentHand, theirs = duel.challengerHand;
             setControls({ ...IDLE });
@@ -744,7 +797,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     }, [answer]);
 
     const replay = () => { if (opponent && kindRef.current !== 'ghost') { runId.current++; answer(undefined); void begin(opponent, kindRef.current, targetPlayer.current); } };
-    const choose = () => { runId.current++; answer(undefined); viewRef.current = null; gameRef.current = null; ghostRef.current = null; setStatus(''); setControls({ ...IDLE }); setMode('pick'); };
+    const choose = () => { runId.current++; answer(undefined); viewRef.current = null; gameRef.current = null; ghostRef.current = null; overtimeRowRef.current = null; setStatus(''); setControls({ ...IDLE }); setMode('pick'); };
 
     const startDuel = (player: GamePlayer) => void begin(player.name, 'run', player);
     // Angenommen heißt: Ab jetzt zählt das Duell. Wer es verlässt oder neu lädt, hat aufgegeben
@@ -757,11 +810,11 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         void begin(duel.challengerName, 'ghost');
     };
     const quit = async () => {
-        const ghost = ghostRef.current;
-        if (ghost && mode !== 'over') {
+        const duelId = ghostRef.current?.duelId ?? overtimeRowRef.current;
+        if (duelId && mode !== 'over') {
             if (!(await dialog.confirm(t('duel.quitConfirm'), { title: t('duel.quitTitle'), confirmLabel: t('duel.quitLabel'), danger: true }))) return;
             runId.current++; answer(undefined);
-            await forfeitDuel(ghost.duelId);
+            await forfeitDuel(duelId);
             window.location.assign('/game');
             return;
         }
@@ -781,12 +834,13 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                 <Link href={backHref} className="gp-back">&larr; {t('back')}</Link>
                 <section className="gp-card gp-invite">
                     <span className="gp-avatar" style={{ background: lookFor(duel.challengerName, 0, figures).shirt }} aria-hidden="true">{duel.challengerName.slice(0, 1).toUpperCase()}</span>
-                    <h1>{t('invite.title')}</h1>
-                    <p>{t('invite.text', { name: duel.challengerName })}</p>
-                    <p className="gp-sub">{duel.starter === 'OPPONENT' ? t('invite.youStart') : t('invite.theyStart', { name: duel.challengerName })}</p>
+                    <h1>{duel.overtime ? t('invite.overtimeTitle') : t('invite.title')}</h1>
+                    <p>{duel.overtime ? t('invite.overtimeText', { name: duel.challengerName }) : t('invite.text', { name: duel.challengerName })}</p>
+                    <p className="gp-sub">{duel.starter === 'OPPONENT' ? (duel.overtime ? t('invite.overtimeYouStart') : t('invite.youStart')) : (duel.overtime ? t('invite.overtimeTheyStart', { name: duel.challengerName }) : t('invite.theyStart', { name: duel.challengerName }))}</p>
                     <div className="gp-actions">
                         <button type="button" className="gp-button is-primary" disabled={!ready || busy} onClick={accept}>{t('invite.accept')}</button>
-                        <button type="button" className="gp-button" disabled={busy} onClick={decline}>{t('invite.decline')}</button>
+                        {/* eine Verlängerung gehört zu einem laufenden Duell: spielen oder (im Spiel) aufgeben, ablehnen geht nicht */}
+                        {!duel.overtime && <button type="button" className="gp-button" disabled={busy} onClick={decline}>{t('invite.decline')}</button>}
                         <Link href="/game" className="gp-button">{t('invite.later')}</Link>
                     </div>
                 </section>
@@ -820,7 +874,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                             {incoming.map(d => (
                                 <li key={d.id}>
                                     <span className="gp-dot" style={{ background: lookFor(d.name, 0, figures).shirt }} aria-hidden="true" />
-                                    <span className="gp-open-text">{t('open.from', { name: d.name })}</span>
+                                    <span className="gp-open-text">{d.overtime ? t('open.overtimeFrom', { name: d.name }) : t('open.from', { name: d.name })}</span>
                                     <Link href={`/game?duel=${d.id}`} className="gp-button is-primary is-small" aria-label={t('open.from', { name: d.name })}>{t('invite.open')}</Link>
                                 </li>
                             ))}
@@ -834,7 +888,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                             {outgoing.map(d => (
                                 <li key={d.id}>
                                     <span className="gp-dot" style={{ background: lookFor(d.name, 0, figures).shirt }} aria-hidden="true" />
-                                    <span className="gp-open-text">{t('open.waiting', { name: d.name })}</span>
+                                    <span className="gp-open-text">{d.overtime ? t('open.overtimeWaiting', { name: d.name }) : t('open.waiting', { name: d.name })}</span>
                                 </li>
                             ))}
                         </ul>

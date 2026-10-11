@@ -76,7 +76,7 @@ export async function createDuel(input: DuelInput): Promise<Result<{ id: string 
     if (!opponent || !opponent.userId || opponent.id === player.id) return { success: false, error: 'Gegner nicht gefunden' };
 
     // nicht beliebig viele offene Duelle gleichzeitig
-    const open = await prisma.miniGame.count({ where: { challengerId: player.id, status: { in: ['PENDING', 'PLAYING'] } } });
+    const open = await prisma.miniGame.count({ where: { challengerId: player.id, stage: 0, status: { in: ['PENDING', 'PLAYING'] } } });
     if (open >= 5) return { success: false, error: 'Du hast schon fünf offene Duelle. Warte, bis jemand nachzieht.' };
 
     try {
@@ -101,6 +101,8 @@ export async function declineDuel(id: string): Promise<Result> {
     if (!player) return { success: false, error: 'Nicht angemeldet' };
     const game = await prisma.miniGame.findFirst({ where: { id, opponentId: player.id, status: 'PENDING' }, include: { challenger: { select: { userId: true } } } });
     if (!game) return { success: false, error: 'Duell nicht gefunden' };
+    // Eine Verlängerung gehört zu einem Duell, das schon läuft: Ablehnen geht nicht, nur spielen oder aufgeben
+    if (game.stage > 0) return { success: false, error: 'Eine Verlängerung lässt sich nicht ablehnen.' };
     await prisma.miniGame.update({ where: { id }, data: { status: 'DECLINED', completedAt: new Date() } });
     if (game.challenger.userId) await sendPushToUser(game.challenger.userId, 'Duell abgelehnt', `${player.name.trim()} hat dein Duell abgelehnt.`, '/game');
     revalidatePath('/game');
@@ -125,12 +127,67 @@ export async function forfeitDuel(id: string): Promise<Result> {
         where: { id, status: 'PLAYING' },
         data: { status: 'COMPLETED', completedAt: new Date(), winner: 'CHALLENGER', opponentHits: 0, opponentRounds: game.challengerRounds },
     });
+    if (done.count === 1) await finishRoot(game, game.challengerId);
     if (done.count === 1 && game.challenger.userId) {
         await sendPushToUser(game.challenger.userId, 'Duell gewonnen', `${player.name.trim()} hat aufgegeben. Das Duell geht an dich!`, '/game');
     }
     revalidatePath('/game');
     revalidatePath('/stats');
     return { success: true };
+}
+
+// Eine Verlängerung ist entschieden: Das ursprüngliche Duell bekommt den Sieger (aus Sicht seiner Rollen) und gilt als beendet
+async function finishRoot(game: { parentId: string | null }, winnerPlayerId: string | null) {
+    if (!game.parentId || !winnerPlayerId) return;
+    const root = await prisma.miniGame.findUnique({ where: { id: game.parentId }, select: { id: true, challengerId: true, status: true } });
+    if (!root || root.status !== 'OVERTIME') return;
+    await prisma.miniGame.update({
+        where: { id: root.id },
+        data: { status: 'COMPLETED', completedAt: new Date(), winner: winnerPlayerId === root.challengerId ? 'CHALLENGER' : 'OPPONENT' },
+    });
+}
+
+// Beide haben alles abgeräumt: Wer gerade spielt, hat seine Verlängerung (drei Becher) allein gespielt. Daraus entsteht ein neues Spiel,
+// in dem der andere gegen diese Aufzeichnung nachziehen muss. Das ursprüngliche Duell bleibt offen, bis eine Verlängerung entschieden ist.
+export async function createOvertime(id: string, replayJson: string, partial?: { rounds: number; hits: number }): Promise<Result<{ id: string }>> {
+    const player = await me();
+    if (!player) return { success: false, error: 'Nicht angemeldet' };
+    const replay = parseReplay(replayJson);
+    if (!replay) return { success: false, error: 'Ungültige Daten' };
+    const game = await prisma.miniGame.findFirst({ where: { id, opponentId: player.id, status: 'PLAYING' }, include: { challenger: { select: { userId: true } } } });
+    if (!game) return { success: false, error: 'Duell nicht gefunden' };
+    const root = game.parentId ? await prisma.miniGame.findUnique({ where: { id: game.parentId } }) : game;
+    if (!root) return { success: false, error: 'Duell nicht gefunden' };
+    if (game.stage >= 20) return { success: false, error: 'Zu viele Verlängerungen' };
+    // Wer im Duell angefangen hat, fängt auch in jeder Verlängerung an
+    const starterPlayerId = root.starter === 'OPPONENT' ? root.opponentId : root.challengerId;
+    try {
+        const next = await prisma.$transaction(async tx => {
+            await tx.miniGame.update({
+                where: { id },
+                data: game.stage === 0
+                    ? { status: 'OVERTIME', opponentRounds: clampInt(partial?.rounds, 200), opponentHits: clampInt(partial?.hits) }
+                    : { status: 'COMPLETED', completedAt: new Date() },
+            });
+            return tx.miniGame.create({
+                data: {
+                    mode: 'DUEL', status: 'PENDING', stage: game.stage + 1, parentId: root.id,
+                    challengerId: player.id, opponentId: game.challengerId, cupSize: game.cupSize,
+                    starter: starterPlayerId === player.id ? 'CHALLENGER' : 'OPPONENT',
+                    challengerHand: 'rock', opponentHand: 'rock',
+                    challengerRounds: roundsOf(replay), challengerHits: hitsOf(replay), replay: JSON.stringify(replay),
+                },
+            });
+        });
+        if (game.challenger.userId) {
+            await sendPushToUser(game.challenger.userId, 'Verlängerung!', `${player.name.trim()} und du habt beide alles abgeräumt. Jetzt zieht ihr in der Verlängerung nach: Du bist dran!`, `/game?duel=${next.id}`);
+        }
+        revalidatePath('/game');
+        return { success: true, id: next.id };
+    } catch (error) {
+        console.error('createOvertime failed:', error);
+        return { success: false, error: 'Die Verlängerung konnte nicht angelegt werden' };
+    }
 }
 
 export interface DuelResult {
@@ -159,6 +216,8 @@ export async function completeDuel(id: string, result: DuelResult): Promise<Resu
                 nakedMile: result.nakedMile === 'me' ? 'OPPONENT' : result.nakedMile === 'opp' ? 'CHALLENGER' : null,
             },
         });
+        // Gehört das Spiel zu einer Verlängerung, entscheidet es das ursprüngliche Duell
+        await finishRoot(game, result.won ? game.opponentId : game.challengerId);
         if (game.challenger.userId) {
             const name = player.name.trim();
             await sendPushToUser(

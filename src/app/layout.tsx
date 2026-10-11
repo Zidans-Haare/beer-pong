@@ -10,6 +10,7 @@ import OfflineIndicator from '@/components/OfflineIndicator';
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
 import PWATracker from '@/components/PWATracker';
 import WhatsNew from '@/components/WhatsNew';
+import PresenceHeartbeat from '@/components/PresenceHeartbeat';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -109,6 +110,7 @@ export default async function RootLayout({
           <ServiceWorkerProvider />
           {session?.user?.id && <PWATracker userId={session.user.id} />}
           {session?.user?.id && <WhatsNew />}
+          <PresenceHeartbeat />
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>

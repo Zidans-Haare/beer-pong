@@ -452,4 +452,48 @@ test.describe('Duell', () => {
     await expect(anotherOpponent).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Herausforderungen für dich' })).toHaveCount(0);
   });
+  test('Verlängerung: beide räumen ab, ich spiele die drei Becher allein, der andere zieht danach nach und entscheidet', async ({ page, browser }) => {
+    test.setTimeout(600_000);
+    await insertDuel('duel-6');
+    await withDb(db => db.prepare("update MiniGame set starter = 'CHALLENGER', challengerHand = 'rock', opponentHand = 'scissors' where id = 'duel-6'").run());
+    await page.goto('/game?duel=duel-6');
+    await page.getByRole('button', { name: 'Annehmen', exact: true }).click();
+    const aimHint = page.getByText(/Nach vorn wischen/);
+    const throwAt = async (point: { x: number; y: number }) => {
+      await expect(aimHint).toBeVisible({ timeout: 150_000 });
+      expect(await page.evaluate(p => (window as unknown as { __bpThrow: (q: { x: number; y: number }) => boolean }).__bpThrow(p), point)).toBe(true);
+      await expect(aimHint).toBeHidden();
+    };
+    const mouth = (id: number) => cupMouth(slotsOf('opp', 1).find(s => s.id === id)!);
+    // Der Herausforderer hat alles abgeräumt. Ich ziehe nach und räume in einem Zug ebenfalls alle zehn (Balls back nach jedem Paar).
+    for (const id of [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]) await throwAt(mouth(id));
+    // Verlängerung: Ich spiele die drei Becher allein (Spitze und die zwei dahinter)
+    await expect.poll(() => page.evaluate(() => { const g = (window as unknown as { __bpGame: () => { overtime: number; cups: { me: unknown[]; opp: unknown[] } } }).__bpGame(); return `${g.overtime}:${g.cups.me.length}:${g.cups.opp.length}`; }), { timeout: 60_000 }).toBe('1:3:3');
+    expect((await withDb(db => db.prepare("select status from MiniGame where id = 'duel-6'").get() as { status: string })).status).toBe('PLAYING');
+    for (const id of [9, 8, 7]) await throwAt(mouth(id));
+    await throwAt({ x: 20, y: 700 });
+    // Das Duell bleibt offen, die Verlängerung wartet auf den anderen
+    await expect.poll(() => withDb(db => db.prepare("select status from MiniGame where id = 'duel-6'").get() as { status: string }).then(r => r.status), { timeout: 30_000 }).toBe('OVERTIME');
+    const stage = await withDb(db => db.prepare("select id, status, challengerId, opponentId, starter, stage, parentId from MiniGame where parentId = 'duel-6'").get() as { id: string; status: string; challengerId: string; opponentId: string; starter: string; stage: number; parentId: string });
+    expect(stage).toMatchObject({ status: 'PENDING', challengerId: 'e2e-host-player', opponentId: 'e2e-player-player', starter: 'OPPONENT', stage: 1, parentId: 'duel-6' });
+
+    // Der andere öffnet die Verlängerung: kein Ablehnen, er fängt an, spielt zweimal daneben und verliert
+    const context = await browser.newContext({ ...test.info().project.use, storageState: 'e2e/.auth/player.json' });
+    const other = await context.newPage();
+    await other.goto(`/game?duel=${stage.id}`);
+    await expect(other.getByRole('heading', { name: 'Verlängerung' })).toBeVisible();
+    await expect(other.getByRole('button', { name: 'Ablehnen' })).toHaveCount(0);
+    await other.getByRole('button', { name: 'Annehmen', exact: true }).click();
+    const otherHint = other.getByText(/Nach vorn wischen/);
+    for (let i = 0; i < 2; i++) {
+      await expect(otherHint).toBeVisible({ timeout: 60_000 });
+      expect(await other.evaluate(p => (window as unknown as { __bpThrow: (q: { x: number; y: number }) => boolean }).__bpThrow(p), { x: 20, y: 700 })).toBe(true);
+      await expect(otherHint).toBeHidden();
+    }
+    // Ich räume die drei Becher in zwei Runden ab und bin als Zweiter damit sofort durch
+    await expect(other.getByRole('button', { name: 'Anderer Gegner' })).toBeVisible({ timeout: 60_000 });
+    // das ursprüngliche Duell ist entschieden: Der Herausforderer des Duells (der andere) hat verloren, ich (Nachziehender) habe gewonnen
+    await expect.poll(() => withDb(db => db.prepare("select status, winner from MiniGame where id = 'duel-6'").get() as { status: string; winner: string }), { timeout: 30_000 }).toMatchObject({ status: 'COMPLETED', winner: 'OPPONENT' });
+    await context.close();
+  });
 });

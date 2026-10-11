@@ -106,6 +106,20 @@ export function newGame(starter: Side, size = 1): Game {
     };
 }
 
+// Start einer Verlängerung als eigenes Spiel (im Duell, wenn beide alles abgeräumt haben): auf beiden Seiten stehen nur die
+// vordersten drei Becher. Neue Island-Ansagen gibt es nicht, und weil schon vorher Treffer fielen, gibt es keine nackte Meile.
+export function newOvertimeGame(starter: Side, size = 1): Game {
+    const g = newGame(starter, size);
+    g.cups.me = formation('me', size).filter(c => c.id >= FRONT_CUPS_FROM);
+    g.cups.opp = formation('opp', size).filter(c => c.id >= FRONT_CUPS_FROM);
+    g.overtime = 1;
+    g.firstHitDone = true;
+    g.islandsLeft = { me: 0, opp: 0 };
+    g.rearranged = { me: true, opp: true };
+    g.hits = { me: 1, opp: 1 };
+    return g;
+}
+
 // ---- Schnick, Schnack, Schnuck ----
 const BEATS: Record<Hand, Hand> = { rock: 'scissors', scissors: 'paper', paper: 'rock' };
 // 'me' gewinnt, 'opp' gewinnt oder null bei Gleichstand

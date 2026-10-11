@@ -28,8 +28,8 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
     // offene Duelle: für mich zum Nachziehen und von mir, auf die noch gewartet wird
     const [incoming, outgoing, invited, abandoned] = me
         ? await Promise.all([
-            prisma.miniGame.findMany({ where: { opponentId: me.id, status: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, challenger: { select: { name: true } } } }),
-            prisma.miniGame.findMany({ where: { challengerId: me.id, status: { in: ['PENDING', 'PLAYING'] } }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, opponent: { select: { name: true } } } }),
+            prisma.miniGame.findMany({ where: { opponentId: me.id, status: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, stage: true, challenger: { select: { name: true } } } }),
+            prisma.miniGame.findMany({ where: { challengerId: me.id, status: { in: ['PENDING', 'PLAYING'] } }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, stage: true, opponent: { select: { name: true } } } }),
             duelParam ? prisma.miniGame.findFirst({ where: { id: duelParam, opponentId: me.id, status: 'PENDING' }, include: { challenger: { select: { name: true } } } }) : null,
             // angenommen, aber nicht zu Ende gespielt (Seite verlassen oder neu geladen): zählt als aufgegeben
             prisma.miniGame.findMany({ where: { opponentId: me.id, status: 'PLAYING' }, select: { id: true } }),
@@ -39,7 +39,7 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
     let duel: DuelInfo | null = null;
     const replay = invited ? parseReplay(invited.replay) : null;
     if (invited && replay && (invited.starter === 'CHALLENGER' || invited.starter === 'OPPONENT') && isHand(invited.challengerHand) && isHand(invited.opponentHand)) {
-        duel = { id: invited.id, cupSize: invited.cupSize === 'medium' || invited.cupSize === 'large' ? invited.cupSize : 'small', challengerName: invited.challenger.name.trim(), starter: invited.starter, challengerHand: invited.challengerHand, opponentHand: invited.opponentHand, replay };
+        duel = { id: invited.id, cupSize: invited.cupSize === 'medium' || invited.cupSize === 'large' ? invited.cupSize : 'small', challengerName: invited.challenger.name.trim(), starter: invited.starter, challengerHand: invited.challengerHand, opponentHand: invited.opponentHand, replay, overtime: invited.stage > 0 };
     }
 
     return (
@@ -48,8 +48,8 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
             key={duelParam ?? 'start'}
             meName={me?.name.trim() ?? session?.user?.name?.trim() ?? 'Du'}
             players={others}
-            incoming={incoming.map(d => ({ id: d.id, name: d.challenger.name.trim() }))}
-            outgoing={outgoing.map(d => ({ id: d.id, name: d.opponent?.name.trim() ?? '' }))}
+            incoming={incoming.map(d => ({ id: d.id, name: d.challenger.name.trim(), overtime: d.stage > 0 }))}
+            outgoing={outgoing.map(d => ({ id: d.id, name: d.opponent?.name.trim() ?? '', overtime: d.stage > 0 }))}
             duel={duel}
             abandoned={abandoned.map(d => d.id)}
             figures={await loadFigureMap()}

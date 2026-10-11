@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     newGame, applyThrow, resolveRound, roundOver, rockPaperScissors, isIsland, islandsOf, canRearrange, moveCup,
-    rearrange, finishRearranging, oneOneTwoSlots, slotsOf, freeSlots, slotIndexOf, skipTrick, AUSZIEH_CUP, type Game, type ThrowResult, type Side,
+    rearrange, finishRearranging, newOvertimeGame, oneOneTwoSlots, slotsOf, freeSlots, slotIndexOf, skipTrick, AUSZIEH_CUP, type Game, type ThrowResult, type Side,
 } from './engine';
 
 const hit = (cupId: number, bounce = false): ThrowResult => ({ kind: 'hit', cupId, bounce });
@@ -648,5 +648,46 @@ describe('Bechergröße', () => {
         expect(g.cups.opp.map(c => c.id).sort()).toEqual([7, 8, 9]);
         expect(g.size).toBe(1.25);
         expect(islandsOf(g.cups.opp, 1.25)).toEqual([]);
+    });
+});
+
+describe('Verlängerung als eigenes Spiel (Duell)', () => {
+    const hit = (cupId: number): ThrowResult => ({ kind: 'hit', cupId, bounce: false });
+    const miss: ThrowResult = { kind: 'miss' };
+
+    it('beginnt mit den drei vordersten Bechern pro Seite, ohne Islands und ohne nackte Meile', () => {
+        const g = newOvertimeGame('me');
+        expect(g.cups.me.map(c => c.id).sort()).toEqual([7, 8, 9]);
+        expect(g.cups.opp.map(c => c.id).sort()).toEqual([7, 8, 9]);
+        expect(g.overtime).toBe(1);
+        expect(g.islandsLeft).toEqual({ me: 0, opp: 0 });
+        expect(g.winner).toBeNull();
+    });
+
+    it('wer nach dem Räumen nicht nachzieht, verliert ganz normal', () => {
+        // ich räume alle drei Becher, der Gegner zieht einmal nach und trifft nicht
+        let g = newOvertimeGame('me');
+        g = applyThrow(g, hit(9)).game; g = applyThrow(g, hit(8)).game; g = resolveRound(g).game;
+        expect(g.turn).toBe('me');
+        g = applyThrow(g, hit(7)).game; g = applyThrow(g, miss).game; g = resolveRound(g).game;
+        expect(g.cups.opp).toHaveLength(0);
+        expect(g.catchUp).toBe(true);
+        g = applyThrow(g, miss).game; g = applyThrow(g, miss).game;
+        const out = resolveRound(g);
+        expect(out.game.winner).toBe('me');
+        expect(out.game.nakedMile).toBeNull();
+    });
+
+    it('räumen beide ab, folgt die nächste Verlängerung', () => {
+        let g = newOvertimeGame('me');
+        g = applyThrow(g, hit(9)).game; g = applyThrow(g, hit(8)).game; g = resolveRound(g).game;
+        g = applyThrow(g, hit(7)).game; g = applyThrow(g, miss).game; g = resolveRound(g).game;
+        // der Gegner zieht nach und räumt ebenfalls alle drei
+        g = applyThrow(g, hit(9)).game; g = applyThrow(g, hit(8)).game; g = resolveRound(g).game;
+        g = applyThrow(g, hit(7)).game; g = applyThrow(g, miss).game;
+        const out = resolveRound(g);
+        expect(out.events.some(e => e.type === 'overtime')).toBe(true);
+        expect(out.game.winner).toBeNull();
+        expect(out.game.overtime).toBe(2);
     });
 });

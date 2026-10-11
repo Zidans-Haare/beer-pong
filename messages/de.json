@@ -100,11 +100,42 @@
       }
     }
   },
-  "broadcast": { "back": "Zum Turnier", "zoomOut": "Rauszoomen", "zoomIn": "Reinzoomen", "rotate": "Drehen", "mirror": "Spiegeln", "flip": "Kamera wechseln", "start": "Stream starten", "stop": "Stream beenden" },
-  "pwaUpdate": { "title": "Update verfügbar", "description": "Eine neue Version ist bereit.", "dismiss": "Später", "reload": "Jetzt laden" },
-  "connection": { "online": "Wieder online", "offline": "Keine Verbindung" },
-  "tv": { "fullscreen": "Vollbild", "exitFullscreen": "Vollbild beenden" },
-  "ui": {"genericError": "Das hat nicht geklappt. Bitte versuche es erneut.", "confirmTitle": "Bitte bestätigen", "noticeTitle": "Hinweis", "confirm": "Bestätigen", "ok": "OK",  "close": "Schließen", "back": "Zurück", "save": "Speichern", "cancel": "Abbrechen", "loading": "Lädt..." },
+  "broadcast": {
+    "back": "Zum Turnier",
+    "zoomOut": "Rauszoomen",
+    "zoomIn": "Reinzoomen",
+    "rotate": "Drehen",
+    "mirror": "Spiegeln",
+    "flip": "Kamera wechseln",
+    "start": "Stream starten",
+    "stop": "Stream beenden"
+  },
+  "pwaUpdate": {
+    "title": "Update verfügbar",
+    "description": "Eine neue Version ist bereit.",
+    "dismiss": "Später",
+    "reload": "Jetzt laden"
+  },
+  "connection": {
+    "online": "Wieder online",
+    "offline": "Keine Verbindung"
+  },
+  "tv": {
+    "fullscreen": "Vollbild",
+    "exitFullscreen": "Vollbild beenden"
+  },
+  "ui": {
+    "genericError": "Das hat nicht geklappt. Bitte versuche es erneut.",
+    "confirmTitle": "Bitte bestätigen",
+    "noticeTitle": "Hinweis",
+    "confirm": "Bestätigen",
+    "ok": "OK",
+    "close": "Schließen",
+    "back": "Zurück",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Lädt..."
+  },
   "auth": {
     "loginWithEmail": "oder mit Email",
     "password": "Passwort",
@@ -339,8 +370,7 @@
     "scanBtn": "QR scannen",
     "scanTitle": "QR-Code scannen",
     "scanHint": "Halte den QR-Code in den Rahmen",
-    "cameraError": "Kamera-Zugriff verweigert. Bitte erlaube den Zugriff in den Einstellungen.",
-    "retry": "Erneut versuchen"
+    "cameraError": "Kamera-Zugriff verweigert. Bitte erlaube den Zugriff in den Einstellungen."
   },
   "admin": {
     "wrapped": {
@@ -905,7 +935,7 @@
         "title": "Das Ende eines Spiels",
         "items": [
           "**Nachziehen:** Trifft der Spieler, der angefangen hat, den letzten Becher, darf **nur der, der nicht begonnen hat,** noch **einmal** nachziehen. Das ist ein einziger Zug, der sich nur mit Balls back verlängert.",
-          "**Verlängerung:** Trifft er dabei alle verbleibenden Becher, ist auf beiden Seiten nichts mehr übrig. Dann werden die **vordersten drei Becher pro Seite** wieder aufgestellt und es wird weitergeworfen, bis einer gewinnt. Das wiederholt sich so oft, bis es entschieden ist.",
+          "**Verlängerung:** Trifft er dabei alle verbleibenden Becher, ist auf beiden Seiten nichts mehr übrig. Dann werden die **vordersten drei Becher pro Seite** wieder aufgestellt und es wird weitergeworfen, bis einer gewinnt. Das wiederholt sich so oft, bis es entschieden ist. Im Minispiel-Duell spielt jeder die Verlängerung einzeln: Wer gerade dran ist, räumt seine drei Becher allein ab, danach muss der andere nachziehen. Räumen beide ab, folgt die nächste Verlängerung.",
           "Trifft der Spieler, der nicht angefangen hat, als Erster alle Becher, hat er sofort gewonnen."
         ]
       },
@@ -1207,7 +1237,8 @@
       "oppTurn": "{name} ist dran",
       "oppThrows": "{name} wirft",
       "oppTrick": "{name} versucht einen Trickshot",
-      "lead": "Triff alle Becher, so schnell du kannst"
+      "lead": "Triff alle Becher, so schnell du kannst",
+      "overtimeRun": "Verlängerung: Räume die drei Becher ab"
     },
     "stamp": {
       "hit": "TREFFER!",
@@ -1230,7 +1261,8 @@
       "youStart": "DU FÄNGST AN",
       "oppStarts": "{name} FÄNGT AN",
       "lead": "DU LEGST VOR",
-      "ballsBack": "BALLS BACK!"
+      "ballsBack": "BALLS BACK!",
+      "overtimeRun": "VERLÄNGERUNG! DEINE DREI BECHER"
     },
     "end": {
       "youWin": "DU GEWINNST!",
@@ -1246,7 +1278,8 @@
       "sent": "Duell an {name} gesendet: {rounds} Runden, {hits} Treffer. Du bekommst eine Nachricht, sobald nachgezogen wurde.",
       "sendFailed": "Das Duell konnte nicht gesendet werden.",
       "saveFailed": "Das Ergebnis konnte nicht gespeichert werden.",
-      "duelSaved": "Ergebnis gespeichert. {name} wird benachrichtigt."
+      "duelSaved": "Ergebnis gespeichert. {name} wird benachrichtigt.",
+      "overtimeSent": "Verlängerung an {name} gesendet: {rounds} Runden, {hits} Treffer. {name} muss jetzt nachziehen und bekommt eine Nachricht."
     },
     "pickKind": "Wie willst du spielen?",
     "cpuName": "Rechner",
@@ -1262,7 +1295,9 @@
       "incoming": "Herausforderungen für dich",
       "outgoing": "Warten auf Antwort",
       "from": "{name} will ein Duell",
-      "waiting": "{name} hat noch nicht nachgezogen"
+      "waiting": "{name} hat noch nicht nachgezogen",
+      "overtimeFrom": "{name}: Verlängerung, du bist dran",
+      "overtimeWaiting": "Verlängerung: {name} muss nachziehen"
     },
     "invite": {
       "title": "Duell",
@@ -1272,7 +1307,11 @@
       "accept": "Annehmen",
       "decline": "Ablehnen",
       "later": "Später",
-      "open": "Ansehen"
+      "open": "Ansehen",
+      "overtimeTitle": "Verlängerung",
+      "overtimeText": "{name} und du habt beide alles abgeräumt. {name} hat die Verlängerung schon gespielt: Du ziehst mit drei Bechern nach.",
+      "overtimeYouStart": "Du fängst an.",
+      "overtimeTheyStart": "{name} fängt an."
     },
     "options": "Optionen",
     "islandsLeft": "{count} übrig",

@@ -115,6 +115,24 @@ jobs:
             # Prisma's schema engine fails sporadically with "input contains invalid characters"
             # (~1 in 8 runs, not reproducible on demand) — retry before giving up
             DB_URL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"')
+            # DB vor jeder Migration sichern und prüfen — ohne geprüftes Backup wird nicht migriert
+            DB_FILE="${DB_URL#file:}"
+            if [ -f "$DB_FILE" ]; then
+              command -v sqlite3 > /dev/null || { echo "sqlite3 fehlt — kein DB-Backup möglich, Abbruch vor der Migration"; exit 1; }
+              BACKUP_DIR="${DB_BACKUP_DIR:-$HOME/db-backups}"
+              mkdir -p "$BACKUP_DIR"
+              DB_BACKUP="$BACKUP_DIR/pre-deploy_$(date -u +%Y-%m-%dT%H-%M-%S)_$(git rev-parse --short HEAD).db"
+              sqlite3 -bail "$DB_FILE" ".backup '$DB_BACKUP'" || true
+              # ein leeres oder kaputtes Backup zählt nicht: Prüfung muss "ok" liefern und Tabellen enthalten
+              DB_BACKUP_CHECK=$(sqlite3 "$DB_BACKUP" 'PRAGMA integrity_check;' 2>/dev/null || true)
+              DB_BACKUP_TABLES=$(sqlite3 "$DB_BACKUP" "SELECT count(*) FROM sqlite_master WHERE type='table';" 2>/dev/null || true)
+              if [ "$DB_BACKUP_CHECK" != "ok" ] || [ "${DB_BACKUP_TABLES:-0}" -lt 1 ]; then
+                echo "DB-Backup $DB_BACKUP ist nicht in Ordnung — Abbruch vor der Migration"; exit 1
+              fi
+              echo "DB-Backup: $DB_BACKUP"
+              # die letzten 20 Deploy-Backups behalten
+              ls -1t "$BACKUP_DIR"/pre-deploy_*.db 2>/dev/null | tail -n +21 | xargs -r rm -f
+            fi
             # Textzeitstempel in _prisma_migrations lassen die Schema-Engine abstürzen — vorher reparieren
             DATABASE_URL="$DB_URL" node scripts/fix-migration-table.js
             for attempt in 1 2 3; do

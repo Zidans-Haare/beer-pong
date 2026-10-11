@@ -956,3 +956,14 @@ body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :f
 @keyframes nav-pending { 0%, 100% { transform: scaleX(0.35); opacity: 0.5; } 50% { transform: scaleX(1); opacity: 1; } }
 .page-loading-title { width: 46%; height: 34px; margin: 8px 0 24px; border-radius: 6px; background: var(--color-surface-hover); }
 @media (prefers-reduced-motion: reduce) { .bottom-nav-item.is-pending::after { animation: none; } }
+
+/* Play-Knopf zum Turnierfilm auf der Seite eines abgeschlossenen Turniers */
+/* unten gleicher Abstand wie oben (24px): die Zusammenfassung darunter bringt selbst spacing-12 Abstand mit */
+.film-link { display: flex; align-items: center; gap: 14px; margin: 0 0 calc(24px - var(--spacing-12)); padding: 14px 16px; border-radius: 10px; color: #fff; text-decoration: none; background: linear-gradient(120deg, rgba(var(--color-primary-rgb), 1), rgba(var(--color-primary-rgb), 0.72) 60%, #0d1512); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16); transition: transform var(--motion-fast); }
+.film-link:hover { transform: translateY(-2px); }
+.film-link:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.film-link-play { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex: 0 0 48px; padding-left: 3px; border-radius: 50%; background: #fff; color: var(--color-primary); }
+.film-link-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.film-link-text strong { font-family: var(--font-heading); font-size: 1.35rem; line-height: 1.1; }
+.film-link-text span { font-size: 0.85rem; color: rgba(255, 255, 255, 0.92); }
+@media (prefers-reduced-motion: reduce) { .film-link { transition: none; } }

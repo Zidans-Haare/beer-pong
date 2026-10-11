@@ -43,6 +43,7 @@ import { getBringItems } from '@/app/actions/bring-list';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import GuestRoomInfo from '@/components/tournament/GuestRoomInfo';
 import CostEmailButton from '@/components/tournament/CostEmailButton';
+import FilmLink from '@/components/film/FilmLink';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -98,6 +99,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
     if (!tournament) notFound();
 
     const t = await getTranslations('tournaments');
+    const tFilm = await getTranslations('film');
     const [players, systemSettings, bringItems] = await Promise.all([
         getPlayers(),
         getPublicSystemSettings(),
@@ -212,6 +214,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 isHost={isHost}
                 showQR={isPlanned}
             />
+
+            {isCompleted && tournament.matches.some((m: any) => m.isPlayed) && (
+                <FilmLink tournamentId={tournament.id} title={tFilm('linkTitle')} text={tFilm('linkText')} />
+            )}
 
             {/* Warning: Odd participants */}
             {isPlanned && !isTeamMode && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (

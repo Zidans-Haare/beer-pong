@@ -1031,5 +1031,29 @@
     "errorRequest": "Fehler beim Anfragen",
     "errorAccept": "Fehler beim Bestätigen",
     "errorReject": "Fehler beim Ablehnen"
+  },
+  "film": {
+    "brand": "Bier Pong Turnierfilm",
+    "filmEyebrow": "Turnierfilm",
+    "finalEyebrow": "Finale",
+    "stamp": "{name} gewinnt!",
+    "finalLine": "{winner} schlägt {loser} im Finale",
+    "podiumTitle": "Siegerehrung",
+    "players": "{count, plural, one {# Spieler} other {# Spieler}}",
+    "games": "{count, plural, one {# Spiel} other {# Spiele}}",
+    "factsEyebrow": "Turniersieg",
+    "factsPodium": "Platz 2: {second} · Platz 3: {third}",
+    "factsSecond": "Platz 2: {second}",
+    "factsGames": "{games, plural, one {# Spiel} other {# Spiele}}, {cups} Becher getroffen",
+    "factsGamesOnly": "{games, plural, one {# Spiel} other {# Spiele}} gespielt",
+    "factsTopScorer": "Meiste Becher: {name} ({cups})",
+    "factsBiggest": "Höchster Sieg: {winner} {score} gegen {loser}",
+    "factsLongest": "Längstes Spiel: {minutes} Minuten ({a} gegen {b})",
+    "outroTitle": "Bier Pong App",
+    "outroLine": "Made by Nick",
+    "linkTitle": "Turnierfilm",
+    "linkText": "Finale und Siegerehrung als Film ansehen",
+    "notAvailable": "Für dieses Turnier gibt es noch keinen Film. Er entsteht, sobald das Turnier beendet ist.",
+    "backToTournament": "Zum Turnier"
   }
 }

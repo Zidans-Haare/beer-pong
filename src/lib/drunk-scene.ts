@@ -1,7 +1,7 @@
 import {
     SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, OPP_CUPS, MY_CUPS, HEADING, BODY,
     clamp, lerp, ramp, easeOut, easeOutBack, rand, shade,
-    tablePoint, drawCup, drawMe, drawOpponent, drawBall, roundRect, fitFont,
+    tablePoint, drawCup, drawMe, drawOpponent, drawBall, roundRect, fitFont, DARK_SKIN,
 } from '@/lib/wrapped-scene';
 
 // Kurze Szene beim Einschalten des Betrunken-Modus: Die Figur torkelt an den Tisch,
@@ -26,8 +26,6 @@ export interface DrunkSceneModel {
 }
 
 const PICTURE = { x: 285, y: 650, w: 290, h: 390 };
-// dunkler Hautton für den Gegner
-const OPPONENT_SKIN = '#7a4b2a';
 
 // Fotoabzug an der Wand, dem echten Foto nachempfunden: nach vorn gebeugt, Kopf geneigt, lange blonde
 // Haare mit verwehten Strähnen, ärmelloses dunkles Oberteil, weiß getünchte Holzbretter.
@@ -253,7 +251,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
     const dodge = ramp(time, THROW_AT + 500, 520);
     // nach dem Treffer fliegt das Bild zu Bruch und er ärgert sich
     const anger = easeOut(ramp(time, HIT_AT + 150, 400));
-    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, OPPONENT_SKIN, anger);
+    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, DARK_SKIN, anger);
     if (anger > 0) drawFury(ctx, time, anger);
 
     // Tisch

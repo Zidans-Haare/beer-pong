@@ -1031,5 +1031,29 @@
     "errorRequest": "Error requesting",
     "errorAccept": "Error accepting",
     "errorReject": "Error rejecting"
+  },
+  "film": {
+    "brand": "Beer Pong Tournament Film",
+    "filmEyebrow": "Tournament film",
+    "finalEyebrow": "Final",
+    "stamp": "{name} wins!",
+    "finalLine": "{winner} beats {loser} in the final",
+    "podiumTitle": "Award ceremony",
+    "players": "{count, plural, one {# player} other {# players}}",
+    "games": "{count, plural, one {# game} other {# games}}",
+    "factsEyebrow": "Tournament win",
+    "factsPodium": "2nd place: {second} · 3rd place: {third}",
+    "factsSecond": "2nd place: {second}",
+    "factsGames": "{games, plural, one {# game} other {# games}}, {cups} cups hit",
+    "factsGamesOnly": "{games, plural, one {# game} other {# games}} played",
+    "factsTopScorer": "Most cups: {name} ({cups})",
+    "factsBiggest": "Biggest win: {winner} {score} against {loser}",
+    "factsLongest": "Longest game: {minutes} minutes ({a} vs {b})",
+    "outroTitle": "Beer Pong App",
+    "outroLine": "Made by Nick",
+    "linkTitle": "Tournament film",
+    "linkText": "Watch the final and the award ceremony as a film",
+    "notAvailable": "There is no film for this tournament yet. It is created once the tournament has finished.",
+    "backToTournament": "Back to tournament"
   }
 }

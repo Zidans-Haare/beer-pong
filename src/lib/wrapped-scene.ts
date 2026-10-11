@@ -192,8 +192,30 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
     ctx.restore();
 }
 
+// Aussehen einer Figur; ohne Angabe gelten die Farben aus dem Wrapped
+export interface FigureLook { shirt: string; hair: string; style: 0 | 1 | 2; skin?: string }
+
+export const LIGHT_SKIN = '#fbe3c0';
+export const DARK_SKIN = '#7a4b2a';
+// Hautton nach Name. Moonzy ist dunkelhäutig und wird in jeder Szene so gezeichnet.
+export function skinFor(name: string | null | undefined): string {
+    return name?.trim().toLowerCase() === 'moonzy' ? DARK_SKIN : LIGHT_SKIN;
+}
+
+// Frisur von vorn, um einen Kopf mit Radius r im Ursprung: 0 kurz, 1 lang, 2 Dutt
+export function drawHairFront(ctx: CanvasRenderingContext2D, r: number, look: FigureLook, behind: boolean) {
+    ctx.fillStyle = look.hair;
+    if (behind) {
+        // lange Haare fallen hinter dem Kopf auf die Schultern, der Dutt sitzt oben
+        if (look.style === 1) { roundRect(ctx, -r * 1.12, -r * 0.5, r * 2.24, r * 1.95, r * 0.5); ctx.fill(); }
+        if (look.style === 2) { ctx.beginPath(); ctx.arc(0, -r * 1.12, r * 0.42, 0, Math.PI * 2); ctx.fill(); }
+        return;
+    }
+    ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 1.02, Math.PI * 1.08, Math.PI * 1.92); ctx.closePath(); ctx.fill();
+}
+
 // skin: Hautton der Figur
-export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0, skin = '#fbe3c0', anger = 0) {
+export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0, skin = '#fbe3c0', anger = 0, look?: FigureLook) {
     if (enter <= 0) return;
     const sad = clamp(-mood);
     const bob = Math.sin(time / 520) * 4 * (1 - sad);
@@ -205,15 +227,18 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     ctx.translate(CENTER_X + Math.sin(time / 38) * 7 * anger, y + Math.sin(time / 53) * 4 * anger);
     ctx.rotate(sad * 0.07);
     // Körper (unterer Teil verschwindet hinter dem Tisch)
-    ctx.fillStyle = '#f2b24a';
+    const shirt = look?.shirt ?? '#f2b24a';
+    ctx.fillStyle = shirt;
     roundRect(ctx, -92, 46, 184, 220, 60); ctx.fill();
     // hängende Arme, wenn traurig
-    ctx.strokeStyle = '#f2b24a'; ctx.lineWidth = 34; ctx.lineCap = 'round';
+    ctx.strokeStyle = shirt; ctx.lineWidth = 34; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-84, 96); ctx.lineTo(-112 - sad * 8, 96 + 70 + sad * 30); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(84, 96); ctx.lineTo(112 + sad * 8, 96 + 70 + sad * 30); ctx.stroke();
     // Kopf
+    if (look) drawHairFront(ctx, 62, look, true);
     ctx.fillStyle = skin;
     ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill();
+    if (look) drawHairFront(ctx, 62, look, false);
     // vor Wut läuft das Gesicht rot an
     if (anger > 0) { ctx.fillStyle = `rgba(214,40,30,${0.5 * anger})`; ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill(); }
     // Augen
@@ -260,14 +285,14 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
 }
 
 // Ich, von hinten gesehen; throwPhase 0..1 = Ausholen bis Loslassen
-export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number, cheer: number, time: number, primary: string) {
+export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase: number, cheer: number, time: number, primary: string, look?: FigureLook) {
     if (enter <= 0) return;
     const jump = cheer > 0 ? Math.abs(Math.sin(time / 190)) * 46 * cheer : 0;
     const y = 1800 + (1 - easeOut(enter)) * 420 - jump;
     ctx.save();
     // leichtes Wippen im Stand
     ctx.translate(CENTER_X + Math.sin(time / 700) * 6 * (1 - cheer), y);
-    const shirt = shade(primary, 1.5);
+    const shirt = look?.shirt ?? shade(primary, 1.5);
     // Rumpf
     ctx.fillStyle = shirt;
     roundRect(ctx, -190, 84, 380, 420, 120); ctx.fill();
@@ -284,10 +309,17 @@ export function drawMe(ctx: CanvasRenderingContext2D, enter: number, throwPhase:
     ctx.beginPath(); ctx.moveTo(170, 150);
     ctx.lineTo(lerp(handX, 250 - wave, cheer), lerp(handY, -90, cheer)); ctx.stroke();
     // Kopf
-    ctx.fillStyle = '#fbe3c0';
+    ctx.fillStyle = look?.skin ?? LIGHT_SKIN;
     ctx.beginPath(); ctx.arc(0, 0, 104, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#3b2a1a';
-    ctx.beginPath(); ctx.arc(0, -14, 104, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = look?.hair ?? '#3b2a1a';
+    if (look?.style === 1) {
+        // lange Haare bedecken von hinten den ganzen Kopf bis auf die Schultern
+        ctx.beginPath(); ctx.arc(0, 0, 106, 0, Math.PI * 2); ctx.fill();
+        roundRect(ctx, -106, 0, 212, 150, 50); ctx.fill();
+    } else {
+        ctx.beginPath(); ctx.arc(0, -14, 104, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+        if (look?.style === 2) { ctx.beginPath(); ctx.arc(0, -112, 44, 0, Math.PI * 2); ctx.fill(); }
+    }
     ctx.restore();
 }
 
@@ -371,20 +403,10 @@ export function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r:
     ctx.restore();
 }
 
-export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number, assets: SceneAssets = {}) {
-    const tl = sceneTimeline(model);
-    const time = clamp(timeMs, 0, tl.total);
-    let index = tl.starts.length - 1;
-    for (let i = 0; i < tl.starts.length; i++) if (time >= tl.starts[i]) index = i;
-    const seg = model.segments[index];
-    const local = time - tl.starts[index];
-    const hits = tl.throws.filter(t => time >= t.start + THROW_MS).length;
-    // 0..1 im Takt der Musik
-    const beat = 0.5 + 0.5 * Math.cos((time / BEAT_MS) * Math.PI * 2);
-
-    // ---- Hintergrund ----
+// Hintergrund: Verlauf in der Saisonfarbe, Lichtkegel im Takt, aufsteigende Schaumblasen
+export function drawBackdrop(ctx: CanvasRenderingContext2D, primary: string, time: number, beat: number) {
     const bg = ctx.createLinearGradient(0, 0, 0, SCENE_HEIGHT);
-    bg.addColorStop(0, shade(model.primary, 0.42)); bg.addColorStop(0.5, shade(model.primary, 0.24)); bg.addColorStop(1, '#070b09');
+    bg.addColorStop(0, shade(primary, 0.42)); bg.addColorStop(0.5, shade(primary, 0.24)); bg.addColorStop(1, '#070b09');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
     // Lichtkegel über dem Tisch, pulsiert im Takt
@@ -400,6 +422,87 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
         ctx.fillStyle = `rgba(255,255,255,${0.05 + rand(i, 10) * 0.07})`;
         ctx.beginPath(); ctx.arc(rand(i, 11) * SCENE_WIDTH + Math.sin(time / 900 + i) * 18, y, r, 0, Math.PI * 2); ctx.fill();
     }
+}
+
+// Tischplatte mit Kante, Rand und Mittellinie
+export function drawTable(ctx: CanvasRenderingContext2D, primary: string) {
+    const nl = tablePoint(-1, 0), nr = tablePoint(1, 0), fl = tablePoint(-1, 1), fr = tablePoint(1, 1);
+    ctx.fillStyle = shade(primary, 0.5);
+    ctx.beginPath(); ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y); ctx.lineTo(nr.x - 8, nr.y + 46); ctx.lineTo(nl.x + 8, nl.y + 46); ctx.closePath(); ctx.fill();
+    const surface = ctx.createLinearGradient(0, fl.y, 0, nl.y);
+    surface.addColorStop(0, shade(primary, 0.85)); surface.addColorStop(1, shade(primary, 1.25));
+    ctx.fillStyle = surface;
+    ctx.beginPath(); ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y); ctx.lineTo(fr.x, fr.y); ctx.lineTo(fl.x, fl.y); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
+    ctx.stroke();
+    const ml = tablePoint(-1, 0.5), mr = tablePoint(1, 0.5);
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.moveTo(ml.x, ml.y); ctx.lineTo(mr.x, mr.y); ctx.stroke();
+}
+
+// Abspann: Logo, App-Name und Absender; `local` = Zeit seit Beginn des Abspanns
+export function drawOutro(ctx: CanvasRenderingContext2D, primary: string, local: number, beat: number, outro: { title: string; line: string }, assets: SceneAssets = {}) {
+    // Abspann: Logo, App-Name und Absender
+    const cover = easeOut(ramp(local, 0, 420));
+    const end = ctx.createLinearGradient(0, 0, 0, SCENE_HEIGHT);
+    end.addColorStop(0, shade(primary, 0.5)); end.addColorStop(1, '#070b09');
+    ctx.save();
+    ctx.globalAlpha = cover;
+    ctx.fillStyle = end;
+    ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+    ctx.restore();
+
+    const pop = easeOutBack(ramp(local, 250, 520));
+    const logoSize = 340;
+    if (pop > 0.03) {
+        ctx.save();
+        ctx.translate(CENTER_X, 760);
+        ctx.scale(pop, pop);
+        // heller Schein hinter dem Logo, pulsiert im Takt
+        const halo = ctx.createRadialGradient(0, 0, 40, 0, 0, 420);
+        halo.addColorStop(0, `rgba(255,255,255,${0.22 + 0.1 * beat})`); halo.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = halo;
+        ctx.beginPath(); ctx.arc(0, 0, 420, 0, Math.PI * 2); ctx.fill();
+        if (assets.logo) {
+            ctx.save();
+            roundRect(ctx, -logoSize / 2, -logoSize / 2, logoSize, logoSize, 76);
+            ctx.clip();
+            ctx.drawImage(assets.logo, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
+            ctx.restore();
+        } else {
+            // ohne Bild ein einzelner Becher als Zeichen
+            drawCup(ctx, 0, 110, 2.4);
+        }
+        ctx.restore();
+    }
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const titleIn = easeOut(ramp(local, 650, 450));
+    ctx.globalAlpha = titleIn;
+    ctx.fillStyle = '#ffffff';
+    fitFont(ctx, outro.title.toUpperCase(), HEADING, 170, 80, SCENE_WIDTH - 160);
+    ctx.fillText(outro.title.toUpperCase(), CENTER_X, 1150 + (1 - titleIn) * 30);
+    const lineIn = easeOut(ramp(local, 950, 450));
+    ctx.globalAlpha = lineIn;
+    ctx.fillStyle = '#ffe08a';
+    ctx.font = `700 58px ${BODY}`;
+    ctx.fillText(outro.line, CENTER_X, 1250 + (1 - lineIn) * 30);
+    ctx.restore();
+}
+
+export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneModel, timeMs: number, assets: SceneAssets = {}) {
+    const tl = sceneTimeline(model);
+    const time = clamp(timeMs, 0, tl.total);
+    let index = tl.starts.length - 1;
+    for (let i = 0; i < tl.starts.length; i++) if (time >= tl.starts[i]) index = i;
+    const seg = model.segments[index];
+    const local = time - tl.starts[index];
+    const hits = tl.throws.filter(t => time >= t.start + THROW_MS).length;
+    // 0..1 im Takt der Musik
+    const beat = 0.5 + 0.5 * Math.cos((time / BEAT_MS) * Math.PI * 2);
+
+    drawBackdrop(ctx, model.primary, time, beat);
 
     // ---- Szene mit Kamera ----
     const cam = camera(time, tl);
@@ -413,24 +516,13 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     const mood = time >= tl.win + 700 ? -easeInOut(ramp(time, tl.win + 700, 900)) : -Math.min(0.45, hits * 0.12);
     const lastHit = [...tl.throws].reverse().find(t => time >= t.start + THROW_MS);
     const flinch = lastHit ? ramp(time, lastHit.start + THROW_MS, 420) : 0;
-    drawOpponent(ctx, oppEnter, mood, model.opponentName, time, flinch < 1 ? flinch : 0);
+    drawOpponent(ctx, oppEnter, mood, model.opponentName, time, flinch < 1 ? flinch : 0, skinFor(model.opponentName));
 
     // ---- Tisch ----
     ctx.save();
     ctx.globalAlpha = tableIn;
     ctx.translate(0, (1 - tableIn) * 120);
-    const nl = tablePoint(-1, 0), nr = tablePoint(1, 0), fl = tablePoint(-1, 1), fr = tablePoint(1, 1);
-    ctx.fillStyle = shade(model.primary, 0.5);
-    ctx.beginPath(); ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y); ctx.lineTo(nr.x - 8, nr.y + 46); ctx.lineTo(nl.x + 8, nl.y + 46); ctx.closePath(); ctx.fill();
-    const surface = ctx.createLinearGradient(0, fl.y, 0, nl.y);
-    surface.addColorStop(0, shade(model.primary, 0.85)); surface.addColorStop(1, shade(model.primary, 1.25));
-    ctx.fillStyle = surface;
-    ctx.beginPath(); ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y); ctx.lineTo(fr.x, fr.y); ctx.lineTo(fl.x, fl.y); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
-    ctx.stroke();
-    const ml = tablePoint(-1, 0.5), mr = tablePoint(1, 0.5);
-    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.beginPath(); ctx.moveTo(ml.x, ml.y); ctx.lineTo(mr.x, mr.y); ctx.stroke();
+    drawTable(ctx, model.primary);
     ctx.restore();
 
     // ---- Becher des Gegners (hinten zuerst) ----
@@ -540,7 +632,9 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     const active = tl.throws.find(t => time >= t.start - 420 && time < t.start + 380);
     const throwPhase = active ? ramp(time, active.start - 420, 800) : 0;
     const cheer = easeOut(ramp(time, tl.stamp, 500)) * (1 - ramp(time, tl.final, 600));
-    drawMe(ctx, meEnter, throwPhase, cheer, time, model.primary);
+    // eigene Figur: Farben wie bisher, nur der Hautton richtet sich nach dem Spieler
+    const mySkin = skinFor(model.playerName);
+    drawMe(ctx, meEnter, throwPhase, cheer, time, model.primary, mySkin === LIGHT_SKIN ? undefined : { shirt: shade(model.primary, 1.5), hair: '#1f1a17', style: 0, skin: mySkin });
 
     ctx.restore(); // Kamera
 
@@ -667,53 +761,7 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
         });
         ctx.restore();
     } else {
-        // Abspann: Logo, App-Name und Absender
-        const cover = easeOut(ramp(local, 0, 420));
-        const end = ctx.createLinearGradient(0, 0, 0, SCENE_HEIGHT);
-        end.addColorStop(0, shade(model.primary, 0.5)); end.addColorStop(1, '#070b09');
-        ctx.save();
-        ctx.globalAlpha = cover;
-        ctx.fillStyle = end;
-        ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
-        ctx.restore();
-
-        const pop = easeOutBack(ramp(local, 250, 520));
-        const logoSize = 340;
-        if (pop > 0.03) {
-            ctx.save();
-            ctx.translate(CENTER_X, 760);
-            ctx.scale(pop, pop);
-            // heller Schein hinter dem Logo, pulsiert im Takt
-            const halo = ctx.createRadialGradient(0, 0, 40, 0, 0, 420);
-            halo.addColorStop(0, `rgba(255,255,255,${0.22 + 0.1 * beat})`); halo.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = halo;
-            ctx.beginPath(); ctx.arc(0, 0, 420, 0, Math.PI * 2); ctx.fill();
-            if (assets.logo) {
-                ctx.save();
-                roundRect(ctx, -logoSize / 2, -logoSize / 2, logoSize, logoSize, 76);
-                ctx.clip();
-                ctx.drawImage(assets.logo, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
-                ctx.restore();
-            } else {
-                // ohne Bild ein einzelner Becher als Zeichen
-                drawCup(ctx, 0, 110, 2.4);
-            }
-            ctx.restore();
-        }
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        const titleIn = easeOut(ramp(local, 650, 450));
-        ctx.globalAlpha = titleIn;
-        ctx.fillStyle = '#ffffff';
-        fitFont(ctx, model.outro.title.toUpperCase(), HEADING, 170, 80, SCENE_WIDTH - 160);
-        ctx.fillText(model.outro.title.toUpperCase(), CENTER_X, 1150 + (1 - titleIn) * 30);
-        const lineIn = easeOut(ramp(local, 950, 450));
-        ctx.globalAlpha = lineIn;
-        ctx.fillStyle = accent;
-        ctx.font = `700 58px ${BODY}`;
-        ctx.fillText(model.outro.line, CENTER_X, 1250 + (1 - lineIn) * 30);
-        ctx.restore();
+        drawOutro(ctx, model.primary, local, beat, model.outro, assets);
     }
 
     // Marke oben links, auch im exportierten Video

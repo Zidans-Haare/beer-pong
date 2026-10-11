@@ -54,7 +54,7 @@ Die Testkonten `host@matchday.test` und `admin@matchday.test` verwenden das öff
 - Ein extern gesetztes `E2E_BASE_URL` bleibt im Smoke-Modus. Neue Schreibtests sind dort deaktiviert.
 - Produktions-Smoke und isolierte Funktionstests sind getrennt. Die zusätzlichen Browserprojekte sind nur im isolierten Modus aktiv.
 - Tests erzeugen Screenshots unter `test-results/`. Uhrzeiten bleiben echte Laufzeitwerte; relevante Daten werden nicht wegmaskiert.
-- Service-Worker-Version `v11` ergänzt die lokalen Schriften. Der bestehende Aktivierungs- und Reloadablauf bleibt unverändert. Ein Rollout sollte außerhalb laufender Turniere erfolgen.
+- Service-Worker-Version `v12` ergänzt die lokalen Schriften und lässt Seitenwechsel innerhalb der App direkt ans Netz. Der bestehende Aktivierungs- und Reloadablauf bleibt unverändert. Ein Rollout sollte außerhalb laufender Turniere erfolgen.
 
 ## Verbleibende Gerätefreigabe
 

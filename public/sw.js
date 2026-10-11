@@ -3,7 +3,7 @@
  * Provides offline support, caching strategies, and push notifications
  */
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const STATIC_CACHE = `bierpong-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bierpong-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bierpong-images-${CACHE_VERSION}`;
@@ -95,6 +95,10 @@ self.addEventListener('fetch', (event) => {
   // Next.js uses content-hashed filenames, so the browser cache is sufficient
   // Caching these in the SW causes stale chunk errors after deploys
   if (url.pathname.startsWith('/_next/')) return;
+
+  // Seitenwechsel innerhalb der App (React Server Components) und Prefetches gehen direkt ans Netz.
+  // Über den Cache zu laufen kostet bei jedem Tab-Wechsel Zeit und bringt offline nichts Brauchbares.
+  if (request.headers.get('RSC') || request.headers.get('Next-Router-Prefetch') || url.searchParams.has('_rsc')) return;
 
   // Strategy: Network First for HTML pages (always try to get fresh content)
   if (request.headers.get('accept')?.includes('text/html')) {

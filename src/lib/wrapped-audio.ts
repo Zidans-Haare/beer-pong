@@ -58,8 +58,32 @@ export class WrappedAudio {
     positionMs(): number { return (this.ctx.currentTime - this.origin) * 1000; }
 
     setMuted(muted: boolean) { this.monitor.gain.value = muted ? 0 : 1; }
-    async resume() { if (this.ctx.state !== 'running') await this.ctx.resume().catch(() => undefined); }
-    async suspend() { if (this.ctx.state === 'running') await this.ctx.suspend().catch(() => undefined); }
+    // resume() und suspend() laufen im Browser verzögert ab. Folgen beide kurz nacheinander, kann der
+    // ältere Befehl zuletzt ankommen. Deshalb merken wir uns den gewünschten Zustand und gleichen nach
+    // jedem Befehl ab, bis er erreicht ist.
+    private wantRunning = false;
+
+    private reconcile = () => {
+        if (this.ctx.state === 'closed') return;
+        if (this.wantRunning && this.ctx.state === 'suspended') this.ctx.resume().catch(() => undefined);
+        else if (!this.wantRunning && this.ctx.state === 'running') this.ctx.suspend().catch(() => undefined);
+    };
+
+    // Muss für das erste Freischalten direkt in einer Nutzeraktion aufgerufen werden
+    async resume() {
+        this.wantRunning = true;
+        if (this.ctx.state !== 'running') await this.ctx.resume().catch(() => undefined);
+        this.reconcile();
+    }
+
+    async suspend() {
+        this.wantRunning = false;
+        if (this.ctx.state === 'running') await this.ctx.suspend().catch(() => undefined);
+        this.reconcile();
+    }
+
+    // true, wenn der Ton laufen soll, der Browser ihn aber (noch) angehalten hat
+    get stalled(): boolean { return this.wantRunning && this.ctx.state === 'suspended'; }
 
     stop() {
         for (const source of this.sources) { try { source.stop(); } catch { /* schon beendet */ } source.disconnect(); }

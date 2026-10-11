@@ -21,8 +21,9 @@ class FakeAudioContext {
     createBuffer(_channels: number, length: number) { return { getChannelData: () => new Float32Array(length) }; }
     createOscillator() { return node({ type: 'sine', frequency: param(), start: (at: number) => started.push({ kind: 'osc', at }), stop: () => undefined }); }
     createBufferSource() { return node({ buffer: null, loop: false, start: (at: number) => started.push({ kind: 'noise', at }), stop: () => undefined }); }
-    resume() { return Promise.resolve(); }
-    suspend() { return Promise.resolve(); }
+    // wie im Browser: der Zustand wechselt erst verzögert
+    resume() { return new Promise<void>(r => setTimeout(() => { this.state = 'running'; r(); }, 5)); }
+    suspend() { return new Promise<void>(r => setTimeout(() => { this.state = 'suspended'; r(); }, 1)); }
     close() { return Promise.resolve(); }
 }
 
@@ -63,5 +64,23 @@ describe('WrappedAudio', () => {
         expect(started.length).toBeLessThan(all / 2);
         // nichts wird in die Vergangenheit gelegt
         expect(Math.min(...started.map(s => s.at))).toBeGreaterThanOrEqual(0);
+    });
+
+    it('läuft am Ende, wenn Anhalten und Weiterlaufen kurz nacheinander kommen', async () => {
+        const { WrappedAudio } = await import('./wrapped-audio');
+        const audio = new WrappedAudio();
+        // wie beim doppelten Start in der Entwicklung: erst anhalten, sofort wieder starten
+        const suspended = audio.suspend();
+        const resumed = audio.resume();
+        await Promise.all([suspended, resumed]);
+        await new Promise(r => setTimeout(r, 30));
+        expect(audio.ctx.state).toBe('running');
+
+        // und umgekehrt bleibt er aus, wenn zuletzt Anhalten gewünscht war
+        const r2 = audio.resume();
+        const s2 = audio.suspend();
+        await Promise.all([r2, s2]);
+        await new Promise(r => setTimeout(r, 30));
+        expect(audio.ctx.state).toBe('suspended');
     });
 });

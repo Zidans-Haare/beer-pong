@@ -950,3 +950,9 @@ body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :f
   body.drunk-mode .main-content, body.drunk-mode .main-content *, body.drunk-mode .app-header .logo, body.drunk-mode .wrapped-banner,
   body.drunk-mode .bottom-nav-item, body.drunk-mode .app-header-actions > *, body.drunk-mode .app-header > :first-child { animation: none; }
 }
+
+/* Navigation: angetippter Tab zeigt sofort, dass geladen wird */
+.bottom-nav-item.is-pending::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 3px; height: 3px; border-radius: 999px; background: var(--color-primary); animation: nav-pending 0.9s ease-in-out infinite; }
+@keyframes nav-pending { 0%, 100% { transform: scaleX(0.35); opacity: 0.5; } 50% { transform: scaleX(1); opacity: 1; } }
+.page-loading-title { width: 46%; height: 34px; margin: 8px 0 24px; border-radius: 6px; background: var(--color-surface-hover); }
+@media (prefers-reduced-motion: reduce) { .bottom-nav-item.is-pending::after { animation: none; } }

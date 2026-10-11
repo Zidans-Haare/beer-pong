@@ -34,6 +34,7 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
     const time = useRef(initialTime ?? 0);
     const pressedAt = useRef(0);
     const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastNudge = useRef(0);
     const recorder = useRef<MediaRecorder | null>(null);
     const cancelled = useRef(false);
     const audio = useRef<WrappedAudio | null>(null);
@@ -151,6 +152,8 @@ export default function WrappedStory({ model, initialTime, wrappedId }: { model:
         let last = performance.now();
         const tick = (now: number) => {
             const sound = audio.current;
+            // hängt der Ton, obwohl er laufen soll: etwa einmal pro Sekunde erneut anstoßen
+            if (sound?.stalled && now - lastNudge.current > 1000) { lastNudge.current = now; sound.resume(); }
             if (sound && sound.ctx.state === 'running') {
                 if (needsSync.current) { sound.schedule(timeline, time.current); needsSync.current = false; }
                 // Bild folgt der Tonuhr, so bleiben beide synchron (auch im Video)

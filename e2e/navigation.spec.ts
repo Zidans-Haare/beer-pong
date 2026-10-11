@@ -98,6 +98,19 @@ test.describe('Isolated mobile page coverage', () => {
     await expect(page.locator('.bottom-nav').getByRole('link', { name: 'Stats', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
+  test('tapped tab is marked active immediately, before the page arrives', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'chromium', 'Mobile navigation only');
+    await page.goto('/');
+    // Antwort für den Seitenwechsel künstlich verzögern: die Markierung darf nicht darauf warten
+    await page.route(url => url.pathname === '/stats', async route => { await new Promise(r => setTimeout(r, 1500)); await route.continue(); });
+    const stats = page.locator('.bottom-nav').getByRole('link', { name: 'Stats', exact: true });
+    await stats.click();
+    await expect(stats).toHaveClass(/active/, { timeout: 700 });
+    await expect(page.locator('.bottom-nav').getByRole('link', { name: 'Start', exact: true })).not.toHaveClass(/active/, { timeout: 700 });
+    await expect(page).toHaveURL('/stats', { timeout: 30_000 });
+    await expect(stats).not.toHaveClass(/is-pending/);
+  });
+
   test('small phones and tablet keep key layouts within the viewport', async ({ page }) => {
     test.setTimeout(240_000);
     for (const width of [320, 360, 768, 1024]) {

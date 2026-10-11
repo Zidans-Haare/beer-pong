@@ -8,9 +8,11 @@ import {
 // wirft schief und trifft statt der Becher das Bild an der Wand.
 
 export const DRUNK_TOTAL_MS = 6200;
-const THROW_AT = 2350;
-const THROW_MS = 950;
-const HIT_AT = THROW_AT + THROW_MS;
+export const THROW_AT = 2350;
+export const THROW_MS = 950;
+export const HIT_AT = THROW_AT + THROW_MS;
+// Zeitpunkte des Schluckaufs; der Ton hängt an denselben Werten
+export const HICCUP_AT = [1150, 4300];
 
 export interface DrunkSceneModel {
     primary: string;
@@ -183,6 +185,49 @@ function drawPicture(ctx: CanvasRenderingContext2D, time: number, name: string) 
     ctx.restore();
 }
 
+// Wut des Gegners: Dampf aus dem Kopf, pochende Zornesader und eine Sprechblase voller Flüche
+function drawFury(ctx: CanvasRenderingContext2D, time: number, anger: number) {
+    const headY = 836;
+    ctx.save();
+    // Dampf steigt links und rechts vom Kopf auf
+    for (let i = 0; i < 8; i++) {
+        const side = i % 2 ? 1 : -1;
+        const phase = ((time / 700) + i * 0.37) % 1;
+        ctx.fillStyle = `rgba(255,255,255,${0.55 * anger * (1 - phase)})`;
+        ctx.beginPath();
+        ctx.arc(CENTER_X + side * (64 + phase * 26 + (i % 3) * 10), headY - 20 - phase * 130, 14 + phase * 26, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    // Zornesader an der Stirn: vier Bögen, die im Takt pochen
+    const throb = 1 + Math.sin(time / 90) * 0.18;
+    ctx.translate(CENTER_X + 44, headY - 52);
+    ctx.scale(throb * anger, throb * anger);
+    ctx.strokeStyle = '#e02424'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    for (let q = 0; q < 4; q++) {
+        ctx.save(); ctx.rotate((q * Math.PI) / 2);
+        ctx.beginPath(); ctx.arc(10, 10, 14, Math.PI, Math.PI * 1.5); ctx.stroke();
+        ctx.restore();
+    }
+    ctx.restore();
+
+    // Sprechblase mit Fluchzeichen, wackelt leicht
+    const pop = easeOutBack(clamp((anger - 0.3) / 0.7));
+    if (pop > 0) {
+        ctx.save();
+        ctx.translate(CENTER_X + 210, 700);
+        ctx.rotate(0.08 + Math.sin(time / 60) * 0.03);
+        ctx.scale(pop, pop);
+        ctx.fillStyle = '#ffffff';
+        roundRect(ctx, -110, -52, 220, 104, 40); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-70, 40); ctx.lineTo(-96, 86); ctx.lineTo(-30, 46); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#c81e1e';
+        ctx.font = `700 62px ${HEADING}`;
+        ctx.textAlign = 'center';
+        ctx.fillText('#@%&!', 0, 22);
+        ctx.restore();
+    }
+}
+
 export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneModel, timeMs: number) {
     const time = clamp(timeMs, 0, DRUNK_TOTAL_MS);
     // gegen Ende schwankt das ganze Bild immer stärker
@@ -206,7 +251,10 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
 
     // Gegner hinter dem Tisch: grinst und zuckt kurz, wenn der Ball an ihm vorbeifliegt
     const dodge = ramp(time, THROW_AT + 500, 520);
-    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, OPPONENT_SKIN);
+    // nach dem Treffer fliegt das Bild zu Bruch und er ärgert sich
+    const anger = easeOut(ramp(time, HIT_AT + 150, 400));
+    drawOpponent(ctx, ramp(time, 300, 700), 0, model.opponentName, time, dodge < 1 ? dodge : 0, OPPONENT_SKIN, anger);
+    if (anger > 0) drawFury(ctx, time, anger);
 
     // Tisch
     const nl = tablePoint(-1, 0), nr = tablePoint(1, 0), fl = tablePoint(-1, 1), fr = tablePoint(1, 1);
@@ -265,7 +313,7 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
     ctx.restore();
 
     // "Hicks!" neben dem Kopf
-    for (const start of [1150, 4300]) {
+    for (const start of HICCUP_AT) {
         const h = ramp(time, start, 900);
         if (h <= 0 || h >= 1) continue;
         ctx.save();
@@ -286,6 +334,27 @@ export function drawDrunkFrame(ctx: CanvasRenderingContext2D, model: DrunkSceneM
             const angle = (i / 12) * Math.PI * 2;
             const dist = easeOut(burst) * (90 + rand(i, 2) * 90);
             ctx.beginPath(); ctx.arc(target.x + Math.cos(angle) * dist, target.y + Math.sin(angle) * dist, 9 * (1 - burst * 0.5), 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    // Glasscherben: das Bild geht zu Bruch, die Splitter fliegen weg und fallen
+    const shatter = ramp(time, HIT_AT, 1300);
+    if (shatter > 0 && shatter < 1) {
+        for (let i = 0; i < 22; i++) {
+            const angle = -Math.PI * 0.9 + rand(i, 7) * Math.PI * 1.8;
+            const speed = 140 + rand(i, 8) * 260;
+            const t = shatter * 1.3;
+            const x = target.x + Math.cos(angle) * speed * easeOut(clamp(t));
+            const y = target.y + 60 + Math.sin(angle) * speed * easeOut(clamp(t)) + t * t * 480;
+            const size = 14 + rand(i, 9) * 22;
+            ctx.save();
+            ctx.globalAlpha = 1 - shatter * shatter;
+            ctx.translate(x, y);
+            ctx.rotate(rand(i, 10) * 6 + t * (rand(i, 11) - 0.5) * 14);
+            ctx.fillStyle = i % 3 === 0 ? 'rgba(255,255,255,0.95)' : 'rgba(190,225,245,0.8)';
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size * 0.7, size * 0.6); ctx.lineTo(-size * 0.5, size * 0.4); ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            ctx.restore();
         }
     }
     ctx.restore();

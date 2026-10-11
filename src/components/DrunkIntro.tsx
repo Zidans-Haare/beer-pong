@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts } from '@/lib/wrapped-scene';
 import { drawDrunkFrame, DRUNK_TOTAL_MS, type DrunkSceneModel } from '@/lib/drunk-scene';
+import { sharedDrunkAudio } from '@/lib/drunk-audio';
 
 // Szene beim Einschalten des Betrunken-Modus. Tippen überspringt sie.
 // frozenAt hält die Szene an einer Stelle an (nur zum Prüfen in der Entwicklung).
@@ -33,7 +34,11 @@ export default function DrunkIntro({ onDone, frozenAt }: { onDone: () => void; f
             if (!alive) return;
             if (frozenAt !== undefined) { drawDrunkFrame(ctx, model, frozenAt); return; }
             const tick = (now: number) => {
-                if (!start) start = now;
+                if (!start) {
+                    start = now;
+                    // Ton startet mit dem ersten Bild; wer den Schalter schon angetippt hat, hört ihn sofort
+                    try { const audio = sharedDrunkAudio(); audio?.resume(); audio?.scheduleDrunk(0); } catch { /* ohne Ton weiter */ }
+                }
                 const time = now - start;
                 drawDrunkFrame(ctx, model, time);
                 // zum Schluss verschwimmt das Bild und geht in die App über
@@ -51,7 +56,7 @@ export default function DrunkIntro({ onDone, frozenAt }: { onDone: () => void; f
     return createPortal(
         <div className={`drunk-intro${leaving ? ' is-leaving' : ''}`} role="dialog" aria-modal="true" aria-label={t('on')}>
             <canvas ref={canvasRef} className="wrapped-canvas" width={SCENE_WIDTH} height={SCENE_HEIGHT} role="img" aria-label={`${t('miss')} ${t('sorry', { name: t('pictureName') })}`} />
-            <button type="button" className="drunk-intro-skip" onClick={() => done.current()}>{t('skip')}</button>
+            <button type="button" className="drunk-intro-skip" onClick={() => { try { sharedDrunkAudio()?.stop(); } catch { /* egal */ } done.current(); }}>{t('skip')}</button>
         </div>,
         document.body,
     );

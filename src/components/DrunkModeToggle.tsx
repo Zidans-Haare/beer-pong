@@ -1,15 +1,33 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useDrunkMode } from '@/context/DrunkModeContext';
 import { useTranslations } from 'next-intl';
 
 export default function DrunkModeToggle() {
     const t = useTranslations('drunk');
     const { isDrunk, toggle } = useDrunkMode();
+    // Ton und Szene vorab laden, damit der Ton beim Antippen sofort freigeschaltet werden kann
+    const audio = useRef<typeof import('@/lib/drunk-audio') | null>(null);
+    useEffect(() => {
+        let alive = true;
+        import('@/lib/drunk-audio').then(m => { if (alive) audio.current = m; }).catch(() => undefined);
+        import('@/components/DrunkIntro').catch(() => undefined);
+        return () => { alive = false; };
+    }, []);
+
+    const onToggle = () => {
+        // Browser erlauben Ton nur direkt nach einer Nutzeraktion
+        try {
+            if (isDrunk) audio.current?.sharedDrunkAudio()?.resume().then(() => audio.current?.sharedDrunkAudio()?.playSober());
+            else audio.current?.primeDrunkAudio();
+        } catch { /* ohne Ton weiter */ }
+        toggle();
+    };
 
     return (
         <button
-            onClick={toggle}
+            onClick={onToggle}
             style={{
                 display: 'flex',
                 alignItems: 'center',

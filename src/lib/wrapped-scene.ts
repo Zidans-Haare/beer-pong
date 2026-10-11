@@ -193,7 +193,7 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
 }
 
 // skin: Hautton der Figur
-export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0, skin = '#fbe3c0') {
+export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood: number, name: string | null, time: number, flinch = 0, skin = '#fbe3c0', anger = 0) {
     if (enter <= 0) return;
     const sad = clamp(-mood);
     const bob = Math.sin(time / 520) * 4 * (1 - sad);
@@ -201,7 +201,8 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     const y = 836 + (1 - easeOutBack(enter)) * 150 + sad * 26 + bob - Math.sin(flinch * Math.PI) * 34;
     ctx.save();
     ctx.globalAlpha = clamp(enter * 1.6);
-    ctx.translate(CENTER_X, y);
+    // Wut: er bebt vor Ärger
+    ctx.translate(CENTER_X + Math.sin(time / 38) * 7 * anger, y + Math.sin(time / 53) * 4 * anger);
     ctx.rotate(sad * 0.07);
     // Körper (unterer Teil verschwindet hinter dem Tisch)
     ctx.fillStyle = '#f2b24a';
@@ -213,11 +214,13 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     // Kopf
     ctx.fillStyle = skin;
     ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill();
+    // vor Wut läuft das Gesicht rot an
+    if (anger > 0) { ctx.fillStyle = `rgba(214,40,30,${0.5 * anger})`; ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill(); }
     // Augen
     ctx.fillStyle = '#2a1f14';
     const eyeY = -8 + sad * 6;
     // beim Schreck werden die Augen groß
-    const eye = 7 + Math.sin(flinch * Math.PI) * 5;
+    const eye = (7 + Math.sin(flinch * Math.PI) * 5) * (1 - anger * 0.2);
     // auf dunkler Haut bekommen die Augen ein Weiß, sonst gehen sie unter
     if (skin !== '#fbe3c0') {
         ctx.fillStyle = '#ffffff';
@@ -227,11 +230,13 @@ export function drawOpponent(ctx: CanvasRenderingContext2D, enter: number, mood:
     ctx.beginPath(); ctx.arc(-22, eyeY, eye, 0, Math.PI * 2); ctx.arc(22, eyeY, eye, 0, Math.PI * 2); ctx.fill();
     // Augenbrauen kippen bei schlechter Laune
     ctx.strokeStyle = '#2a1f14'; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.moveTo(-34, eyeY - 20 + sad * 8); ctx.lineTo(-12, eyeY - 20 - sad * 8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(34, eyeY - 20 + sad * 8); ctx.lineTo(12, eyeY - 20 - sad * 8); ctx.stroke();
-    // Mund: Lächeln bis Schmollmund
+    // bei Wut stehen die Brauen steil nach innen unten
+    const outer = eyeY - 20 - anger * 10, inner = eyeY - 20 + anger * 16;
+    ctx.beginPath(); ctx.moveTo(-36, outer + sad * 8); ctx.lineTo(-12 + anger * 4, inner - sad * 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(36, outer + sad * 8); ctx.lineTo(12 - anger * 4, inner - sad * 8); ctx.stroke();
+    // Mund: Lächeln bis Schmollmund, bei Wut ein fest zusammengepresster Strich mit Knick
     ctx.beginPath();
-    ctx.moveTo(-22, 24); ctx.quadraticCurveTo(0, 24 + lerp(18, -20, sad), 22, 24); ctx.stroke();
+    ctx.moveTo(-22 + anger * 6, 24 + anger * 2); ctx.quadraticCurveTo(0, 24 + anger * 2 + lerp(lerp(18, -20, sad), -16, anger), 22 - anger * 6, 24 + anger * 2); ctx.stroke();
     // Träne
     if (sad > 0.6) {
         const drop = (time / 900) % 1;

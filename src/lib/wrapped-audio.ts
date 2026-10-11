@@ -17,14 +17,14 @@ export class WrappedAudio {
     readonly ctx: AudioContext;
     private readonly master: GainNode;
     private readonly monitor: GainNode;
-    private readonly music: GainNode;
-    private readonly sfx: GainNode;
+    protected readonly music: GainNode;
+    protected readonly sfx: GainNode;
     private readonly recordOut: MediaStreamAudioDestinationNode;
     private readonly noiseBuffer: AudioBuffer;
-    private sources: AudioScheduledSourceNode[] = [];
+    protected sources: AudioScheduledSourceNode[] = [];
     // Kontextzeit, die Szenenzeit 0 entspricht
-    private origin = 0;
-    private scheduled = false;
+    protected origin = 0;
+    protected scheduled = false;
 
     constructor() {
         const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -94,7 +94,7 @@ export class WrappedAudio {
     async close() { this.stop(); await this.ctx.close().catch(() => undefined); }
 
     // ---- Bausteine ----
-    private tone(dest: AudioNode, time: number, freq: number, duration: number, type: Wave, gain: number, slideTo?: number, cutoff?: number) {
+    protected tone(dest: AudioNode, time: number, freq: number, duration: number, type: Wave, gain: number, slideTo?: number, cutoff?: number) {
         if (time < this.ctx.currentTime - 0.02) return;
         const osc = this.ctx.createOscillator();
         osc.type = type;
@@ -115,7 +115,7 @@ export class WrappedAudio {
         this.sources.push(osc);
     }
 
-    private noise(dest: AudioNode, time: number, duration: number, gain: number, type: BiquadFilterType, freq: number, sweepTo?: number) {
+    protected noise(dest: AudioNode, time: number, duration: number, gain: number, type: BiquadFilterType, freq: number, sweepTo?: number) {
         if (time < this.ctx.currentTime - 0.02) return;
         const source = this.ctx.createBufferSource();
         source.buffer = this.noiseBuffer;

@@ -45,4 +45,13 @@ test.describe('App-Nutzung und Online-Anzeige', () => {
     // wer gerade eine Seite offen hat, ist online
     await expect.poll(async () => (await (await page.request.get('/api/presence')).json()).count, { timeout: 15_000 }).toBeGreaterThanOrEqual(1);
   });
+  test('Fehler im Browser werden an den Server gemeldet', async ({ page }) => {
+    await page.goto('/rules');
+    const [request] = await Promise.all([
+      page.waitForRequest(r => r.url().includes('/api/client-error') && r.method() === 'POST', { timeout: 15_000 }),
+      page.evaluate(() => { setTimeout(() => { throw new Error('Testfehler fürs Fehlerprotokoll'); }, 50); }),
+    ]);
+    expect(request.postData()).toContain('Testfehler fürs Fehlerprotokoll');
+    expect((await page.request.post('/api/client-error', { data: 'ok' })).status()).toBe(204);
+  });
 });

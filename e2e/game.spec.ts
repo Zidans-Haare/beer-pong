@@ -11,7 +11,7 @@ test.describe('Regeln und Minispiel', () => {
   test('Regeln-Seite zeigt die Hausregeln und führt zum Minispiel', async ({ page }) => {
     await page.goto('/rules');
     await expect(page.getByRole('heading', { name: 'Offizielles Regelwerk' })).toBeVisible();
-    for (const heading of ['Grundlagen', 'Treffer und Sonderwürfe', 'Becher umstellen', 'Das Ende eines Spiels', 'Strafen und Spaß', 'Fair Play']) {
+    for (const heading of ['Grundlagen', 'Treffer und Sonderwürfe', 'Becher umstellen', 'Das Ende eines Spiels', 'Strafen und Spaß', 'Minispiel in der App', 'Fair Play']) {
       await expect(page.getByRole('heading', { name: heading })).toBeVisible();
     }
     await expect(page.getByText('Bombe:')).toBeVisible();

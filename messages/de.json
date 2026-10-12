@@ -928,7 +928,7 @@
           "Stehen auf der Seite deines Gegners nur noch **vier Becher**, die du treffen musst, darfst du sie **selbst** umstellen. Das passiert nicht automatisch, das machst du.",
           "Umgestellt wird **nur auf die zehn Plätze** der Zehneraufstellung, also dorthin, wo beim Aufbau ein Becher steht. Nicht frei auf den Tisch.",
           "Umstellen darfst du **zu Beginn deiner Runde**, nicht mittendrin: Triffst du bei fünf Bechern den ersten, müssen die anderen stehen bleiben (es kann ja noch eine Bombe werden). Umgestellt wird beim nächsten Mal, wenn du dran bist. **Nicht bei Balls back:** Triffst du beide Bälle, darfst du zwar gleich noch einmal werfen, aber das ist noch derselbe Zug. Umstellen geht erst, wenn du nach dem Gegner wieder wirklich dran bist.",
-          "Umgestellt wird **nur einmal pro Spiel**. Das geht auch **zu Beginn des Nachziehens**, wenn du es noch nicht gemacht hast."
+          "**Jeder Spieler** darf **nur einmal pro Spiel** umstellen. Das geht auch **zu Beginn des Nachziehens**, wenn du es noch nicht gemacht hast."
         ]
       },
       {
@@ -944,6 +944,16 @@
         "items": [
           "**Ausziehbecher:** Zählt nur dein **erster Treffer** im Spiel: Ist es der **mittlere Becher der dritten Reihe von vorne**, musst du in Unterhose am Tisch stehen. Das gilt für jeden Spieler für sich. Erst mit deinem nächsten Treffer darfst du dich wieder anziehen.",
           "**Nackte Meile:** Wer ein ganzes Spiel verliert, ohne einen einzigen Becher zu treffen, läuft nackt eine Runde um den Block. Das passiert nie, ist aber trotzdem lustig."
+        ]
+      },
+      {
+        "title": "Minispiel in der App",
+        "items": [
+          "**Duell:** Einer legt vor und spielt allein, bis alle Becher weg sind. Seine Würfe werden aufgezeichnet. Der andere zieht nach, wann er Zeit hat, und spielt gegen genau diese Würfe. Wer anfängt, hat Schnick, Schnack, Schnuck schon vorher entschieden.",
+          "**Angenommen heißt begonnen:** Wer ein Duell annimmt und es dann verlässt (Kreuz oben rechts, Seite neu laden, App schließen), hat aufgegeben und verloren. Es lässt sich nicht noch einmal starten.",
+          "**Verlängerung im Duell:** Räumen beide alles ab, spielt jeder die drei Becher einzeln, abwechselnd, bis es entschieden ist. In der Verlängerung gibt es kein Umstellen und keine Island-Ansagen. Eine Verlängerung lässt sich nicht ablehnen.",
+          "**Im Duell gibt es keine Aufpraller**, weil der andere nicht am Tisch sitzt und nicht wegschlagen könnte.",
+          "**Gegen den Computer:** Aufpraller darfst du wegschlagen, und der Computer schlägt deine weg. Dabei kann ein eigener Becher mitfliegen. Stellt der Computer um, nimmt er immer die Aufstellung 1-1-2: Spitze, Mitte der dritten Reihe und die zwei mittleren der letzten Reihe."
         ]
       },
       {

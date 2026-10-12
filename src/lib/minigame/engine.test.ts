@@ -599,10 +599,24 @@ describe('Umstellen: einmal und von Hand', () => {
         expect(canRearrange(g, 'me')).toBe(false);
     });
 
-    it('beim Nachziehen darf nicht umgestellt werden', () => {
-        const g = withCups(newGame('me'), 'me', [0, 1, 2, 3]);
+    it('zu Beginn des Nachziehens darf umgestellt werden, wenn man es noch nicht gemacht hat', () => {
+        const g = { ...withCups(newGame('me'), 'me', [0, 1, 2, 3]), catchUp: true, turn: 'opp' as Side };
         expect(canRearrange(g, 'opp')).toBe(true);
-        expect(canRearrange({ ...g, catchUp: true }, 'opp')).toBe(false);
+        // nur einmal pro Spiel
+        expect(canRearrange({ ...g, rearranged: { me: false, opp: true } }, 'opp')).toBe(false);
+        // mit mehr als vier Bechern nicht
+        expect(canRearrange({ ...withCups(newGame('me'), 'me', [0, 1, 2, 3, 4]), catchUp: true, turn: 'opp' as Side }, 'opp')).toBe(false);
+    });
+
+    it('beim Nachziehen nach Balls back nicht mehr: Das ist noch derselbe Zug', () => {
+        // der Gegner zieht nach, bei mir stehen fünf Becher; er trifft zwei (Balls back), danach stehen drei
+        let g: Game = { ...withCups(newGame('me'), 'me', [0, 1, 2, 3, 4]), catchUp: true, turn: 'opp' };
+        g = withCups(g, 'opp', []);
+        g = resolveRound(applyThrow(applyThrow(g, hit(0)).game, hit(1)).game).game;
+        expect(g.catchUp).toBe(true);
+        expect(g.turn).toBe('opp');
+        expect(g.cups.me).toHaveLength(3);
+        expect(canRearrange(g, 'opp')).toBe(false);
     });
 });
 

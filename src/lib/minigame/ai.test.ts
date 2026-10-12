@@ -84,10 +84,10 @@ describe('Gegner', () => {
         }
         // beide Spiegelungen kommen vor
         expect([...seen].sort()).toEqual(['9,5,1,2', '9,5,2,1']);
-        // mit mehr als vier Bechern, nur einmal und nicht beim Nachziehen gibt es nichts
+        // mit mehr als vier Bechern und ein zweites Mal gibt es nichts; beim Nachziehen stellt er um, wenn er es noch nicht gemacht hat
         expect(aiRearrangeSlots(newGame('opp'), rng)).toBeNull();
         expect(aiRearrangeSlots({ ...game, rearranged: { me: false, opp: true } }, seeded(1))).toBeNull();
-        expect(aiRearrangeSlots({ ...game, catchUp: true }, seeded(1))).toBeNull();
+        expect(aiRearrangeSlots({ ...game, catchUp: true }, seeded(1))).toHaveLength(4);
     });
 
     it('der Ball rollt nach dem Rand nur selten so weit zurück, dass es einen Trickshot gibt', () => {

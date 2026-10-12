@@ -283,6 +283,8 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
             g.cups.opp = formation('opp', g.size).filter(c => c.id >= FRONT_CUPS_FROM);
             events.push({ type: 'overtime' });
         } else if (ballsBack) {
+            // auch beim Nachziehen ist Balls back noch derselbe Zug: kein Umstellen
+            g.ballsBackTurn = true;
             events.push({ type: 'ballsBack', side });
         } else finish(g.starter);
     } else if (cleared) {
@@ -304,12 +306,12 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
 // ---- Becher umstellen ----
 // Wer wirft, darf die Becher stellen, die er treffen muss, sobald auf der Gegenseite nur noch vier stehen. `by` ist der
 // Werfer, umgestellt werden die Becher der Gegenseite. Genau einmal pro Spiel, nur zu Beginn einer eigenen Runde
-// (nicht mitten in der Runde, denn getroffene Becher stehen bis zum Rundenende noch), nicht bei Balls back (das ist
-// noch derselbe Zug) und nicht beim Nachziehen.
+// (nicht mitten in der Runde, denn getroffene Becher stehen bis zum Rundenende noch) und nicht bei Balls back (das ist
+// noch derselbe Zug). Zu Beginn des Nachziehens geht es auch, wenn man es noch nicht gemacht hat.
 // Gestellt wird nur auf die zehn Plätze des Zehnerdreiecks, nicht frei auf den Tisch.
 export const canRearrange = (game: Game, by: Side): boolean => {
     const targets = game.cups[other(by)].length;
-    return !game.winner && !game.catchUp && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0
+    return !game.winner && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0
         && targets >= 1 && targets <= REARRANGE_MAX;
 };
 
@@ -347,7 +349,7 @@ export function moveCup(game: Game, by: Side, cupId: number, slot: number): Game
 
 // Während des Umstellens (Runde läuft noch nicht) darf weiter verschoben werden; die Bedingungen prüft canRearrange
 // zu Beginn. Hier zählt nur, dass noch nicht abgeschlossen wurde und das Spiel läuft.
-const canRearrangeNow = (game: Game, by: Side) => !game.winner && !game.catchUp && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0;
+const canRearrangeNow = (game: Game, by: Side) => !game.winner && !game.ballsBackTurn && !game.rearranged[by] && game.throwsLeft === THROWS_PER_ROUND && game.roundHits.length === 0;
 
 // Die Anordnung 1-1-2 des Computers als Plätze, wie im Dreieck von der Spitze aus (O = Becher, X = leer):
 //      O        Spitze

@@ -54,4 +54,34 @@ test.describe('App-Nutzung und Online-Anzeige', () => {
     expect(request.postData()).toContain('Testfehler fürs Fehlerprotokoll');
     expect((await page.request.post('/api/client-error', { data: 'ok' })).status()).toBe(204);
   });
+  test('installierte App startet auf der Login-Seite und landet ohne Absturz auf der Startseite', async ({ page }) => {
+    // iOS öffnet die App mit der Adresse, von der sie installiert wurde, oft /login. Angemeldet geht es von dort direkt weiter.
+    await withDb(db => db.prepare("update User set pwaInstalled = 0 where id = 'e2e-host'").run());
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const actions: string[] = [];
+    page.on('request', r => { if (r.method() === 'POST' && r.headers()['next-action']) actions.push(r.url()); });
+    await page.addInitScript(() => {
+      const original = window.matchMedia.bind(window);
+      window.matchMedia = (query: string) => query.includes('display-mode: standalone')
+        ? ({ matches: true, media: query, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false } as MediaQueryList)
+        : original(query);
+    });
+    await page.goto('/login?callbackUrl=%2F');
+    await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
+    await expect(page.getByText(/Application error/)).toHaveCount(0);
+    await expect.poll(installed, { timeout: 30_000 }).toBe(1);
+    await page.waitForTimeout(1500);
+    expect(errors).toEqual([]);
+    // beim Start läuft keine Server Action (die lädt die Seite neu und kollidiert mit der Weiterleitung)
+    expect(actions).toEqual([]);
+  });
+
+  test('das Manifest der App ist ohne Anmeldung abrufbar', async ({ browser }) => {
+    const context = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+    const response = await context.request.get('/manifest.webmanifest', { maxRedirects: 0 });
+    expect(response.status()).toBe(200);
+    expect((await response.json()).start_url).toBe('/');
+    await context.close();
+  });
 });

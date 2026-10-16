@@ -62,6 +62,8 @@ test.describe('Isolated match scoring', () => {
     await dialog.locator('input[type="datetime-local"]').fill('2026-12-24T19:30');
     await dialog.getByLabel('Ort').fill('Bei Sam');
     await dialog.getByRole('button', { name: '2 vs 2' }).click();
+    // aus Spaß wird Liga
+    await dialog.getByRole('button', { name: 'Liga', exact: true }).click();
     await dialog.getByRole('button', { name: 'Ein Tisch mehr' }).click();
     await dialog.getByRole('button', { name: 'Jamie', exact: true }).click();
     await dialog.getByPlaceholder('Spieler suchen...').fill('Casey');
@@ -73,6 +75,7 @@ test.describe('Isolated match scoring', () => {
     await expect(header).toContainText('24. Dezember um 19:30 Uhr');
     await expect(header).toContainText('Bei Sam');
     await expect(header).toContainText('2v2');
+    await expect(header).toContainText('Liga');
     // Jamie (extra-0) ist raus, Casey dazu
     await page.getByRole('button', { name: 'Turnier bearbeiten' }).click();
     await expect(dialog.getByRole('button', { name: 'Casey', exact: true })).toHaveAttribute('aria-pressed', 'true');

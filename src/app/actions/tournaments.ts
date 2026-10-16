@@ -424,6 +424,7 @@ const editSchema = z.object({
     mode: z.enum(['SOLO', 'TEAM']),
     type: z.enum(['SINGLE_ELIMINATION', 'ELIMINATION', 'ROUND_ROBIN', 'GROUPS']),
     hasReturnLeg: z.boolean(),
+    isRanked: z.boolean(),
     participantIds: z.array(z.string()).max(200),
 });
 
@@ -438,11 +439,13 @@ export async function editTournament(tournamentId: string, input: TournamentEdit
     const data = parsed.data;
 
     try {
-        const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId }, include: { rsvps: true } });
+        const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId }, include: { rsvps: true, guests: { where: { expiresAt: { gt: new Date() } }, select: { id: true } } } });
         if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
         const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
         if (tournament.hostId !== session.user.id && !isAdmin) return { success: false, error: 'Nur der Host kann das Turnier bearbeiten.' };
         if (tournament.status !== 'PLANNED') return { success: false, error: 'Das Turnier läuft schon und kann nicht mehr bearbeitet werden.' };
+        // Gäste gibt es nur bei Spaß-Turnieren: mit Gästen bleibt das Turnier Spaß
+        if (data.isRanked && !tournament.isRanked && tournament.guests.length > 0) return { success: false, error: 'Bei diesem Turnier sind Gäste dabei. Gäste gibt es nur bei Spaß-Turnieren, deshalb kann es keine Liga werden.' };
 
         // nur echte Spieler, keine Gäste
         const wanted = new Set(data.participantIds);
@@ -457,7 +460,7 @@ export async function editTournament(tournamentId: string, input: TournamentEdit
         await prisma.$transaction(async (tx: any) => {
             await tx.tournament.update({
                 where: { id: tournamentId },
-                data: { name: data.name, date, location: data.location, tableCount: data.tableCount, mode: data.mode, type: data.type, hasReturnLeg: data.hasReturnLeg },
+                data: { name: data.name, date, location: data.location, tableCount: data.tableCount, mode: data.mode, type: data.type, hasReturnLeg: data.hasReturnLeg, isRanked: data.isRanked },
             });
             for (const p of added) {
                 await tx.rSVP.upsert({

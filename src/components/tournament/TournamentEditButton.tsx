@@ -9,7 +9,7 @@ import { useAppDialog } from '@/components/AppDialog';
 import { editTournament } from '@/app/actions/tournaments';
 
 interface Props {
-    tournament: { id: string; name: string; date: string; location: string; tableCount: number; mode: string; type: string; hasReturnLeg: boolean };
+    tournament: { id: string; name: string; date: string; location: string; tableCount: number; mode: string; type: string; hasReturnLeg: boolean; isRanked: boolean };
     players: { id: string; name: string }[];
     participantIds: string[];
     hostPlayerId: string | null;
@@ -36,13 +36,14 @@ export default function TournamentEditButton({ tournament, players, participantI
     const [mode, setMode] = useState(tournament.mode);
     const [type, setType] = useState(tournament.type);
     const [returnLeg, setReturnLeg] = useState(tournament.hasReturnLeg);
+    const [ranked, setRanked] = useState(tournament.isRanked);
     const [selected, setSelected] = useState<string[]>(participantIds);
     const [search, setSearch] = useState('');
 
     const start = () => {
         // immer mit dem aktuellen Stand öffnen
         setName(tournament.name); setDate(toLocalInput(tournament.date)); setLocation(tournament.location);
-        setTables(tournament.tableCount); setMode(tournament.mode); setType(tournament.type); setReturnLeg(tournament.hasReturnLeg);
+        setTables(tournament.tableCount); setMode(tournament.mode); setType(tournament.type); setReturnLeg(tournament.hasReturnLeg); setRanked(tournament.isRanked);
         setSelected(participantIds); setSearch('');
         setOpen(true);
     };
@@ -63,7 +64,7 @@ export default function TournamentEditButton({ tournament, players, participantI
         setSaving(true);
         const res = await editTournament(tournament.id, {
             name: name.trim(), date: new Date(date).toISOString(), location: location.trim(),
-            tableCount: tables, mode: mode as 'SOLO' | 'TEAM', type: type as 'SINGLE_ELIMINATION', hasReturnLeg: returnLeg, participantIds: selected,
+            tableCount: tables, mode: mode as 'SOLO' | 'TEAM', type: type as 'SINGLE_ELIMINATION', hasReturnLeg: returnLeg, isRanked: ranked, participantIds: selected,
         });
         setSaving(false);
         if (!res.success) { appDialog.alert(res.error ?? t('edit.error')); return; }
@@ -99,6 +100,13 @@ export default function TournamentEditButton({ tournament, players, participantI
                         <div className="segmented-control">
                             <button type="button" className="segment" aria-pressed={mode === 'SOLO'} onClick={() => setMode('SOLO')}>1 vs 1</button>
                             <button type="button" className="segment" aria-pressed={mode === 'TEAM'} onClick={() => setMode('TEAM')}>2 vs 2</button>
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <span>{t('edit.ranking')}</span>
+                        <div className="segmented-control">
+                            <button type="button" className="segment" aria-pressed={ranked} onClick={() => setRanked(true)}>{t('rankedShort')}</button>
+                            <button type="button" className="segment" aria-pressed={!ranked} onClick={() => setRanked(false)}>{t('funShort')}</button>
                         </div>
                     </div>
                     <label className="form-group">

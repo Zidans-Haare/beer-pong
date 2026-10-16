@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
-import { Gamepad2, Swords, Trophy, Hourglass } from 'lucide-react';
+import { Gamepad2, Swords, Trophy, Hourglass, Footprints } from 'lucide-react';
 import type { MiniGameProfile as Profile } from '@/lib/minigame/profile';
 
 const pct = (wins: number, games: number) => (games > 0 ? `${Math.round((wins / games) * 100)}%` : '–');
@@ -38,7 +38,7 @@ export default async function MiniGameProfile({ profile, own }: { profile: Profi
                     )}
                     {duels.games > 0 && (
                         <div className="pg-naked" aria-label={t('nakedDuelTitle')}>
-                            <span className="pg-naked-title">🏃 {t('nakedDuelTitle')}</span>
+                            <span className="pg-naked-title"><Footprints size={14} aria-hidden="true" /> {t('nakedDuelTitle')}</span>
                             <div className="pg-naked-row">
                                 <div><strong>{duels.nakedMiles.taken}</strong><span>{t('nakedTaken')}</span></div>
                                 <div><strong>{duels.nakedMiles.dealt}</strong><span>{t('nakedDealt')}</span></div>

@@ -294,7 +294,8 @@
       "error": "Saving failed.",
       "teamsReset": "Switching to 1 vs 1 dissolves the teams. Save anyway?",
       "fewerTables": "One table less",
-      "moreTables": "One table more"
+      "moreTables": "One table more",
+      "ranking": "Scoring"
     }
   },
   "rsvp": {

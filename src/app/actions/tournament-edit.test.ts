@@ -30,10 +30,10 @@ beforeAll(() => {
     player.run('p-guest', 'Gast', null, 1);
 });
 
-const base = { name: 'Geburtstag', date: '2026-12-24T18:30:00.000Z', location: 'Bei Nick', tableCount: 2, mode: 'SOLO' as const, type: 'SINGLE_ELIMINATION' as const, hasReturnLeg: false };
+const base = { name: 'Geburtstag', date: '2026-12-24T18:30:00.000Z', location: 'Bei Nick', tableCount: 2, mode: 'SOLO' as const, type: 'SINGLE_ELIMINATION' as const, hasReturnLeg: false, isRanked: false };
 
 function seed(status = 'PLANNED', mode = 'TEAM') {
-    db.exec('delete from Team; delete from RSVP; delete from Tournament;');
+    db.exec('delete from Team; delete from RSVP; delete from GuestPlayer; delete from Tournament;');
     db.prepare("insert into Tournament (id, name, date, location, status, type, hostId, mode, updatedAt) values ('t1', 'Alt', ?, 'Club', ?, 'SINGLE_ELIMINATION', 'user-host', ?, CURRENT_TIMESTAMP)").run(Date.parse('2026-12-20T18:00:00Z'), status, mode);
     const rsvp = db.prepare("insert into RSVP (id, tournamentId, playerId, status) values (?, 't1', ?, ?)");
     rsvp.run('r1', 'p-host', 'YES'); rsvp.run('r2', 'p-roy', 'YES'); rsvp.run('r3', 'p-tom', 'NO');
@@ -50,7 +50,8 @@ describe('Turnier bearbeiten', () => {
         const res = await editTournament('t1', { ...base, participantIds: ['p-host', 'p-tom', 'p-other', 'p-guest'] });
         expect(res).toEqual({ success: true });
         const t = db.prepare("select * from Tournament where id = 't1'").get() as Record<string, unknown>;
-        expect(t).toMatchObject({ name: 'Geburtstag', location: 'Bei Nick', tableCount: 2, mode: 'SOLO' });
+        // aus der Liga wird ein Spaß-Turnier
+        expect(t).toMatchObject({ name: 'Geburtstag', location: 'Bei Nick', tableCount: 2, mode: 'SOLO', isRanked: 0 });
         expect(new Date(t.date as number).toISOString()).toBe(base.date);
         const yes = (db.prepare("select playerId from RSVP where tournamentId = 't1' and status = 'YES' order by playerId").all() as { playerId: string }[]).map(r => r.playerId);
         expect(yes).toEqual(['p-host', 'p-other', 'p-tom']);
@@ -80,6 +81,20 @@ describe('Turnier bearbeiten', () => {
         seed('ACTIVE');
         expect((await editTournament('t1', { ...base, participantIds: [] })).success).toBe(false);
         expect((db.prepare("select name from Tournament where id = 't1'").get() as { name: string }).name).toBe('Alt');
+    });
+
+    it('Spaß wird nur zur Liga, solange keine Gäste dabei sind', async () => {
+        seed();
+        db.exec("update Tournament set isRanked = 0 where id = 't1'");
+        db.prepare("insert into GuestPlayer (id, name, tournamentId, sessionToken, expiresAt) values ('g1', 'Gast', 't1', 'tok', ?)").run(new Date(Date.now() + 86400000).toISOString().replace('Z', '+00:00'));
+        const { editTournament } = await import('./tournaments');
+        const blocked = await editTournament('t1', { ...base, isRanked: true, participantIds: ['p-host'] });
+        expect(blocked.success).toBe(false);
+        expect(blocked.error).toMatch(/Gäste/);
+        expect((db.prepare("select isRanked from Tournament where id = 't1'").get() as { isRanked: number }).isRanked).toBe(0);
+        db.exec('delete from GuestPlayer');
+        expect((await editTournament('t1', { ...base, isRanked: true, participantIds: ['p-host'] })).success).toBe(true);
+        expect((db.prepare("select isRanked from Tournament where id = 't1'").get() as { isRanked: number }).isRanked).toBe(1);
     });
 
     it('lehnt ungültige Angaben ab', async () => {

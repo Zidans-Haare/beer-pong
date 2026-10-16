@@ -294,7 +294,8 @@
       "error": "Speichern hat nicht geklappt.",
       "teamsReset": "Beim Wechsel auf 1 vs 1 werden die gebildeten Teams aufgelöst. Trotzdem speichern?",
       "fewerTables": "Ein Tisch weniger",
-      "moreTables": "Ein Tisch mehr"
+      "moreTables": "Ein Tisch mehr",
+      "ranking": "Wertung"
     }
   },
   "rsvp": {

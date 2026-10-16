@@ -994,7 +994,7 @@ body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :f
 
 /* Nackte Meile im Duell auf dem Profil */
 .pg-naked { margin-top: 12px; padding: 12px; border-radius: var(--radius-md); background: rgba(216, 58, 58, 0.08); border: 1px solid rgba(216, 58, 58, 0.25); }
-.pg-naked-title { display: block; margin-bottom: 8px; font-size: 0.8125rem; font-weight: 700; color: #b02a2a; }
+.pg-naked-title { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.8125rem; font-weight: 700; color: #b02a2a; }
 .pg-naked-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pg-naked-row div { display: flex; flex-direction: column; align-items: center; }
 .pg-naked-row strong { font-family: var(--font-heading); font-size: 1.8rem; line-height: 1; }
@@ -1034,7 +1034,8 @@ body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :f
 .game-button.is-strong { background: #fff; border-color: #fff; color: #14201a; }
 .game-button.is-big { min-height: 64px; padding: 14px 34px; font-size: 1.3rem; }
 .game-button.is-hand { flex-direction: column; min-width: 92px; min-height: 84px; border-radius: 18px; }
-.game-button.is-hand span { font-size: 2rem; line-height: 1; }
+.game-rps-result { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.game-rps-hands { display: inline-flex; align-items: center; gap: 14px; }
 .game-button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .game-pick { padding-bottom: 100px; max-width: 640px; display: flex; flex-direction: column; gap: 14px; }
 .game-rules-link { display: inline-block; margin-top: 24px; color: var(--color-primary); font-weight: 600; }

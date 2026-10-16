@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Volume2, VolumeX, X, Mountain, ArrowDownToLine, LayoutGrid, Swords, Bot, Shuffle } from 'lucide-react';
+import { Volume2, VolumeX, X, Mountain, ArrowDownToLine, LayoutGrid, Swords, Bot, Shuffle, Hand as HandOpen, HandFist, Scissors } from 'lucide-react';
 import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts, loadSceneLogo, skinFor, lerp, clamp, easeOut, tablePoint, type FigureLook } from '@/lib/wrapped-scene';
 import { lookFor, type FigureMap } from '@/lib/figure';
 import {
@@ -36,13 +36,15 @@ interface Controls {
     trick: boolean;
     swat: boolean;
     rps: boolean;
-    rpsResult: string | null;
+    // Schere-Stein-Papier: beide Hände und darunter, wer anfängt
+    rpsResult: { mine: Hand; theirs: Hand; line?: string } | null;
     hint: string;
     over: { won: boolean; mile: boolean } | null;
 }
 
 const IDLE: Controls = { aim: false, islandAvailable: false, islandOn: false, bounceOn: false, bounceAvailable: false, canRearrange: false, islandsLeft: 0, rearranging: false, trick: false, swat: false, rps: false, rpsResult: null, hint: '', over: null };
-const HAND_ICON: Record<Hand, string> = { rock: '✊', paper: '✋', scissors: '✌️' };
+// Icons statt Emojis
+const HAND_ICON: Record<Hand, typeof HandFist> = { rock: HandFist, paper: HandOpen, scissors: Scissors };
 const HAND = { x: SCENE_WIDTH / 2 + 150, y: 1650 };
 const OPP_HAND = { x: SCENE_WIDTH / 2 + 30, y: 880 };
 // Mittellinie des Tisches auf dem Bild: Wer den Ball darüber zurückrollen sieht, bekommt einen Trickshot
@@ -723,11 +725,11 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             setControls({ ...IDLE });
             await wait(id, 1000);
             fx('hand');
-            const shown = `${HAND_ICON[mine]}  –  ${HAND_ICON[theirs]}`;
+            const shown = { mine, theirs };
             starter = duel.starter === 'OPPONENT' ? 'me' : 'opp';
             setControls({ rpsResult: shown });
             await wait(id, 1500);
-            setControls({ rpsResult: `${shown}\n${starter === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName })}` });
+            setControls({ rpsResult: { ...shown, line: starter === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName }) } });
             await wait(id, 1500);
         }
         while (runId.current === id && !starter) {
@@ -738,16 +740,16 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             const theirs = aiHand(rand);
             fx('hand');
             const winner = rockPaperScissors(mine, theirs);
-            const shown = `${HAND_ICON[mine]}  –  ${HAND_ICON[theirs]}`;
+            const shown = { mine, theirs };
             setControls({ rps: false, rpsResult: shown });
             await wait(id, 1500);
             if (winner) {
                 starter = winner;
                 handsRef.current = { mine, theirs };
-                setControls({ rpsResult: `${shown}\n${winner === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName })}` });
+                setControls({ rpsResult: { ...shown, line: winner === 'me' ? t('rps.youStart') : t('rps.oppStarts', { name: oppName }) } });
                 await wait(id, 1500);
             } else {
-                setControls({ rpsResult: `${shown}\n${t('rps.draw')}` });
+                setControls({ rpsResult: { ...shown, line: t('rps.draw') } });
                 await wait(id, 1100);
             }
         }
@@ -1047,11 +1049,19 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
 
             <div className="game-controls" data-round={round}>
                 {ctl.hint && <p className="game-hint">{ctl.hint}</p>}
-                {ctl.rpsResult && <p className="game-rps-result">{ctl.rpsResult}</p>}
+                {ctl.rpsResult && (() => {
+                    const Mine = HAND_ICON[ctl.rpsResult.mine], Theirs = HAND_ICON[ctl.rpsResult.theirs];
+                    return (
+                        <p className="game-rps-result">
+                            <span className="game-rps-hands"><Mine size={40} aria-label={t(`rps.${ctl.rpsResult.mine}`)} /> – <Theirs size={40} aria-label={t(`rps.${ctl.rpsResult.theirs}`)} /></span>
+                            {ctl.rpsResult.line && <span>{ctl.rpsResult.line}</span>}
+                        </p>
+                    );
+                })()}
                 {ctl.rps && (
                     <div className="game-row">
                         {(['rock', 'paper', 'scissors'] as const).map(hand => (
-                            <button key={hand} type="button" className="game-button is-hand" onClick={() => answer(hand)}><span aria-hidden="true">{HAND_ICON[hand]}</span>{t(`rps.${hand}`)}</button>
+                            <button key={hand} type="button" className="game-button is-hand" onClick={() => answer(hand)}>{(() => { const Icon = HAND_ICON[hand]; return <Icon size={32} aria-hidden="true" />; })()}{t(`rps.${hand}`)}</button>
                         ))}
                     </div>
                 )}

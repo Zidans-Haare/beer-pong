@@ -208,7 +208,8 @@ export default async function TournamentPage({ params, searchParams }: { params:
                                 tableCount: tournament.tableCount,
                                 mode: tournament.mode,
                                 type: tournament.type,
-                                hasReturnLeg: tournament.hasReturnLeg
+                                hasReturnLeg: tournament.hasReturnLeg,
+                                isRanked: tournament.isRanked
                             }}
                             players={players.filter((p: any) => !p.isGuest).map((p: any) => ({ id: p.id, name: p.name }))}
                             participantIds={yesRsvps.map((r: any) => r.playerId)}

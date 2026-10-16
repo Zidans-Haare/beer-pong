@@ -9,7 +9,7 @@ import { parseReplay, roundsOf, hitsOf } from '@/lib/minigame/replay';
 type Result<T = object> = ({ success: true } & T) | { success: false; error: string };
 
 const HANDS = new Set(['rock', 'paper', 'scissors']);
-const LEVELS = new Set(['easy', 'normal', 'hard']);
+const LEVELS = new Set(['easy', 'normal', 'hard', 'impossible']);
 const SIZES = new Set(['small', 'medium', 'large']);
 const sizeOf = (value: unknown) => (typeof value === 'string' && SIZES.has(value) ? value : 'small');
 const clampInt = (value: unknown, max = 500) => (Number.isFinite(Number(value)) ? Math.max(0, Math.min(max, Math.round(Number(value)))) : 0);

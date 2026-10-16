@@ -33,7 +33,7 @@ describe('Minispiel-Bilanz im Profil', () => {
     });
 
     it('schlüsselt den Computer nach Stufe auf, ohne Stufe gilt Normal', () => {
-        expect(profile.cpu).toEqual({ games: 3, wins: 2, byLevel: { easy: { games: 1, wins: 1 }, normal: { games: 1, wins: 1 }, hard: { games: 1, wins: 0 } } });
+        expect(profile.cpu).toEqual({ games: 3, wins: 2, byLevel: { easy: { games: 1, wins: 1 }, normal: { games: 1, wins: 1 }, hard: { games: 1, wins: 0 }, impossible: { games: 0, wins: 0 } }, nakedMiles: { ran: 0, made: 0 } });
     });
 
     it('trennt Duelle nach Rolle und zählt offene und abgelehnte', () => {
@@ -59,7 +59,9 @@ describe('Minispiel-Bilanz im Profil', () => {
         expect(profile.recentDuels.map(d => d.opponentName)).toEqual(['Tom', 'Paul', 'Paul']);
         expect(profile.recentDuels[0].nakedMile).toBe('them');
         expect(profile.recentDuels[1].cupSize).toBe('large');
-        expect(profile.nakedMiles).toEqual({ ran: 0, made: 1 });
+        // Tom lief im Duell gegen mich: einmal verteilt, nichts kassiert; gegen den Computer nichts
+        expect(profile.duels.nakedMiles).toEqual({ taken: 0, dealt: 1 });
+        expect(profile.cpu.nakedMiles).toEqual({ ran: 0, made: 0 });
     });
 
     it('der Computer hat keine eigene Bilanz und ein leerer Spieler bekommt eine leere', () => {

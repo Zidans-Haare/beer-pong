@@ -36,6 +36,15 @@ export default async function MiniGameProfile({ profile, own }: { profile: Profi
                             <div><dt>{t('asOpponent')}</dt><dd>{duels.asOpponent.wins}/{duels.asOpponent.games}</dd></div>
                         </dl>
                     )}
+                    {duels.games > 0 && (
+                        <div className="pg-naked" aria-label={t('nakedDuelTitle')}>
+                            <span className="pg-naked-title">🏃 {t('nakedDuelTitle')}</span>
+                            <div className="pg-naked-row">
+                                <div><strong>{duels.nakedMiles.taken}</strong><span>{t('nakedTaken')}</span></div>
+                                <div><strong>{duels.nakedMiles.dealt}</strong><span>{t('nakedDealt')}</span></div>
+                            </div>
+                        </div>
+                    )}
                     {open > 0 && (
                         <p className="pg-open"><Hourglass size={14} aria-hidden="true" /> {[
                             duels.waitingForMe > 0 ? t('waitingForMe', { count: duels.waitingForMe }) : null,
@@ -48,13 +57,13 @@ export default async function MiniGameProfile({ profile, own }: { profile: Profi
                     <h3><Gamepad2 size={16} aria-hidden="true" /> {t('vsComputer')}</h3>
                     {cpu.games === 0 ? <p className="pg-empty">{t('noCpu')}</p> : (
                         <dl className="pg-list">
-                            {(['easy', 'normal', 'hard'] as const).map(level => (
+                            {(['easy', 'normal', 'hard', 'impossible'] as const).map(level => (
                                 <div key={level}><dt>{t(`level.${level}`)}</dt><dd>{cpu.byLevel[level].games > 0 ? `${cpu.byLevel[level].wins}/${cpu.byLevel[level].games} (${pct(cpu.byLevel[level].wins, cpu.byLevel[level].games)})` : '–'}</dd></div>
                             ))}
                         </dl>
                     )}
-                    {(profile.nakedMiles.ran > 0 || profile.nakedMiles.made > 0) && (
-                        <p className="pg-open">{t('nakedMiles', { ran: profile.nakedMiles.ran, made: profile.nakedMiles.made })}</p>
+                    {(cpu.nakedMiles.ran > 0 || cpu.nakedMiles.made > 0) && (
+                        <p className="pg-open">{t('nakedMiles', { ran: cpu.nakedMiles.ran, made: cpu.nakedMiles.made })}</p>
                     )}
                 </div>
             </div>

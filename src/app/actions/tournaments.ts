@@ -10,6 +10,7 @@ import { auth } from '@/auth';
 import { broadcastNotification } from './notifications';
 import { generateShortCode } from '@/lib/qrcode';
 import { isDemoMode } from '@/lib/demo';
+import { getUploadDir } from '@/lib/uploads';
 
 
 export async function getTournaments() {
@@ -51,14 +52,14 @@ export async function createTournament(formData: FormData) {
     if (offersGuestRoom && !isDemoMode) {
         const guestRoomImageFile = formData.get('guestRoomImage') as File | null;
         if (guestRoomImageFile && guestRoomImageFile.size > 0) {
-            const bytes = await guestRoomImageFile.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-            const ext = path.extname(guestRoomImageFile.name) || '.jpg';
+            // gleiche Regeln wie beim Spielerbild; SVG ist gesperrt
+            const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' } as Record<string, string>)[guestRoomImageFile.type];
+            if (!ext) return { success: false, error: 'Nur JPEG, PNG, WebP und GIF erlaubt' };
+            if (guestRoomImageFile.size > 8 * 1024 * 1024) return { success: false, error: 'Bild zu groß (max 8MB)' };
+            const buffer = Buffer.from(await guestRoomImageFile.arrayBuffer());
             const fileName = `room_${Date.now()}${ext}`;
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-            await fs.mkdir(uploadDir, { recursive: true });
-            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            // in den Upload-Ordner, den /uploads ausliefert; der Build-Ordner wird bei jedem Update ersetzt
+            await fs.writeFile(path.join(getUploadDir(), fileName), buffer);
             guestRoomImagePath = `/uploads/${fileName}`;
         }
     }
@@ -411,5 +412,85 @@ export async function setTournamentLiveStreamUrl(tournamentId: string, url: stri
     } catch (error) {
         console.error('setTournamentLiveStreamUrl error:', error);
         return { success: false, error: 'Fehler beim Speichern des Stream-Status' };
+    }
+}
+
+const editSchema = z.object({
+    name: z.string().trim().min(1).max(100),
+    // als ISO-Zeit mit Zeitzone vom Browser, damit die Uhrzeit nicht vom Server abhängt
+    date: z.iso.datetime({ offset: true }),
+    location: z.string().trim().min(1).max(200),
+    tableCount: z.number().int().min(1).max(10),
+    mode: z.enum(['SOLO', 'TEAM']),
+    type: z.enum(['SINGLE_ELIMINATION', 'ELIMINATION', 'ROUND_ROBIN', 'GROUPS']),
+    hasReturnLeg: z.boolean(),
+    participantIds: z.array(z.string()).max(200),
+});
+
+export type TournamentEdit = z.infer<typeof editSchema>;
+
+// Der Host bearbeitet sein Turnier, solange es noch nicht gestartet ist: Zeit, Ort, Modus, Tische und wer dabei ist
+export async function editTournament(tournamentId: string, input: TournamentEdit) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Nicht eingeloggt' };
+    const parsed = editSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: 'Ungültige Angaben' };
+    const data = parsed.data;
+
+    try {
+        const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId }, include: { rsvps: true } });
+        if (!tournament) return { success: false, error: 'Turnier nicht gefunden' };
+        const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
+        if (tournament.hostId !== session.user.id && !isAdmin) return { success: false, error: 'Nur der Host kann das Turnier bearbeiten.' };
+        if (tournament.status !== 'PLANNED') return { success: false, error: 'Das Turnier läuft schon und kann nicht mehr bearbeitet werden.' };
+
+        // nur echte Spieler, keine Gäste
+        const wanted = new Set(data.participantIds);
+        const players = await prisma.player.findMany({ where: { id: { in: [...wanted] }, isGuest: false }, select: { id: true, userId: true, name: true } });
+        const valid = new Set(players.map(p => p.id));
+        const yes = new Set(tournament.rsvps.filter(r => r.status === 'YES').map(r => r.playerId));
+        const added = players.filter(p => !yes.has(p.id));
+        const removed = [...yes].filter(id => !valid.has(id));
+        const date = new Date(data.date);
+        const moved = date.getTime() !== tournament.date.getTime() || data.location !== tournament.location;
+
+        await prisma.$transaction(async (tx: any) => {
+            await tx.tournament.update({
+                where: { id: tournamentId },
+                data: { name: data.name, date, location: data.location, tableCount: data.tableCount, mode: data.mode, type: data.type, hasReturnLeg: data.hasReturnLeg },
+            });
+            for (const p of added) {
+                await tx.rSVP.upsert({
+                    where: { tournamentId_playerId: { tournamentId, playerId: p.id } },
+                    update: { status: 'YES' },
+                    create: { tournamentId, playerId: p.id, status: 'YES' },
+                });
+            }
+            if (removed.length) await tx.rSVP.deleteMany({ where: { tournamentId, playerId: { in: removed } } });
+            // Teams passen nicht mehr: ohne 2v2 gibt es keine, und wer raus ist, verlässt sein Team
+            if (data.mode === 'SOLO') await tx.team.deleteMany({ where: { tournamentId } });
+            else if (removed.length) await tx.team.deleteMany({ where: { tournamentId, OR: [{ player1Id: { in: removed } }, { player2Id: { in: removed } }] } });
+        });
+
+        const link = `/tournaments/${tournamentId}`;
+        const { sendPushToUser } = await import('@/lib/push');
+        for (const p of added) {
+            if (p.userId && p.userId !== session.user.id) await sendPushToUser(p.userId, 'Du bist dabei!', `Du wurdest zu ${data.name} hinzugefügt.`, link);
+        }
+        // Zeit oder Ort geändert: alle Bisherigen bekommen Bescheid
+        if (moved) {
+            const informed = await prisma.player.findMany({ where: { id: { in: [...yes].filter(id => valid.has(id)) } }, select: { userId: true } });
+            const when = date.toLocaleString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            for (const p of informed) {
+                if (p.userId && p.userId !== session.user.id) await sendPushToUser(p.userId, 'Turnier geändert', `${data.name}: ${when} Uhr, ${data.location}`, link);
+            }
+        }
+
+        revalidatePath(link);
+        revalidatePath('/tournaments');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to edit tournament:', error);
+        return { success: false, error: 'Turnier konnte nicht gespeichert werden' };
     }
 }

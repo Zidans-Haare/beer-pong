@@ -47,15 +47,16 @@ export interface MiniGameProfile {
     bestRounds: number | null;
     averageRounds: number | null;
     hits: number;
-    cpu: { games: number; wins: number; byLevel: Record<'easy' | 'normal' | 'hard', LevelRecord> };
+    cpu: { games: number; wins: number; byLevel: Record<'easy' | 'normal' | 'hard' | 'impossible', LevelRecord>; nakedMiles: { ran: number; made: number } };
     duels: {
         games: number; wins: number; losses: number;
         // von mir vorgelegt und nachgezogen
         asChallenger: LevelRecord; asOpponent: LevelRecord;
         // noch offen: auf mich wartend, auf andere wartend, abgelehnt
         waitingForMe: number; waitingForThem: number; declined: number;
+        // nackte Meile im Duell: selbst gelaufen (kassiert) und dem Gegner eingebrockt (verteilt)
+        nakedMiles: { taken: number; dealt: number };
     };
-    nakedMiles: { ran: number; made: number };
     headToHead: { id: string; name: string; wins: number; losses: number }[];
     recentDuels: DuelEntry[];
 }
@@ -65,9 +66,8 @@ const SIZES = new Set(['small', 'medium', 'large']);
 export function buildMiniGameProfile(playerId: string, games: ProfileGame[], recentLimit = 8): MiniGameProfile {
     const profile: MiniGameProfile = {
         games: 0, wins: 0, losses: 0, bestRounds: null, averageRounds: null, hits: 0,
-        cpu: { games: 0, wins: 0, byLevel: { easy: { games: 0, wins: 0 }, normal: { games: 0, wins: 0 }, hard: { games: 0, wins: 0 } } },
-        duels: { games: 0, wins: 0, losses: 0, asChallenger: { games: 0, wins: 0 }, asOpponent: { games: 0, wins: 0 }, waitingForMe: 0, waitingForThem: 0, declined: 0 },
-        nakedMiles: { ran: 0, made: 0 },
+        cpu: { games: 0, wins: 0, byLevel: { easy: { games: 0, wins: 0 }, normal: { games: 0, wins: 0 }, hard: { games: 0, wins: 0 }, impossible: { games: 0, wins: 0 } }, nakedMiles: { ran: 0, made: 0 } },
+        duels: { games: 0, wins: 0, losses: 0, asChallenger: { games: 0, wins: 0 }, asOpponent: { games: 0, wins: 0 }, waitingForMe: 0, waitingForThem: 0, declined: 0, nakedMiles: { taken: 0, dealt: 0 } },
         headToHead: [], recentDuels: [],
     };
     const roundsOfWins: number[] = [];
@@ -96,22 +96,25 @@ export function buildMiniGameProfile(playerId: string, games: ProfileGame[], rec
             profile.wins++;
             if (mine.rounds && mine.rounds > 0) roundsOfWins.push(mine.rounds);
         } else profile.losses++;
-        const loserNaked = g.nakedMile === (iAmChallenger ? 'CHALLENGER' : 'OPPONENT');
-        if (loserNaked) profile.nakedMiles.ran++;
-        if (g.nakedMile && !loserNaked) profile.nakedMiles.made++;
+        const iRan = g.nakedMile === (iAmChallenger ? 'CHALLENGER' : 'OPPONENT');
+        const theyRan = !!g.nakedMile && !iRan;
 
         if (g.mode === 'CPU') {
             profile.cpu.games++;
             if (won) profile.cpu.wins++;
-            const level = g.difficulty === 'easy' || g.difficulty === 'hard' ? g.difficulty : 'normal';
+            const level = g.difficulty === 'easy' || g.difficulty === 'hard' || g.difficulty === 'impossible' ? g.difficulty : 'normal';
             profile.cpu.byLevel[level].games++;
             if (won) profile.cpu.byLevel[level].wins++;
+            if (iRan) profile.cpu.nakedMiles.ran++;
+            if (theyRan) profile.cpu.nakedMiles.made++;
             continue;
         }
 
         // Duell
         profile.duels.games++;
         if (won) profile.duels.wins++; else profile.duels.losses++;
+        if (iRan) profile.duels.nakedMiles.taken++;
+        if (theyRan) profile.duels.nakedMiles.dealt++;
         const role = iAmChallenger ? profile.duels.asChallenger : profile.duels.asOpponent;
         role.games++;
         if (won) role.wins++;
@@ -126,7 +129,7 @@ export function buildMiniGameProfile(playerId: string, games: ProfileGame[], rec
             id: g.id, opponentId: rivalId, opponentName: rivalName.trim(), won, challenger: iAmChallenger,
             myRounds: mine.rounds, theirRounds: theirs.rounds, myHits: mine.hits, theirHits: theirs.hits,
             cupSize: g.cupSize && SIZES.has(g.cupSize) ? g.cupSize : 'small',
-            nakedMile: g.nakedMile ? (loserNaked ? 'me' : 'them') : null,
+            nakedMile: g.nakedMile ? (iRan ? 'me' : 'them') : null,
             date: g.completedAt ?? g.createdAt,
         });
     }

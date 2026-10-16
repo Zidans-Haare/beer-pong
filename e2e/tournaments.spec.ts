@@ -20,6 +20,80 @@ test.describe('Turniere (öffentlich)', () => {
 test.describe('Isolated match scoring', () => {
   test.skip(process.env.E2E_MODE !== 'isolated', 'Only isolated fixture data may be changed');
 
+  test('Turnier anlegen: Datum passt aufs Handy, Gästezimmer-Bild wird angezeigt', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/tournaments/new');
+    requireIsolatedMode(page);
+    await page.locator('input[name="name"]').fill('E2E Gästezimmer');
+    await page.locator('input[name="location"]').fill('Club House');
+    // "Später": Das Datumsfeld bleibt in seinem Kasten und ist in Ortszeit vorbelegt
+    await page.getByText('Später', { exact: true }).click();
+    const date = page.locator('input[name="date"]');
+    await expect(date).toBeVisible();
+    const box = (await date.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    const local = await page.evaluate(() => { const d = new Date(); return `${String(d.getHours()).padStart(2, '0')}:`; });
+    expect(await date.inputValue()).toContain(`T${local}`);
+    await page.getByText('Jetzt', { exact: true }).click();
+    // Gästezimmer mit Bild
+    await page.getByText('Gästezimmer für Übernachtung anbieten').click();
+    await page.locator('input[name="guestRoomTitle"]').fill('Sofa');
+    await page.locator('[name="guestRoomDescription"]').fill('Gemütlich');
+    await page.locator('input[name="guestRoomImage"]').setInputFiles('public/screenshot-wide.png');
+    await page.getByRole('button', { name: /Erstellen|starten/i }).last().click();
+    await expect(page).toHaveURL(/\/tournaments\/(?!new)[^/?]+/, { timeout: 30_000 });
+    await page.goto(page.url().split('?')[0]);
+    const img = page.locator('img[alt="Guest Room"]');
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth)).toBeGreaterThan(0);
+    // verkleinert und als JPEG gespeichert
+    expect(await img.getAttribute('src')).toMatch(/^\/uploads\/room_\d+\.jpg$/);
+  });
+
+  test('Host bearbeitet ein geplantes Turnier: Zeit, Ort, Modus, Tische und Spieler', async ({ page, browser }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/tournaments/e2e-groups');
+    requireIsolatedMode(page);
+    await page.getByRole('button', { name: 'Turnier bearbeiten' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Turnier bearbeiten' });
+    await expect(dialog).toBeVisible();
+    // Zeit in Ortszeit, Ort, 2 vs 2, Tische und Spieler
+    await dialog.locator('input[type="datetime-local"]').fill('2026-12-24T19:30');
+    await dialog.getByLabel('Ort').fill('Bei Sam');
+    await dialog.getByRole('button', { name: '2 vs 2' }).click();
+    await dialog.getByRole('button', { name: 'Ein Tisch mehr' }).click();
+    await dialog.getByRole('button', { name: 'Jamie', exact: true }).click();
+    await dialog.getByPlaceholder('Spieler suchen...').fill('Casey');
+    await dialog.getByRole('button', { name: 'Casey', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Speichern' }).click();
+    await expect(dialog).toHaveCount(0);
+
+    const header = page.locator('header.tournament-header');
+    await expect(header).toContainText('24. Dezember um 19:30 Uhr');
+    await expect(header).toContainText('Bei Sam');
+    await expect(header).toContainText('2v2');
+    // Jamie (extra-0) ist raus, Casey dazu
+    await page.getByRole('button', { name: 'Turnier bearbeiten' }).click();
+    await expect(dialog.getByRole('button', { name: 'Casey', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(dialog.getByRole('button', { name: 'Jamie', exact: true })).toHaveAttribute('aria-pressed', 'false');
+    await expect(dialog.locator('output')).toHaveText('3');
+    await dialog.getByRole('button', { name: 'Abbrechen' }).click();
+
+    // andere sehen keinen Stift
+    const context = await browser.newContext({ storageState: 'e2e/.auth/player.json' });
+    const other = await context.newPage();
+    await other.goto('/tournaments/e2e-groups');
+    await expect(other.locator('header.tournament-header')).toContainText('Bei Sam');
+    await expect(other.getByRole('button', { name: 'Turnier bearbeiten' })).toHaveCount(0);
+    await context.close();
+    // laufende Turniere haben keinen Stift
+    await page.goto('/tournaments/e2e-active');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Turnier bearbeiten' })).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+
   test('joining by code completes outside server rendering', async ({ page }) => {
     await page.goto('/join/CLUB26');
     await expect(page).toHaveURL('/tournaments/e2e-planned', { timeout: 30_000 });
@@ -48,8 +122,8 @@ test.describe('Isolated match scoring', () => {
     await page.goto('/tournaments/new');
     for (const name of ['name', 'location', 'mode', 'isRanked', 'type', 'tableCount', 'startImmediately']) await expect(page.locator(`[name="${name}"]`).first()).toBeAttached();
     for (const text of ['Zeitplanung', 'Spielmodus', 'Turnier-Format', 'Anzahl der Tische']) await expect(page.getByText(text, { exact: true })).toBeVisible();
-    await expect(page.getByText(/^Spieler direkt hinzufügen/)).toBeVisible();
-    await expect(page.getByPlaceholder('Spieler suchen...')).toBeVisible();
+    // Spieler kommen erst nach dem Anlegen dazu (Stift in der Turnierübersicht)
+    await expect(page.getByText(/^Spieler direkt hinzufügen/)).toHaveCount(0);
   });
 
   test('normal scores and repeated overtime preserve the saved result', async ({ page }) => {

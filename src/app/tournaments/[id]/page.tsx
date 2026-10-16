@@ -20,6 +20,7 @@ import TeamAssignment from '@/components/TeamAssignment';
 import TeamList from '@/components/tournament/TeamList';
 import ParticipantList from '@/components/tournament/ParticipantList';
 import HostControls from '@/components/tournament/HostControls';
+import TournamentEditButton from '@/components/tournament/TournamentEditButton';
 import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
 import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
 import LiveInfoCards from '@/components/tournament/LiveInfoCards';
@@ -195,6 +196,26 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                     {t('allTournaments')}
                 </Link>
+                {/* Stift für den Host, nur vor dem Start */}
+                {isHost && isPlanned && (
+                    <div style={{ marginLeft: 'auto' }}>
+                        <TournamentEditButton
+                            tournament={{
+                                id: tournament.id,
+                                name: tournament.name,
+                                date: tournament.date.toISOString(),
+                                location: tournament.location,
+                                tableCount: tournament.tableCount,
+                                mode: tournament.mode,
+                                type: tournament.type,
+                                hasReturnLeg: tournament.hasReturnLeg
+                            }}
+                            players={players.filter((p: any) => !p.isGuest).map((p: any) => ({ id: p.id, name: p.name }))}
+                            participantIds={yesRsvps.map((r: any) => r.playerId)}
+                            hostPlayerId={players.find((p: any) => p.userId === tournament.hostId)?.id ?? null}
+                        />
+                    </div>
+                )}
             </div>
 
             <TournamentHeader

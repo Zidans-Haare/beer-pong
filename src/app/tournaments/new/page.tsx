@@ -1,19 +1,11 @@
 import CreateTournamentForm from './form';
-import { getPlayers } from '@/app/actions/players';
-import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewTournamentPage() {
-    const [players, session] = await Promise.all([getPlayers(), auth()]);
-    const hostPlayer = session?.user?.id
-        ? await prisma.player.findUnique({ where: { userId: session.user.id }, select: { id: true } })
-        : null;
-
     return (
         <div className="container page-content">
-            <CreateTournamentForm players={players} hostPlayerId={hostPlayer?.id ?? null} />
+            <CreateTournamentForm />
         </div>
     );
 }

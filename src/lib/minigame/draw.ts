@@ -7,9 +7,10 @@ import {
     type FigureLook, type SceneAssets,
 } from '@/lib/wrapped-scene';
 import { drawWalker } from '@/lib/tournament-scene';
-import { islandsOf, canRearrange, freeSlots, slotsOf, other, type Game, type Side } from '@/lib/minigame/engine';
+import { islandsOf, other, type Game, type Side } from '@/lib/minigame/engine';
 import type { Point } from '@/lib/minigame/aim';
 import { drawWallPicture } from '@/lib/drunk-scene';
+import { drawBirdsEye, type BirdView } from '@/lib/minigame/birdseye';
 
 export interface Stamp { text: string; start: number; color?: string; y?: number }
 
@@ -21,7 +22,10 @@ export interface GameView {
     looks: Record<Side, FigureLook>;
     // 0..1: Szene baut sich auf
     enter: number;
-    ball: { x: number; y: number; r: number; alpha?: number } | null;
+    // ground: Punkt auf dem Tisch unter dem Ball (für den Schatten); squash: Stauchen beim Aufprall (0 bis 1)
+    ball: { x: number; y: number; r: number; alpha?: number; ground?: Point; squash?: number } | null;
+    // Aufprall auf dem Tisch: kurzer Ring an der Stelle
+    impacts?: { x: number; y: number; r: number; start: number }[];
     trail: Point[];
     // Becher, die gerade vom Tisch fliegen: Seite:Becher-ID -> Startzeit
     vanishing: Record<string, number>;
@@ -31,7 +35,7 @@ export interface GameView {
     // Insel-Ansage aktiv: Inseln des Gegners werden markiert
     islandCall: boolean;
     // Umstellen: gewählter Becher; die freien Plätze des Zehnerdreiecks werden angezeigt
-    rearranging: { dragging: number | null } | null;
+    rearranging: BirdView | null;
     stamps: Stamp[];
     status: string;
     throwPhase: number;
@@ -334,41 +338,44 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
 
     cupSprite(ctx, view, 'opp', time);
 
+    // Aufprall-Ringe auf dem Tisch
+    for (const hit of view.impacts ?? []) {
+        const k = ramp(time, hit.start, 420);
+        if (k >= 1) continue;
+        ctx.save();
+        ctx.strokeStyle = `rgba(255,255,255,${0.75 * (1 - k)})`; ctx.lineWidth = 5 * (1 - k) + 1;
+        ctx.beginPath(); ctx.ellipse(hit.x, hit.y, hit.r * (1 + k * 2.2), hit.r * 0.45 * (1 + k * 2.2), 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+    }
+
     // Spur und Ball
     if (view.ball) {
+        // Schatten auf dem Tisch: je höher der Ball, desto kleiner und blasser
+        const ground = view.ball.ground;
+        if (ground) {
+            const h = clamp((ground.y - view.ball.y) / 500);
+            ctx.save();
+            ctx.fillStyle = `rgba(0,0,0,${(0.38 * (1 - h * 0.7)) * (view.ball.alpha ?? 1)})`;
+            ctx.beginPath(); ctx.ellipse(ground.x, ground.y, view.ball.r * (1.1 - h * 0.5), view.ball.r * 0.42 * (1.1 - h * 0.5), 0, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
         view.trail.forEach((p, i) => {
             const k = (i + 1) / (view.trail.length + 1);
             ctx.fillStyle = `rgba(255,255,255,${0.26 * k})`;
             ctx.beginPath(); ctx.arc(p.x, p.y, view.ball!.r * k, 0, Math.PI * 2); ctx.fill();
         });
-        drawBall(ctx, view.ball.x, view.ball.y, view.ball.r, view.ball.alpha ?? 1);
+        const squash = view.ball.squash ?? 0;
+        if (squash > 0) {
+            // beim Aufprall kurz breit und flach
+            ctx.save();
+            ctx.translate(view.ball.x, view.ball.y + view.ball.r);
+            ctx.scale(1 + squash * 0.35, 1 - squash * 0.35);
+            drawBall(ctx, 0, -view.ball.r, view.ball.r, view.ball.alpha ?? 1);
+            ctx.restore();
+        } else drawBall(ctx, view.ball.x, view.ball.y, view.ball.r, view.ball.alpha ?? 1);
     }
 
     cupSprite(ctx, view, 'me', time);
-
-    // Umstellen: die freien Plätze des Zehnerdreiecks als gestrichelte Becher, die Becher des Gegners sind greifbar
-    if (view.rearranging && canRearrange(view.game, 'me')) {
-        const size = view.game.size;
-        const free = new Set(freeSlots(view.game, 'opp'));
-        for (const slot of slotsOf('opp', size)) {
-            if (!free.has(slot.id)) continue;
-            const p = tablePoint(slot.u, slot.v);
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255,224,138,0.9)'; ctx.fillStyle = 'rgba(255,224,138,0.14)';
-            ctx.lineWidth = 5; ctx.setLineDash([10, 8]); ctx.lineDashOffset = time / 60;
-            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 22 * p.scale * size, 34 * p.scale * size, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            ctx.restore();
-        }
-        for (const cup of view.game.cups.opp) {
-            const p = tablePoint(cup.u, cup.v);
-            const picked = view.rearranging.dragging === cup.id;
-            ctx.save();
-            ctx.strokeStyle = picked ? '#ffffff' : '#ffe08a';
-            ctx.lineWidth = picked ? 8 : 5; ctx.setLineDash(picked ? [] : [12, 9]); ctx.lineDashOffset = -time / 50;
-            ctx.beginPath(); ctx.ellipse(p.x, p.y - 56 * p.scale * size, 24 * p.scale * size, 36 * p.scale * size, 0, 0, Math.PI * 2); ctx.stroke();
-            ctx.restore();
-        }
-    }
 
     // ich, von hinten; in Unterhose ohne Hemd
     drawMe(ctx, ramp(view.enter, 0.1, 0.4), view.throwPhase, view.cheer, time, view.primary, { ...view.looks.me, skin: view.skins.me, undies: view.game.stripped.me });
@@ -385,6 +392,8 @@ export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, tim
     ctx.fillRect(0, 0, SCENE_WIDTH, 520);
     drawPlayerCard(ctx, view, 'me', time);
     drawPlayerCard(ctx, view, 'opp', time);
+    // Umstellen: herangezoomt von oben
+    if (view.rearranging) drawBirdsEye(ctx, view.game, view.rearranging, time);
     drawStatus(ctx, view.status);
     drawStamps(ctx, view.stamps, time);
 

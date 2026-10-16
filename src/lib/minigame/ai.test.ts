@@ -125,6 +125,18 @@ describe('Gegner', () => {
         expect(hard - normal).toBeGreaterThan(0.12);
     });
 
+    it('unmöglich ist noch einmal deutlich stärker als schwer', () => {
+        const rng = seeded(21);
+        let hits = 0, swats = 0;
+        for (let i = 0; i < 3000; i++) if (planAiThrow(newGame('opp'), rng, 'impossible')!.result.kind === 'hit') hits++;
+        for (let i = 0; i < 2000; i++) if (aiSwat(newGame('me'), rng, 'impossible').swat) swats++;
+        expect(hits / 3000).toBeGreaterThan(0.7);
+        expect(swats / 2000).toBeGreaterThan(0.75);
+        expect(hitChance('impossible', 10)).toBeGreaterThan(hitChance('hard', 10) + 0.15);
+        expect(hitChance('impossible', 10, 1.5)).toBeLessThanOrEqual(0.95);
+        expect(DIFFICULTIES.impossible.sway).toBeGreaterThan(DIFFICULTIES.hard.sway);
+    });
+
     it('größere Becher werden leichter getroffen', () => {
         expect(hitChance('normal', 10, 1.5)).toBeGreaterThan(hitChance('normal', 10, 1.25));
         expect(hitChance('normal', 10, 1.25)).toBeGreaterThan(hitChance('normal', 10, 1));

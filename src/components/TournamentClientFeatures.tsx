@@ -1,7 +1,6 @@
 'use client';
 
 import { useTournamentWakeLock } from '@/hooks/useWakeLock';
-import WinnerOverlay from '@/components/film/WinnerOverlay';
 
 interface TournamentClientFeaturesProps {
   tournamentId: string;
@@ -11,7 +10,6 @@ interface TournamentClientFeaturesProps {
 }
 
 export default function TournamentClientFeatures({
-  tournamentId,
   tournamentStatus,
 }: TournamentClientFeaturesProps) {
   const isRunning = tournamentStatus === 'ACTIVE';
@@ -21,9 +19,6 @@ export default function TournamentClientFeatures({
 
   return (
     <>
-      {/* Siegerehrung statt Konfetti: die Top 3 hüpfen am unteren Rand */}
-      <WinnerOverlay tournamentId={tournamentId} active={tournamentStatus === 'COMPLETED'} />
-
       {/* Wake lock indicator for active tournaments */}
       {isRunning && wakeLock.isActive && (
         <div

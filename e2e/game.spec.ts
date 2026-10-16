@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { cupMouth } from '../src/lib/minigame/aim';
-import { tablePoint } from '../src/lib/wrapped-scene';
+import { birdPoint } from '../src/lib/minigame/birdseye';
 import { slotsOf } from '../src/lib/minigame/engine';
 
 const isolated = process.env.E2E_MODE === 'isolated';
@@ -247,8 +247,10 @@ test.describe('Umstellen', () => {
     const canvas = page.locator('canvas.game-canvas');
     const box = (await canvas.boundingBox())!;
     const toPage = (p: { x: number; y: number }) => ({ x: box.x + (p.x / 1080) * box.width, y: box.y + (p.y / 1920) * box.height });
-    const body = (slot: { u: number; v: number }) => { const p = tablePoint(slot.u, slot.v); return toPage({ x: p.x, y: p.y - 55 * p.scale }); };
+    // von oben herangezoomt: die Plätze liegen groß als Dreieck
+    const body = (slot: { id: number }) => toPage(birdPoint(slot.id));
     const slots = slotsOf('opp', 1);
+    await page.waitForTimeout(500);
     const click = async (point: { x: number; y: number }) => { await page.mouse.move(point.x, point.y); await page.mouse.down(); await page.mouse.up(); };
 
     // Becher 0 antippen, dann den Platz an der Spitze (9)
@@ -265,6 +267,8 @@ test.describe('Umstellen', () => {
     await page.mouse.up();
     const dragged = await page.evaluate(() => (window as unknown as { __bpGame: () => { cups: { opp: { id: number; u: number; v: number }[] } } }).__bpGame().cups.opp.find(c => c.id === 1));
     expect(dragged!.v).toBeCloseTo(slots[7].v, 5);
+    // ein Antippen daneben ändert nichts
+    await click(toPage({ x: 40, y: 1800 }));
 
     await page.getByRole('button', { name: 'Fertig' }).click();
     await expect(aimHint).toBeVisible({ timeout: 30_000 });

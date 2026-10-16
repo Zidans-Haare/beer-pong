@@ -1,6 +1,7 @@
 'use client';
 
-import { Trophy, Target, Shield } from 'lucide-react';
+import { Target, Shield } from 'lucide-react';
+import WinnerPodium from '@/components/film/WinnerPodium';
 import { useTranslations } from 'next-intl';
 
 interface TournamentSummaryProps {
@@ -130,8 +131,6 @@ export default function TournamentSummary({
         podium = effectiveStandings.slice(0, 3);
     }
 
-    // Find winner (highest points in standings)
-    const winner = podium[0] ?? (effectiveStandings.length > 0 ? effectiveStandings[0] : null);
     const topThree = podium;
 
     // Best scorer (most goals for)
@@ -146,88 +145,12 @@ export default function TournamentSummary({
 
     return (
         <div style={{ marginTop: 'var(--spacing-12)' }}>
-            {/* Winner Announcement */}
-            {winner && (
-                <div className="glass-panel" style={{
-                    padding: 'var(--spacing-8)',
-                    marginBottom: 'var(--spacing-8)',
-                    textAlign: 'center',
-                    background: "var(--color-primary-light)",
-                    border: '2px solid gold'
-                }}>
-                    <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                        <Trophy size={32} color="#FFD700" /> {t('winner')} {winner.player?.name || 'TBD'}
-                    </h2>
-                    <div style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)' }}>
-                        {t('winnerStats', { points: winner.points, wins: winner.won, for: winner.goalsFor, against: winner.goalsAgainst })}
-                    </div>
-                </div>
-            )}
-
-            {/* Podium */}
-            {topThree.filter(Boolean).length >= 2 && (
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'flex-end',
-                    gap: 'var(--spacing-4)',
-                    marginBottom: 'var(--spacing-8)',
-                    flexWrap: 'wrap'
-                }}>
-                    {/* 2nd Place */}
-                    <div className="glass-panel" style={{
-                        padding: 'var(--spacing-6)',
-                        textAlign: 'center',
-                        minWidth: '150px',
-                        background: 'rgba(192,192,192,0.1)',
-                        border: '1px solid silver'
-                    }}>
-                        <div style={{ fontSize: '2.5rem', color: 'silver' }}>2.</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
-                            {topThree[1]?.player?.name}
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[1]?.points} {t('points')}
-                        </div>
-                    </div>
-
-                    {/* 1st Place */}
-                    <div className="glass-panel" style={{
-                        padding: 'var(--spacing-6)',
-                        textAlign: 'center',
-                        minWidth: '150px',
-                        background: 'rgba(255,215,0,0.1)',
-                        border: '2px solid gold',
-                        transform: 'scale(1.1)'
-                    }}>
-                        <div><Trophy size={48} color="#FFD700" /></div>
-                        <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
-                            {topThree[0]?.player?.name}
-                        </div>
-                        <div style={{ fontSize: '1rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[0]?.points} {t('points')}
-                        </div>
-                    </div>
-
-                    {/* 3rd Place */}
-                    {topThree[2] && (
-                    <div className="glass-panel" style={{
-                        padding: 'var(--spacing-6)',
-                        textAlign: 'center',
-                        minWidth: '150px',
-                        background: 'rgba(205,127,50,0.1)',
-                        border: '1px solid #CD7F32'
-                    }}>
-                        <div style={{ fontSize: '2.5rem', color: '#CD7F32' }}>3.</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: 'var(--spacing-2)' }}>
-                            {topThree[2]?.player?.name}
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            {topThree[2]?.points} {t('points')}
-                        </div>
-                    </div>
-                    )}
-                </div>
+            {/* Siegerehrung: die Top 3 springen auf ihr Podest */}
+            {topThree.filter(Boolean).length > 0 && (
+                <WinnerPodium
+                    tournamentId={tournamentId}
+                    fallback={topThree.map((s: any, i: number) => s && { place: i + 1, name: s.player?.name ?? '' }).filter(Boolean)}
+                />
             )}
 
             {/* Statistics */}

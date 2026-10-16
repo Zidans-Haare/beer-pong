@@ -4,7 +4,7 @@
 import { islandsOf, oneOneTwoSlots, canRearrange, type Game, type Side, type ThrowResult, type Cup } from '@/lib/minigame/engine';
 
 export type Rng = () => number;
-export type Difficulty = 'easy' | 'normal' | 'hard';
+export type Difficulty = 'easy' | 'normal' | 'hard' | 'impossible';
 
 // Wie oft ein Ball nach dem Rand so weit zurückrollt, dass er über die Mitte des Tisches kommt (Trickshot)
 export const ROLL_BACK_CHANCE = 0.2;
@@ -16,6 +16,8 @@ export const DIFFICULTIES: Record<Difficulty, { hit: number; sway: number; swat:
     easy: { hit: 0.16, sway: 14, swat: 0.1, bomb: 0.2, island: 0.4 },
     normal: { hit: 0.34, sway: 34, swat: 0.3, bomb: 0.5, island: 0.7 },
     hard: { hit: 0.58, sway: 56, swat: 0.55, bomb: 0.8, island: 0.95 },
+    // Steigerung zu schwer: trifft fast immer, schlägt fast jeden Aufpraller weg, die eigene Hand zittert stark
+    impossible: { hit: 0.82, sway: 74, swat: 0.85, bomb: 0.95, island: 1 },
 };
 
 export interface AiPlan {
@@ -28,7 +30,7 @@ export interface AiPlan {
 
 // Je weniger Becher stehen, desto schwerer wird es
 export const hitChance = (difficulty: Difficulty, cupsLeft: number, size = 1) =>
-    Math.min(0.9, Math.max(0.1, DIFFICULTIES[difficulty].hit * (1 - (10 - Math.min(10, cupsLeft)) * 0.03) * (1 + (size - 1) * 0.6)));
+    Math.min(difficulty === 'impossible' ? 0.95 : 0.9, Math.max(0.1, DIFFICULTIES[difficulty].hit * (1 - (10 - Math.min(10, cupsLeft)) * 0.03) * (1 + (size - 1) * 0.6)));
 
 // Aufpraller gibt es nur im Spiel gegen den Rechner: Im Duell könnte niemand wegschlagen (allowBounce = false)
 export function planAiThrow(game: Game, rng: Rng, difficulty: Difficulty, lastHit: number | null = null, allowBounce = true): AiPlan | null {

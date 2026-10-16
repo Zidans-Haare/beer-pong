@@ -8,10 +8,11 @@ import { SCENE_WIDTH, SCENE_HEIGHT, loadSceneFonts, loadSceneLogo, skinFor, lerp
 import { lookFor, type FigureMap } from '@/lib/figure';
 import {
     newGame, newOvertimeGame, applyThrow, resolveRound, roundOver, canTrick, skipTrick, canRearrange, rearrange, moveCup, finishRearranging, islandsOf, isIsland, rockPaperScissors,
-    THROWS_PER_ROUND, CUP_SIZES, other, type CupSize, type Game, type Side, type Hand, type ThrowResult, type GameEvent,
+    THROWS_PER_ROUND, CUP_SIZES, other, type Cup, type CupSize, type Game, type Side, type Hand, type ThrowResult, type GameEvent,
 } from '@/lib/minigame/engine';
 import { planAiThrow, planAiTrick, aiRearrangeSlots, aiSwat, aiHand, ROLL_BACK_CHANCE, DIFFICULTIES, type Difficulty } from '@/lib/minigame/ai';
-import { judgeDirect, judgeBounce, cupMouth, cupAt, slotAt, hitRadii, flickLanding, tremor, type Point, type Sample } from '@/lib/minigame/aim';
+import { judgeDirect, judgeBounce, cupMouth, hitRadii, flickLanding, tremor, type Point, type Sample } from '@/lib/minigame/aim';
+import { birdCupAt, birdSlotAt, BIRD_ZOOM_MS } from '@/lib/minigame/birdseye';
 import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
 import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
 import { throwsOfRound, roundsOf, hitsOf, type ReplayThrow } from '@/lib/minigame/replay';
@@ -44,6 +45,12 @@ const IDLE: Controls = { aim: false, islandAvailable: false, islandOn: false, bo
 const HAND_ICON: Record<Hand, string> = { rock: '✊', paper: '✋', scissors: '✌️' };
 const HAND = { x: SCENE_WIDTH / 2 + 150, y: 1650 };
 const OPP_HAND = { x: SCENE_WIDTH / 2 + 30, y: 880 };
+// Mittellinie des Tisches auf dem Bild: Wer den Ball darüber zurückrollen sieht, bekommt einen Trickshot
+const MID_Y = tablePoint(0, 0.5).y;
+// Ein Aufpraller, der keinen Becher trifft, prallt so oft noch an einem Becher ab (dann wie ein Randtreffer)
+const BOUNCE_CLIP_CHANCE = 0.35;
+// Aufpraller ohne Treffer: fliegt hinten weg oder prallt an einem Becher ab und rollt zurück
+const bounceMiss = (nearCups: boolean): ThrowResult => (nearCups && rand() < BOUNCE_CLIP_CHANCE ? { kind: 'rim', rolledBack: rand() < ROLL_BACK_CHANCE } : { kind: 'miss' });
 
 const key = (side: Side, id: number) => `${side}:${id}`;
 const rand = () => Math.random();
@@ -158,34 +165,52 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
 
     // ---- Flugbahnen ----
     const fly = useCallback(async (id: number, from: Point & { r: number }, to: Point & { r: number }, ms: number, height: number) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         view.trail = [];
         await animate(id, ms, k => {
-            const p = { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k) - Math.sin(k * Math.PI) * height, r: lerp(from.r, to.r, k) };
-            view.ball = p;
+            const ground = { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k) };
+            const p = { x: ground.x, y: ground.y - Math.sin(k * Math.PI) * height, r: lerp(from.r, to.r, k) };
+            view.ball = { ...p, ground };
             view.trail.push({ x: p.x, y: p.y });
             if (view.trail.length > 6) view.trail.shift();
         });
         view.trail = [];
     }, [animate]);
 
+    // Aufprall auf dem Tisch: Ball staucht sich kurz, ein Ring zeigt die Stelle, dazu der Ton
+    const bounceOff = useCallback(async (id: number, at: Point & { r: number }) => {
+        const view = viewRef.current;
+        if (!view) return;
+        fx('bounce');
+        view.impacts = [...(view.impacts ?? []).filter(i => performance.now() - i.start < 500), { x: at.x, y: at.y, r: at.r * 2, start: performance.now() }];
+        await animate(id, 110, k => { view.ball = { ...at, ground: { x: at.x, y: at.y }, squash: Math.sin(k * Math.PI) }; });
+    }, [animate, fx]);
+
     // Ball verschwindet im Becher
     const sink = useCallback(async (id: number, at: Point & { r: number }) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         await animate(id, 220, k => { view.ball = { x: at.x, y: at.y + k * 26, r: at.r * (1 - k * 0.55), alpha: 1 - k * 0.2 }; });
         view.ball = null;
     }, [animate]);
 
     // Ball springt weg oder fällt vom Tisch
     const leave = useCallback(async (id: number, from: Point & { r: number }, to: Point, ms: number, height: number) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         await animate(id, ms, k => { view.ball = { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k) - Math.sin(k * Math.PI) * height, r: from.r * (1 + 0.3 * k), alpha: 1 - k * k }; });
         view.ball = null;
     }, [animate]);
 
     // ---- Ergebnisse als Stempel und Ton ----
     const showEvents = useCallback((events: GameEvent[], by: Side) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         for (const e of events) {
             if (e.type === 'hit') {
                 announce(e.island ? t('stamp.island') : e.bounce ? t('stamp.bounce') : t('stamp.hit'), e.island ? 'island' : 'plop', e.bounce || e.island ? '#ffb347' : undefined);
@@ -215,7 +240,9 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     // Ball prallt vom Becherrand ab und rollt über den Tisch zurück. Kommt er über die Mittellinie, blitzt sie auf und es
     // gibt einen Trickshot; sonst bleibt er davor liegen.
     const rollBack = useCallback(async (id: number, from: Point & { r: number }, thrower: Side, crossed: boolean) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         const mid = tablePoint(0, 0.5).y;
         // der Ball rollt zum Werfer zurück: bei mir nach unten, beim Gegner nach oben
         const dir = thrower === 'me' ? 1 : -1;
@@ -226,10 +253,11 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         await animate(id, ms, k => {
             const e = easeOut(k);
             const x = lerp(from.x, endX, e);
-            const y = lerp(from.y, endY, e) - Math.abs(Math.sin(k * Math.PI * 3)) * 26 * (1 - k);
+            const groundY = lerp(from.y, endY, e);
+            const y = groundY - Math.abs(Math.sin(k * Math.PI * 3)) * 26 * (1 - k);
             // beim Rollen wird der Ball in der Perspektive größer, wenn er zu mir kommt
             const r = lerp(from.r, thrower === 'me' ? from.r * 1.5 : from.r * 0.8, e);
-            view.ball = { x, y, r, alpha: k > 0.85 ? 1 - (k - 0.85) / 0.15 * 0.6 : 1 };
+            view.ball = { x, y, r, alpha: k > 0.85 ? 1 - (k - 0.85) / 0.15 * 0.6 : 1, ground: { x, y: groundY } };
             if (crossed && !flashed && (thrower === 'me' ? y > mid : y < mid)) { flashed = true; view.midFlash = performance.now(); fx('rim'); }
         });
         view.ball = null;
@@ -238,7 +266,9 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     // Hand schlägt den Aufpraller weg: Hand holt aus, klatscht auf den Ball, der Ball fliegt davon. Ein Missgeschick
     // (`lostCup`) reißt einen Becher des Schlagenden mit; er bleibt dann weg.
     const slapAway = useCallback(async (id: number, ball: Point & { r: number }, by: Side, lostCup: number | null) => {
-        const view = viewRef.current!;
+        const view = viewRef.current;
+        // nach dem Zurück ins Menü ist das Spielfeld schon weg
+        if (!view) return;
         const g = gameRef.current!;
         const size = g.size;
         // Becher der Seite, die schlägt: wer wegschlägt, steht auf der Seite, deren Becher getroffen würden
@@ -283,8 +313,13 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             if (runId.current !== id || !choice) return;
             if (choice.type === 'rearrange') {
                 setControls({ aim: false, rearranging: true, canRearrange: false, hint: t('hint.rearrange') });
-                view.rearranging = { dragging: null };
+                // heranzoomen: die Becher von oben, groß genug zum Antippen
+                view.rearranging = { dragging: null, start: performance.now(), closing: null, dragPoint: null };
                 await input<void>();
+                drag.current = null;
+                view.rearranging.closing = performance.now();
+                view.rearranging.dragging = null;
+                await new Promise(resolve => setTimeout(resolve, BIRD_ZOOM_MS));
                 view.rearranging = null;
                 if (runId.current !== id) return;
                 // Umgestellt wird nur einmal pro Spiel
@@ -307,7 +342,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             if (judged.kind === 'hit' && swatted?.swat) result = { kind: 'blocked', cupId: judged.cupId, ownCupLost: swatted.ownCupLost };
             else if (judged.kind === 'hit') result = { kind: 'hit', cupId: judged.cupId, bounce };
             else if (judged.kind === 'rim') result = { kind: 'rim', rolledBack: rand() < ROLL_BACK_CHANCE };
-            else result = { kind: 'miss' };
+            else result = bounceMiss(bounce && point.y < MID_Y);
 
             // Animation: Wurfarm, dann Ball
             fx('throw');
@@ -316,18 +351,27 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             const mouthOf = (cupId: number) => cupMouth(g.cups.opp.find(c => c.id === cupId)!, g.size);
             const sc = tablePoint(0, clamp((1650 - point.y) / 690)).scale;
             if (bounce) {
+                // steil auf den Tisch, sichtbarer Aufprall, dann ein flacherer Bogen in den Becher
                 const landing = { x: point.x, y: point.y, r: 22 * sc + 6 };
-                await fly(id, start, landing, 420, 110);
-                fx('bounce');
+                await fly(id, start, landing, 460, 260);
+                await bounceOff(id, landing);
                 if (result.kind === 'hit' || result.kind === 'blocked') {
                     const m = mouthOf(result.cupId);
                     const end = { x: m.x, y: m.y, r: 15 * m.scale + 3 };
-                    await fly(id, landing, end, 360, 130);
+                    await fly(id, landing, end, 340, 90);
                     if (result.kind === 'blocked') {
                         // der Computer schlägt den Ball mit der Hand weg
                         await slapAway(id, end, 'opp', result.ownCupLost);
                     } else await sink(id, end);
-                } else await leave(id, landing, { x: landing.x + 40, y: landing.y - 220 }, 500, 140);
+                } else if (result.kind === 'rim') {
+                    // prallt nach dem Aufprall an einem Becher ab und rollt über die Mitte zurück: Trickshot
+                    const near = g.cups.opp.reduce<Cup | null>((best, c) => { const p = mouthOf(c.id); return !best || Math.hypot(p.x - landing.x, p.y - landing.y) < Math.hypot(mouthOf(best.id).x - landing.x, mouthOf(best.id).y - landing.y) ? c : best; }, null);
+                    const cupPoint = near ? mouthOf(near.id) : { x: landing.x, y: landing.y - 80, scale: sc };
+                    const atCup = { x: cupPoint.x, y: cupPoint.y, r: 15 * cupPoint.scale + 3 };
+                    await fly(id, landing, atCup, 260, 60);
+                    fx('rim');
+                    await rollBack(id, atCup, 'me', result.rolledBack);
+                } else await leave(id, landing, { x: landing.x + 40, y: Math.min(landing.y, MID_Y) - 260 }, 520, 120);
             } else if (trick === 'ceiling') {
                 const mid = { x: point.x, y: 120, r: 16 };
                 await fly(id, start, mid, 420, 0);
@@ -340,7 +384,8 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                 await fly(id, start, end, 700, 430);
                 if (result.kind === 'hit') await sink(id, end);
                 else if (result.kind === 'rim') await rollBack(id, end, 'me', result.rolledBack);
-                else await leave(id, end, { x: end.x + (rand() - 0.5) * 120, y: end.y + 170 }, 420, 60);
+                // springt ein Stück zurück, aber nie über die Mitte (das wäre ein Trickshot)
+                else await leave(id, end, { x: end.x + (rand() - 0.5) * 120, y: Math.min(end.y + 170, MID_Y - 70) }, 420, 60);
             }
             await animate(id, 220, k => { view.throwPhase = 0.5 + k * 0.5; });
             view.throwPhase = 0;
@@ -353,7 +398,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             await wait(id, 650);
             return;
         }
-    }, [animate, fly, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, waitAim]);
+    }, [animate, bounceOff, fly, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, waitAim]);
 
     // ---- Wurf des Gegners ----
     const oppThrow = useCallback(async (id: number, trick: boolean): Promise<void> => {
@@ -377,6 +422,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             if (result0.kind === 'hit' && result0.bounce) result0 = { ...result0, bounce: false };
         } else if (trick) result0 = planAiTrick(g, rand, difficultyRef.current);
         else result0 = plan!.result;
+        if (plan?.bounce && result0.kind === 'miss') result0 = bounceMiss(true);
         if (!plan && !scripted && !trick) plan = null;
         const targetId = result0.kind === 'hit' ? result0.cupId : plan?.cupId ?? g.cups.me[Math.floor(rand() * g.cups.me.length)]?.id;
         const target = g.cups.me.find(c => c.id === targetId) ?? g.cups.me[0];
@@ -397,8 +443,8 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         let result: ThrowResult = result0;
         if (bounce) {
             const base = { x: m.x + (rand() - 0.5) * 30, y: m.baseY + 118 * m.scale * 0.42, r: 18 };
-            await fly(id, start, base, 520, 120);
-            fx('bounce');
+            await fly(id, start, base, 520, 240);
+            await bounceOff(id, base);
             if (result.kind === 'hit') {
                 // Fenster zum Wegschlagen: der Ball fliegt auf den Becher zu, der Knopf ist kurz da
                 const windowMs = 850;
@@ -407,7 +453,10 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                 setControls({ swat: true, hint: t('hint.swat') });
                 let swatAt: number | null = null;
                 void input<'swat'>().then(() => { swatAt = performance.now() - t0; });
-                const posAt = (k: number) => ({ x: lerp(base.x, end.x, k), y: lerp(base.y, end.y, k) - Math.sin(k * Math.PI) * 140, r: lerp(base.r, end.r, k) });
+                const posAt = (k: number) => {
+                    const ground = { x: lerp(base.x, end.x, k), y: lerp(base.y, end.y, k) };
+                    return { x: ground.x, y: ground.y - Math.sin(k * Math.PI) * 100, r: lerp(base.r, end.r, k), ground };
+                };
                 await new Promise<void>(resolve => {
                     const tick = () => {
                         if (runId.current !== id) return resolve();
@@ -429,6 +478,12 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                     result = { kind: 'blocked', cupId: target.id, ownCupLost: accident };
                     await slapAway(id, view.ball ?? end, 'me', accident);
                 } else await sink(id, end);
+            } else if (result.kind === 'rim') {
+                // Aufpraller des Gegners prallt an meinem Becher ab und rollt zu ihm zurück
+                const atCup = { x: m.x, y: m.y, r: end.r };
+                await fly(id, base, atCup, 260, 60);
+                fx('rim');
+                await rollBack(id, atCup, 'opp', result.rolledBack);
             } else await leave(id, base, { x: base.x + 30, y: base.y + 260 }, 480, 100);
         } else {
             const spread = result.kind === 'hit' ? 0 : result.kind === 'rim' ? 1.25 : 2.6;
@@ -447,7 +502,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         showEvents(out.events, 'opp');
         if (out.events.some(e => e.type === 'hit')) view.mood = Math.min(0.2, view.mood + 0.2);
         await wait(id, 650);
-    }, [announce, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, fly]);
+    }, [announce, bounceOff, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, fly]);
 
     // ---- Runde beenden ----
     const finishRound = useCallback(async (id: number) => {
@@ -646,7 +701,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             // Haut und Aussehen kommen aus den Figuren der Spieler
             skins: { me: lookFor(meName, 0, figures).skin ?? skinFor(meName), opp: lookFor(oppName, 0, figures).skin ?? skinFor(oppName) },
             looks: { me: lookFor(meName, 0, figures), opp: lookFor(oppName, 0, figures) },
-            enter: 0, ball: null, trail: [], vanishing: {}, swipe: null, blind: false, islandCall: false, rearranging: null, stamps: [], status: '',
+            enter: 0, ball: null, trail: [], impacts: [], vanishing: {}, swipe: null, blind: false, islandCall: false, rearranging: null, stamps: [], status: '',
             throwPhase: 0, mood: 0, anger: 0, flinch: 0, cheer: 0, shake: 0, swat: null, ending: null, hand: null, midFlash: null,
             level: kind === 'cpu' ? t(`level.${difficultyRef.current}`) : null,
         };
@@ -740,12 +795,14 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         event.currentTarget.setPointerCapture(event.pointerId);
         if (ctlRef.current.rearranging && gameRef.current && viewRef.current?.rearranging) {
             const g = gameRef.current;
-            const picked = viewRef.current.rearranging.dragging;
-            const cup = cupAt(g, 'opp', point);
-            if (cup) { drag.current = { cupId: cup.id }; viewRef.current.rearranging.dragging = cup.id; return; }
+            const bird = viewRef.current.rearranging;
+            if (bird.closing !== null) return;
+            const picked = bird.dragging;
+            const cup = birdCupAt(g, point);
+            if (cup !== null) { drag.current = { cupId: cup }; bird.dragging = cup; bird.dragPoint = null; return; }
             // erst einen Becher antippen, dann einen freien Platz: Der Becher wandert dorthin
-            const slot = slotAt(g, 'opp', point);
-            if (slot !== null && picked !== null) { gameRef.current = moveCup(g, 'me', picked, slot); viewRef.current.rearranging.dragging = null; }
+            const slot = birdSlotAt(g, point);
+            if (slot !== null && picked !== null) { gameRef.current = moveCup(g, 'me', picked, slot); bird.dragging = null; }
             return;
         }
         if (!a.waiting) return;
@@ -756,7 +813,12 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
     const onPointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
         const point = toCanvas(event);
         lastPoint.current = point;
-        if (drag.current) return;
+        if (drag.current) {
+            // der Becher hängt am Finger, sobald er wirklich gezogen wird
+            const bird = viewRef.current?.rearranging;
+            if (bird) bird.dragPoint = point;
+            return;
+        }
         const a = aim.current;
         if (!a.waiting || !a.active) return;
         a.samples.push({ ...point, t: event.timeStamp });
@@ -768,8 +830,10 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         if (drag.current) {
             // Becher auf einen freien Platz ziehen und loslassen; sonst bleibt er ausgewählt und ein Antippen des Platzes genügt
             const g = gameRef.current;
-            const slot = g ? slotAt(g, 'opp', lastPoint.current) : null;
-            if (g && slot !== null) { gameRef.current = moveCup(g, 'me', drag.current.cupId, slot); if (viewRef.current?.rearranging) viewRef.current.rearranging.dragging = null; }
+            const bird = viewRef.current?.rearranging;
+            const slot = g ? birdSlotAt(g, lastPoint.current) : null;
+            if (g && slot !== null) { gameRef.current = moveCup(g, 'me', drag.current.cupId, slot); if (bird) bird.dragging = null; }
+            if (bird) bird.dragPoint = null;
             drag.current = null;
             return;
         }
@@ -852,7 +916,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         const segment = <T extends string>(label: string, items: readonly T[], current: T, onPick: (v: T) => void, text: (v: T) => string) => (
             <div className="gp-setting">
                 <span className="gp-setting-label" id={`gp-${label}`}>{label}</span>
-                <div className="gp-segment" role="radiogroup" aria-labelledby={`gp-${label}`}>
+                <div className={`gp-segment${items.length > 3 ? ' is-four' : ''}`} role="radiogroup" aria-labelledby={`gp-${label}`}>
                     {items.map(item => (
                         <button key={item} type="button" role="radio" aria-checked={current === item} className={current === item ? 'is-on' : ''} onClick={() => onPick(item)}>{text(item)}</button>
                     ))}
@@ -915,7 +979,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                 <section className="gp-card">
                     <h2>{t('settings')}</h2>
                     {segment(t('cupSize'), ['small', 'medium', 'large'] as const, cupSize, chooseSize, v => t(`size.${v}`))}
-                    {pickKind === 'cpu' && segment(t('difficulty'), ['easy', 'normal', 'hard'] as const, difficulty, setDifficulty, v => t(`level.${v}`))}
+                    {pickKind === 'cpu' && segment(t('difficulty'), ['easy', 'normal', 'hard', 'impossible'] as const, difficulty, setDifficulty, v => t(`level.${v}`))}
                 </section>
 
                 <section className="gp-card">

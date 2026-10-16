@@ -37,38 +37,38 @@ test.describe('Turnierfilm', () => {
     await expect(page.getByRole('link', { name: /Zum Turnier|Back to tournament/i })).toBeVisible();
   });
 
-  test('Sieger-Overlay erscheint bei jedem Öffnen eines beendeten Turniers und lässt sich wegtippen', async ({ page }) => {
+  test('Siegerehrung: die Top 3 stehen auf dem Podest statt in Kästen, bei jedem Öffnen', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
 
     // die Abfrage einmal vorwärmen (der Entwicklungsserver übersetzt sie beim ersten Aufruf), dann zählt die Zeit bis zum Bild
     expect((await page.request.get('/api/tournaments/e2e-completed/podium')).ok()).toBe(true);
     await page.goto('/tournaments/e2e-completed');
-    const overlay = page.locator('.winner-overlay');
-    await expect(overlay).toBeVisible();
+    const podium = page.locator('.winner-podium[data-ready="true"]');
+    await expect(podium).toBeVisible();
     // die Top 3 sind nach einer halben Sekunde im Bild (vom Öffnen der Seite bis zum ersten gezeichneten Bild)
-    // das erste Bild entsteht einen Augenblick nach dem Einblenden des Knopfs, deshalb kurz warten, bis die Messung da ist
     await expect.poll(() => page.evaluate(() => performance.getEntriesByName('winner-overlay-e2e-completed')[0]?.duration ?? -1)).toBeGreaterThan(0);
     const ms = await page.evaluate(() => performance.getEntriesByName('winner-overlay-e2e-completed')[0].duration);
     expect(ms).toBeLessThan(500);
-    // Figuren sind gezeichnet (irgendwo im Bild gibt es sichtbare Pixel)
-    await expect.poll(() => overlay.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+    // die alten Kästen mit Sieger, 2. und 3. gibt es nicht mehr
+    await expect(page.getByText(/^Sieger:|^Winner:/)).toHaveCount(0);
+    // Podest und Figuren sind gezeichnet
+    await expect.poll(() => podium.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
       const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
       for (let i = 3; i < data.length; i += 4) if (data[i] > 0) return true;
       return false;
     })).toBe(true);
-    await overlay.click();
-    await expect(overlay).toHaveCount(0);
+    // Tippen spielt die Ehrung noch einmal ab, das Podest bleibt
+    await podium.click();
+    await expect(podium).toBeVisible();
 
-    // zweiter Besuch in derselben Sitzung: das Overlay kommt wieder
+    // zweiter Besuch: wieder da
     await page.goto('/tournaments/e2e-completed');
-    await expect(page.locator('.winner-overlay')).toBeVisible();
-    await page.locator('.winner-overlay').click();
-    await expect(page.locator('.winner-overlay')).toHaveCount(0);
+    await expect(page.locator('.winner-podium[data-ready="true"]')).toBeVisible();
     // ein laufendes Turnier zeigt keines
     await page.goto('/tournaments/e2e-active');
     await page.waitForTimeout(1500);
-    await expect(page.locator('.winner-overlay')).toHaveCount(0);
+    await expect(page.locator('.winner-podium')).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 });

@@ -373,6 +373,19 @@ describe('Bombe mit Aufpraller', () => {
         expect(before - game.cups.opp.length).toBe(4);
     });
 
+    it('zwei Aufpraller in denselben Becher: fünf Becher', () => {
+        const g = newGame('me');
+        const { game, events } = round(g, bounceHit(0), bounceHit(0));
+        expect(g.cups.opp.length - game.cups.opp.length).toBe(5);
+        expect(events.some(e => e.type === 'bomb')).toBe(true);
+    });
+
+    it('normal und danach Aufpraller in denselben Becher: auch vier Becher', () => {
+        const g = newGame('me');
+        const { game } = round(g, hit(0), bounceHit(0));
+        expect(g.cups.opp.length - game.cups.opp.length).toBe(4);
+    });
+
     it('ohne Aufpraller bleibt die Bombe bei drei Bechern', () => {
         const g = newGame('me');
         const { game } = round(g, hit(0), hit(0));

@@ -244,8 +244,9 @@ export function resolveRound(game: Game): { game: Game; events: GameEvent[] } {
         let need = Math.max(...hits.map(h => h.remove), bomb ? 3 : 1);
         // Island-Treffer und danach derselbe Becher noch einmal (Bombe) zählen zusammen: zwei plus drei, also fünf
         if (bomb && need < 6 && hits.some(h => h.island)) need = 5;
-        // Aufpraller und danach derselbe Becher noch einmal (Bombe): drei plus der Aufpraller-Becher, also vier
-        else if (bomb && need < 4 && hits.some(h => h.bounce)) need = 4;
+        // Aufpraller und derselbe Becher noch einmal (Bombe): drei plus ein Becher je Aufpraller, also vier,
+        // bei zwei Aufprallern in denselben Becher fünf
+        else if (bomb && hits.some(h => h.bounce)) need = Math.max(need, 3 + hits.filter(h => h.bounce).length);
         const reason = bomb && need === 3 ? 'bomb' : hits.some(h => h.remove >= 6) ? 'islandStreak' : hits.some(h => h.island) ? 'island' : hits.some(h => h.bounce) ? 'bounce' : 'hit';
         const extra = nearest(g.cups[defender], cup, need - 1, doomed, g.size);
         extra.forEach(c => doomed.add(c.id));

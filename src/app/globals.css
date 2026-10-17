@@ -664,13 +664,11 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .chat-name { margin: 0 0 2px 12px; font-size: 0.75rem; font-weight: 700; color: var(--color-text-dim); }
 .chat-bubble { position: relative; display: flow-root; padding: 6px 10px 6px 12px; border-radius: 18px; background: var(--color-surface-2); color: var(--color-text); font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; white-space: pre-wrap; transition: opacity 200ms; }
 .chat-row.is-mine .chat-bubble { background: var(--color-primary); color: #fff; }
-/* verbundene Blasen einer Gruppe; die letzte bekommt die Ecke zur Person hin */
+/* verbundene Blasen einer Gruppe: nur die Ecken zwischen zwei Blasen werden kleiner, außen bleibt alles rund */
 .chat-row:not(.is-mine):not(.is-first) .chat-bubble { border-top-left-radius: 6px; }
 .chat-row:not(.is-mine):not(.is-last) .chat-bubble { border-bottom-left-radius: 6px; }
 .chat-row.is-mine:not(.is-first) .chat-bubble { border-top-right-radius: 6px; }
 .chat-row.is-mine:not(.is-last) .chat-bubble { border-bottom-right-radius: 6px; }
-.chat-row.is-last:not(.is-mine) .chat-bubble { border-bottom-left-radius: 8px; }
-.chat-row.is-last.is-mine .chat-bubble { border-bottom-right-radius: 8px; }
 .chat-bubble[data-pending='true'] { opacity: 0.75; }
 .chat-bubble[data-failed='true'] { opacity: 0.6; }
 .chat-bubble a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

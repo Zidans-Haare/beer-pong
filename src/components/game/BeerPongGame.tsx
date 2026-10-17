@@ -13,6 +13,7 @@ import {
 import { planAiThrow, planAiTrick, aiRearrangeSlots, aiSwat, aiHand, ROLL_BACK_CHANCE, DIFFICULTIES, type Difficulty } from '@/lib/minigame/ai';
 import { judgeDirect, judgeBounce, cupMouth, hitRadii, flickLanding, tremor, type Point, type Sample } from '@/lib/minigame/aim';
 import { birdCupAt, birdSlotAt, BIRD_ZOOM_MS } from '@/lib/minigame/birdseye';
+import { arcAt, apexFor, groundSpot, mouthSpot, rimSpot, offsetIn, project, MY_HAND, OPP_HAND as OPP_HAND_3D, type Spot3 } from '@/lib/minigame/flight';
 import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
 import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
 import { throwsOfRound, roundsOf, hitsOf, type ReplayThrow } from '@/lib/minigame/replay';
@@ -51,6 +52,8 @@ const OPP_HAND = { x: SCENE_WIDTH / 2 + 30, y: 880 };
 const MID_Y = tablePoint(0, 0.5).y;
 // Ein Aufpraller, der keinen Becher trifft, prallt so oft noch an einem Becher ab (dann wie ein Randtreffer)
 const BOUNCE_CLIP_CHANCE = 0.35;
+// Becher, der einem Punkt auf dem Tisch am nächsten steht
+const nearestCup = (cups: Cup[], at: { u: number; v: number }) => cups.reduce<Cup | null>((best, c) => (!best || Math.hypot(c.u - at.u, (c.v - at.v) * 3) < Math.hypot(best.u - at.u, (best.v - at.v) * 3) ? c : best), null);
 // Aufpraller ohne Treffer: fliegt hinten weg oder prallt an einem Becher ab und rollt zurück
 const bounceMiss = (nearCups: boolean): ThrowResult => (nearCups && rand() < BOUNCE_CLIP_CHANCE ? { kind: 'rim', rolledBack: rand() < ROLL_BACK_CHANCE } : { kind: 'miss' });
 
@@ -179,6 +182,21 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             if (view.trail.length > 6) view.trail.shift();
         });
         view.trail = [];
+    }, [animate]);
+
+    // Wurf als Parabel über dem Tisch (siehe flight.ts); `fade` lässt den Ball am Ende verschwinden
+    const arc = useCallback(async (id: number, from: Spot3, to: Spot3, ms: number, apex = apexFor(from, to), fade = false) => {
+        const view = viewRef.current;
+        if (!view) return;
+        view.trail = [];
+        await animate(id, ms, k => {
+            const p = arcAt(from, to, apex, k);
+            view.ball = fade ? { ...p, alpha: 1 - k * k } : p;
+            view.trail.push({ x: p.x, y: p.y });
+            if (view.trail.length > 6) view.trail.shift();
+        });
+        view.trail = [];
+        if (fade) view.ball = null;
     }, [animate]);
 
     // Aufprall auf dem Tisch: Ball staucht sich kurz, ein Ring zeigt die Stelle, dazu der Ton
@@ -350,44 +368,54 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             fx('throw');
             await animate(id, 320, k => { view.throwPhase = k * 0.5; });
             const start = { ...HAND, r: 30 };
-            const mouthOf = (cupId: number) => cupMouth(g.cups.opp.find(c => c.id === cupId)!, g.size);
-            const sc = tablePoint(0, clamp((1650 - point.y) / 690)).scale;
+            const cupOf = (cupId: number) => g.cups.opp.find(c => c.id === cupId)!;
             if (bounce) {
-                // steil auf den Tisch, sichtbarer Aufprall, dann ein flacherer Bogen in den Becher
-                const landing = { x: point.x, y: point.y, r: 22 * sc + 6 };
-                await fly(id, start, landing, 460, 260);
-                await bounceOff(id, landing);
+                // steil auf den Tisch, sichtbarer Aufprall, dann ein flacher Bogen von oben in den Becher
+                const landing = groundSpot(point);
+                await arc(id, MY_HAND, landing, 520, apexFor(MY_HAND, landing) * 0.8);
+                await bounceOff(id, project(landing));
                 if (result.kind === 'hit' || result.kind === 'blocked') {
-                    const m = mouthOf(result.cupId);
-                    const end = { x: m.x, y: m.y, r: 15 * m.scale + 3 };
-                    await fly(id, landing, end, 340, 90);
+                    const to = mouthSpot(cupOf(result.cupId), g.size);
+                    await arc(id, landing, to, 360, 70);
+                    const end = project(to);
                     if (result.kind === 'blocked') {
                         // der Computer schlägt den Ball mit der Hand weg
                         await slapAway(id, end, 'opp', result.ownCupLost);
                     } else await sink(id, end);
                 } else if (result.kind === 'rim') {
-                    // prallt nach dem Aufprall an einem Becher ab und rollt über die Mitte zurück: Trickshot
-                    const near = g.cups.opp.reduce<Cup | null>((best, c) => { const p = mouthOf(c.id); return !best || Math.hypot(p.x - landing.x, p.y - landing.y) < Math.hypot(mouthOf(best.id).x - landing.x, mouthOf(best.id).y - landing.y) ? c : best; }, null);
-                    const cupPoint = near ? mouthOf(near.id) : { x: landing.x, y: landing.y - 80, scale: sc };
-                    const atCup = { x: cupPoint.x, y: cupPoint.y, r: 15 * cupPoint.scale + 3 };
-                    await fly(id, landing, atCup, 260, 60);
+                    // prallt nach dem Aufprall vorn an einem Becher ab und rollt zurück; über die Mitte gibt es einen Trickshot
+                    const near = nearestCup(g.cups.opp, landing);
+                    const to = near ? rimSpot(near, g.size, { x: landing.u - near.u, y: 1 }) : { ...landing, v: landing.v + 0.06, h: 60 };
+                    await arc(id, landing, to, 260, 40);
                     fx('rim');
-                    await rollBack(id, atCup, 'me', result.rolledBack);
-                } else await leave(id, landing, { x: landing.x + 40, y: Math.min(landing.y, MID_Y) - 260 }, 520, 120);
+                    await rollBack(id, project(to), 'me', result.rolledBack);
+                } else await arc(id, landing, { u: landing.u + (landing.u - MY_HAND.u) * 0.15, v: landing.v + 0.3, h: 0 }, 520, 110, true);
             } else if (trick === 'ceiling') {
                 const mid = { x: point.x, y: 120, r: 16 };
                 await fly(id, start, mid, 420, 0);
-                const m = result.kind === 'hit' ? mouthOf(result.cupId) : null;
+                const m = result.kind === 'hit' ? cupMouth(cupOf(result.cupId), g.size) : null;
                 const end = { x: m ? m.x : point.x, y: m ? m.y : point.y, r: 15 };
                 await fly(id, mid, end, 420, 0);
                 if (result.kind === 'hit') await sink(id, end); else await leave(id, end, { x: end.x + 30, y: end.y + 160 }, 350, 40);
+            } else if (result.kind === 'hit') {
+                // fällt von oben in die Bieröffnung, leicht zur Seite, auf die gezielt wurde
+                const cup = cupOf(result.cupId);
+                const to = mouthSpot(cup, g.size, offsetIn(point, cupMouth(cup, g.size)));
+                await arc(id, MY_HAND, to, 720);
+                await sink(id, project(to));
+            } else if (result.kind === 'rim' && judged.kind === 'rim') {
+                // trifft sichtbar den Rand auf der Seite, auf der er ankam, und springt ab
+                const cup = cupOf(judged.cupId);
+                const to = rimSpot(cup, g.size, offsetIn(point, cupMouth(cup, g.size)));
+                await arc(id, MY_HAND, to, 720);
+                fx('rim');
+                await rollBack(id, project(to), 'me', result.rolledBack);
             } else {
-                const end = { x: point.x, y: point.y, r: 15 * (0.9 + sc * 0.1) };
-                await fly(id, start, end, 700, 430);
-                if (result.kind === 'hit') await sink(id, end);
-                else if (result.kind === 'rim') await rollBack(id, end, 'me', result.rolledBack);
-                // springt ein Stück zurück, aber nie über die Mitte (das wäre ein Trickshot)
-                else await leave(id, end, { x: end.x + (rand() - 0.5) * 120, y: Math.min(end.y + 170, MID_Y - 70) }, 420, 60);
+                // landet auf dem Tisch und springt weiter weg, nie zurück über die Mitte (das wäre ein Trickshot)
+                const to = groundSpot(point);
+                await arc(id, MY_HAND, to, 720);
+                await bounceOff(id, project(to));
+                await arc(id, to, { u: to.u + (to.u - MY_HAND.u) * 0.2, v: to.v + 0.22, h: 0 }, 420, 80, true);
             }
             await animate(id, 220, k => { view.throwPhase = 0.5 + k * 0.5; });
             view.throwPhase = 0;
@@ -400,7 +428,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             await wait(id, 650);
             return;
         }
-    }, [animate, bounceOff, fly, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, waitAim]);
+    }, [animate, arc, bounceOff, fly, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, waitAim]);
 
     // ---- Wurf des Gegners ----
     const oppThrow = useCallback(async (id: number, trick: boolean): Promise<void> => {
@@ -440,12 +468,14 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
 
         fx('throw');
         const m = cupMouth(target, g.size);
-        const start = { ...OPP_HAND, r: 13 };
-        const end = { x: m.x, y: m.y, r: 15 * m.scale + 4 };
+        const into = mouthSpot(target, g.size);
+        const end = project(into);
         let result: ThrowResult = result0;
         if (bounce) {
-            const base = { x: m.x + (rand() - 0.5) * 30, y: m.baseY + 118 * m.scale * 0.42, r: 18 };
-            await fly(id, start, base, 520, 240);
+            // springt aus seiner Sicht vor meinem Becher auf (zwischen ihm und dem Becher), dann von oben hinein
+            const baseSpot: Spot3 = { u: target.u + (rand() - 0.5) * 0.04, v: target.v + 0.075 * g.size, h: 0 };
+            const base = project(baseSpot);
+            await arc(id, OPP_HAND_3D, baseSpot, 520, apexFor(OPP_HAND_3D, baseSpot) * 0.8);
             await bounceOff(id, base);
             if (result.kind === 'hit') {
                 // Fenster zum Wegschlagen: der Ball fliegt auf den Becher zu, der Knopf ist kurz da
@@ -455,10 +485,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                 setControls({ swat: true, hint: t('hint.swat') });
                 let swatAt: number | null = null;
                 void input<'swat'>().then(() => { swatAt = performance.now() - t0; });
-                const posAt = (k: number) => {
-                    const ground = { x: lerp(base.x, end.x, k), y: lerp(base.y, end.y, k) };
-                    return { x: ground.x, y: ground.y - Math.sin(k * Math.PI) * 100, r: lerp(base.r, end.r, k), ground };
-                };
+                const posAt = (k: number) => arcAt(baseSpot, into, 70, k);
                 await new Promise<void>(resolve => {
                     const tick = () => {
                         if (runId.current !== id) return resolve();
@@ -481,21 +508,31 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
                     await slapAway(id, view.ball ?? end, 'me', accident);
                 } else await sink(id, end);
             } else if (result.kind === 'rim') {
-                // Aufpraller des Gegners prallt an meinem Becher ab und rollt zu ihm zurück
-                const atCup = { x: m.x, y: m.y, r: end.r };
-                await fly(id, base, atCup, 260, 60);
+                // Aufpraller des Gegners prallt vorn (auf seiner Seite) an meinem Becher ab und rollt zu ihm zurück
+                const to = rimSpot(target, g.size, { x: (rand() - 0.5) * 0.6, y: -1 });
+                await arc(id, baseSpot, to, 260, 40);
                 fx('rim');
-                await rollBack(id, atCup, 'opp', result.rolledBack);
-            } else await leave(id, base, { x: base.x + 30, y: base.y + 260 }, 480, 100);
+                await rollBack(id, project(to), 'opp', result.rolledBack);
+            } else await arc(id, baseSpot, { u: baseSpot.u + (rand() - 0.5) * 0.2, v: Math.max(0, baseSpot.v - 0.3), h: 0 }, 480, 100, true);
         } else {
-            const spread = result.kind === 'hit' ? 0 : result.kind === 'rim' ? 1.25 : 2.6;
-            const { rx, ry } = hitRadii(m.scale);
             const side = rand() < 0.5 ? -1 : 1;
-            const aimed = { x: end.x + side * rx * spread * (result.kind === 'miss' ? 0.8 + rand() * 0.6 : 1), y: end.y + (result.kind === 'miss' ? (rand() - 0.4) * ry * 3 : 0), r: end.r };
-            await fly(id, start, aimed, 720, 330);
-            if (result.kind === 'hit') await sink(id, end);
-            else if (result.kind === 'rim') await rollBack(id, aimed, 'opp', result.rolledBack);
-            else await leave(id, aimed, { x: aimed.x + side * 150, y: aimed.y + 300 }, 420, 70);
+            if (result.kind === 'hit') {
+                // von oben in die Öffnung
+                await arc(id, OPP_HAND_3D, mouthSpot(target, g.size, { x: (rand() - 0.5) * 0.8, y: (rand() - 0.5) * 0.8 }), 720);
+                await sink(id, end);
+            } else if (result.kind === 'rim') {
+                // trifft den Rand seitlich oder hinten (von mir aus gesehen) und springt ab
+                const to = rimSpot(target, g.size, { x: side, y: -0.4 + rand() * 0.6 });
+                await arc(id, OPP_HAND_3D, to, 720);
+                fx('rim');
+                await rollBack(id, project(to), 'opp', result.rolledBack);
+            } else {
+                // landet neben dem Becher auf dem Tisch und springt weiter zu mir, nie zurück über die Mitte
+                const to: Spot3 = { u: target.u + side * (0.16 + rand() * 0.18) * g.size, v: target.v + (rand() - 0.5) * 0.06, h: 0 };
+                await arc(id, OPP_HAND_3D, to, 720);
+                await bounceOff(id, project(to));
+                await arc(id, to, { u: to.u + side * 0.08, v: Math.max(0, to.v - 0.12), h: 0 }, 380, 70, true);
+            }
         }
         if (runId.current !== id) return;
 
@@ -504,7 +541,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         showEvents(out.events, 'opp');
         if (out.events.some(e => e.type === 'hit')) view.mood = Math.min(0.2, view.mood + 0.2);
         await wait(id, 650);
-    }, [announce, bounceOff, fx, input, leave, setControls, rollBack, showEvents, sink, slapAway, t, wait, fly]);
+    }, [announce, arc, bounceOff, fx, input, setControls, rollBack, showEvents, sink, slapAway, t, wait]);
 
     // ---- Runde beenden ----
     const finishRound = useCallback(async (id: number) => {

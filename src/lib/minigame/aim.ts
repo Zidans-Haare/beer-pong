@@ -16,9 +16,10 @@ export function cupMouth(cup: { u: number; v: number }, size = 1) {
 }
 
 // Halbachsen der Treffer- und der Randzone (Rand = knapp vorbei, der Ball springt vom Becher ab)
-// scale ist die Perspektive mal Bechergröße (wie bei cupMouth)
-export const hitRadii = (scale: number) => ({ rx: 44 * scale, ry: 30 * scale });
-const RIM_FACTOR = 1.6;
+// scale ist die Perspektive mal Bechergröße (wie bei cupMouth). Die Zone folgt der gezeichneten Öffnung
+// (48 breit, 19 tief): Was oben auf dem Becher landet, geht hinein, nicht was vorn am Becher vorbeifliegt.
+export const hitRadii = (scale: number) => ({ rx: 44 * scale, ry: 24 * scale });
+const RIM_FACTOR = 1.5;
 
 export type Judgement =
     | { kind: 'hit'; cupId: number; bounce: boolean }
@@ -38,8 +39,20 @@ export function judgeDirect(cups: Cup[], point: Point, size = 1): Judgement {
         const d = ellipseDistance(point, cupMouth(cup, size));
         if (d < RIM_FACTOR && (!best || d < best.d)) best = { cup, d };
     }
-    if (!best) return { kind: 'miss' };
-    return best.d < 1 ? { kind: 'hit', cupId: best.cup.id, bounce: false } : { kind: 'rim', cupId: best.cup.id };
+    if (best) return best.d < 1 ? { kind: 'hit', cupId: best.cup.id, bounce: false } : { kind: 'rim', cupId: best.cup.id };
+    // Landet der Ball auf dem Becher selbst (Körper unterhalb der Öffnung), prallt er ab wie am Rand
+    const body = cups.find(cup => onCupBody(cup, point, size));
+    return body ? { kind: 'rim', cupId: body.id } : { kind: 'miss' };
+}
+
+// Liegt der Punkt auf dem gezeichneten Becherkörper? (oben 96 breit, unten 64, 118 hoch)
+function onCupBody(cup: Cup, point: Point, size: number): boolean {
+    const p = tablePoint(cup.u, cup.v);
+    const s = p.scale * size;
+    const top = p.y - CUP_HEIGHT * s;
+    if (point.y < top || point.y > p.y) return false;
+    const half = lerp(48, 32, (point.y - top) / (CUP_HEIGHT * s)) * s;
+    return Math.abs(point.x - p.x) < half;
 }
 
 // Aufpraller: Der Ball springt vor dem Becher auf dem Tisch auf. Gültig ist der Streifen vor dem Becher,

@@ -29,6 +29,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 // iOS schiebt beim Fokussieren das Fenster nach oben; der Chat folgt, damit er im Bild bleibt
                 const top = vv ? vv.offsetTop : 0;
                 el.style.height = `${Math.round(height)}px`;
+                // Tastatur offen: der Abstand zum Home-Balken entfällt, die Eingabe sitzt direkt auf der Tastatur
+                el.classList.toggle('keyboard-open', window.innerHeight - height > 120);
                 el.style.transform = top ? `translateY(${Math.round(top)}px)` : '';
                 window.dispatchEvent(new Event('chat-viewport'));
             });

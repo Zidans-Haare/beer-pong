@@ -61,7 +61,8 @@ test.describe('Figur anpassen', () => {
     const stage = page.locator('.profile-figure-canvas');
     await expect(stage).toBeVisible();
     await expect.poll(() => stage.evaluate((c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(180, 200, 1, 1).data[3])).toBe(255);
-    expect(await stage.evaluate((c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(4, 4, 1, 1).data[3])).toBe(0);
+    // die Figur steht vor dem gewählten Hintergrund (Standard: Stadion), auch in der Ecke ist gemalt
+    expect(await stage.evaluate((c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(4, 4, 1, 1).data[3])).toBe(255);
     await page.goto('/players/e2e-host-player/figure');
 
     // Zufall würfelt etwas Gültiges, Zurücksetzen holt das Standardaussehen

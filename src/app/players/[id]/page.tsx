@@ -11,6 +11,8 @@ import { Pencil, Shirt } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import PaceStatsWidget from '@/components/PaceStatsWidget';
 import { getTranslations } from 'next-intl/server';
+import { getSceneTheme } from '@/lib/scene-theme-server';
+import { DEFAULT_THEME } from '@/lib/scene-theme';
 import FigureStage from '@/components/figure/FigureStage';
 import { normalizeFigure } from '@/lib/figure';
 import MiniGameProfile from '@/components/game/MiniGameProfile';
@@ -89,7 +91,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             {/* nur, wenn der Spieler seine Figur gestaltet hat */}
             {normalizeFigure(player.figure) && (
                 <section className="profile-figure" aria-label={t('figureLabel', { name: player.name })}>
-                    <FigureStage name={player.name} figure={normalizeFigure(player.figure)} />
+                    <FigureStage name={player.name} figure={normalizeFigure(player.figure)} theme={player.userId ? await getSceneTheme(player.userId) : DEFAULT_THEME} />
                 </section>
             )}
 

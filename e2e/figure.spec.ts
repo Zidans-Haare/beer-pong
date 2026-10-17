@@ -102,6 +102,26 @@ test.describe('Figur anpassen', () => {
     await expect(page.getByRole('link', { name: 'Profil bearbeiten' })).toHaveCount(0);
   });
 
+  test('Hintergrund der Szenen wählen: fünf zur Wahl, Stadion ist Standard, die Wahl bleibt', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/players/e2e-host-player/figure');
+    const group = page.getByRole('radiogroup', { name: 'Hintergrund deiner Szenen' });
+    await expect(group.getByRole('radio')).toHaveCount(5);
+    await expect(group.getByRole('radio', { name: 'Stadion' })).toHaveAttribute('aria-checked', 'true');
+    // die Vorschauen sind gezeichnet
+    await expect.poll(() => group.locator('canvas').first().evaluate((c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(10, 10, 1, 1).data[3])).toBe(255);
+    await group.getByRole('radio', { name: 'Strand' }).click();
+    await expect(group.getByRole('radio', { name: 'Strand' })).toHaveAttribute('aria-checked', 'true');
+    await page.waitForLoadState('networkidle');
+    await page.reload();
+    await expect(page.getByRole('radiogroup', { name: 'Hintergrund deiner Szenen' }).getByRole('radio', { name: 'Strand' })).toHaveAttribute('aria-checked', 'true');
+    // zurück zum Stadion, damit andere Tests das Standardbild sehen
+    await page.getByRole('radiogroup', { name: 'Hintergrund deiner Szenen' }).getByRole('radio', { name: 'Stadion' }).click();
+    await page.waitForLoadState('networkidle');
+    expect(errors).toEqual([]);
+  });
+
   test('fremde Figuren lassen sich nicht ändern', async ({ page }) => {
     await page.goto('/players/e2e-player-player/figure');
     await expect(page.getByRole('heading', { name: 'Keine Berechtigung' })).toBeVisible();

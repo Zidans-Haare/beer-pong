@@ -1469,5 +1469,17 @@
     "nakedDuelTitle": "Nackte Meile im Duell",
     "nakedTaken": "kassiert",
     "nakedDealt": "verteilt"
+  },
+  "sceneTheme": {
+    "title": "Hintergrund deiner Szenen",
+    "lead": "Gilt für dich im Minispiel, in Wrapped und im Turnierfilm. Im Stadion jubeln die Fans bei Bomben, Balls back und Siegen.",
+    "error": "Speichern hat nicht geklappt.",
+    "name": {
+      "stadium": "Stadion",
+      "classic": "Klassisch",
+      "bar": "Kneipe",
+      "beach": "Strand",
+      "club": "Club"
+    }
   }
 }

@@ -2,6 +2,8 @@
 // drawWrappedFrame malt für einen Zeitpunkt das komplette Bild (1080×1920). Weil das Bild nur von der
 // Zeit abhängt, lassen sich Wiedergabe, Springen und Videoaufnahme mit demselben Code machen.
 
+import { drawSceneBackdrop, cheerAt, DEFAULT_THEME, type SceneTheme } from '@/lib/scene-theme';
+
 export const SCENE_WIDTH = 1080;
 export const SCENE_HEIGHT = 1920;
 
@@ -26,7 +28,8 @@ export interface SceneModel {
     primary: string;
     // Stempel beim Sieg, z. B. "SIEG!"
     winLabel: string;
-    // Abspann: App-Name und Absender
+    // gewählter Hintergrund; ohne Angabe das Stadion
+    theme?: SceneTheme;
     // Figuren aus den Profilen; ohne Angabe gilt das Standardaussehen
     looks?: { me: FigureLook; opponent: FigureLook | null };
     segments: SceneSegment[];
@@ -676,7 +679,7 @@ export function drawWrappedFrame(ctx: CanvasRenderingContext2D, model: SceneMode
     // 0..1 im Takt der Musik
     const beat = 0.5 + 0.5 * Math.cos((time / BEAT_MS) * Math.PI * 2);
 
-    drawBackdrop(ctx, model.primary, time, beat);
+    drawSceneBackdrop(ctx, model.theme ?? DEFAULT_THEME, model.primary, time, beat, cheerAt(time, [tl.stamp, ...tl.fireworks]));
 
     // ---- Szene mit Kamera ----
     const cam = camera(time, tl);

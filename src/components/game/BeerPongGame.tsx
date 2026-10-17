@@ -13,6 +13,7 @@ import {
 import { planAiThrow, planAiTrick, aiRearrangeSlots, aiSwat, aiHand, ROLL_BACK_CHANCE, DIFFICULTIES, type Difficulty } from '@/lib/minigame/ai';
 import { judgeDirect, judgeBounce, cupMouth, hitRadii, flickLanding, tremor, type Point, type Sample } from '@/lib/minigame/aim';
 import { birdCupAt, birdSlotAt, BIRD_ZOOM_MS } from '@/lib/minigame/birdseye';
+import type { SceneTheme } from '@/lib/scene-theme';
 import { arcAt, apexFor, groundSpot, mouthSpot, rimSpot, offsetIn, project, MY_HAND, OPP_HAND as OPP_HAND_3D, type Spot3 } from '@/lib/minigame/flight';
 import { drawGameFrame, type GameView } from '@/lib/minigame/draw';
 import { sharedGameAudio, type Fx } from '@/lib/minigame/audio';
@@ -70,8 +71,8 @@ export interface OpenDuel { id: string; name: string; overtime?: boolean }
 
 interface GhostState { replay: ReplayThrow[]; round: number; used: number; duelId: string }
 
-export default function BeerPongGame({ meName, players, incoming, outgoing, duel: duelProp, abandoned, figures, backHref }: {
-    meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; abandoned: string[]; figures: FigureMap; backHref: string;
+export default function BeerPongGame({ meName, players, incoming, outgoing, duel: duelProp, abandoned, figures, backHref, theme }: {
+    meName: string; players: GamePlayer[]; incoming: OpenDuel[]; outgoing: OpenDuel[]; duel: DuelInfo | null; abandoned: string[]; figures: FigureMap; backHref: string; theme?: SceneTheme;
 }) {
     const t = useTranslations('game');
     const dialog = useAppDialog();
@@ -168,6 +169,15 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         if (sound) setTimeout(() => fx(sound), delay);
     }, [fx]);
 
+    // Publikum jubelt; ein stärkerer Jubel ersetzt einen schwächeren, der noch läuft
+    const cheerCrowd = useCallback((strength: number) => {
+        const view = viewRef.current;
+        if (!view) return;
+        const now = performance.now();
+        const current = view.crowdCheer ? view.crowdCheer.strength * (1 - Math.min(1, (now - view.crowdCheer.at) / 2200)) : 0;
+        if (strength >= current) view.crowdCheer = { at: now, strength };
+    }, []);
+
     // ---- Flugbahnen ----
     const fly = useCallback(async (id: number, from: Point & { r: number }, to: Point & { r: number }, ms: number, height: number) => {
         const view = viewRef.current;
@@ -233,6 +243,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         if (!view) return;
         for (const e of events) {
             if (e.type === 'hit') {
+                cheerCrowd(e.island ? 0.8 : 0.35);
                 announce(e.island ? t('stamp.island') : e.bounce ? t('stamp.bounce') : t('stamp.hit'), e.island ? 'island' : 'plop', e.bounce || e.island ? '#ffb347' : undefined);
                 view.shake = 1;
                 if (by === 'me') { view.flinch = 1; view.mood = Math.max(-0.6, view.mood - 0.12); }
@@ -244,7 +255,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             else if (e.type === 'trick') announce(t('stamp.trick'), 'trick', '#8fd3ff');
             else if (e.type === 'remove' && e.reason === 'accident') announce(t('stamp.accident'), 'miss', '#ff8a8a', 700);
         }
-    }, [announce, t]);
+    }, [announce, cheerCrowd, t]);
 
     // ---- Wischen ----
     const waitAim = useCallback(async (opts: { factor?: number; blind?: boolean }): Promise<AimChoice | undefined> => {
@@ -549,12 +560,12 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         const g = gameRef.current!;
         const out = resolveRound(g);
         const defender = other(g.turn);
-        if (out.events.some(e => e.type === 'bomb')) { announce(t('stamp.bomb'), 'bomb', '#ff9f43'); view.shake = 1.4; await wait(id, 900); }
+        if (out.events.some(e => e.type === 'bomb')) { cheerCrowd(1); announce(t('stamp.bomb'), 'bomb', '#ff9f43'); view.shake = 1.4; await wait(id, 900); }
         const removes = out.events.filter((e): e is Extract<GameEvent, { type: 'remove' }> => e.type === 'remove' && e.reason !== 'accident');
         const now = performance.now();
         for (const r of removes) {
             r.ids.forEach(cupId => { view.vanishing[key(defender, cupId)] = now; });
-            if (r.reason === 'islandStreak') announce(t('stamp.sixCups'), 'island', '#ffe08a', 500);
+            if (r.reason === 'islandStreak') { cheerCrowd(1); announce(t('stamp.sixCups'), 'island', '#ffe08a', 500); }
         }
         if (removes.length) { fx('remove'); await wait(id, 800); }
         if (runId.current !== id) return;
@@ -569,7 +580,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         setRound(r => r + 1);
         view.mood = out.game.cups.opp.length <= 2 ? -0.5 : view.mood * 0.5;
         for (const e of out.events) {
-            if (e.type === 'ballsBack') announce(t('stamp.ballsBack'), 'trick', '#9be59b');
+            if (e.type === 'ballsBack') { cheerCrowd(0.85); announce(t('stamp.ballsBack'), 'trick', '#9be59b'); }
             // Nachziehen und Verlängerung gibt es beim Vorlegen nicht
             if (kindRef.current === 'run') continue;
             if (e.type === 'catchUp') announce(t('stamp.catchUp'), 'turn', '#8fd3ff');
@@ -578,7 +589,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         // Duell: Beide haben alles abgeräumt. Die Verlängerung spielt jeder für sich, der andere zieht danach gegen die Aufzeichnung nach.
         if (ghostRef.current && out.events.some(e => e.type === 'overtime')) overtimeSwitchRef.current = true;
         if (out.events.some(e => e.type === 'ballsBack' || (kindRef.current !== 'run' && (e.type === 'catchUp' || e.type === 'overtime')))) await wait(id, 1500);
-    }, [announce, fx, t, wait]);
+    }, [announce, cheerCrowd, fx, t, wait]);
 
     // ---- Eine ganze Runde eines Spielers ----
     const playRound = useCallback(async (id: number) => {
@@ -705,6 +716,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
         };
         view.cheer = winner === 'me' ? 1 : 0;
         view.mood = winner === 'me' ? -1 : 0.4;
+        cheerCrowd(1);
         fx(mile ? 'mile' : winner === 'me' ? 'win' : 'lose');
         setStatus(mile ? t('end.nakedMileHint') : '');
         setControls({ ...IDLE, over: { won: winner === 'me', mile } });
@@ -718,7 +730,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             : await recordCpuGame({ difficulty: difficultyRef.current, cupSize: sizeRef.current, won: winner === 'me', rounds: rounds.me, hits: g.hits.me, opponentRounds: rounds.opp, opponentHits: g.hits.opp, nakedMile: g.nakedMile });
         if (runId.current === id && !saved.success) setStatus(t('end.saveFailed'));
         else if (runId.current === id && ghost) setStatus(t('end.duelSaved', { name: oppName }));
-    }, [announce, fx, playOvertimeRun, playRound, playSolo, setControls, t, wait]);
+    }, [announce, cheerCrowd, fx, playOvertimeRun, playRound, playSolo, setControls, t, wait]);
 
     // ---- Start und Schnick, Schnack, Schnuck ----
     const begin = useCallback(async (oppName: string, kind: Kind, target: GamePlayer | null = null) => {
@@ -740,7 +752,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             // Haut und Aussehen kommen aus den Figuren der Spieler
             skins: { me: lookFor(meName, 0, figures).skin ?? skinFor(meName), opp: lookFor(oppName, 0, figures).skin ?? skinFor(oppName) },
             looks: { me: lookFor(meName, 0, figures), opp: lookFor(oppName, 0, figures) },
-            enter: 0, ball: null, trail: [], impacts: [], vanishing: {}, swipe: null, blind: false, islandCall: false, rearranging: null, stamps: [], status: '',
+            enter: 0, ball: null, trail: [], impacts: [], theme, crowdCheer: null, vanishing: {}, swipe: null, blind: false, islandCall: false, rearranging: null, stamps: [], status: '',
             throwPhase: 0, mood: 0, anger: 0, flinch: 0, cheer: 0, shake: 0, swat: null, ending: null, hand: null, midFlash: null,
             level: kind === 'cpu' ? t(`level.${difficultyRef.current}`) : null,
         };
@@ -791,7 +803,7 @@ export default function BeerPongGame({ meName, players, incoming, outgoing, duel
             }
         }
         if (starter && runId.current === id) await runGame(id, starter, oppName);
-    }, [animate, cupSize, duel, figures, fx, input, meName, runGame, setControls, t, wait]);
+    }, [animate, cupSize, duel, figures, fx, input, meName, runGame, setControls, t, theme, wait]);
 
     useEffect(() => () => { runId.current++; const w = waiter.current; waiter.current = null; w?.(undefined); }, []);
 

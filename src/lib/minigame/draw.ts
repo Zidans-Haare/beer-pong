@@ -11,6 +11,7 @@ import { islandsOf, other, type Game, type Side } from '@/lib/minigame/engine';
 import type { Point } from '@/lib/minigame/aim';
 import { drawWallPicture } from '@/lib/drunk-scene';
 import { drawBirdsEye, type BirdView } from '@/lib/minigame/birdseye';
+import { drawSceneBackdrop, DEFAULT_THEME, type SceneTheme } from '@/lib/scene-theme';
 
 export interface Stamp { text: string; start: number; color?: string; y?: number }
 
@@ -53,6 +54,9 @@ export interface GameView {
     hand: { start: number; duration: number; x: number; y: number; from: 1 | -1; scale: number; skin: string; sleeve: string } | null;
     // Schluss: Sieger und nackte Meile
     ending: { start: number; winner: Side; nakedMile: Side | null; winLabel: string; mileLabel: string } | null;
+    // gewählter Hintergrund und Jubel des Publikums (Zeitpunkt und Stärke 0 bis 1)
+    theme?: SceneTheme;
+    crowdCheer?: { at: number; strength: number } | null;
 }
 
 const key = (side: Side, id: number) => `${side}:${id}`;
@@ -298,7 +302,9 @@ function drawEnding(ctx: CanvasRenderingContext2D, view: GameView, time: number)
 export function drawGameFrame(ctx: CanvasRenderingContext2D, view: GameView, timeMs: number, _assets: SceneAssets = {}) {
     const time = timeMs;
     const beat = 0.5 + 0.5 * Math.cos((time / 536) * Math.PI * 2);
-    drawBackdrop(ctx, view.primary, time, beat);
+    // Jubel klingt nach gut zwei Sekunden ab
+    const cheer = view.crowdCheer ? view.crowdCheer.strength * (1 - ramp(time, view.crowdCheer.at, 2200)) : 0;
+    drawSceneBackdrop(ctx, view.theme ?? DEFAULT_THEME, view.primary, time, beat, cheer);
 
     // Wenn Moonzy mitspielt, hängt wie immer das Foto von Josie an der Wand
     if ([view.names.me, view.names.opp].some(n => n.trim().toLowerCase() === 'moonzy')) {

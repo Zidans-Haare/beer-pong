@@ -16,7 +16,7 @@ Wichtigste Regel: **Die Datenbank darf nicht kaputtgehen.** Alles andere lässt 
 
 - [ ] Testserver ist komplett getrennt von Prod (eigener Ordner, eigene DB-Datei, eigene `.env`, kein Zugriff auf die Prod-DB).
 - [ ] Frische Kopie der Prod-DB auf den Testserver legen (siehe Abschnitt 4 zum sicheren Kopieren).
-- [ ] Auf der Kopie: `node scripts/fix-migration-table.js`, danach `npx prisma migrate deploy`. Es dürfen keine Fehler kommen. Die drei neuen Migrationen sind von Hand geschrieben: `add_minigame`, `add_minigame_cup_size`, `add_player_figure`.
+- [ ] Auf der Kopie: `node scripts/fix-migration-table.js`, danach `npx prisma migrate deploy`. Es dürfen keine Fehler kommen. Die neuen Migrationen sind von Hand geschrieben: `add_minigame`, `add_minigame_cup_size`, `add_player_figure`, `add_minigame_overtime`, `add_user_scene_theme`. Alle fügen nur Spalten oder Tabellen hinzu.
 - [ ] Zeilenzahlen vor und nach der Migration vergleichen (Spieler, Turniere, Spiele): Sie müssen gleich bleiben.
 - [ ] Mit `npm run build` und `npm run start` testen, nicht im Entwicklungsmodus. Der ist viel langsamer.
 - [ ] Performance ansehen, vor allem die Canvas-Szenen (Minispiel, Wrapped, Film) auf einem älteren Handy.

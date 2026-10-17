@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { isAdmin } from '@/lib/admin';
 import { loadTournamentFilm } from '@/lib/tournament-film-server';
 import { buildTournamentFilm } from '@/lib/tournament-film';
+import { getSceneTheme } from '@/lib/scene-theme-server';
 import { getSeasons, findSeasonForDate, accentCssVariables, DEFAULT_ACCENT } from '@/lib/seasons';
 import TournamentFilm from '@/components/film/TournamentFilm';
 
@@ -31,7 +32,8 @@ export default async function TournamentFilmPage({ params, searchParams }: { par
     // Der Tisch trägt die Farbe der Saison, in der das Turnier gespielt wurde
     const season = findSeasonForDate(await getSeasons().catch(() => []), input.date);
     const primary = accentCssVariables(season?.accentColor ?? DEFAULT_ACCENT)['--color-primary'];
-    const model = buildTournamentFilm(input, primary, (key, values) => t(key, values), await getLocale());
+    // Hintergrund nach Wahl der Person, die den Film ansieht
+    const model = { ...buildTournamentFilm(input, primary, (key, values) => t(key, values), await getLocale()), theme: await getSceneTheme(session.user.id) };
     // ?at=<Millisekunden> hält den Film an einer Stelle an (nur Admin, zum Prüfen)
     const startAt = isAdmin(session.user.email) && at && !isNaN(Number(at)) ? Number(at) : undefined;
 

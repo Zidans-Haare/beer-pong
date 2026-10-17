@@ -9,6 +9,7 @@ import {
     roundRect, fitFont, wrapText,
     type FigureLook, type SceneAssets,
 } from '@/lib/wrapped-scene';
+import { drawSceneBackdrop, cheerAt, DEFAULT_THEME, type SceneTheme } from '@/lib/scene-theme';
 
 export type FilmKey = 'intro' | 'final' | 'win' | 'podium' | 'facts';
 
@@ -18,6 +19,8 @@ export interface FilmStep extends FilmSide { place: 1 | 2 | 3 }
 
 export interface FilmModel {
     // Turniername
+    // gewählter Hintergrund; ohne Angabe das Stadion
+    theme?: SceneTheme;
     title: string;
     // Saisonfarbe als #rrggbb
     primary: string;
@@ -572,7 +575,7 @@ export function drawTournamentFrame(ctx: CanvasRenderingContext2D, model: FilmMo
     // Ende der Tischszene: Übergang zum Podium, sonst zur Zusammenfassung
     const tableEnd = hasPodium ? tl.podium : tl.facts;
 
-    drawBackdrop(ctx, model.primary, time, beat);
+    drawSceneBackdrop(ctx, model.theme ?? DEFAULT_THEME, model.primary, time, beat, cheerAt(time, [tl.stamp, ...tl.fireworks]));
 
     if (time < tableEnd + 450) {
         ctx.save();

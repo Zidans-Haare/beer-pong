@@ -1469,5 +1469,17 @@
     "nakedDuelTitle": "Naked mile in duels",
     "nakedTaken": "taken",
     "nakedDealt": "dealt"
+  },
+  "sceneTheme": {
+    "title": "Background of your scenes",
+    "lead": "Applies to you in the mini game, in Wrapped and in the tournament film. In the stadium the fans cheer for bombs, balls back and wins.",
+    "error": "Saving failed.",
+    "name": {
+      "stadium": "Stadium",
+      "classic": "Classic",
+      "bar": "Pub",
+      "beach": "Beach",
+      "club": "Club"
+    }
   }
 }

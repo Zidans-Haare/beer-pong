@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { parseReplay } from '@/lib/minigame/replay';
+import { getSceneTheme } from '@/lib/scene-theme-server';
 import BeerPongGame, { type DuelInfo } from '@/components/game/BeerPongGame';
 import { loadFigureMap } from '@/lib/figure-server';
 
@@ -54,6 +55,7 @@ export default async function GamePage({ searchParams }: { searchParams: Promise
             abandoned={abandoned.map(d => d.id)}
             figures={await loadFigureMap()}
             backHref="/"
+            theme={await getSceneTheme(userId)}
         />
     );
 }

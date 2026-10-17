@@ -5,6 +5,8 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { figureFor, isMoonzy, normalizeFigure } from '@/lib/figure';
 import FigureEditor from '@/components/figure/FigureEditor';
+import SceneThemePicker from '@/components/figure/SceneThemePicker';
+import { getSceneTheme } from '@/lib/scene-theme-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,12 +27,14 @@ export default async function FigurePage({ params }: { params: Promise<{ id: str
         );
     }
     const saved = normalizeFigure(player.figure);
+    const theme = await getSceneTheme(session.user.id);
     return (
         <div className="container page-content" style={{ paddingBottom: '100px' }}>
             <Link href="/players" className="btn btn-secondary" style={{ marginBottom: 'var(--spacing-6)' }}>&larr; {t('back')}</Link>
             <h1 className="title-display" style={{ fontSize: '2.2rem' }}>{t('title')}</h1>
             <p className="figure-lead">{t('lead')}</p>
-            <FigureEditor name={player.name.trim()} initial={figureFor(player.name, saved ? { [player.name.trim().toLowerCase()]: saved } : null)} custom={!!saved} lockedSkin={isMoonzy(player.name)} />
+            <FigureEditor name={player.name.trim()} initial={figureFor(player.name, saved ? { [player.name.trim().toLowerCase()]: saved } : null)} custom={!!saved} lockedSkin={isMoonzy(player.name)} theme={theme} />
+            <SceneThemePicker current={theme} />
         </div>
     );
 }

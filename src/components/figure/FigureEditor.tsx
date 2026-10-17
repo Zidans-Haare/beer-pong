@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dices, RotateCcw, Check, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { loadSceneFonts, drawBackdrop, drawMe, drawHairFront, drawAccessoryFront, fillShirt, roundRect, type FigureLook, type HairStyle, type ShirtPattern, type Accessory } from '@/lib/wrapped-scene';
+import { drawSceneBackdrop, DEFAULT_THEME, type SceneTheme } from '@/lib/scene-theme';
+import { loadSceneFonts, drawMe, drawHairFront, drawAccessoryFront, fillShirt, roundRect, type FigureLook, type HairStyle, type ShirtPattern, type Accessory } from '@/lib/wrapped-scene';
 import { drawWalker } from '@/lib/tournament-scene';
 import {
     SKINS, HAIR_COLORS, SHIRTS, HAIR_STYLES, PATTERNS, HEADWEAR, EYEWEAR, EXTRAS, defaultFigure, randomFigure, lookFor, nameKey, toggleAccessory, MOONZY_SKIN, type FigureSpec,
@@ -54,8 +55,11 @@ function bodyThumb(ctx: CanvasRenderingContext2D, look: FigureLook) {
 }
 
 // Editor für die eigene Figur: Vorschau von vorn (Podium) und von hinten (am Tisch), Auswahl mit kleinen Bildern
-export default function FigureEditor({ name, initial, custom, lockedSkin }: { name: string; initial: FigureSpec; custom: boolean; lockedSkin: boolean }) {
+export default function FigureEditor({ name, initial, custom, lockedSkin, theme = DEFAULT_THEME }: { name: string; initial: FigureSpec; custom: boolean; lockedSkin: boolean; theme?: SceneTheme }) {
     const t = useTranslations('figure');
+    // die Vorschau steht vor dem gewählten Hintergrund; wechselt er, läuft die Vorschau einfach weiter
+    const themeRef = useRef(theme);
+    themeRef.current = theme;
     const router = useRouter();
     const [spec, setSpec] = useState<FigureSpec>(initial);
     const [saved, setSaved] = useState(initial);
@@ -85,7 +89,7 @@ export default function FigureEditor({ name, initial, custom, lockedSkin }: { na
                 a.clearRect(0, 0, 540, 720);
                 a.save();
                 a.scale(0.5, 0.375);
-                drawBackdrop(a, primary, now, 0.5);
+                drawSceneBackdrop(a, themeRef.current, primary, now, 0.5, cheerRef.current ? 0.8 : 0);
                 a.restore();
                 drawWalker(a, 270, 650, 1.05, look, { walk: 0, cheer: cheerRef.current ? 1 : 0, medal: 0, place: 1, crown: 0, time: now });
             }
@@ -94,7 +98,7 @@ export default function FigureEditor({ name, initial, custom, lockedSkin }: { na
                 b.clearRect(0, 0, 420, 300);
                 b.save();
                 b.scale(0.5, 0.5 * 0.375 / 0.5);
-                drawBackdrop(b, primary, now, 0.5);
+                drawSceneBackdrop(b, themeRef.current, primary, now, 0.5, cheerRef.current ? 0.8 : 0);
                 b.restore();
                 b.save();
                 b.scale(0.4, 0.4);

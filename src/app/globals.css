@@ -1040,6 +1040,18 @@ body.drunk-mode .bottom-nav-item:nth-child(2n), body.drunk-mode .app-header > :f
 .winner-podium:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-md); }
 .winner-podium-text { display: flex; justify-content: center; gap: var(--spacing-5); margin: 0 0 var(--spacing-6); padding: 0; list-style: none; font-size: 1.1rem; }
 
+/* Hintergrund der Szenen wählen */
+.theme-picker { margin-top: var(--spacing-8); }
+.theme-picker h2 { margin: 0 0 4px; font-size: 1.3rem; }
+.theme-picker-lead { margin: 0 0 var(--spacing-4); color: var(--color-text-dim); font-size: 0.9rem; }
+.theme-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 44%), 1fr)); gap: 10px; }
+.theme-tile { position: relative; display: block; padding: 0; border: 2px solid var(--color-border); border-radius: 12px; overflow: hidden; background: #000; cursor: pointer; transition: transform 150ms, border-color 150ms; }
+.theme-tile canvas { display: block; width: 100%; height: auto; }
+.theme-tile[aria-checked='true'] { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary); }
+.theme-tile:active { transform: scale(0.97); }
+.theme-tile:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.theme-tile-name { position: absolute; left: 6px; right: 6px; bottom: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.8rem; font-weight: 700; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
 /* Nackte Meile im Duell auf dem Profil */
 .pg-naked { margin-top: 12px; padding: 12px; border-radius: var(--radius-md); background: rgba(216, 58, 58, 0.08); border: 1px solid rgba(216, 58, 58, 0.25); }
 .pg-naked-title { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.8125rem; font-weight: 700; color: #b02a2a; }

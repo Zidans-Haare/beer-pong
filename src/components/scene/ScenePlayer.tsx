@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useReducedMotion } from 'framer-motion';
 import { X, Download, Video, Pause, RotateCcw, Square, Volume2, VolumeX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { loadSceneFonts, loadSceneLogo, SCENE_WIDTH, SCENE_HEIGHT, type SceneAssets } from '@/lib/wrapped-scene';
+import { loadSceneFonts, SCENE_WIDTH, SCENE_HEIGHT, type SceneAssets } from '@/lib/wrapped-scene';
 import { audioSupported, type WrappedAudio } from '@/lib/wrapped-audio';
 import { canvasToFile, saveFiles } from '@/lib/wrapped-image';
 
@@ -55,7 +55,6 @@ export default function ScenePlayer({ source, initialTime, closeHref }: { source
     const recorder = useRef<MediaRecorder | null>(null);
     const cancelled = useRef(false);
     const audio = useRef<WrappedAudio | null>(null);
-    const logo = useRef<HTMLImageElement | null>(null);
     // Ton muss nach Springen, Pause oder Neustart neu an die Zeit gehängt werden
     const needsSync = useRef(true);
 
@@ -84,7 +83,7 @@ export default function ScenePlayer({ source, initialTime, closeHref }: { source
     const paint = useCallback(() => {
         const ctx = canvasRef.current?.getContext('2d');
         if (!ctx) return;
-        source.draw(ctx, time.current, { logo: logo.current });
+        source.draw(ctx, time.current, {});
         const current = indexAt(time.current);
         fillRefs.current.forEach((el, i) => {
             if (!el) return;
@@ -102,9 +101,8 @@ export default function ScenePlayer({ source, initialTime, closeHref }: { source
     useEffect(() => {
         if (!mounted) return;
         let alive = true;
-        Promise.all([loadSceneFonts(), loadSceneLogo()]).then(([, image]) => {
+        loadSceneFonts().then(() => {
             if (!alive) return;
-            logo.current = image;
             setReady(true);
             paint();
         });

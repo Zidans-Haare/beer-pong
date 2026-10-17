@@ -1,230 +1,317 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { sendChatMessage } from '@/app/actions/chat';
-import { useTranslations } from 'next-intl';
-import { ArrowDown, LoaderCircle, Send } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Clock3, LoaderCircle, RotateCw } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 
 type ChatUser = { id: string; name: string | null; image: string | null };
 type ChatMsg = { id: string; userId: string; text: string; createdAt: string | Date; user: ChatUser };
+// Eigene Nachrichten, die noch unterwegs sind oder nicht ankamen
+type Item = ChatMsg & { status?: 'pending' | 'failed' };
 
-function formatTime(date: string | Date, t: (key: string, params?: Record<string, string | number | Date>) => string) {
-    const d = new Date(date);
-    const now = new Date();
-    const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
-    if (diffMin < 1) return t('justNow');
-    if (diffMin < 60) return t('minutesAgo', { count: diffMin });
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return t('hoursAgo', { count: diffH });
-    return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+// Nachrichten derselben Person innerhalb von 5 Minuten bilden eine Gruppe (ein Name, ein Bild, verbundene Blasen)
+const GROUP_GAP_MS = 5 * 60_000;
+const POLL_MS = 4000;
+const OLDER_PAGE = 40;
+const MAX_LENGTH = 500;
+// Höhe, ab der die Eingabe nicht weiter wächst, sondern scrollt (etwa fünf Zeilen)
+const MAX_INPUT_HEIGHT = 132;
+
+const time = (d: string | Date) => new Date(d).getTime();
+const sameDay = (a: string | Date, b: string | Date) => new Date(a).toDateString() === new Date(b).toDateString();
+
+// Links in Nachrichten anklickbar machen, alles andere bleibt reiner Text
+const URL_RE = /(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g;
+function linkify(text: string) {
+    return text.split(URL_RE).map((part, i) => (i % 2 === 1
+        ? <a key={i} href={part} target="_blank" rel="noopener noreferrer nofollow">{part}</a>
+        : <Fragment key={i}>{part}</Fragment>));
 }
-
 
 export default function ChatWindow({
     initialMessages,
+    hasOlder: initialHasOlder,
     currentUserId,
     isLoggedIn,
 }: {
     initialMessages: ChatMsg[];
+    hasOlder: boolean;
     currentUserId: string | null;
     isLoggedIn: boolean;
 }) {
     const t = useTranslations('chat');
-    const [messages, setMessages] = useState<ChatMsg[]>(initialMessages);
+    const locale = useLocale();
+    const [messages, setMessages] = useState<Item[]>(initialMessages);
     const [input, setInput] = useState('');
-    const [isReady, setIsReady] = useState(false);
-    const [error, setError] = useState('');
-    const [isPending, startTransition] = useTransition();
-    const bottomRef = useRef<HTMLDivElement>(null);
-    const messagesRef = useRef<HTMLDivElement>(null);
-    const stickToBottom = useRef(true);
-    const [hasNewMessages, setHasNewMessages] = useState(false);
-    useEffect(() => { setIsReady(true); }, []);
-    const lastTimestampRef = useRef<string>(
-        initialMessages.length > 0
-            ? new Date(initialMessages[initialMessages.length - 1].createdAt).toISOString()
-            : new Date(0).toISOString()
-    );
+    const [online, setOnline] = useState<number | null>(null);
+    const [hasOlder, setHasOlder] = useState(initialHasOlder);
+    const [loadingOlder, setLoadingOlder] = useState(false);
+    const [showJump, setShowJump] = useState(false);
+    const [unread, setUnread] = useState(0);
 
-    // Scroll to bottom on new messages
-    useEffect(() => {
-        if (stickToBottom.current) {
-            const area = messagesRef.current;
-            if (area) area.scrollTop = area.scrollHeight;
-        } else setHasNewMessages(true);
-    }, [messages]);
+    const listRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+    const stick = useRef(true);
+    const messagesRef = useRef(messages);
+    messagesRef.current = messages;
+    // Nachrichten, die nach dem Öffnen dazukamen, gleiten sanft herein
+    const fresh = useRef(new Set<string>());
+    // beim Nachladen älterer Nachrichten: Abstand zum unteren Ende halten, damit nichts springt
+    const keepFromBottom = useRef<number | null>(null);
+    // Warteschlange eigener Nachrichten (Kennung und Text), wird der Reihe nach verschickt
+    const queue = useRef<{ id: string; text: string }[]>([]);
+    const sending = useRef(false);
 
-    // Poll for new messages every 5 seconds
-    useEffect(() => {
-        const poll = async () => {
-            try {
-                const res = await fetch(`/api/chat?since=${encodeURIComponent(lastTimestampRef.current)}`);
-                if (!res.ok) return;
-                const newMsgs: ChatMsg[] = await res.json();
-                if (newMsgs.length > 0) {
-                    setMessages(prev => [...prev, ...newMsgs.filter(message => !prev.some(existing => existing.id === message.id))]);
-                    lastTimestampRef.current = new Date(newMsgs[newMsgs.length - 1].createdAt).toISOString();
-                }
-            } catch {
-                // Silently ignore polling errors
-            }
-        };
+    const timeFmt = useMemo(() => new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }), [locale]);
+    const dayFmt = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }), [locale]);
+    const dayLabel = (d: string | Date) => {
+        const date = new Date(d);
+        const today = new Date();
+        const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+        if (date.toDateString() === today.toDateString()) return t('today');
+        if (date.toDateString() === yesterday.toDateString()) return t('yesterday');
+        return dayFmt.format(date);
+    };
 
-        const interval = setInterval(poll, 5000);
-        return () => clearInterval(interval);
+    const toBottom = useCallback((smooth = false) => {
+        const list = listRef.current;
+        if (!list) return;
+        list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     }, []);
 
-    function handleSend() {
-        const text = input.trim();
-        if (!text || isPending || !isReady) return;
-        stickToBottom.current = true;
+    // Beim Öffnen ohne sichtbaren Sprung ganz unten starten
+    useLayoutEffect(() => { toBottom(); }, [toBottom]);
 
-        // Optimistic update
-        const optimisticMsg: ChatMsg = {
-            id: `optimistic-${Date.now()}`,
-            userId: currentUserId ?? '',
-            text,
-            createdAt: new Date().toISOString(),
-            user: { id: currentUserId ?? '', name: t('me'), image: null },
-        };
-        setMessages(prev => [...prev, optimisticMsg]);
-        setInput('');
-        setError('');
+    // Nach jeder Änderung: unten bleiben, wenn man unten war; beim Nachladen oben die Position halten
+    useLayoutEffect(() => {
+        const list = listRef.current;
+        if (!list) return;
+        if (keepFromBottom.current !== null) {
+            list.scrollTop = list.scrollHeight - keepFromBottom.current;
+            keepFromBottom.current = null;
+            return;
+        }
+        if (stick.current) toBottom(true);
+    }, [messages, toBottom]);
 
-        startTransition(async () => {
-            try {
-                const res = await sendChatMessage(text);
-                if (!res.success) {
-                    setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
-                    setInput(text);
-                    setError(res.error ?? t('sendError'));
-                } else if (res.message) {
-                    setMessages(prev => prev.filter(message => message.id !== res.message!.id).map(m => m.id === optimisticMsg.id ? (res.message as ChatMsg) : m));
-                    lastTimestampRef.current = new Date((res.message as ChatMsg).createdAt).toISOString();
+    // Tastatur fährt aus oder ein: wer unten war, bleibt unten
+    useEffect(() => {
+        const onViewport = () => { if (stick.current) toBottom(); };
+        window.addEventListener('chat-viewport', onViewport);
+        return () => window.removeEventListener('chat-viewport', onViewport);
+    }, [toBottom]);
+
+    // Neue Nachrichten holen: regelmäßig und sofort, wenn die App wieder sichtbar wird
+    const poll = useCallback(async () => {
+        const saved = messagesRef.current.filter(m => !m.status && !m.id.startsWith('local-'));
+        const since = saved.length ? new Date(saved[saved.length - 1].createdAt).toISOString() : new Date(0).toISOString();
+        try {
+            const res = await fetch(`/api/chat?since=${encodeURIComponent(since)}`, { cache: 'no-store' });
+            if (!res.ok) return;
+            const incoming: ChatMsg[] = await res.json();
+            if (!incoming.length) return;
+            setMessages(prev => {
+                let next = prev;
+                for (const msg of incoming) {
+                    if (next.some(m => m.id === msg.id)) continue;
+                    // eigene Nachricht, die schon als „unterwegs“ angezeigt wird: ersetzen statt doppelt zeigen
+                    const local = next.find(m => m.status === 'pending' && m.userId === msg.userId && m.text === msg.text);
+                    if (local) { next = next.map(m => (m === local ? msg : m)); queue.current = queue.current.filter(q => q.id !== local.id); continue; }
+                    fresh.current.add(msg.id);
+                    next = [...next, msg];
                 }
-            } catch {
-                setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
-                setInput(text);
-                setError(t('sendError'));
-            }
-        });
-    }
+                return next;
+            });
+            if (!stick.current) setUnread(n => n + incoming.filter(m => m.userId !== currentUserId).length);
+        } catch { /* nächster Versuch beim nächsten Takt */ }
+    }, [currentUserId]);
 
-    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
+    useEffect(() => {
+        const interval = setInterval(() => { if (document.visibilityState === 'visible') void poll(); }, POLL_MS);
+        const onVisible = () => { if (document.visibilityState === 'visible') void poll(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
+    }, [poll]);
+
+    // Wer gerade online ist, steht unter dem Titel
+    useEffect(() => {
+        let alive = true;
+        const load = () => fetch('/api/presence', { cache: 'no-store' }).then(r => r.json()).then((d: { count: number }) => { if (alive) setOnline(d.count); }).catch(() => undefined);
+        void load();
+        const interval = setInterval(load, 30_000);
+        return () => { alive = false; clearInterval(interval); };
+    }, []);
+
+    async function loadOlder() {
+        const first = messagesRef.current.find(m => !m.status && !m.id.startsWith('local-'));
+        if (!first || loadingOlder || !hasOlder) return;
+        setLoadingOlder(true);
+        try {
+            const res = await fetch(`/api/chat?before=${encodeURIComponent(new Date(first.createdAt).toISOString())}&limit=${OLDER_PAGE}`, { cache: 'no-store' });
+            const older: ChatMsg[] = res.ok ? await res.json() : [];
+            if (older.length < OLDER_PAGE) setHasOlder(false);
+            if (older.length) {
+                const list = listRef.current;
+                if (list) keepFromBottom.current = list.scrollHeight - list.scrollTop;
+                setMessages(prev => [...older.filter(o => !prev.some(m => m.id === o.id)), ...prev]);
+            }
+        } finally {
+            setLoadingOlder(false);
         }
     }
 
+    function onScroll() {
+        const list = listRef.current;
+        if (!list) return;
+        const fromBottom = list.scrollHeight - list.scrollTop - list.clientHeight;
+        stick.current = fromBottom < 80;
+        setShowJump(fromBottom > 400);
+        if (stick.current) setUnread(0);
+        if (list.scrollTop < 200) void loadOlder();
+    }
+
+    // Eigene Nachrichten nacheinander abschicken, damit die Reihenfolge stimmt
+    async function pump() {
+        if (sending.current) return;
+        sending.current = true;
+        while (queue.current.length) {
+            const { id, text } = queue.current[0];
+            let saved: ChatMsg | null = null;
+            try {
+                const res = await sendChatMessage(text);
+                if (res.success && res.message) saved = res.message as ChatMsg;
+            } catch { /* gilt als nicht gesendet */ }
+            queue.current.shift();
+            setMessages(prev => (saved
+                ? prev.filter(m => m.id !== saved!.id).map(m => (m.id === id ? { ...saved!, createdAt: saved!.createdAt } : m))
+                : prev.map(m => (m.id === id ? { ...m, status: 'failed' as const } : m))));
+        }
+        sending.current = false;
+    }
+
+    function send() {
+        const text = input.trim();
+        if (!text || !isLoggedIn) return;
+        const id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        fresh.current.add(id);
+        stick.current = true;
+        setMessages(prev => [...prev, { id, userId: currentUserId ?? '', text, createdAt: new Date().toISOString(), user: { id: currentUserId ?? '', name: t('me'), image: null }, status: 'pending' }]);
+        setInput('');
+        queue.current.push({ id, text });
+        void pump();
+        // Tastatur bleibt offen, wie in jedem Messenger
+        inputRef.current?.focus();
+    }
+
+    function retry(id: string) {
+        const failed = messagesRef.current.find(m => m.id === id);
+        if (!failed) return;
+        setMessages(prev => prev.map(m => (m.id === id ? { ...m, status: 'pending', createdAt: new Date().toISOString() } : m)));
+        queue.current.push({ id, text: failed.text });
+        void pump();
+    }
+
+    // Eingabe wächst mit dem Text bis etwa fünf Zeilen; gemessen wird nach dem Rendern, wenn der Text drin steht
+    useLayoutEffect(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${Math.min(MAX_INPUT_HEIGHT, el.scrollHeight)}px`;
+        el.style.overflowY = el.scrollHeight > MAX_INPUT_HEIGHT ? 'auto' : 'hidden';
+    }, [input]);
+
     return (
         <div className="chat-window">
-            {/* Messages */}
-            <div className="chat-messages" ref={messagesRef} onScroll={event => {
-                const area = event.currentTarget;
-                stickToBottom.current = area.scrollHeight - area.scrollTop - area.clientHeight < 80;
-                if (stickToBottom.current) setHasNewMessages(false);
-            }}>
-                {messages.length === 0 && (
-                    <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', marginTop: 'var(--spacing-8)' }}>
-                        {t('noMessages')}
-                    </p>
-                )}
-                {messages.map(msg => (
-                    <div
-                        key={msg.id}
-                        style={{
-                            display: 'flex',
-                            gap: 'var(--spacing-3)',
-                            alignItems: 'flex-start',
-                            flexDirection: msg.userId === currentUserId ? 'row-reverse' : 'row',
-                        }}
-                    >
-                        <Avatar name={msg.user.name ?? '?'} src={msg.user.image} size={32} />
-                        <div style={{
-                            maxWidth: '78%',
-                            minWidth: 0,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: msg.userId === currentUserId ? 'flex-end' : 'flex-start',
-                            gap: '2px',
-                        }}>
-                            <div style={{
-                                display: 'flex',
-                                gap: 'var(--spacing-2)',
-                                alignItems: 'baseline',
-                                flexDirection: msg.userId === currentUserId ? 'row-reverse' : 'row',
-                            }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.user.name ?? t('unknown')}</span>
-                                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{formatTime(msg.createdAt, t)}</span>
-                            </div>
-                            <div data-pending={msg.id.startsWith('optimistic-') ? 'true' : 'false'} style={{
-                                background: msg.userId === currentUserId ? 'var(--gradient-primary)' : 'var(--color-surface-2)',
-                                color: msg.userId === currentUserId ? '#fff' : 'var(--color-text)',
-                                borderRadius: msg.userId === currentUserId ? '6px 6px 0 6px' : '6px 6px 6px 0',
-                                padding: '10px 16px',
-                                fontSize: '0.9rem',
-                                lineHeight: 1.5,
-                                wordBreak: 'break-word',
-                                opacity: msg.id.startsWith('optimistic-') ? 0.7 : 1,
-                                boxShadow: 'none',
-                            }}>
-                                {msg.text}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                <div ref={bottomRef} />
+            <header className="chat-header">
+                <Link href="/" className="chat-back" aria-label={t('back')}><ArrowLeft size={22} /></Link>
+                <div className="chat-title">
+                    <h1>{t('title')}</h1>
+                    <span>{online !== null ? t('online', { count: online }) : ' '}</span>
+                </div>
+            </header>
+
+            <div className="chat-messages" ref={listRef} onScroll={onScroll} role="log" aria-live="polite" aria-label={t('title')}>
+                <div className="chat-thread">
+                    {loadingOlder && <div className="chat-older"><LoaderCircle size={18} className="loading-spin" aria-label={t('loadingOlder')} /></div>}
+                    {messages.length === 0 && <p className="chat-empty">{t('noMessages')}</p>}
+                    {messages.map((msg, i) => {
+                        const prev = messages[i - 1], next = messages[i + 1];
+                        const newDay = !prev || !sameDay(prev.createdAt, msg.createdAt);
+                        const first = newDay || prev.userId !== msg.userId || time(msg.createdAt) - time(prev.createdAt) > GROUP_GAP_MS;
+                        const last = !next || !sameDay(next.createdAt, msg.createdAt) || next.userId !== msg.userId || time(next.createdAt) - time(msg.createdAt) > GROUP_GAP_MS;
+                        const mine = msg.userId === currentUserId;
+                        return (
+                            <Fragment key={msg.id}>
+                                {newDay && <div className="chat-day"><span>{dayLabel(msg.createdAt)}</span></div>}
+                                <div className={`chat-row${mine ? ' is-mine' : ''}${first ? ' is-first' : ''}${last ? ' is-last' : ''}${fresh.current.has(msg.id) ? ' is-new' : ''}`}>
+                                    {!mine && <div className="chat-avatar">{last && <Avatar name={msg.user.name ?? '?'} src={msg.user.image} size={30} />}</div>}
+                                    <div className="chat-stack">
+                                        {!mine && first && <span className="chat-name">{msg.user.name ?? t('unknown')}</span>}
+                                        <div
+                                            className="chat-bubble"
+                                            data-pending={msg.status === 'pending' ? 'true' : 'false'}
+                                            data-failed={msg.status === 'failed' ? 'true' : undefined}
+                                        >
+                                            <span className="chat-text">{linkify(msg.text)}</span>
+                                            <span className="chat-meta" aria-hidden="true">
+                                                {timeFmt.format(new Date(msg.createdAt))}
+                                                {mine && (msg.status === 'pending' ? <Clock3 size={12} /> : msg.status === 'failed' ? null : <Check size={13} />)}
+                                            </span>
+                                        </div>
+                                        {msg.status === 'failed' && (
+                                            <button type="button" className="chat-retry" onClick={() => retry(msg.id)}>
+                                                <RotateCw size={13} aria-hidden="true" /> {t('failed')}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </Fragment>
+                        );
+                    })}
+                </div>
             </div>
 
-            {hasNewMessages && <button type="button" className="btn chat-new-messages" onClick={() => {
-                stickToBottom.current = true;
-                setHasNewMessages(false);
-                const area = messagesRef.current;
-                if (area) area.scrollTop = area.scrollHeight;
-            }}><ArrowDown size={18} />{t('newMessages')}</button>}
-            <div style={{ height: '1px', background: 'var(--color-border)' }} />
+            {showJump && (
+                <button type="button" className="chat-jump" aria-label={t('newMessages')} onClick={() => { stick.current = true; setUnread(0); toBottom(true); }}>
+                    <ArrowDown size={20} />
+                    {unread > 0 && <span className="chat-jump-badge">{unread}</span>}
+                </button>
+            )}
 
-            {/* Input */}
             <div className="chat-composer">
-                {error && (
-                    <p className="form-error" role="alert">{error}</p>
-                )}
                 {isLoggedIn ? (
-                    <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-                        <input
+                    <form className="chat-input" onSubmit={event => { event.preventDefault(); send(); }}>
+                        <textarea
+                            ref={inputRef}
                             value={input}
-                            onChange={e => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
+                            rows={1}
+                            maxLength={MAX_LENGTH}
+                            enterKeyHint="send"
                             placeholder={t('placeholder')}
                             aria-label={t('placeholder')}
-                            maxLength={500}
-                            disabled={isPending || !isReady}
-                            style={{
-                                flex: 1,
-                                padding: 'var(--spacing-3)',
-                                background: 'var(--color-surface-secondary)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '6px',
-                                color: 'var(--color-text)',
-                                fontSize: '1rem',
+                            onChange={event => setInput(event.target.value)}
+                            onKeyDown={event => {
+                                // Enter schickt ab, Umschalt+Enter macht eine neue Zeile; nicht während einer Wortauswahl (IME)
+                                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); }
                             }}
+                            onFocus={() => { if (stick.current) setTimeout(() => toBottom(), 250); }}
                         />
                         <button
-                            onClick={handleSend}
-                            disabled={isPending || !isReady || !input.trim()}
-                            className="btn btn-primary"
+                            type="submit"
+                            className="chat-send"
                             aria-label={t('send')}
-                            style={{ flexShrink: 0, opacity: (isPending || !input.trim()) ? 0.5 : 1 }}
+                            disabled={!input.trim()}
+                            // Antippen nimmt dem Feld nicht den Fokus, sonst klappt die Tastatur zu
+                            onPointerDown={event => event.preventDefault()}
                         >
-                            {isPending ? <LoaderCircle size={20} className="loading-spin" /> : <Send size={20} />}
+                            <ArrowUp size={20} strokeWidth={2.6} />
                         </button>
-                    </div>
+                    </form>
                 ) : (
-                    <p style={{ textAlign: 'center', color: 'var(--color-text-dim)', fontSize: '0.9rem', margin: 0 }}>
-                        <a href="/login" style={{ color: 'var(--color-primary)' }}>{t('login')}</a>{t('loginToChat')}
-                    </p>
+                    <p className="chat-login"><Link href="/login?callbackUrl=%2Fchat">{t('login')}</Link>{t('loginToChat')}</p>
                 )}
             </div>
         </div>

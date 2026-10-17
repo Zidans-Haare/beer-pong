@@ -214,11 +214,6 @@ export class WrappedAudio {
             const ms = tl.stamp + 1250 + i * 120;
             if (due(ms)) this.tone(this.sfx, at(ms), f, i === 3 ? 0.9 : 0.16, 'square', 0.16, undefined, 3200);
         });
-        // Abspann: heller Dreiklang zum Logo
-        [659.25, 880, 1318.51].forEach((f, i) => {
-            const ms = tl.outro + 250 + i * 110;
-            if (Number.isFinite(ms) && due(ms)) this.tone(this.sfx, at(ms), f, i === 2 ? 1.1 : 0.3, 'triangle', 0.26);
-        });
         // Feuerwerk: Knall und Knistern
         for (const ms of tl.fireworks) {
             if (!due(ms)) continue;

@@ -5,12 +5,12 @@
 import {
     SCENE_WIDTH, SCENE_HEIGHT, CENTER_X, HEADING, BODY, BEAT_MS, MY_CUPS, OPP_CUPS, LIGHT_SKIN,
     clamp, lerp, ramp, easeOut, easeInOut, easeOutBack, rand, shade,
-    tablePoint, drawCup, drawBall, drawMe, drawOpponent, drawHairFront, drawAccessoryFront, drawTorsoAccessories, fillShirt, needsEyeWhite, drawBackdrop, drawTable, drawOutro,
+    tablePoint, drawCup, drawBall, drawMe, drawOpponent, drawHairFront, drawAccessoryFront, drawTorsoAccessories, fillShirt, needsEyeWhite, drawBackdrop, drawTable,
     roundRect, fitFont, wrapText,
     type FigureLook, type SceneAssets,
 } from '@/lib/wrapped-scene';
 
-export type FilmKey = 'intro' | 'final' | 'win' | 'podium' | 'facts' | 'outro';
+export type FilmKey = 'intro' | 'final' | 'win' | 'podium' | 'facts';
 
 // Eine Seite am Tisch oder eine Stufe auf dem Podium: ein Spieler oder ein Team
 export interface FilmSide { label: string; names: string[]; looks: FigureLook[] }
@@ -32,7 +32,6 @@ export interface FilmModel {
     podiumTitle: string;
     podium: FilmStep[];
     facts: { eyebrow: string; value: string; title: string; lines: string[] };
-    outro: { title: string; line: string };
     // Texte je Abschnitt für Screenreader
     descriptions: Partial<Record<FilmKey, string>>;
 }
@@ -45,7 +44,7 @@ export interface FilmTimeline {
     starts: number[];
     durations: number[];
     total: number;
-    intro: number; final: number; win: number; podium: number; facts: number; outro: number;
+    intro: number; final: number; win: number; podium: number; facts: number;
     nearCupPops: number[];
     farCupPops: number[];
     nearEnter: number;
@@ -102,13 +101,12 @@ export function filmTimeline(model: FilmModel): FilmTimeline {
     if (model.final) { keys.push('win'); durations.push(5200); }
     if (model.podium.length > 0) { keys.push('podium'); durations.push(8800); }
     keys.push('facts'); durations.push(5200);
-    keys.push('outro'); durations.push(3300);
 
     const starts: number[] = [];
     let t = 0;
     for (const d of durations) { starts.push(t); t += d; }
     const at = (key: FilmKey) => { const i = keys.indexOf(key); return i >= 0 ? starts[i] : Infinity; };
-    const final = at('final'), win = at('win'), podium = at('podium'), facts = at('facts'), outro = at('outro');
+    const final = at('final'), win = at('win'), podium = at('podium'), facts = at('facts');
     for (const th of throws) th.start += final;
 
     const fireworks: number[] = [];
@@ -126,7 +124,7 @@ export function filmTimeline(model: FilmModel): FilmTimeline {
 
     return {
         keys, starts, durations, total: t,
-        intro: 0, final, win, podium, facts, outro,
+        intro: 0, final, win, podium, facts,
         nearCupPops: MY_CUPS.map((_, i) => 800 + i * 70),
         farCupPops: OPP_CUPS.map((_, i) => 1250 + i * 70),
         nearEnter: 1900, farEnter: 2500,
@@ -665,7 +663,7 @@ export function drawTournamentFrame(ctx: CanvasRenderingContext2D, model: FilmMo
     }
 
     // ---- Zusammenfassung ----
-    if (key === 'facts' || key === 'outro') {
+    if (key === 'facts') {
         const fl = time - tl.facts;
         ctx.fillStyle = `rgba(0,0,0,${0.82 * easeOut(ramp(fl, 0, 450))})`;
         ctx.fillRect(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
@@ -696,11 +694,10 @@ export function drawTournamentFrame(ctx: CanvasRenderingContext2D, model: FilmMo
         });
         ctx.restore();
     }
-    if (key === 'outro') drawOutro(ctx, model.primary, local, beat, model.outro, assets);
 
     // Marke oben links, auch im exportierten Video
     ctx.save();
-    ctx.globalAlpha = 0.9 * (key === 'outro' ? 1 - ramp(local, 0, 300) : 1);
+    ctx.globalAlpha = 0.9;
     ctx.fillStyle = '#ffffff';
     ctx.font = `700 34px ${HEADING}`;
     ctx.textAlign = 'left';

@@ -142,7 +142,6 @@ export function buildTournamentFilm(input: FilmInput, primary: string, t: Transl
         win: final ? final.line : '',
         podium: [t('podiumTitle'), ...steps.map(s => `${s.place}. ${s.label}`)].join('. '),
         facts: [facts.eyebrow, facts.value, facts.title, ...lines].join('. '),
-        outro: `${t('outroTitle')}. ${t('outroLine')}`,
     };
 
     return {
@@ -150,7 +149,6 @@ export function buildTournamentFilm(input: FilmInput, primary: string, t: Transl
         eyebrow: final ? t('finalEyebrow') : t('filmEyebrow'),
         subtitle, brand: t('brand'), final,
         podiumTitle: t('podiumTitle'), podium: steps, facts,
-        outro: { title: t('outroTitle'), line: t('outroLine') },
         descriptions,
     };
 }

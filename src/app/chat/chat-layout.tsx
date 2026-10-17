@@ -2,48 +2,48 @@
 
 import { useEffect, useRef } from 'react';
 
+// Der Chat läuft als eigener Vollbild-Bildschirm wie in einer Messenger-App: ohne Kopf- und Fußleiste der Seite.
+// Seine Höhe folgt dem sichtbaren Bereich (Visual Viewport). Fährt die Tastatur aus, wird der Chat kürzer und die
+// Eingabe sitzt direkt über der Tastatur, statt dass die ganze Seite verrutscht.
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
     const ref = useRef<HTMLDivElement>(null);
 
-    // Hide the bottom nav while the chat page is open
     useEffect(() => {
         document.body.classList.add('chat-open');
-        return () => document.body.classList.remove('chat-open');
+        document.documentElement.classList.add('chat-open');
+        return () => {
+            document.body.classList.remove('chat-open');
+            document.documentElement.classList.remove('chat-open');
+        };
     }, []);
 
     useEffect(() => {
-        // Android Chrome 108+ / Firefox 132+: handled by interactive-widget=resizes-content in viewport meta.
-        // iOS Safari does not support that meta, so we use the Visual Viewport API as fallback.
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        if (!isIOS || !window.visualViewport) return;
-
-        const vv = window.visualViewport!;
+        const el = ref.current;
+        if (!el) return;
+        const vv = window.visualViewport;
+        let frame = 0;
         const update = () => {
-            if (!ref.current) return;
-            const top = ref.current.getBoundingClientRect().top;
-            const available = vv.height - top;
-            ref.current.style.height = `${Math.max(200, available)}px`;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const height = vv ? vv.height : window.innerHeight;
+                // iOS schiebt beim Fokussieren das Fenster nach oben; der Chat folgt, damit er im Bild bleibt
+                const top = vv ? vv.offsetTop : 0;
+                el.style.height = `${Math.round(height)}px`;
+                el.style.transform = top ? `translateY(${Math.round(top)}px)` : '';
+                window.dispatchEvent(new Event('chat-viewport'));
+            });
         };
-
-        vv.addEventListener('resize', update);
-        return () => vv.removeEventListener('resize', update);
+        update();
+        vv?.addEventListener('resize', update);
+        vv?.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+        return () => {
+            cancelAnimationFrame(frame);
+            vv?.removeEventListener('resize', update);
+            vv?.removeEventListener('scroll', update);
+            window.removeEventListener('resize', update);
+        };
     }, []);
 
-    return (
-        <div
-            ref={ref}
-            style={{
-                maxWidth: '700px',
-                margin: '0 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                height: 'calc(100dvh - var(--header-height) - env(safe-area-inset-top))',
-                minHeight: '300px',
-                padding: '0 20px',
-            }}
-        >
-            {children}
-        </div>
-    );
+    return <div ref={ref} className="chat-screen">{children}</div>;
 }

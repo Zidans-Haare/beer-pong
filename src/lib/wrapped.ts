@@ -209,12 +209,10 @@ export function buildScene(data: WrappedData, wrappedTitle: string, primary: str
                 ...(medalTotal > 0 ? [medalsLine] : []),
             ],
         },
-        // Abspann mit Logo; Texte auch für Screenreader
-        { key: 'outro', eyebrow: t('brand'), value: t('outroTitle'), title: t('outroLine'), lines: [] },
     ];
 
     return {
         title: wrappedTitle, playerName: data.playerName, opponentName: data.rival?.name ?? null, primary,
-        winLabel: t('winStamp'), outro: { title: t('outroTitle'), line: t('outroLine') }, segments, looks,
+        winLabel: t('winStamp'), segments, looks,
     };
 }

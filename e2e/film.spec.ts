@@ -17,8 +17,8 @@ test.describe('Turnierfilm', () => {
 
     const film = page.getByRole('dialog', { name: 'Last Matchday' });
     await expect(film).toBeVisible();
-    // Abschnitte: Auftakt, Finale, Sieg, Podium, Zusammenfassung, Abspann
-    await expect(film.locator('.wrapped-progress-track')).toHaveCount(6);
+    // Abschnitte: Auftakt, Finale, Sieg, Podium, Zusammenfassung (kein Abspann mehr)
+    await expect(film.locator('.wrapped-progress-track')).toHaveCount(5);
     // die Szene ist wirklich gezeichnet (Hintergrund deckt die ganze Fläche)
     await expect.poll(() => film.locator('canvas').evaluate((canvas: HTMLCanvasElement) => canvas.getContext('2d')!.getImageData(540, 1500, 1, 1).data[3])).toBe(255);
 

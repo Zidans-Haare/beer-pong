@@ -2,8 +2,6 @@
   "wrapped": {
     "bannerSeenText": "Watch again",
     "bannerSeenCta": "Open",
-    "outroTitle": "Beer Pong App",
-    "outroLine": "Made by Nick",
     "tapForSound": "Tap for sound",
     "soundOn": "Turn sound on",
     "soundOff": "Turn sound off",
@@ -703,9 +701,13 @@
     "send": "Send",
     "login": "Log in",
     "loginToChat": "to join the chat.",
-    "justNow": "just now",
-    "minutesAgo": "{count} min. ago",
-    "hoursAgo": "{count} hrs. ago"
+    "title": "Community chat",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "online": "{count, plural, =0 {nobody online} one {# online} other {# online}}",
+    "failed": "Not sent. Tap to retry",
+    "loadingOlder": "Loading older messages",
+    "back": "Back"
   },
   "participants": {
     "available": "Available Players",
@@ -1194,8 +1196,6 @@
     "factsTopScorer": "Most cups: {name} ({cups})",
     "factsBiggest": "Biggest win: {winner} {score} against {loser}",
     "factsLongest": "Longest game: {minutes} minutes ({a} vs {b})",
-    "outroTitle": "Beer Pong App",
-    "outroLine": "Made by Nick",
     "linkTitle": "Tournament film",
     "linkText": "Watch the final and the award ceremony as a film",
     "notAvailable": "There is no film for this tournament yet. It is created once the tournament has finished.",

@@ -30,7 +30,6 @@ const base: FilmModel = {
     podiumTitle: 'Siegerehrung',
     podium: [{ ...solo('Nick'), place: 1 }, { ...solo('Moonzy'), place: 2 }, { ...solo('Heber'), place: 3 }],
     facts: { eyebrow: 'Turniersieg', value: 'Nick', title: 'Turnier', lines: ['eins', 'zwei', 'drei'] },
-    outro: { title: 'Bier Pong App', line: 'Made by Nick' },
     descriptions: {},
 };
 
@@ -63,10 +62,10 @@ describe('drawTournamentFrame', () => {
 describe('filmTimeline', () => {
     it('legt die Abschnitte lückenlos hintereinander', () => {
         const tl = filmTimeline(base);
-        expect(tl.keys).toEqual(['intro', 'final', 'win', 'podium', 'facts', 'outro']);
+        expect(tl.keys).toEqual(['intro', 'final', 'win', 'podium', 'facts']);
         expect(tl.starts[0]).toBe(0);
         tl.starts.forEach((start, i) => { if (i > 0) expect(start).toBe(tl.starts[i - 1] + tl.durations[i - 1]); });
-        expect(tl.total).toBe(tl.starts[5] + tl.durations[5]);
+        expect(tl.total).toBe(tl.starts[4] + tl.durations[4]);
     });
 
     it('spielt das echte Ergebnis nach und lässt den Sieger zuletzt treffen', () => {
@@ -94,9 +93,9 @@ describe('filmTimeline', () => {
     });
 
     it('lässt Abschnitte weg, für die es keine Daten gibt', () => {
-        expect(filmTimeline(variants['Finale ohne Ergebnis']).keys).toEqual(['intro', 'win', 'podium', 'facts', 'outro']);
-        expect(filmTimeline(variants['ohne Finale']).keys).toEqual(['intro', 'podium', 'facts', 'outro']);
-        expect(filmTimeline(variants['ohne Podium']).keys).toEqual(['intro', 'final', 'win', 'facts', 'outro']);
+        expect(filmTimeline(variants['Finale ohne Ergebnis']).keys).toEqual(['intro', 'win', 'podium', 'facts']);
+        expect(filmTimeline(variants['ohne Finale']).keys).toEqual(['intro', 'podium', 'facts']);
+        expect(filmTimeline(variants['ohne Podium']).keys).toEqual(['intro', 'final', 'win', 'facts']);
     });
 
     it('lässt die Plätze in der Reihenfolge 3, 2, 1 aufs Podium', () => {

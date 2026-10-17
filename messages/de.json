@@ -2,8 +2,6 @@
   "wrapped": {
     "bannerSeenText": "Nochmal ansehen",
     "bannerSeenCta": "Öffnen",
-    "outroTitle": "Bier Pong App",
-    "outroLine": "Made by Nick",
     "tapForSound": "Tippen für Ton",
     "soundOn": "Ton einschalten",
     "soundOff": "Ton ausschalten",
@@ -703,9 +701,13 @@
     "send": "Senden",
     "login": "Einloggen",
     "loginToChat": ", um am Chat teilzunehmen.",
-    "justNow": "gerade eben",
-    "minutesAgo": "vor {count} Min.",
-    "hoursAgo": "vor {count} Std."
+    "title": "Community Chat",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "online": "{count, plural, =0 {gerade niemand online} one {# online} other {# online}}",
+    "failed": "Nicht gesendet. Tippen zum Wiederholen",
+    "loadingOlder": "Ältere Nachrichten werden geladen",
+    "back": "Zurück"
   },
   "participants": {
     "available": "Verfügbare Spieler",
@@ -1194,8 +1196,6 @@
     "factsTopScorer": "Meiste Becher: {name} ({cups})",
     "factsBiggest": "Höchster Sieg: {winner} {score} gegen {loser}",
     "factsLongest": "Längstes Spiel: {minutes} Minuten ({a} gegen {b})",
-    "outroTitle": "Bier Pong App",
-    "outroLine": "Made by Nick",
     "linkTitle": "Turnierfilm",
     "linkText": "Finale und Siegerehrung als Film ansehen",
     "notAvailable": "Für dieses Turnier gibt es noch keinen Film. Er entsteht, sobald das Turnier beendet ist.",

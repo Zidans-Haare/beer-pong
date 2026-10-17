@@ -130,16 +130,12 @@ export class FilmAudio extends WrappedAudio {
             if (due(ms)) this.tone(this.sfx, at(ms), f, 0.35, 'sine', 0.14);
         });
 
-        // ---- Feuerwerk und Abspann ----
+        // ---- Feuerwerk ----
         for (const ms of tl.fireworks) {
             if (!due(ms)) continue;
             this.tone(this.sfx, at(ms), 180, 0.25, 'sine', 0.3, 60);
             this.noise(this.sfx, at(ms + 40), 0.5, 0.14, 'highpass', 4200);
         }
-        [659.25, 880, 1318.51].forEach((f, i) => {
-            const ms = tl.outro + 250 + i * 110;
-            if (due(ms)) this.tone(this.sfx, at(ms), f, i === 2 ? 1.1 : 0.3, 'triangle', 0.26);
-        });
     }
 }
 

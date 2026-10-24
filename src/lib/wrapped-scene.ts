@@ -162,6 +162,16 @@ function drawStat(ctx: CanvasRenderingContext2D, seg: SceneSegment, local: numbe
 
     let a = appear(0);
     if (a <= 0) return;
+    // weicher dunkler Schatten hinter dem Text, damit er auch vor Publikum oder hellem Himmel lesbar bleibt
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.translate(330, 440);
+    ctx.scale(1.5, 0.8);
+    const veil = ctx.createRadialGradient(0, 0, 0, 0, 0, 520);
+    veil.addColorStop(0, 'rgba(0,0,0,0.62)'); veil.addColorStop(0.6, 'rgba(0,0,0,0.4)'); veil.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = veil;
+    ctx.beginPath(); ctx.arc(0, 0, 520, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
     ctx.save();
     ctx.textBaseline = 'alphabetic';
     ctx.globalAlpha = a;

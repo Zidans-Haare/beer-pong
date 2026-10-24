@@ -151,7 +151,8 @@ export default function LogoEasterEgg() {
                                 </div>
 
                                 <a
-                                    href={process.env.NEXT_PUBLIC_GITHUB_REPO || "#"}
+                                    // ohne eigene Angabe das öffentliche Repo, wie in der Demo und bei der Update-Prüfung
+                                    href={process.env.NEXT_PUBLIC_GITHUB_REPO || "https://github.com/Zidans-Haare/beer-pong"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{

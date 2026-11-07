@@ -84,4 +84,17 @@ test.describe('App-Nutzung und Online-Anzeige', () => {
     expect((await response.json()).start_url).toBe('/');
     await context.close();
   });
+  test('Push-Anmeldung eines Geräts: speichern und auffrischen, Unsinn ablehnen, ohne Login nicht', async ({ page, browser }) => {
+    await page.goto('/');
+    const sub = { endpoint: `https://web.push.apple.com/e2e-${Date.now()}`, keys: { p256dh: 'BAbcdefghijklmnopqrstuvwxyz0123456789', auth: 'abcdefghij012345' } };
+    // zweimal dasselbe Gerät: beim zweiten Mal wird nur aufgefrischt
+    expect((await page.request.post('/api/push/subscribe', { data: sub })).status()).toBe(200);
+    expect((await page.request.post('/api/push/subscribe', { data: sub })).status()).toBe(200);
+    expect((await page.request.post('/api/push/subscribe', { data: { endpoint: 'javascript:alert(1)', keys: sub.keys } })).status()).toBe(400);
+    expect((await page.request.post('/api/push/subscribe', { data: { endpoint: sub.endpoint } })).status()).toBe(400);
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const anonymous = await context.newPage();
+    expect((await anonymous.request.post(new URL('/api/push/subscribe', page.url()).href, { data: sub })).status()).toBe(401);
+    await context.close();
+  });
 });

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import webpush from "web-push";
+import { isAllowedPushEndpoint } from '@/lib/push-endpoint';
 
 // Initialize web-push
 const publicKey = process.env.VAPID_PUBLIC_KEY;
@@ -32,9 +33,9 @@ export async function sendPushToUser(
         });
 
         // 2. Send web push notification
-        const subscriptions = await (prisma as any).pushSubscription.findMany({
+        const subscriptions = (await (prisma as any).pushSubscription.findMany({
             where: { userId },
-        });
+        })).filter((s: { endpoint: string }) => isAllowedPushEndpoint(s.endpoint));
 
         if (subscriptions.length > 0) {
             const payload = JSON.stringify({ title, message, link });

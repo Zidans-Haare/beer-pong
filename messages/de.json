@@ -1034,7 +1034,8 @@
     "liveTickerDesc": "Echtzeit Match-Updates.",
     "cancel": "Abbrechen",
     "saving": "Speichert...",
-    "save": "Speichern"
+    "save": "Speichern",
+    "testPushSentCount": "Test gesendet an {count, plural, one {# Gerät} other {# Geräte}}. Kommt hier nichts an, ist dieses Gerät nicht angemeldet: Seite neu laden, dann meldet es sich neu an."
   },
   "stats": {
     "wrappedTitle": "Bier Pong Wrapped",

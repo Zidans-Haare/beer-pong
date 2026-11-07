@@ -8,6 +8,7 @@ import { auth } from '@/auth';
 export async function saveSubscription(subscription: PushSubscriptionJSON) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+    if (!isAllowedPushEndpoint(subscription.endpoint)) return { success: false, error: 'Unbekannter Push-Dienst' };
 
     try {
         await (prisma as any).pushSubscription.upsert({
@@ -36,15 +37,17 @@ export async function getVapidPublicKey() {
 }
 
 import webpush from 'web-push';
+import { isAllowedPushEndpoint } from '@/lib/push-endpoint';
 
 export async function sendTestPush() {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
 
     try {
-        const subscriptions = await (prisma as any).pushSubscription.findMany({
+        // nur bekannte Push-Dienste anschreiben
+        const subscriptions = (await (prisma as any).pushSubscription.findMany({
             where: { userId: session.user.id }
-        });
+        })).filter((s: { endpoint: string }) => isAllowedPushEndpoint(s.endpoint));
 
         if (subscriptions.length === 0) {
             return { success: false, error: 'Kein Push-Abonnement gefunden. Bitte erst aktivieren.' };
@@ -64,17 +67,22 @@ export async function sendTestPush() {
             webpush.setVapidDetails(contact!, publicKey, privateKey);
         }
 
-        await Promise.all(subscriptions.map((sub: any) => {
-            return webpush.sendNotification({
-                endpoint: sub.endpoint,
-                keys: {
-                    p256dh: sub.p256dh,
-                    auth: sub.auth
-                }
-            }, payload);
-        }));
-
-        return { success: true };
+        // jedes Gerät einzeln: Ein abgelaufenes Gerät soll die anderen nicht aufhalten und wird gleich entfernt
+        const results = await Promise.allSettled(subscriptions.map((sub: any) => webpush.sendNotification({
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+        }, payload)));
+        let sent = 0, removed = 0;
+        for (const [i, r] of results.entries()) {
+            if (r.status === 'fulfilled') { sent++; continue; }
+            const code = (r.reason as { statusCode?: number })?.statusCode;
+            if (code === 404 || code === 410) {
+                removed++;
+                await (prisma as any).pushSubscription.delete({ where: { id: subscriptions[i].id } }).catch(() => undefined);
+            }
+        }
+        if (sent === 0) return { success: false, error: removed ? 'Die gespeicherten Geräte sind abgelaufen. Bitte Push auf diesem Gerät neu aktivieren.' : 'Senden fehlgeschlagen' };
+        return { success: true, sent, removed };
     } catch (error) {
         console.error('Test push failed:', error);
         return { success: false, error: 'Fehler beim Senden des Tests' };

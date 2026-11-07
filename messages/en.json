@@ -1034,7 +1034,8 @@
     "liveTickerDesc": "Real-time match updates.",
     "cancel": "Cancel",
     "saving": "Saving...",
-    "save": "Save"
+    "save": "Save",
+    "testPushSentCount": "Test sent to {count, plural, one {# device} other {# devices}}. If nothing arrives here, this device is not registered: reload the page and it registers again."
   },
   "stats": {
     "wrappedTitle": "Beer Pong Wrapped",

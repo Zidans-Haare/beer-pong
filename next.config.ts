@@ -19,11 +19,11 @@ const nextConfig: NextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com", // Next.js + Google Maps
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://static.cloudflareinsights.com", // Next.js + Google Maps + Cloudflare Web Analytics
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",               // Framer Motion + Google Fonts
       "img-src 'self' data: blob: https://maps.gstatic.com https://*.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://*.sentry.io",
+      "connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://*.sentry.io https://cloudflareinsights.com", // Cloudflare sendet die Messdaten dorthin
       "frame-ancestors 'none'",
     ].join('; ');
 

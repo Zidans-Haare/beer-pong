@@ -41,7 +41,7 @@ Wichtigste Regel: **Die Datenbank darf nicht kaputtgehen.** Alles andere lässt 
 
 ## 2. Offene Entscheidungen (vor dem Rollout klären)
 
-- [ ] **CSP in `next.config.ts`:** `static.cloudflareinsights.com` in `script-src` aufnehmen oder Cloudflare-Analytics bewusst weglassen. Sonst blockiert die Sicherheitsrichtlinie das Skript.
+- [x] **CSP in `next.config.ts`:** Cloudflare Web Analytics erlaubt (`static.cloudflareinsights.com` in `script-src`, `cloudflareinsights.com` in `connect-src`).
 - [ ] **`favicon.ico`** liegt doppelt und unterschiedlich in `public/` und `src/app/`. Eine Version festlegen.
 - [ ] **Duell-Ergebnisse** kommen vom Client und werden nicht serverseitig nachgerechnet. Für den Freundeskreis okay. Falls nötig: Replay mit der Engine auf dem Server prüfen.
 - [ ] Saison-Preise sind bewusst nicht enthalten (Issue Zidans-Haare/beer-pong#50).

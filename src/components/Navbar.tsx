@@ -5,6 +5,7 @@ import LogoEasterEgg from './LogoEasterEgg';
 import { getTranslations } from 'next-intl/server';
 import { isDemoMode } from '@/lib/demo';
 import { LogOut, UserRound } from 'lucide-react';
+import { getLogoDecoration } from '@/lib/logo-decoration-server';
 
 export default async function Navbar() {
     const session = await auth();
@@ -12,7 +13,7 @@ export default async function Navbar() {
 
     return (
         <nav className="app-header" aria-label={t('navigation')}>
-            <LogoEasterEgg />
+            <LogoEasterEgg decoration={await getLogoDecoration()} />
 
             {/* Desktop Navigation Links */}
             <div className="desktop-nav-links" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>

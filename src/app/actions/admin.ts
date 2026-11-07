@@ -526,3 +526,18 @@ export async function getPublicGlobalDurationStats() {
     }
 }
 
+
+// Deko am Logo festlegen: automatisch nach Datum, aus, oder ein Anlass fest
+export async function setLogoDecoration(mode: unknown) {
+    await checkAdmin();
+    const { isDecorationMode } = await import('@/lib/logo-decoration');
+    if (!isDecorationMode(mode)) return { success: false, error: 'Unbekannte Deko' };
+    await prisma.systemSettings.upsert({
+        where: { id: 'default' },
+        update: { logoDecoration: mode },
+        create: { id: 'default', logoDecoration: mode },
+    });
+    // das Logo steht auf jeder Seite
+    revalidatePath('/', 'layout');
+    return { success: true };
+}

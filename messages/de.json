@@ -614,7 +614,24 @@
       "durationHintDefault": "Wird verwendet bis genug Spieldaten vorhanden sind.",
       "tableCountLabel": "Anzahl Tische",
       "tableCountHint": "Wie viele Tische gleichzeitig bespielt werden können.",
-      "save": "Speichern"
+      "save": "Speichern",
+      "logoDeco": {
+        "title": "Deko am Logo",
+        "lead": "Zu Anlässen im Jahr bekommt das Logo oben links eine Deko. Automatisch richtet sie sich nach dem Datum.",
+        "error": "Speichern hat nicht geklappt.",
+        "todayIs": "Heute: {name}",
+        "todayNone": "Heute keine",
+        "calendar": "Termine in diesem Jahr",
+        "mode": {
+          "auto": "Automatisch",
+          "off": "Aus",
+          "christmas": "Weihnachten",
+          "newyear": "Silvester",
+          "easter": "Ostern",
+          "halloween": "Halloween",
+          "oktoberfest": "Oktoberfest"
+        }
+      }
     },
     "broadcast": {
       "title": "Broadcast Senden",

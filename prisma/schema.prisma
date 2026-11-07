@@ -294,6 +294,8 @@ model SystemSettings {
   matchDurationMin Int    @default(15)
   tableCount       Int    @default(1)
   rulesText        String @default("")
+  // Deko am Logo: auto (nach Datum), off oder ein fester Anlass, siehe src/lib/logo-decoration.ts
+  logoDecoration   String @default("auto")
 }
 
 model UptimeHeartbeat {

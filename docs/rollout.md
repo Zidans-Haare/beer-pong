@@ -16,8 +16,9 @@ Wichtigste Regel: **Die Datenbank darf nicht kaputtgehen.** Alles andere lässt 
 
 - [ ] Testserver ist komplett getrennt von Prod (eigener Ordner, eigene DB-Datei, eigene `.env`, kein Zugriff auf die Prod-DB).
 - [ ] Frische Kopie der Prod-DB auf den Testserver legen (siehe Abschnitt 4 zum sicheren Kopieren).
-- [ ] Auf der Kopie: `node scripts/fix-migration-table.js`, danach `npx prisma migrate deploy`. Es dürfen keine Fehler kommen. Die neuen Migrationen sind von Hand geschrieben: `add_minigame`, `add_minigame_cup_size`, `add_player_figure`, `add_minigame_overtime`, `add_user_scene_theme`. Alle fügen nur Spalten oder Tabellen hinzu.
+- [ ] Auf der Kopie: `node scripts/fix-migration-table.js`, danach `npx prisma migrate deploy`. Es dürfen keine Fehler kommen. Die neuen Migrationen sind von Hand geschrieben: `add_minigame`, `add_minigame_cup_size`, `add_player_figure`, `add_minigame_overtime`, `add_user_scene_theme`, `season_one_purple`, `add_logo_decoration`. Alle fügen nur Spalten oder Tabellen hinzu; `season_one_purple` färbt nur die noch laufende Saison 1 lila.
 - [ ] Zeilenzahlen vor und nach der Migration vergleichen (Spieler, Turniere, Spiele): Sie müssen gleich bleiben.
+- [ ] Nach der Migration ist Saison 1 offen und **lila** (`#7c3aed`, die Farbe aus der Auswahl beim Saisonabschluss), passend zum bisherigen Aussehen: `sqlite3 dev.db "select name, endDate, accentColor from Season;"` zeigt `Saison 1||#7c3aed`. Probe auf der Snapshot-Kopie vom 11.10. ist sauber gelaufen (alle damaligen 9 Migrationen, Saison 1 lila, 10 Turniere, 16 Nutzer; `add_logo_decoration` kam danach dazu und fügt nur eine Spalte hinzu).
 - [ ] Mit `npm run build` und `npm run start` testen, nicht im Entwicklungsmodus. Der ist viel langsamer.
 - [ ] Performance ansehen, vor allem die Canvas-Szenen (Minispiel, Wrapped, Film) auf einem älteren Handy.
 - [ ] Auf echten Handys prüfen (iPhone/Safari und Android):
@@ -98,7 +99,7 @@ Der Wartungsmodus läuft **durchgehend von vor dem Backup bis nach der Prüfung*
 
 ## 7. Bis Saisonende (Dezember)
 
-- [ ] Saison beenden und neue starten (neue Saisonfarbe).
+- [ ] Saison beenden und neue starten: Im Admin unter Saisons auf **Abschließen** klicken und dabei die Farbe der neuen Saison festlegen. Bis dahin bleibt die App lila wie vor dem Update.
 - [ ] Wrapped im Admin-Bereich wählen (Kalenderjahr oder Saison), Vorschau prüfen, für alle veröffentlichen.
 
 ## 8. Rückfallplan, wenn etwas schiefgeht

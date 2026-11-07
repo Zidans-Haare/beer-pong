@@ -3,9 +3,16 @@ import { getGlobalDurationStats, getDurationBreakdown, formatDuration } from '@/
 import { Clock, Users, BarChart3, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { getTranslations } from 'next-intl/server';
+import LogoDecorationPicker from './logo-decoration-picker';
+import { getDecorationMode } from '@/lib/logo-decoration-server';
+import { activeDecoration, decorationCalendar } from '@/lib/logo-decoration';
 
 export default async function AdminSettingsPage() {
-    const [settings, durationStats, breakdown, t] = await Promise.all([getSystemSettings(), getGlobalDurationStats(), getDurationBreakdown(), getTranslations('admin.settings')]);
+    const [settings, durationStats, breakdown, t, decorationMode] = await Promise.all([getSystemSettings(), getGlobalDurationStats(), getDurationBreakdown(), getTranslations('admin.settings'), getDecorationMode()]);
+    // Termine der Deko im laufenden Jahr (ohne den Silvester-Rest aus dem Vorjahr)
+    const year = new Date().getFullYear();
+    const shortDate = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+    const calendar = decorationCalendar(year).slice(1).map(e => ({ decoration: e.decoration, from: shortDate(e.start), to: shortDate(e.end) }));
 
     async function handleSubmit(formData: FormData) {
         'use server';
@@ -133,6 +140,8 @@ export default async function AdminSettingsPage() {
                     {t('save')}
                 </button>
             </form>
+
+            <LogoDecorationPicker current={decorationMode} today={activeDecoration(new Date(), 'auto')} calendar={calendar} />
         </div>
     );
 }

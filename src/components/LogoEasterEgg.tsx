@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import { Beer, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { DecorationMark, DecorationText } from './LogoDecoration';
+import type { Decoration } from '@/lib/logo-decoration';
 
-export default function LogoEasterEgg() {
+// `decoration`: Deko zum Anlass im Jahr (Weihnachtsmütze, Ostereier …), vom Admin gesteuert
+export default function LogoEasterEgg({ decoration = null }: { decoration?: Decoration | null }) {
     const [clickCount, setClickCount] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [resetTimer, setResetTimer] = useState<NodeJS.Timeout | null>(null);
@@ -36,6 +39,7 @@ export default function LogoEasterEgg() {
                 href="/"
                 className="text-gradient"
                 onClick={handleClick}
+                data-decoration={decoration ?? undefined}
                 style={{
                     fontSize: '1.5rem',
                     fontWeight: 'bold',
@@ -46,7 +50,14 @@ export default function LogoEasterEgg() {
                     userSelect: 'none',
                 }}
             >
-                <Beer size={28} /> Bier Pong
+                <span className="logo-mark">
+                    <Beer size={28} />
+                    {decoration && <DecorationMark decoration={decoration} />}
+                </span>
+                <span className="logo-text">
+                    Bier Pong
+                    {decoration && <DecorationText decoration={decoration} />}
+                </span>
             </Link>
 
             <AnimatePresence>

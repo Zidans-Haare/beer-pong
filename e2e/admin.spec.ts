@@ -21,6 +21,34 @@ test.describe('Isolated admin redesign', () => {
     });
   }
 
+  test('Deko am Logo: Admin legt Weihnachten fest, alle sehen die Mütze; aus und wieder automatisch', async ({ page, browser }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/admin/settings');
+    requireIsolatedMode(page);
+    const group = page.getByRole('radiogroup', { name: 'Deko am Logo' });
+    await expect(group.getByRole('radio')).toHaveCount(7);
+    await group.getByRole('radio', { name: /^Weihnachten/ }).click();
+    await expect(group.getByRole('radio', { name: /^Weihnachten/ })).toHaveAttribute('aria-checked', 'true');
+    await page.waitForLoadState('networkidle');
+    // ein normaler Spieler sieht die Mütze oben links
+    const context = await browser.newContext({ storageState: 'e2e/.auth/player.json' });
+    const other = await context.newPage();
+    await other.goto('/');
+    await expect(other.locator('.app-header a[data-decoration="christmas"] .logo-deco-hat')).toBeVisible();
+    // aus: keine Deko
+    await group.getByRole('radio', { name: /^Aus/ }).click();
+    await page.waitForLoadState('networkidle');
+    await other.reload();
+    await expect(other.locator('.app-header .logo-deco')).toHaveCount(0);
+    await context.close();
+    // zurück auf automatisch, damit andere Tests das normale Logo sehen
+    await group.getByRole('radio', { name: /^Automatisch/ }).click();
+    await page.waitForLoadState('networkidle');
+    await expect(group.getByRole('radio', { name: /^Automatisch/ })).toHaveAttribute('aria-checked', 'true');
+    expect(errors).toEqual([]);
+  });
+
   test('mobile area selection exposes all twelve admin destinations', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'chromium', 'Mobile area selection only');
     await page.goto('/admin');

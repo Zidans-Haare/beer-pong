@@ -614,7 +614,24 @@
       "durationHintDefault": "Used until enough match data is available.",
       "tableCountLabel": "Number of Tables",
       "tableCountHint": "How many tables can be played simultaneously.",
-      "save": "Save"
+      "save": "Save",
+      "logoDeco": {
+        "title": "Logo decoration",
+        "lead": "For occasions during the year the logo in the top left gets a decoration. On automatic it follows the date.",
+        "error": "Saving failed.",
+        "todayIs": "Today: {name}",
+        "todayNone": "None today",
+        "calendar": "Dates this year",
+        "mode": {
+          "auto": "Automatic",
+          "off": "Off",
+          "christmas": "Christmas",
+          "newyear": "New Year",
+          "easter": "Easter",
+          "halloween": "Halloween",
+          "oktoberfest": "Oktoberfest"
+        }
+      }
     },
     "broadcast": {
       "title": "Send Broadcast",

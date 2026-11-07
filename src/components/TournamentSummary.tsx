@@ -176,7 +176,7 @@ export default function TournamentSummary({
 
                 {bestScorer && (
                     <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             <Target size={20} /> {bestScorer.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
@@ -187,7 +187,7 @@ export default function TournamentSummary({
 
                 {bestDefense && (
                     <div className="glass-panel" style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             <Shield size={20} /> {bestDefense.player?.name}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>

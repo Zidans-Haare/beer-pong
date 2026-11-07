@@ -149,13 +149,13 @@ function getMatchSideClass(match: any, isTeamMatch: boolean, isSide1: boolean): 
     if (isTeamMatch) {
         const teamId = isSide1 ? match.team1Id : match.team2Id;
         if (!teamId) return '1px solid transparent';
-        if (match.winnerTeamId === teamId) return '2px solid var(--color-success)';
+        if (match.winnerTeamId === teamId) return '2px solid var(--color-primary)';
         if (match.winnerTeamId && match.winnerTeamId !== teamId) return '1px solid var(--color-error)';
         return '1px solid var(--color-border)';
     } else {
         const playerId = isSide1 ? match.player1Id : match.player2Id;
         if (!playerId) return '1px solid transparent';
-        if (match.winnerId === playerId) return '2px solid var(--color-success)';
+        if (match.winnerId === playerId) return '2px solid var(--color-primary)';
         if (match.winnerId && match.winnerId !== playerId) return '1px solid var(--color-error)';
         return '1px solid var(--color-border)';
     }

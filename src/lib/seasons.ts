@@ -95,6 +95,8 @@ export function accentCssVariables(accent: string): Record<string, string> {
         '--color-primary': primary,
         '--color-primary-rgb': hexToRgb(primary).join(', '),
         '--color-primary-light': mixWithWhite(primary, 0.9),
+        // für Hover und gedrückte Knöpfe
+        '--color-primary-dark': toHex(hexToRgb(primary).map(v => v * 0.8)),
     };
 }
 

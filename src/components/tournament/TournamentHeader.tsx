@@ -153,12 +153,12 @@ export default function TournamentHeader({
                             alignItems: 'center',
                             gap: '4px',
                             padding: '4px 10px',
-                            background: 'rgba(34, 197, 94, 0.1)',
-                            border: '1px solid rgba(34, 197, 94, 0.3)',
+                            background: 'rgba(var(--color-primary-rgb), 0.1)',
+                            border: '1px solid rgba(var(--color-primary-rgb), 0.3)',
                             borderRadius: "6px",
                             fontSize: '0.75rem',
                             fontWeight: 600,
-                            color: "#08754b"
+                            color: 'var(--color-primary)'
                         }}>
                             {t('returnLegBadge')}
                         </span>

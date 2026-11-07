@@ -70,6 +70,11 @@ describe('Saisonfarbe', () => {
         expect(vars['--color-primary-rgb']).toBe('29, 78, 216');
     });
 
+    it('liefert eine dunklere Variante für Hover, passend zur Saison (Lila wird dunkles Lila, nicht Grün)', () => {
+        const vars = accentCssVariables('#7c3aed');
+        expect(vars['--color-primary-dark']).toBe('#632ebe');
+    });
+
     it('dunkelt helle Farben ab, damit weißer Text lesbar bleibt', () => {
         const vars = accentCssVariables('#ffff00');
         expect(vars['--color-primary']).not.toBe('#ffff00');

@@ -101,7 +101,7 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                 <span>#</span>
                 <span>{label}</span>
                 <span style={{ textAlign: 'center' }}>Sp</span>
-                <span style={{ textAlign: 'center', color: 'var(--color-success)' }}>S</span>
+                <span style={{ textAlign: 'center', color: 'var(--color-primary)' }}>S</span>
                 <span style={{ textAlign: 'center', color: 'var(--color-error)' }}>N</span>
                 <span style={{ textAlign: 'center' }}>Diff</span>
                 <span style={{ textAlign: 'right' }}>Pkt</span>
@@ -143,7 +143,7 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
                                 gap: compact ? '2px' : '4px',
                                 padding: compact ? '6px 8px' : (standings.length > 8 || (maxVisible !== undefined && standings.length > maxVisible) ? '8px clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1.1vw, 14px) clamp(10px, 1.5vw, 18px)'),
                                 borderBottom: '1px solid var(--color-border)',
-                                borderLeft: isTop ? '3px solid var(--color-success)' : isFirst ? '3px solid var(--color-primary)' : '3px solid transparent',
+                                borderLeft: isTop ? '3px solid rgba(var(--color-primary-rgb), 0.55)' : isFirst ? '3px solid var(--color-primary)' : '3px solid transparent',
                                 alignItems: 'center',
                                 position: 'relative',
                             }}
@@ -203,7 +203,7 @@ export default function TvStandingsTable({ standings, highlightTop = 0, label = 
 
             {highlightTop > 0 && (
                 <div style={{ padding: 'clamp(6px, 0.8vw, 10px) clamp(10px, 1.5vw, 18px)', fontSize: "var(--tv-copy-size, 1.5rem)", color: 'var(--color-text-subtle)', textAlign: 'right' }}>
-                    <span style={{ color: 'var(--color-success)', marginRight: '5px' }}>●</span>
+                    <span style={{ color: 'rgba(var(--color-primary-rgb), 0.55)', marginRight: '5px' }}>●</span>
                     Top {highlightTop} qualifizieren sich
                 </div>
             )}

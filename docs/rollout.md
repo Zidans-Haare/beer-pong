@@ -31,6 +31,14 @@ Wichtigste Regel: **Die Datenbank darf nicht kaputtgehen.** Alles andere lässt 
 - [ ] Alle Rollen ausprobieren: Admin, Spieler, Gast, nicht freigeschalteter Nutzer.
 - [ ] Wiederholt dieselbe Migration auf einer frischen Kopie durchspielen, bis sie sauber und gleich schnell läuft.
 
+### Review des Testservers am 07.11.2026
+
+- 14 Tage ohne Neustart, Last 0,1 bis 0,3, App rund 420 MB, Platte 26 % belegt, Datenbank `integrity_check` ok.
+- Antwortzeiten über Cloudflare 0,2 bis 0,5 s.
+- Fehlerlog: nur Scanner, alte Tabs nach Updates und der gesperrte Gemini-Schlüssel. 68-mal konnte das iPhone `sw.js` nicht laden; wahrscheinlich während der Build-Zeit, in der die Datei im Standalone-Ordner fehlt. Auf Prod egal, weil der Wartungsmodus dann an ist. Nach dem Rollout beobachten.
+- `npm audit`: kritische Lücken in Next.js (Code-Ausführung über die Bildoptimierung) und Sentry behoben (Next 15.5.29, Sentry 10.78). Übrig: postcss (nur beim Build, Lösung erst mit Next 16), exceljs/uuid und next-auth (niedrig), Test-Werkzeuge.
+- Komplette E2E-Suite grün.
+
 ## 2. Offene Entscheidungen (vor dem Rollout klären)
 
 - [ ] **CSP in `next.config.ts`:** `static.cloudflareinsights.com` in `script-src` aufnehmen oder Cloudflare-Analytics bewusst weglassen. Sonst blockiert die Sicherheitsrichtlinie das Skript.
@@ -75,19 +83,74 @@ sqlite3 /pfad/zum/backup/dev.db.rollout "PRAGMA integrity_check; SELECT COUNT(*)
 
 ## 5. Am Rollout-Tag
 
-Der Wartungsmodus läuft **durchgehend von vor dem Backup bis nach der Prüfung**.
+Prod-Pfade (aus der Prod-`.env`): Datenbank `/home/htw/beer-pong/prisma/dev.db`, Bilder `/home/htw/beer-pong/user-uploads`.
+Der Wartungsmodus läuft **durchgehend von vor dem Backup bis nach der Prüfung**. Prod bleibt in **Saison 1** (lila).
 
-1. [ ] `bp-maint-on` (Wartungsseite über das nginx-Flag, `public/maintenance.html`).
-2. [ ] App stoppen.
-3. [ ] Backup ziehen und prüfen (Abschnitt 4), Zahlen notieren.
-4. [ ] Code holen (`redesign-review` nach `main` erst nach deinem Okay mergen oder den Tag auschecken).
-5. [ ] `.env` prüfen (Abschnitt 3).
-6. [ ] `npm ci`, dann `npx prisma generate`.
-7. [ ] `node scripts/fix-migration-table.js`, danach `npx prisma migrate deploy`. Bei Fehler: Abbruch, nichts weiter tun, Backup liegt bereit (Abschnitt 8).
-8. [ ] Zahlen vergleichen: Spieler, Turniere, Spiele wie im Backup.
-9. [ ] `npm run build`, App starten.
-10. [ ] Bei **noch aktivem Wartungsmodus** testen (als Admin über den internen Zugang): anmelden, Startseite, Turnierliste, Stats, Regelseite, Minispiel, Wrapped-Vorschau.
+**Warum von Hand:** Jeder Push auf `main` startet `.github/workflows/deploy.yml`. Der schaltet den Wartungsmodus am Ende von selbst aus (auch ohne Prüfung), schreibt die Commit-Nachricht auf die Wartungsseite und sichert keine Bilder. Für dieses Update deshalb den automatischen Deploy vorher abschalten und danach wieder einschalten.
+
+Vorbereitung (auf dem Mac):
+
+```bash
+gh workflow disable "Deploy auf Server"
+```
+
+```bash
+scp public/maintenance.html htw@<PROD-HOST>:~/beer-pong/public/maintenance.html
+```
+
+Die neue Wartungsseite liegt damit schon auf Prod, bevor der neue Code kommt (ohne Text, ohne Hinweis auf Wrapped).
+
+Auf Prod (`ssh htw@<PROD-HOST>`, dann `cd ~/beer-pong`):
+
+1. [ ] Wartung an und App stoppen:
+   ```bash
+   bp-maint-on && pm2 stop beer-pong
+   ```
+2. [ ] Sicherungsordner anlegen, Datenbank sichern und prüfen:
+   ```bash
+   B=~/rollout-backup-$(date +%Y%m%d-%H%M) && mkdir -p "$B" && sqlite3 prisma/dev.db ".backup '$B/dev.db'"
+   ```
+   ```bash
+   sqlite3 "$B/dev.db" "PRAGMA integrity_check; SELECT 'User', COUNT(*) FROM User; SELECT 'Player', COUNT(*) FROM Player; SELECT 'Tournament', COUNT(*) FROM Tournament; SELECT 'Match', COUNT(*) FROM Match; SELECT 'RSVP', COUNT(*) FROM RSVP;"
+   ```
+   Ergebnis muss mit `ok` beginnen. Zahlen notieren.
+3. [ ] Bilder sichern und prüfen (beide Zahlen müssen gleich sein):
+   ```bash
+   tar czf "$B/user-uploads.tar.gz" -C ~/beer-pong user-uploads && find user-uploads -type f | wc -l && tar tzf "$B/user-uploads.tar.gz" | grep -v '/$' | wc -l
+   ```
+4. [ ] `.env` mitsichern: `cp .env "$B/env"`.
+5. [ ] Sicherung zusätzlich auf den Mac holen (auf dem Mac):
+   ```bash
+   scp -r htw@<PROD-HOST>:~/rollout-backup-* ~/Bierpong/
+   ```
+6. [ ] `redesign-review` nach `main` mergen (Pull Request, nur nach deinem Okay). Dann auf Prod:
+   ```bash
+   git fetch origin && git checkout main && git reset --hard origin/main
+   ```
+7. [ ] Abhängigkeiten und Migrationen:
+   ```bash
+   npm ci && npx prisma generate && node scripts/fix-migration-table.js && npx prisma migrate deploy
+   ```
+   Bei Fehler: Abbruch, nichts weiter tun, Backup liegt bereit (Abschnitt 8).
+8. [ ] Prüfen: dieselben Zahlen wie in Schritt 2, Saison 1 offen und lila, Bilder unverändert:
+   ```bash
+   sqlite3 prisma/dev.db "SELECT COUNT(*) FROM User; SELECT COUNT(*) FROM Player; SELECT COUNT(*) FROM Tournament; SELECT COUNT(*) FROM Match; SELECT name, endDate, accentColor FROM Season;" && find user-uploads -type f | wc -l
+   ```
+   Erwartet bei der Saison: `Saison 1||#7c3aed`.
+9. [ ] Bauen, Dateien in den Standalone-Build kopieren, starten:
+   ```bash
+   npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && cp -r messages .next/standalone/ && rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
+   ```
+   ```bash
+   set -a && . ./.env && set +a && pm2 restart beer-pong --update-env && pm2 save
+   ```
+10. [ ] Bei **noch aktivem Wartungsmodus** prüfen, intern auf dem Server:
+    ```bash
+    for u in /login /rules /sw.js /manifest.webmanifest /api/chat?limit=1; do echo "$u $(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$u")"; done
+    ```
+    Alles `200`. Zum Durchklicken als Admin vom Mac aus über einen Tunnel: `ssh -L 3000:localhost:3000 htw@<PROD-HOST>`, dann `http://localhost:3000` öffnen (Passkeys gehen dort nicht, Passwort schon).
 11. [ ] Erst wenn alles passt: `bp-maint-off`.
+12. [ ] Automatischen Deploy wieder einschalten (auf dem Mac): `gh workflow enable "Deploy auf Server"`.
 
 ## 6. Direkt nach dem Rollout
 
@@ -106,5 +169,8 @@ Der Wartungsmodus läuft **durchgehend von vor dem Backup bis nach der Prüfung*
 
 - Wartungsmodus an lassen. Keine Hektik.
 - Schlägt die Migration fehl oder stimmen die Zahlen nicht: App gestoppt lassen, defekte DB beiseitelegen (nicht löschen), das geprüfte Backup an den Originalpfad kopieren, **den vorherigen Stand von `main`** auschecken und bauen, App starten, Zahlen vergleichen, erst dann Wartungsmodus aus.
+- Datenbank zurück (App gestoppt): `mv prisma/dev.db prisma/dev.db.defekt && cp "$B/dev.db" prisma/dev.db`.
+- Bilder zurück, nur falls sie fehlen oder beschädigt sind: `mv user-uploads user-uploads.defekt && tar xzf "$B/user-uploads.tar.gz" -C ~/beer-pong`.
+- Alten Code zurück: `git checkout e8c073b` (bisheriger Stand von `main`), `npm ci`, bauen, Dateien in den Standalone-Build kopieren (Schritt 9), starten.
 - Die defekte Datei bleibt zur Analyse erhalten.
 - Das Rollback ist nur bis zum ersten Schreibzugriff nach dem Rollout verlustfrei. Danach gehen neue Daten verloren. Deshalb zuerst im Wartungsmodus prüfen.

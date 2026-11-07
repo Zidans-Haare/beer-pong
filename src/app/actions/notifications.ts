@@ -180,6 +180,7 @@ export async function getNotificationPreferences() {
 export type NotificationType = 'TOURNAMENT' | 'UPDATE' | 'SYSTEM' | 'GENERIC' | 'TICKER';
 
 import webpush from 'web-push';
+import { isAllowedPushEndpoint } from '@/lib/push-endpoint';
 
 // Initialize web-push safely
 try {
@@ -243,9 +244,9 @@ export async function broadcastNotification({
 
             // 2. Web Push Notifications
             const userIds = users.map(u => u.id);
-            const subscriptions = await (prisma as any).pushSubscription.findMany({
+            const subscriptions = (await (prisma as any).pushSubscription.findMany({
                 where: { userId: { in: userIds } }
-            });
+            })).filter((s: { endpoint: string }) => isAllowedPushEndpoint(s.endpoint));
 
             const payload = JSON.stringify({ title, message, link });
 

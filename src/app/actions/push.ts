@@ -8,6 +8,7 @@ import { auth } from '@/auth';
 export async function saveSubscription(subscription: PushSubscriptionJSON) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+    if (!isAllowedPushEndpoint(subscription.endpoint)) return { success: false, error: 'Unbekannter Push-Dienst' };
 
     try {
         await (prisma as any).pushSubscription.upsert({
@@ -36,15 +37,17 @@ export async function getVapidPublicKey() {
 }
 
 import webpush from 'web-push';
+import { isAllowedPushEndpoint } from '@/lib/push-endpoint';
 
 export async function sendTestPush() {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
 
     try {
-        const subscriptions = await (prisma as any).pushSubscription.findMany({
+        // nur bekannte Push-Dienste anschreiben
+        const subscriptions = (await (prisma as any).pushSubscription.findMany({
             where: { userId: session.user.id }
-        });
+        })).filter((s: { endpoint: string }) => isAllowedPushEndpoint(s.endpoint));
 
         if (subscriptions.length === 0) {
             return { success: false, error: 'Kein Push-Abonnement gefunden. Bitte erst aktivieren.' };

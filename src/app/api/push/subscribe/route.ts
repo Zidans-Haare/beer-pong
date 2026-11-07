@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { isAllowedPushEndpoint } from '@/lib/push-endpoint';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null) as { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } } | null;
     const endpoint = body?.endpoint, p256dh = body?.keys?.p256dh, key = body?.keys?.auth;
     // nur echte Push-Dienste über HTTPS, keine beliebigen Adressen
-    if (typeof endpoint !== 'string' || !/^https:\/\/[^\s]{8,800}$/.test(endpoint) || typeof p256dh !== 'string' || typeof key !== 'string' || p256dh.length > 200 || key.length > 100) {
+    if (!isAllowedPushEndpoint(endpoint) || typeof p256dh !== 'string' || typeof key !== 'string' || p256dh.length > 200 || key.length > 100) {
         return NextResponse.json({ success: false }, { status: 400 });
     }
     try {

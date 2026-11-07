@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { getTickerEvents } from '@/app/actions/ticker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -26,7 +25,15 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
     }, [tournamentId]);
 
     const fetchEvents = async () => {
-        const result = await getTickerEvents(tournamentId);
+        // per fetch statt Server-Aktion: die Abfrage alle 5 Sekunden darf keinen Seitenwechsel aufhalten
+        let result: { success: boolean; events?: TickerEvent[] };
+        try {
+            const res = await fetch(`/api/tournaments/${tournamentId}/ticker`, { cache: 'no-store' });
+            if (!res.ok) return;
+            result = await res.json();
+        } catch {
+            return;
+        }
         if (result.success && result.events) {
             // Check if we have new events to scroll to top? 
             // Usually feeds are newest top, or stick to bottom. 
@@ -41,17 +48,17 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
         switch (type) {
             case 'COMMENTARY':
                 return {
-                    background: 'linear-gradient(135deg, rgba(217, 70, 239, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-primary)'
                 };
             case 'SCORE_UPDATE':
                 return {
-                    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-secondary)'
                 };
             case 'MATCH_END':
                 return {
-                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)',
+                    background: "var(--color-primary-light)",
                     borderLeft: '3px solid var(--color-success)'
                 };
             default:
@@ -163,7 +170,7 @@ export function LiveTicker({ tournamentId }: { tournamentId: string }) {
                                                 fontSize: '0.75rem',
                                                 fontWeight: 700,
                                                 textTransform: 'uppercase',
-                                                letterSpacing: '0.5px'
+                                                letterSpacing: "0"
                                             }}>
                                                 {event.type === 'COMMENTARY' ? t('commentary') :
                                                     event.type === 'SCORE_UPDATE' ? t('scoreUpdate') :

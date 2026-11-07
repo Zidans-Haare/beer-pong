@@ -211,11 +211,11 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
                     padding: '5px 10px',
                     background: 'rgba(0,0,0,0.55)',
                     border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '16px',
+                    borderRadius: "6px",
                     color: 'rgba(255,255,255,0.85)',
                     fontSize: '0.75rem',
                     fontWeight: 600,
-                    backdropFilter: 'blur(6px)',
+                    backdropFilter: "none",
                     pointerEvents: 'none',
                 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -236,12 +236,12 @@ export default function TvWebRTC({ tournamentId }: { tournamentId: string }) {
                         padding: '8px 14px',
                         background: 'rgba(0,0,0,0.7)',
                         border: '1px solid rgba(255,255,255,0.25)',
-                        borderRadius: '20px',
+                        borderRadius: "6px",
                         color: '#fff',
                         fontSize: '0.8rem',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        backdropFilter: 'blur(8px)',
+                        backdropFilter: "none",
                     }}
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

@@ -24,11 +24,11 @@ export const authConfig = {
                 return true;
             }
 
-            // Allow static assets, uploads, and root-level public files (sw.js, manifest.json, etc.)
+            // Allow static assets, uploads, and root-level public files (sw.js, manifest.json, etc.). Das Manifest lädt der Browser ohne Cookies: Ist es gesperrt, startet die installierte App auf der Login-Seite statt auf der Startseite.
             if (path.startsWith('/uploads') || path.startsWith('/_next')) {
                 return true;
             }
-            if (/^\/(sw\.js|manifest\.json|favicon\.ico|robots\.txt|sitemap\.xml)$/.test(path)) {
+            if (/^\/(sw\.js|manifest\.json|manifest\.webmanifest|favicon\.ico|robots\.txt|sitemap\.xml)$/.test(path)) {
                 return true;
             }
 

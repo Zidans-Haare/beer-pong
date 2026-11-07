@@ -114,7 +114,6 @@ export async function updateSystemSettings(formData: FormData) {
 
     const rawDuration = formData.get('matchDurationMin');
     const rawTableCount = formData.get('tableCount');
-    const rulesText = (formData.get('rulesText') as string) ?? '';
 
     const matchDurationMin = rawDuration ? parseInt(rawDuration as string) : 15;
     const tableCount = rawTableCount ? parseInt(rawTableCount as string) : 1;
@@ -126,10 +125,9 @@ export async function updateSystemSettings(formData: FormData) {
     try {
         await (prisma as any).systemSettings.upsert({
             where: { id: 'default' },
-            update: { matchDurationMin: validDuration, tableCount: validTableCount, rulesText },
-            create: { id: 'default', matchDurationMin: validDuration, tableCount: validTableCount, rulesText }
+            update: { matchDurationMin: validDuration, tableCount: validTableCount },
+            create: { id: 'default', matchDurationMin: validDuration, tableCount: validTableCount }
         });
-        revalidatePath('/rules');
         revalidatePath('/admin');
         revalidatePath('/admin/settings');
         return { success: true };
@@ -528,3 +526,18 @@ export async function getPublicGlobalDurationStats() {
     }
 }
 
+
+// Deko am Logo festlegen: automatisch nach Datum, aus, oder ein Anlass fest
+export async function setLogoDecoration(mode: unknown) {
+    await checkAdmin();
+    const { isDecorationMode } = await import('@/lib/logo-decoration');
+    if (!isDecorationMode(mode)) return { success: false, error: 'Unbekannte Deko' };
+    await prisma.systemSettings.upsert({
+        where: { id: 'default' },
+        update: { logoDecoration: mode },
+        create: { id: 'default', logoDecoration: mode },
+    });
+    // das Logo steht auf jeder Seite
+    revalidatePath('/', 'layout');
+    return { success: true };
+}

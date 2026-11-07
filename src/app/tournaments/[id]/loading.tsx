@@ -30,7 +30,7 @@ export default function TournamentLoading() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 150px), 1fr))",
                 gap: 'var(--spacing-2)',
               }}
             >

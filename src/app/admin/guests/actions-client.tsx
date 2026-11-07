@@ -4,17 +4,19 @@ import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { deleteGuestPlayer, deleteExpiredGuests } from '@/app/actions/admin';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export function GuestDeleteButton({ guestId }: { guestId: string }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('admin.guests');
     const [isDeleting, setIsDeleting] = useState(false);
 
     async function handleDelete() {
-        if (!confirm(t('confirmDelete'))) return;
+        if (!await appDialog.confirm(t('confirmDelete'))) return;
         setIsDeleting(true);
         const result = await deleteGuestPlayer(guestId);
         if (!result.success) {
-            alert(result.error ?? t('deleteError'));
+            appDialog.alert(result.error ?? t('deleteError'));
             setIsDeleting(false);
         }
     }
@@ -42,19 +44,20 @@ export function GuestDeleteButton({ guestId }: { guestId: string }) {
 }
 
 export function CleanupButton({ expiredCount }: { expiredCount: number }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('admin.guests');
     const [isPending, startTransition] = useTransition();
     const [result, setResult] = useState<string | null>(null);
 
-    function handleCleanup() {
-        if (!confirm(t('confirmCleanup', { count: expiredCount }))) return;
+    async function handleCleanup() {
+        if (!await appDialog.confirm(t('confirmCleanup', { count: expiredCount }))) return;
         startTransition(async () => {
             const res = await deleteExpiredGuests();
             if (res.success) {
                 setResult(t('guestsDeleted', { count: res.count ?? 0 }));
                 setTimeout(() => setResult(null), 4000);
             } else {
-                alert(res.error ?? t('deleteError'));
+                appDialog.alert(res.error ?? t('deleteError'));
             }
         });
     }

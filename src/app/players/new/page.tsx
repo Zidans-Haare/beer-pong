@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default function NewPlayerPage() {
     return (
-        <div className="container">
+        <div className="container page-content">
             <Link href="/players" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--spacing-6)', color: 'var(--color-text-dim)', textDecoration: 'none' }}>
                 <ArrowLeft size={20} /> Zurück
             </Link>

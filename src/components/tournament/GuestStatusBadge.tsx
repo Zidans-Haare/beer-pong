@@ -6,6 +6,7 @@ import { leaveTournamentAsGuest } from '@/app/actions/guests';
 import { UserCheck, LogOut, Loader2 } from 'lucide-react';
 import { haptic } from '@/lib/haptics';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Props {
     guestId: string;
@@ -15,16 +16,17 @@ interface Props {
 }
 
 export default function GuestStatusBadge({ guestId, guestName, tournamentId, isPlanned }: Props) {
+    const appDialog = useAppDialog();
     const t = useTranslations('guest');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const handleLeave = async () => {
         if (!isPlanned) {
-            alert(t('cantLeave'));
+            appDialog.alert(t('cantLeave'));
             return;
         }
-        if (!confirm(t('confirmLeave'))) return;
+        if (!await appDialog.confirm(t('confirmLeave'))) return;
 
         setLoading(true);
         haptic.light();
@@ -36,7 +38,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                 router.refresh();
                 // Optional: redirect to home or keep on page to show join button
             } else {
-                alert(result.error || t('leaveError'));
+                appDialog.alert(result.error || t('leaveError'));
                 haptic.error();
             }
         } catch (error) {
@@ -50,8 +52,8 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
     return (
         <div className="glass-panel" style={{
             padding: 'var(--spacing-4)',
-            background: 'rgba(155, 89, 182, 0.1)',
-            border: '1px solid rgba(155, 89, 182, 0.3)',
+            background: "rgba(var(--color-primary-rgb), 0.1)",
+            border: "1px solid rgba(var(--color-primary-rgb), 0.3)",
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -63,7 +65,7 @@ export default function GuestStatusBadge({ guestId, guestName, tournamentId, isP
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: '#9b59b6',
+                    background: "var(--color-primary)",
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

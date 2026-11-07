@@ -184,14 +184,14 @@ export default function LobbyPresence({
               borderRadius: 20,
               fontSize: '0.9rem',
               fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              boxShadow: "none",
               zIndex: 1000,
               display: 'flex',
               alignItems: 'center',
               gap: 8,
             }}
           >
-            <span>👋</span>
+            <Users size={18} />
             {showToast}
           </motion.div>
         )}

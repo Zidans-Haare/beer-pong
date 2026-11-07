@@ -113,7 +113,7 @@ export default function GroupMatches({ matches, tableCount, readOnly = false }: 
                                                         background: 'var(--color-primary)',
                                                         color: 'white',
                                                         padding: '1px 6px',
-                                                        borderRadius: 'var(--radius-full)',
+                                                        borderRadius: "var(--radius-md)",
                                                         fontSize: '0.6rem',
                                                         fontWeight: 'bold',
                                                         boxShadow: 'var(--shadow-sm)',
@@ -123,13 +123,13 @@ export default function GroupMatches({ matches, tableCount, readOnly = false }: 
                                                     </div>
                                                 )}
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                                                    <span style={{ fontWeight: match.winnerId === match.player1Id ? 'bold' : 'normal', color: match.winnerId === match.player1Id ? 'var(--color-success)' : 'inherit' }}>
+                                                    <span style={{ fontWeight: match.winnerId === match.player1Id ? 'bold' : 'normal', color: match.winnerId === match.player1Id ? 'var(--color-primary)' : 'inherit' }}>
                                                         {match.player1?.name || 'TBD'}
                                                     </span>
                                                     <span>{match.isPlayed ? match.score1 : '-'}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                                                    <span style={{ fontWeight: match.winnerId === match.player2Id ? 'bold' : 'normal', color: match.winnerId === match.player2Id ? 'var(--color-success)' : 'inherit' }}>
+                                                    <span style={{ fontWeight: match.winnerId === match.player2Id ? 'bold' : 'normal', color: match.winnerId === match.player2Id ? 'var(--color-primary)' : 'inherit' }}>
                                                         {match.player2?.name || 'TBD'}
                                                     </span>
                                                     <span>{match.isPlayed ? match.score2 : '-'}</span>

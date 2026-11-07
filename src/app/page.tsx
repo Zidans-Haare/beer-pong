@@ -9,32 +9,44 @@ import DrunkModeToggle from '@/components/DrunkModeToggle';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import { getAllPlayerStats } from '@/lib/stats';
 import { auth } from '@/auth';
+import { getTranslations } from 'next-intl/server';
+import { getActiveWrapped, WRAPPED_HOME_DAYS } from '@/lib/wrapped-server';
+import { prisma } from '@/lib/prisma';
+import WrappedBanner from '@/components/wrapped/WrappedBanner';
+import { normalizeFigure } from '@/lib/figure';
 
 export default async function Home() {
   const session = await auth();
   const stats = await getAllPlayerStats();
+  // die eigene Figur winkt oben auf der Startseite, aber nur, wenn sie gestaltet wurde
+  const mine = session?.user?.id ? await prisma.player.findUnique({ where: { userId: session.user.id }, select: { name: true, figure: true } }).catch(() => null) : null;
+  const myFigure = mine ? normalizeFigure(mine.figure) : null;
+  // Rückblick-Hinweis nur für angemeldete Nutzer, solange einer veröffentlicht ist
+  const wrapped = session?.user?.id ? await getActiveWrapped().catch(() => null) : null;
+  const tw = wrapped ? await getTranslations('wrapped') : null;
+  const view = wrapped && session?.user?.id
+    ? await prisma.wrappedView.findUnique({ where: { wrappedId_userId: { wrappedId: wrapped.id, userId: session.user.id } } }).catch(() => null)
+    : null;
+  // nach dem Ansehen bleibt der Hinweis noch eine Woche ruhig stehen, danach liegt er auf der Statistik-Seite
+  const wrappedExpired = !!view && Date.now() - view.seenAt.getTime() > WRAPPED_HOME_DAYS * 24 * 60 * 60 * 1000;
 
   return (
-    <div className="container" style={{ paddingBottom: '80px' }}>
+    <div className="container">
 
-      <HeroSection userName={session?.user?.name} />
+      <HeroSection userName={session?.user?.name} figure={mine && myFigure ? { name: mine.name.trim(), spec: myFigure } : null} />
 
-      <div style={{ marginTop: 'var(--spacing-4)', marginBottom: 'var(--spacing-2)' }}>
+      {wrapped && tw && !wrappedExpired && (
+        <WrappedBanner seen={!!view} title={view ? wrapped.title : tw('bannerTitle', { title: wrapped.title })} text={view ? tw('bannerSeenText') : tw('bannerText')} cta={view ? tw('bannerSeenCta') : tw('bannerCta')} />
+      )}
+
+      <div className="home-tools">
         <DrunkModeToggle />
+        <DrunkModeConditional show="sober">
+          <OnlineIndicator />
+        </DrunkModeConditional>
       </div>
 
-      <DrunkModeConditional show="sober">
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--spacing-6)', marginBottom: 'var(--spacing-6)' }}>
-          <OnlineIndicator />
-        </div>
-      </DrunkModeConditional>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: 'var(--spacing-6)',
-        marginTop: 'var(--spacing-6)'
-      }}>
+      <div className="home-feed">
         {/* Install Prompt */}
         <InstallPrompt />
 

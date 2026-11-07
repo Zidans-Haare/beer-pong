@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 export default function OfflinePage() {
   const t = useTranslations('offline');
   return (
-    <div className="container" style={{
+    <div className="container page-content" style={{
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -15,8 +15,8 @@ export default function OfflinePage() {
       textAlign: 'center',
       gap: 'var(--spacing-6)'
     }}>
-      <div className="glass-panel" style={{
-        padding: 'var(--spacing-8)',
+      <div style={{
+        padding: '24px 0',
         maxWidth: '400px',
         width: '100%'
       }}>
@@ -24,13 +24,13 @@ export default function OfflinePage() {
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: 'rgba(239, 68, 68, 0.2)',
+          background: 'var(--color-surface-secondary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto var(--spacing-6)'
         }}>
-          <WifiOff size={40} style={{ color: '#ef4444' }} />
+          <WifiOff size={40} style={{ color: 'var(--color-text-dim)' }} />
         </div>
 
         <h1 className="title-display" style={{

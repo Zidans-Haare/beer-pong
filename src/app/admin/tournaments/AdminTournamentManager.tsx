@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { adminAddPlayerToTournament, adminRemovePlayerFromTournament } from '@/app/actions/admin';
 import { UserPlus, UserMinus, Check, Search, Calendar, Users, ChevronDown } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Tournament = {
     id: string;
@@ -29,6 +29,7 @@ export function AdminTournamentManager({
     players: Player[];
 }) {
     const t = useTranslations('admin.manager');
+    const locale = useLocale();
     const [selectedTournamentId, setSelectedTournamentId] = useState(tournaments[0]?.id ?? '');
     const [search, setSearch] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -106,7 +107,7 @@ export function AdminTournamentManager({
                     >
                         {tournaments.map(t => (
                             <option key={t.id} value={t.id}>
-                                {t.name} — {new Date(t.date).toLocaleDateString()} ({t.mode === 'TEAM' ? '2v2' : '1v1'})
+                                {t.name} — {new Date(t.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US')} ({t.mode === 'TEAM' ? '2v2' : '1v1'})
                             </option>
                         ))}
                     </select>
@@ -149,8 +150,8 @@ export function AdminTournamentManager({
                                     padding: 'var(--spacing-2) var(--spacing-3)',
                                     borderRadius: 'var(--radius-sm)',
                                     fontSize: '0.85rem',
-                                    background: 'rgba(78, 205, 196, 0.08)',
-                                    border: '1px solid rgba(78, 205, 196, 0.25)'
+                                    background: "rgba(40,100,122,0.08)",
+                                    border: "1px solid rgba(40,100,122,0.25)"
                                 }}
                             >
                                 <span style={{ color: 'var(--color-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -226,7 +227,7 @@ export function AdminTournamentManager({
                         marginBottom: 'var(--spacing-3)',
                         fontSize: '0.9rem',
                         background: feedback.type === 'success'
-                            ? 'rgba(78, 205, 196, 0.1)'
+                            ? "rgba(40,100,122,0.1)"
                             : 'rgba(255, 107, 107, 0.1)',
                         border: `1px solid ${feedback.type === 'success' ? 'var(--color-secondary)' : 'var(--color-accent)'}`,
                         color: feedback.type === 'success' ? 'var(--color-secondary)' : 'var(--color-accent)'

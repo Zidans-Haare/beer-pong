@@ -13,8 +13,8 @@ test.describe('Authentifizierung', () => {
   test('Falsche Anmeldedaten zeigen Fehlermeldung', async ({ page }) => {
     await page.context().clearCookies();
     await page.goto('/login');
-    await page.getByRole('textbox').first().fill('nicht@vorhanden.de');
-    await page.getByRole('textbox').nth(1).fill('falschespasswort');
+    await page.locator('input[type="email"]').fill('nicht@vorhanden.de');
+    await page.locator('input[type="password"]').fill('falschespasswort');
     await page.getByRole('button', { name: /Anmelden/i }).click();
     await expect(
       page.getByText(/Ungültige|ungültig|falsch|schiefgelaufen|incorrect|invalid/i)

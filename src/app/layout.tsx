@@ -1,3 +1,5 @@
+import AppDialogProvider from '@/components/AppDialog';
+import { getCurrentSeason, accentCss } from '@/lib/seasons';
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
@@ -7,6 +9,8 @@ import ClientLayout from '@/components/ClientLayout';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider';
 import PWATracker from '@/components/PWATracker';
+import WhatsNew from '@/components/WhatsNew';
+import PresenceHeartbeat from '@/components/PresenceHeartbeat';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -15,7 +19,7 @@ const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Beer Pong';
 export const metadata: Metadata = {
   title: appName,
   description: 'Manage your beer pong tournaments professionally.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.json',
   robots: {
     index: false,
     follow: false,
@@ -38,13 +42,11 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   interactiveWidget: 'resizes-content' as const, // keyboard shrinks layout viewport (Android Chrome 108+, Firefox 132+)
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#f8f8fc' },
-    { media: '(prefers-color-scheme: light)', color: '#f8f8fc' },
+    { media: '(prefers-color-scheme: dark)', color: '#fafbfb' },
+    { media: '(prefers-color-scheme: light)', color: '#fafbfb' },
   ],
 };
 
@@ -69,6 +71,8 @@ export default async function RootLayout({
     where: { liveStreamUrl: { not: null }, status: 'ACTIVE' },
   });
   const hasLiveStream = liveStreamCount > 0;
+  // Saisonfarbe: überschreibt --color-primary & Co. der aktuellen Saison (ohne Saison bleibt das Standard-Grün)
+  const currentSeason = await getCurrentSeason().catch(() => null);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -76,9 +80,11 @@ export default async function RootLayout({
         {/* SW-Reload vor React-Hydration registrieren — verhindert verpasste controllerchange-Events
             Kein XSS-Risiko: statischer Literal-String, keine User-Daten */}
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload();})}` }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet" />
+        {/* Fehler im Browser an den Server melden (höchstens fünf pro Seitenaufruf), damit kurze Abstürze beim Start auffindbar sind */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var n=0;function send(t,m,x){if(n++>=5)return;try{var d=JSON.stringify({type:t,message:String(m||'').slice(0,400),stack:String(x||'').slice(0,1200),url:location.pathname,ua:navigator.userAgent,standalone:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)),sw:!!(navigator.serviceWorker&&navigator.serviceWorker.controller),ms:Math.round(performance.now())});if(navigator.sendBeacon)navigator.sendBeacon('/api/client-error',d);else fetch('/api/client-error',{method:'POST',body:d,keepalive:true});}catch(e){}}window.addEventListener('error',function(e){send('error',e.message+' @'+(e.filename||'')+':'+(e.lineno||0)+':'+(e.colno||0),e.error&&e.error.stack)});window.addEventListener('unhandledrejection',function(e){var r=e.reason;send('rejection',r&&r.message||r,r&&r.stack)});})();` }} />
+        <link rel="preload" href="/fonts/Manrope.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/BarlowCondensed-Bold.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+        {currentSeason && <style dangerouslySetInnerHTML={{ __html: accentCss(currentSeason.accentColor) }} />}
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
@@ -90,6 +96,7 @@ export default async function RootLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
         <DrunkModeProvider>
+        <AppDialogProvider>
         {isDemoMode && <DemoBanner />}
         <div className="layout-shell">
           <Navbar />
@@ -104,9 +111,12 @@ export default async function RootLayout({
           <OfflineIndicator />
           <ServiceWorkerProvider />
           {session?.user?.id && <PWATracker userId={session.user.id} />}
+          {session?.user?.id && <WhatsNew />}
+          <PresenceHeartbeat />
           {isDemoMode && <DemoCtaPopup />}
         {isDemoMode && <DemoAlertOverride />}
         </div>
+        </AppDialogProvider>
         </DrunkModeProvider>
         </NextIntlClientProvider>
       </body>

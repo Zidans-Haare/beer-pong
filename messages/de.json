@@ -1,4 +1,139 @@
 {
+  "wrapped": {
+    "bannerSeenText": "Nochmal ansehen",
+    "bannerSeenCta": "Öffnen",
+    "tapForSound": "Tippen für Ton",
+    "soundOn": "Ton einschalten",
+    "soundOff": "Ton ausschalten",
+    "videoWebmHint": "Dieser Browser liefert WebM. Für Instagram bitte Chrome oder Safari nutzen.",
+    "winStamp": "SIEG!",
+    "tournamentsEyebrow": "Unterwegs",
+    "tournamentsTitle": "{count, plural, one {Turnier gespielt} other {Turniere gespielt}}",
+    "bestLine": "Höchster Sieg: {score} gegen {opponent}",
+    "winsTitle": "{count, plural, one {Sieg} other {Siege}}",
+    "saveVideo": "Video speichern",
+    "saveFrame": "Bild speichern",
+    "recording": "Aufnahme läuft … {seconds} s",
+    "recordingHint": "Bitte den Bildschirm anlassen, bis das Video fertig ist.",
+    "videoShared": "Geteilt. Über „Video sichern“ landet es in deiner Galerie.",
+    "videoDownloaded": "Video heruntergeladen.",
+    "videoUnsupported": "Dieser Browser kann kein Video aufnehmen.",
+    "cancelRecording": "Abbrechen",
+    "brand": "Bier Pong Wrapped",
+    "backHome": "Zur Startseite",
+    "notPublished": "Der Rückblick ist noch nicht veröffentlicht.",
+    "noGames": "Für dich gibt es in diesem Zeitraum keine Spiele, deshalb auch keinen Rückblick.",
+    "bannerTitle": "{title} ist da",
+    "bannerText": "Dein Rückblick: Spiele, Becher, Serien und dein Spielertyp.",
+    "bannerCta": "Ansehen",
+    "close": "Schließen",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "paused": "Pausiert",
+    "saveImage": "Bild speichern",
+    "saveAll": "Alle {count} Bilder speichern",
+    "replay": "Nochmal",
+    "saving": "Bilder werden erstellt …",
+    "shared": "Geteilt. Über „Bild sichern“ landet es in deiner Galerie.",
+    "downloaded": "{count, plural, one {# Bild heruntergeladen.} other {# Bilder heruntergeladen.}}",
+    "saveFailed": "Das Bild konnte nicht erstellt werden.",
+    "introTitle": "Dein Rückblick",
+    "introLine": "Tippe rechts zum Weiterblättern. Halten pausiert.",
+    "gamesEyebrow": "Am Tisch",
+    "gamesTitle": "{count, plural, one {Spiel gespielt} other {Spiele gespielt}}",
+    "gamesTournaments": "{count, plural, one {in # Turnier} other {in # Turnieren}}",
+    "gamesMinutes": "{minutes} Minuten reine Spielzeit",
+    "cupsEyebrow": "Treffer",
+    "cupsTitle": "Becher getroffen",
+    "cupsPerGame": "Das sind {avg} pro Spiel.",
+    "cupsPercentile": "Mehr als {percent} % der anderen Spieler.",
+    "recordEyebrow": "Bilanz",
+    "recordTitle": "{wins} Siege, {losses} Niederlagen",
+    "recordRank": "Platz {rank} von {total} in der Rangliste",
+    "recordStreak": "Längste Serie: {count} Siege in Folge",
+    "rivalEyebrow": "Dein Dauerrivale",
+    "rivalTitle": "{count, plural, one {# Duell} other {# Duelle}}",
+    "rivalRecord": "Bilanz: {wins}–{losses}",
+    "favoriteLine": "Lieblingsgegner: {name} ({wins}–{losses})",
+    "nemesisLine": "Angstgegner: {name} ({wins}–{losses})",
+    "bestEyebrow": "Dein höchster Sieg",
+    "bestTitle": "gegen {opponent}",
+    "bestTournament": "Bestes Turnier: {name} mit {wins} Siegen in {games} Spielen",
+    "medalsEyebrow": "Auf dem Podium",
+    "medalsTitle": "{count, plural, one {Medaille} other {Medaillen}}",
+    "medalsLine": "{gold}× Gold · {silver}× Silber · {bronze}× Bronze",
+    "personaEyebrow": "Dein Spielertyp",
+    "summaryGames": "{games, plural, one {# Spiel} other {# Spiele}} in {tournaments, plural, one {# Turnier} other {# Turnieren}}",
+    "summaryRecord": "{wins}–{losses} · {percent} % Siegquote",
+    "summaryCups": "{cups} Becher getroffen",
+    "summaryStreak": "Längste Serie: {count} Siege",
+    "persona": {
+      "sniper": {
+        "name": "Scharfschütze",
+        "text": "Kaum jemand trifft pro Spiel so viele Becher wie du."
+      },
+      "wall": {
+        "name": "Die Wand",
+        "text": "Gegen dich fallen die wenigsten Becher."
+      },
+      "closer": {
+        "name": "Vollstrecker",
+        "text": "Du gewinnst die klare Mehrheit deiner Spiele."
+      },
+      "streak": {
+        "name": "Serientäter",
+        "text": "Wenn es bei dir läuft, dann richtig lange."
+      },
+      "marathon": {
+        "name": "Dauerbrenner",
+        "text": "Du stehst öfter am Tisch als fast alle anderen."
+      },
+      "rookie": {
+        "name": "Newcomer",
+        "text": "Wenige Spiele bisher. Nächstes Jahr wird deins."
+      },
+      "allrounder": {
+        "name": "Allrounder",
+        "text": "Solide in allem: Treffen, Verteidigen, Gewinnen."
+      }
+    }
+  },
+  "broadcast": {
+    "back": "Zum Turnier",
+    "zoomOut": "Rauszoomen",
+    "zoomIn": "Reinzoomen",
+    "rotate": "Drehen",
+    "mirror": "Spiegeln",
+    "flip": "Kamera wechseln",
+    "start": "Stream starten",
+    "stop": "Stream beenden"
+  },
+  "pwaUpdate": {
+    "title": "Update verfügbar",
+    "description": "Eine neue Version ist bereit.",
+    "dismiss": "Später",
+    "reload": "Jetzt laden"
+  },
+  "connection": {
+    "online": "Wieder online",
+    "offline": "Keine Verbindung"
+  },
+  "tv": {
+    "fullscreen": "Vollbild",
+    "exitFullscreen": "Vollbild beenden"
+  },
+  "ui": {
+    "genericError": "Das hat nicht geklappt. Bitte versuche es erneut.",
+    "confirmTitle": "Bitte bestätigen",
+    "noticeTitle": "Hinweis",
+    "confirm": "Bestätigen",
+    "ok": "OK",
+    "close": "Schließen",
+    "back": "Zurück",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Lädt..."
+  },
   "auth": {
     "loginWithEmail": "oder mit Email",
     "password": "Passwort",
@@ -15,19 +150,29 @@
     "registrationError": "Fehler bei der Registrierung"
   },
   "nav": {
-    "join": "Join",
+    "home": "Start",
+    "more": "Mehr",
+    "settings": "Einstellungen",
+    "profile": "Profile",
+    "rules": "Regeln",
+    "streaming": "Streaming",
+    "navigation": "Hauptnavigation",
+    "register": "Registrieren",
+    "join": "Beitreten",
     "tournaments": "Turniere",
     "players": "Spieler",
-    "notifications": "Glocke",
+    "notifications": "Benachrichtigungen",
     "stats": "Stats",
-    "chat": "Chat"
+    "chat": "Chat",
+    "game": "Minispiel"
   },
   "home": {
+    "join": "Beitreten",
     "welcomeBack": "Willkommen zurück",
     "getStarted": "Loslegen",
-    "aloneOnline": "Nur du online",
-    "onePerson": "1 Person online",
-    "personsOnline": "{count} Personen online",
+    "aloneOnline": "Nur du",
+    "onePerson": "1 Online",
+    "personsOnline": "{count} Online",
     "liveTournament": "Live Tournament",
     "noActiveTournament": "Kein aktives Turnier.",
     "startTournament": "Turnier Starten",
@@ -37,6 +182,7 @@
     "gameLabel": "Spiel {n}"
   },
   "tournaments": {
+    "seasonEmpty": "Keine Turniere in dieser Saison.",
     "title": "Turniere",
     "subtitle": "Alle Events auf einen Blick",
     "new": "Neues Turnier",
@@ -132,7 +278,23 @@
     "guestRoomCapacity": "Kapazität (Personen)",
     "offersBreakfast": "Frühstück zubuchbar",
     "offersHalfBoard": "Halbpension zubuchbar",
-    "usePaypal": "PayPal-Zahlungslinks für Kostenaufteilung aktivieren"
+    "usePaypal": "PayPal-Zahlungslinks für Kostenaufteilung aktivieren",
+    "uploadFailed": "Das Turnier konnte nicht angelegt werden. Ist das Bild vielleicht zu groß? Bitte nochmal versuchen.",
+    "edit": {
+      "title": "Turnier bearbeiten",
+      "date": "Datum & Uhrzeit",
+      "location": "Ort",
+      "players": "Wer ist dabei",
+      "save": "Speichern",
+      "saving": "Speichert …",
+      "cancel": "Abbrechen",
+      "missing": "Name, Ort und Zeit dürfen nicht leer sein.",
+      "error": "Speichern hat nicht geklappt.",
+      "teamsReset": "Beim Wechsel auf 1 vs 1 werden die gebildeten Teams aufgelöst. Trotzdem speichern?",
+      "fewerTables": "Ein Tisch weniger",
+      "moreTables": "Ein Tisch mehr",
+      "ranking": "Wertung"
+    }
   },
   "rsvp": {
     "question": "Bist du dabei?",
@@ -144,6 +306,10 @@
   },
   "players": {
     "title": "Spieler",
+    "myProfile": "Mein Profil",
+    "openProfile": "Profil öffnen",
+    "accountSettings": "Einstellungen",
+    "allPlayers": "Alle Spieler",
     "noPlayers": "Noch keine Spieler registriert",
     "namePlaceholder": "Name (Pflicht)",
     "nickname": "Spitzname",
@@ -167,7 +333,9 @@
     "tournamentHistory": "Turnier Historie",
     "noTournaments": "Noch keine Turniere gespielt.",
     "unknownDate": "Datum unbekannt",
-    "aboutMe": "Über mich"
+    "aboutMe": "Über mich",
+    "myFigure": "Figur gestalten",
+    "figureLabel": "Figur von {name}"
   },
   "paceStats": {
     "title": "Spieltempo",
@@ -199,6 +367,8 @@
     }
   },
   "join": {
+    "retry": "Erneut versuchen",
+    "joining": "Trete bei...",
     "title": "Turnier beitreten",
     "subtitle": "Gib den 6-stelligen Code ein oder scanne den QR-Code",
     "invalidCode": "Bitte gib einen gültigen 6-stelligen Code ein",
@@ -214,10 +384,57 @@
     "scanBtn": "QR scannen",
     "scanTitle": "QR-Code scannen",
     "scanHint": "Halte den QR-Code in den Rahmen",
-    "cameraError": "Kamera-Zugriff verweigert. Bitte erlaube den Zugriff in den Einstellungen.",
-    "retry": "Erneut versuchen"
+    "cameraError": "Kamera-Zugriff verweigert. Bitte erlaube den Zugriff in den Einstellungen."
   },
   "admin": {
+    "wrapped": {
+      "title": "Bier Pong Wrapped",
+      "subtitle": "Rückblick für alle Spieler auslösen",
+      "newTitle": "Neuen Rückblick veröffentlichen",
+      "scope": "Zeitraum",
+      "scopeYear": "Kalenderjahr {year}",
+      "scopeSeason": "Saison: {name}",
+      "playersInScope": "{count, plural, one {# Spieler bekommt einen Rückblick.} other {# Spieler bekommen einen Rückblick.}}",
+      "name": "Titel",
+      "preview": "Vorschau ansehen",
+      "publish": "Für alle veröffentlichen",
+      "working": "Einen Moment …",
+      "publishHint": "Beim Veröffentlichen bekommen alle eine Benachrichtigung, und auf der Startseite erscheint ein Hinweis. Die Vorschau zeigt deinen eigenen Rückblick.",
+      "confirmPublish": "„{title}“ jetzt für {players} Spieler veröffentlichen? Alle bekommen eine Benachrichtigung.",
+      "published": "Der Rückblick ist veröffentlicht.",
+      "existing": "Bisherige Rückblicke",
+      "none": "Noch kein Rückblick veröffentlicht.",
+      "publishedOn": "veröffentlicht am {date}",
+      "withdrawn": "zurückgezogen",
+      "unpublish": "Zurückziehen",
+      "confirmUnpublish": "„{title}“ zurückziehen? Der Hinweis auf der Startseite verschwindet."
+    },
+    "seasons": {
+      "title": "Saisons",
+      "subtitle": "Saisonwechsel und Saisonfarbe",
+      "currentSeason": "Aktuelle Saison",
+      "sinceStart": "Läuft seit Beginn der Aufzeichnung",
+      "since": "Läuft seit {date}",
+      "name": "Name",
+      "color": "Akzentfarbe",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "failed": "Das hat nicht geklappt",
+      "endTitle": "Saison beenden",
+      "endHint": "Die laufende Saison endet jetzt und die neue startet mit eigener Farbe; die App färbt sich sofort um.",
+      "nextName": "Name der neuen Saison",
+      "nextColor": "Farbe der neuen Saison",
+      "confirmYes": "Ja, Saison beenden",
+      "cancel": "Abbrechen",
+      "working": "Einen Moment …",
+      "sameColorHint": "Gleiche Farbe wie {season} – die Saisons sehen dann gleich aus.",
+      "endButton": "Saison beenden & neue starten",
+      "confirmEnd": "\"{current}\" jetzt beenden und \"{next}\" starten? Das lässt sich nicht rückgängig machen.",
+      "ended": "Neue Saison gestartet",
+      "suggestedName": "Saison {number}",
+      "past": "Vergangene Saisons",
+      "noPast": "Noch keine Saison beendet."
+    },
     "nav": {
       "overview": "Übersicht",
       "people": "Personen",
@@ -225,6 +442,8 @@
       "users": "Benutzer",
       "players": "Spieler",
       "passkeys": "Passkeys",
+      "wrapped": "Wrapped",
+      "seasons": "Saisons",
       "tournament": "Turnier",
       "tournaments": "Turniere",
       "guests": "Gäste",
@@ -367,6 +586,24 @@
     },
     "settings": {
       "title": "System-Einstellungen",
+      "showDetails": "Tippen für Details",
+      "howItWorks": "So wird die Dauer eines Spiels geschätzt",
+      "step1": "Direkte Duelle: Haben zwei Spieler mindestens {min}-mal gegeneinander gespielt, zählt der Schnitt dieser Spiele.",
+      "step2": "Spieler-Schnitt: Sonst der Mittelwert der beiden Spieler, sofern jeder mindestens {min} gemessene Spiele hat.",
+      "step3": "Gesamtschnitt: Sonst der Schnitt aller gemessenen Spiele, ohne Daten {minutes} Minuten.",
+      "distribution": "Verteilung",
+      "median": "Median",
+      "fastest": "Schnellstes Spiel",
+      "slowest": "Längstes Spiel",
+      "typicalRange": "Üblich (80 % der Spiele)",
+      "measured": "Gemessene Spiele",
+      "unmeasured": "Spiele ohne Messung",
+      "byStage": "Nach Phase und Tisch",
+      "stageLeague": "Liga-/Gruppenphase",
+      "stageBracket": "K.-o.-Phase",
+      "table": "Tisch {number}",
+      "nGames": "{count, plural, one {# Spiel} other {# Spiele}}",
+      "recentTournaments": "Letzte Turniere",
       "smartDuration": "Smart Duration Tracking",
       "avgMin": "Min. durchschnittlich",
       "basedOn": "Basierend auf {count} gespielten Matches. Das System lernt automatisch aus echten Spieldaten.",
@@ -377,10 +614,24 @@
       "durationHintDefault": "Wird verwendet bis genug Spieldaten vorhanden sind.",
       "tableCountLabel": "Anzahl Tische",
       "tableCountHint": "Wie viele Tische gleichzeitig bespielt werden können.",
-      "rulesLabel": "Regelwerk",
-      "rulesPlaceholder": "Regeln hier eingeben... (Plaintext oder Markdown)",
-      "rulesHint": "Wird auf der öffentlichen Regelseite (/rules) angezeigt. Unterstützt Plaintext mit Zeilenumbrüchen.",
-      "save": "Speichern"
+      "save": "Speichern",
+      "logoDeco": {
+        "title": "Deko am Logo",
+        "lead": "Zu Anlässen im Jahr bekommt das Logo oben links eine Deko. Automatisch richtet sie sich nach dem Datum.",
+        "error": "Speichern hat nicht geklappt.",
+        "todayIs": "Heute: {name}",
+        "todayNone": "Heute keine",
+        "calendar": "Termine in diesem Jahr",
+        "mode": {
+          "auto": "Automatisch",
+          "off": "Aus",
+          "christmas": "Weihnachten",
+          "newyear": "Silvester",
+          "easter": "Ostern",
+          "halloween": "Halloween",
+          "oktoberfest": "Oktoberfest"
+        }
+      }
     },
     "broadcast": {
       "title": "Broadcast Senden",
@@ -438,6 +689,7 @@
     "bestDefense": "Beste Verteidigung ({cups} Gegenbecher)"
   },
   "match": {
+    "nextOT": "Beide treffen alle drei: nächste OT-Runde",
     "editResult": "Ergebnis eintragen",
     "correctResult": "Ergebnis korrigieren",
     "whoWon": "Wer hat gewonnen?",
@@ -457,6 +709,7 @@
     "player2": "Spieler 2"
   },
   "chat": {
+    "newMessages": "Neue Nachrichten",
     "noMessages": "Noch keine Nachrichten. Sag Hallo!",
     "me": "Du",
     "sendError": "Fehler beim Senden.",
@@ -465,9 +718,13 @@
     "send": "Senden",
     "login": "Einloggen",
     "loginToChat": ", um am Chat teilzunehmen.",
-    "justNow": "gerade eben",
-    "minutesAgo": "vor {count} Min.",
-    "hoursAgo": "vor {count} Std."
+    "title": "Community Chat",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "online": "{count, plural, =0 {gerade niemand online} one {# online} other {# online}}",
+    "failed": "Nicht gesendet. Tippen zum Wiederholen",
+    "loadingOlder": "Ältere Nachrichten werden geladen",
+    "back": "Zurück"
   },
   "participants": {
     "available": "Verfügbare Spieler",
@@ -488,6 +745,12 @@
     "add": "Hinzufügen"
   },
   "drunk": {
+    "pictureName": "Josie",
+    "opponentName": "Moonzy",
+    "miss": "DANEBEN!",
+    "sorry": "Ups … sorry, {name}!",
+    "hiccup": "Hicks!",
+    "skip": "Überspringen",
     "on": "Ich bin betrunken",
     "off": "Ich bin nüchtern"
   },
@@ -496,6 +759,10 @@
     "invite": "Spieler einladen"
   },
   "host": {
+    "startHint": "Erstellt den Spielplan. Danach können sich keine Spieler mehr anmelden.",
+    "deleteHint": "Entfernt das Turnier samt Anmeldungen.",
+    "playoffsHint": "Beendet die Gruppenphase und erstellt das Finale aus der Tabelle.",
+    "finishHint": "Schließt das Turnier ab. Danach lassen sich keine Ergebnisse mehr eintragen.",
     "title": "Host-Aktionen",
     "deleting": "Löscht...",
     "delete": "Turnier löschen",
@@ -637,10 +904,101 @@
     "title": "Diese Seite existiert nicht",
     "home": "Zur Startseite"
   },
+  "whatsNew": {
+    "title": "Neu in der App",
+    "intro": "Das Update bringt ein paar Dinge, die du gleich ausprobieren kannst.",
+    "game": {
+      "title": "Bier-Pong-Minispiel",
+      "text": "Gegen den Computer oder im Duell mit anderen, mit Statistik im Profil."
+    },
+    "figure": {
+      "title": "Deine Figur",
+      "text": "Gestalte sie selbst. Sie winkt auf der Startseite und steht auf dem Podium."
+    },
+    "film": {
+      "title": "Turnierfilm",
+      "text": "Jedes beendete Turnier als kurzer Film mit Finale und Siegerehrung."
+    },
+    "rules": {
+      "title": "Regelseite",
+      "text": "Alle Hausregeln auf einen Blick, von Bombe bis nackte Meile."
+    },
+    "later": "Später",
+    "gotIt": "Verstanden"
+  },
   "rules": {
     "title": "Offizielles Regelwerk",
     "back": "Zurück",
-    "empty": "Noch keine Regeln hinterlegt. Ein Admin kann sie unter Einstellungen hinzufügen."
+    "empty": "Noch keine Regeln hinterlegt. Ein Admin kann sie unter Einstellungen hinzufügen.",
+    "gameTitle": "Minispiel",
+    "gameText": "Probier die Regeln gegen einen Mitspieler aus: Schnick, Schnack, Schnuck, zwei Würfe pro Runde, Bomben, Islands und alles andere.",
+    "gameCta": "Spielen",
+    "sectionsHint": "Die Hausregeln gelten für jedes Spiel, auch für das Minispiel.",
+    "sections": [
+      {
+        "title": "Grundlagen",
+        "items": [
+          "**Zehn Becher** pro Seite, als Dreieck aufgestellt. Gespielt wird 1 gegen 1 oder im Team (2 gegen 2).",
+          "**Wer anfängt**, entscheidet ein Schnick-Schnack-Schnuck-Duell. Der Gewinner beginnt.",
+          "**Zwei Würfe pro Runde.** Danach ist der andere dran. Getroffene Becher werden erst am Ende der Runde weggestellt.",
+          "**Balls back:** Versenkst du in einer Runde **beide Bälle**, bekommst du sie zurück und darfst **noch einmal zwei werfen**. Das geht so lange weiter, bis du nicht mehr beide triffst. Es zählt jeder versenkte Ball, auch einer per Trickshot.",
+          "**Der Ellenbogen bleibt hinter der Kante der Tischplatte.** Sonst ist der Wurf ungültig."
+        ]
+      },
+      {
+        "title": "Treffer und Sonderwürfe",
+        "items": [
+          "**Bombe:** Landen beide Würfe einer Runde im selben Becher, werden **drei Becher** weggestellt. Beide Bälle waren drin, also gibt es auch **Balls back**.",
+          "**Island und Bombe zusammen:** Triffst du ein Island und mit dem zweiten Ball denselben Becher noch einmal, zählt beides zusammen: **fünf Becher** (zwei fürs Island, drei für die Bombe).",
+          "**Island:** Ein Becher gilt als Island, wenn **um ihn herum nichts mehr steht**, zum Beispiel die Spitze, wenn die Reihe dahinter fehlt: ein Becher Abstand bis zum nächsten. Dann kannst du „Island“ ansagen. Triffst du ihn, sind **zwei Becher** weg. Triffst du mit **zwei Würfen direkt hintereinander** ein Island, sind es beim zweiten **sechs Becher**.",
+          "**Nur zwei Islands pro Spiel:** Jeder darf höchstens zweimal Island ansagen. Das gilt für das ganze Spiel, auch für Nachziehen und Verlängerung. Neue gibt es dort nicht, nur noch nicht benutzte.",
+          "**Aufpraller:** Springt der Ball vorher auf dem Tisch auf und landet dann im Becher, zählt der Treffer **doppelt**. Ein Aufpraller darf nach dem Aufprall durch Wegschlagen aufgehalten werden. Im Duell gibt es keine Aufpraller, weil der andere nicht mit am Tisch sitzt und nicht wegschlagen könnte. Beim Wegschlagen kann ein eigener Becher mitfliegen; der bleibt dann weg. Trifft der zweite Ball danach denselben Becher (Bombe), werden **vier Becher** weggestellt. Sind **beide Bälle Aufpraller** in denselben Becher, sind es **fünf Becher**.",
+          "**Trickshot:** Prallt der Ball an einem Becher ab und rollt mindestens über die Mitte des Tisches zurück, darfst du einen Trickshot versuchen, zum Beispiel mit geschlossenen Augen, unter dem Bein durch oder über die Decke. Das gilt auch für einen **Aufpraller**, der an einem Becher abprallt und zurückrollt.",
+          "**Rollen über Becher:** Rollt der Ball über Becher, zählen die Becher, über deren Rand er gerollt ist, **nicht** mit."
+        ]
+      },
+      {
+        "title": "Becher umstellen",
+        "items": [
+          "Stehen auf der Seite deines Gegners nur noch **vier Becher**, die du treffen musst, darfst du sie **selbst** umstellen. Das passiert nicht automatisch, das machst du.",
+          "Umgestellt wird **nur auf die zehn Plätze** der Zehneraufstellung, also dorthin, wo beim Aufbau ein Becher steht. Nicht frei auf den Tisch.",
+          "Umstellen darfst du **zu Beginn deiner Runde**, nicht mittendrin: Triffst du bei fünf Bechern den ersten, müssen die anderen stehen bleiben (es kann ja noch eine Bombe werden). Umgestellt wird beim nächsten Mal, wenn du dran bist. **Nicht bei Balls back:** Triffst du beide Bälle, darfst du zwar gleich noch einmal werfen, aber das ist noch derselbe Zug. Umstellen geht erst, wenn du nach dem Gegner wieder wirklich dran bist.",
+          "**Jeder Spieler** darf **nur einmal pro Spiel** umstellen. Das geht auch **zu Beginn des Nachziehens**, wenn du es noch nicht gemacht hast."
+        ]
+      },
+      {
+        "title": "Das Ende eines Spiels",
+        "items": [
+          "**Nachziehen:** Trifft der Spieler, der angefangen hat, den letzten Becher, darf **nur der, der nicht begonnen hat,** noch **einmal** nachziehen. Das ist ein einziger Zug, der sich nur mit Balls back verlängert.",
+          "**Verlängerung:** Trifft er dabei alle verbleibenden Becher, ist auf beiden Seiten nichts mehr übrig. Dann werden die **vordersten drei Becher pro Seite** wieder aufgestellt und es wird weitergeworfen, bis einer gewinnt. Das wiederholt sich so oft, bis es entschieden ist. Im Minispiel-Duell spielt jeder die Verlängerung einzeln: Wer gerade dran ist, räumt seine drei Becher allein ab, danach muss der andere nachziehen. Räumen beide ab, folgt die nächste Verlängerung.",
+          "Trifft der Spieler, der nicht angefangen hat, als Erster alle Becher, hat er sofort gewonnen."
+        ]
+      },
+      {
+        "title": "Strafen und Spaß",
+        "items": [
+          "**Ausziehbecher:** Zählt nur dein **erster Treffer** im Spiel: Ist es der **mittlere Becher der dritten Reihe von vorne**, musst du in Unterhose am Tisch stehen. Das gilt für jeden Spieler für sich. Erst mit deinem nächsten Treffer darfst du dich wieder anziehen.",
+          "**Nackte Meile:** Wer ein ganzes Spiel verliert, ohne einen einzigen Becher zu treffen, läuft nackt eine Runde um den Block. Das passiert nie, ist aber trotzdem lustig."
+        ]
+      },
+      {
+        "title": "Minispiel in der App",
+        "items": [
+          "**Duell:** Einer legt vor und spielt allein, bis alle Becher weg sind. Seine Würfe werden aufgezeichnet. Der andere zieht nach, wann er Zeit hat, und spielt gegen genau diese Würfe. Wer anfängt, hat Schnick, Schnack, Schnuck schon vorher entschieden.",
+          "**Angenommen heißt begonnen:** Wer ein Duell annimmt und es dann verlässt (Kreuz oben rechts, Seite neu laden, App schließen), hat aufgegeben und verloren. Es lässt sich nicht noch einmal starten.",
+          "**Verlängerung im Duell:** Räumen beide alles ab, spielt jeder die drei Becher einzeln, abwechselnd, bis es entschieden ist. In der Verlängerung gibt es kein Umstellen und keine Island-Ansagen. Eine Verlängerung lässt sich nicht ablehnen.",
+          "**Im Duell gibt es keine Aufpraller**, weil der andere nicht am Tisch sitzt und nicht wegschlagen könnte.",
+          "**Gegen den Computer:** Aufpraller darfst du wegschlagen, und der Computer schlägt deine weg. Dabei kann ein eigener Becher mitfliegen. Stellt der Computer um, nimmt er immer die Aufstellung 1-1-2: Spitze, Mitte der dritten Reihe und die zwei mittleren der letzten Reihe."
+        ]
+      },
+      {
+        "title": "Fair Play",
+        "items": [
+          "Räumst du aus Versehen gegnerische Becher vor dir ab, zum Beispiel beim Umwerfen, um einen Aufpraller zu verhindern, **bleiben sie weg**. Eigene Schuld.",
+          "In getroffene Becher darf **nicht gepustet** und **nicht hineingegriffen** werden, um einen drehenden Ball herauszuholen und den Treffer zu verhindern."
+        ]
+      }
+    ]
   },
   "settings": {
     "back": "Zurück",
@@ -648,6 +1006,7 @@
     "security": "Sicherheit"
   },
   "notifications": {
+    "delete": "Benachrichtigung löschen",
     "enabled": "Push-Benachrichtigungen aktiviert!",
     "error": "Fehler beim Aktivieren der Benachrichtigungen",
     "title": "Benachrichtigungen",
@@ -678,6 +1037,61 @@
     "save": "Speichern"
   },
   "stats": {
+    "wrappedTitle": "Bier Pong Wrapped",
+    "wrappedHint": "Alle veröffentlichten Rückblicke zum Nachschauen.",
+    "wrappedNew": "Neu",
+    "wrappedOpen": "Ansehen",
+    "exportTitle": "Excel-Export",
+    "exportHint": "Alle Saisons, Turniere und Spiele in einer Datei: Ranglisten, Turniere mit Podium, jedes Spiel, Turniertabellen, direkter Vergleich und Rekorde.",
+    "exportButton": "Excel-Datei herunterladen",
+    "trendTitle": "Siegquote im Verlauf",
+    "myTitle": "Deine Bilanz · {scope}",
+    "myEmpty": "Du hast in diesem Zeitraum noch nicht gespielt.",
+    "place": "Platz von {total}",
+    "record": "Bilanz",
+    "recordShort": "S–N",
+    "form": "Form",
+    "streak": "Serie",
+    "streakWins": "{count} Siege in Folge",
+    "streakLosses": "{count} Niederlagen in Folge",
+    "win": "Sieg",
+    "loss": "Niederlage",
+    "winShort": "S",
+    "lossShort": "N",
+    "you": "Du",
+    "rankingTitle": "Rangliste",
+    "sortBy": "Sortieren nach",
+    "sortMedals": "Medaillen",
+    "sortWinRate": "Siegquote",
+    "sortCupDiff": "Becher/Spiel",
+    "perGameShort": "Ø +/-",
+    "minGamesNote": "Gewertet wird ab {min} Spielen. Wer weniger hat, steht ohne Platz am Ende.",
+    "cupsPerGame": "Becher/Spiel",
+    "longestStreak": "Längste Siegesserie",
+    "toProfile": "Zum Profil",
+    "historicalNote": "{count, plural, one {Die Medaillen enthalten # historisches Turnier ohne Spieldaten.} other {Die Medaillen enthalten # historische Turniere ohne Spieldaten.}}",
+    "noData": "Noch keine Spiele in diesem Zeitraum.",
+    "tournamentFilter": "Turnierart",
+    "h2hTitle": "Direkter Vergleich",
+    "h2hSubtitle": "Bilanz gegen jeden Gegner. Angst- und Lieblingsgegner zählen ab {min} Duellen.",
+    "nemesis": "Angstgegner",
+    "favorite": "Lieblingsgegner",
+    "h2hNone": "Noch keine Duelle.",
+    "h2hLegend": "Balken: Anteil Siege · S–N · Becherdifferenz",
+    "h2hRecordLabel": "{wins} Siege, {losses} Niederlagen",
+    "recordsTitle": "Rekorde",
+    "recWinStreak": "Längste Siegesserie",
+    "recWinStreakDetail": "{count} Siege in Folge",
+    "recBiggestWin": "Höchster Sieg",
+    "recBiggestWinDetail": "{score} gegen {opponent}",
+    "recCups": "Meiste Becher in einem Turnier",
+    "recCupsDetail": "{cups} Becher in {games} Spielen",
+    "recLongest": "Längstes Spiel",
+    "recLongestDetail": "{minutes} Min gegen {opponent}",
+    "trendSubtitle": "Ein Punkt je Turnier. Bis zu fünf Spieler wählbar.",
+    "chartPlayers": "Spieler im Diagramm",
+    "season": "Saison",
+    "allSeasons": "Alle Saisons",
     "title": "Statistiken",
     "subtitle": "Daten, Fakten & Legenden",
     "onlyRanked": "Nur Liga-Turniere (keine Spaß-Turniere)",
@@ -737,7 +1151,15 @@
     "gold": "Gold",
     "silver": "Silber",
     "bronze": "Bronze",
-    "totalMedals": "Gesamt"
+    "totalMedals": "Gesamt",
+    "miniTitle": "Minispiel",
+    "miniPlay": "Jetzt spielen",
+    "miniHint": "Siege und Spiele im Bier-Pong-Minispiel, gegen den Rechner und im Duell.",
+    "miniPlayer": "Spieler",
+    "miniWins": "Siege",
+    "miniDuels": "Duelle",
+    "miniBest": "Beste Runden",
+    "miniCups": "Becher"
   },
   "costSplit": {
     "settlement": "Kostenabrechnung",
@@ -773,5 +1195,308 @@
     "errorRequest": "Fehler beim Anfragen",
     "errorAccept": "Fehler beim Bestätigen",
     "errorReject": "Fehler beim Ablehnen"
+  },
+  "film": {
+    "brand": "Bier Pong Turnierfilm",
+    "filmEyebrow": "Turnierfilm",
+    "finalEyebrow": "Finale",
+    "stamp": "{name} gewinnt!",
+    "finalLine": "{winner} schlägt {loser} im Finale",
+    "podiumTitle": "Siegerehrung",
+    "players": "{count, plural, one {# Spieler} other {# Spieler}}",
+    "games": "{count, plural, one {# Spiel} other {# Spiele}}",
+    "factsEyebrow": "Turniersieg",
+    "factsPodium": "Platz 2: {second} · Platz 3: {third}",
+    "factsSecond": "Platz 2: {second}",
+    "factsGames": "{games, plural, one {# Spiel} other {# Spiele}}, {cups} Becher getroffen",
+    "factsGamesOnly": "{games, plural, one {# Spiel} other {# Spiele}} gespielt",
+    "factsTopScorer": "Meiste Becher: {name} ({cups})",
+    "factsBiggest": "Höchster Sieg: {winner} {score} gegen {loser}",
+    "factsLongest": "Längstes Spiel: {minutes} Minuten ({a} gegen {b})",
+    "linkTitle": "Turnierfilm",
+    "linkText": "Finale und Siegerehrung als Film ansehen",
+    "notAvailable": "Für dieses Turnier gibt es noch keinen Film. Er entsteht, sobald das Turnier beendet ist.",
+    "backToTournament": "Zum Turnier"
+  },
+  "game": {
+    "title": "Bier-Pong-Minispiel",
+    "back": "Zurück",
+    "pickText": "Duell mit einem Mitspieler oder Übung gegen den Rechner. Es gelten die Regeln aus dem Regelwerk.",
+    "pickTitle": "Gegner wählen",
+    "pickRandom": "Zufälliger Gegner",
+    "noPlayers": "Es gibt noch keine anderen angemeldeten Spieler.",
+    "difficulty": "Schwierigkeit",
+    "level": {
+      "easy": "Leicht",
+      "normal": "Normal",
+      "hard": "Schwer",
+      "impossible": "Unmöglich"
+    },
+    "rulesLink": "Alle Regeln ansehen",
+    "soundOn": "Ton einschalten",
+    "soundOff": "Ton ausschalten",
+    "duel": {
+      "quitTitle": "Duell aufgeben?",
+      "quitConfirm": "Wenn du jetzt aufhörst, zählt das Duell als verloren. Du kannst es nicht noch einmal starten.",
+      "quitLabel": "Aufgeben",
+      "abandoned": "Du hast ein angenommenes Duell nicht zu Ende gespielt. Es zählt als verloren.",
+      "gone": "Dieses Duell gibt es nicht mehr."
+    },
+    "quit": "Spiel beenden",
+    "rps": {
+      "prompt": "Schnick, Schnack, Schnuck: Der Gewinner fängt an",
+      "rock": "Stein",
+      "paper": "Papier",
+      "scissors": "Schere",
+      "draw": "Unentschieden, nochmal!",
+      "youStart": "Du fängst an!",
+      "oppStarts": "{name} fängt an!",
+      "duelPrompt": "Schnick, Schnack, Schnuck gegen {name}: Deine Hand wurde ausgelost"
+    },
+    "island": "Island!",
+    "bounce": "Aufpraller",
+    "rearrange": "Becher umstellen",
+    "rearrangeDone": "Fertig",
+    "swat": "Wegschlagen!",
+    "trick": {
+      "eyes": "Augen zu",
+      "leg": "Unterm Bein",
+      "ceiling": "Über die Decke",
+      "skip": "Auslassen"
+    },
+    "hint": {
+      "aim": "Ziehen zum Zielen, Loslassen wirft. Das Kreuz wackelt.",
+      "trick": "Trickshot: Wisch nach vorn, es wackelt noch mehr.",
+      "trickChoice": "Der Ball ist zurückgerollt: Trickshot gefällig?",
+      "rearrange": "Tippe einen Becher deines Gegners an und dann einen freien Platz, oder zieh ihn dorthin. Dann tippe auf Fertig.",
+      "swat": "Schnell: schlag den Aufpraller weg!",
+      "swipe": "Nach vorn wischen: schneller wischen = weiter, die Richtung bestimmt das Ziel.",
+      "tooShort": "Zu kurz gewischt. Zieh einmal kräftig nach vorn.",
+      "tooSideways": "Das war zur Seite. Wisch nach vorn auf den Tisch zu."
+    },
+    "status": {
+      "yourThrow": "Dein Wurf – noch {count, plural, one {# Wurf} other {# Würfe}}",
+      "trick": "Dein Trickshot",
+      "trickOffer": "Trickshot?",
+      "oppTurn": "{name} ist dran",
+      "oppThrows": "{name} wirft",
+      "oppTrick": "{name} versucht einen Trickshot",
+      "lead": "Triff alle Becher, so schnell du kannst",
+      "overtimeRun": "Verlängerung: Räume die drei Becher ab"
+    },
+    "stamp": {
+      "hit": "TREFFER!",
+      "miss": "DANEBEN!",
+      "rim": "KNAPP!",
+      "rimBack": "ZURÜCKGEROLLT!",
+      "bounce": "AUFPRALLER!",
+      "island": "ISLAND!",
+      "islandCall": "ISLAND!",
+      "sixCups": "SECHS BECHER!",
+      "bomb": "BOMBE!",
+      "blocked": "WEGGESCHLAGEN!",
+      "trick": "TRICKSHOT!",
+      "strip": "AUSZIEHBECHER!",
+      "dress": "WIEDER ANGEZOGEN",
+      "accident": "EIGENE SCHULD!",
+      "catchUp": "NACHZIEHEN!",
+      "overtime": "VERLÄNGERUNG!",
+      "rearranged": "UMGESTELLT",
+      "youStart": "DU FÄNGST AN",
+      "oppStarts": "{name} FÄNGT AN",
+      "lead": "DU LEGST VOR",
+      "ballsBack": "BALLS BACK!",
+      "overtimeRun": "VERLÄNGERUNG! DEINE DREI BECHER"
+    },
+    "end": {
+      "youWin": "DU GEWINNST!",
+      "oppWins": "{name} gewinnt",
+      "you": "Du",
+      "nakedMile": "{name}: Nackte Meile!",
+      "nakedMileHint": "Ein ganzes Spiel ohne Treffer verloren: eine Runde um den Block.",
+      "again": "Nochmal",
+      "otherOpponent": "Anderer Gegner",
+      "rules": "Regeln",
+      "leadDone": "{rounds} Runden!",
+      "sending": "Duell an {name} wird gesendet …",
+      "sent": "Duell an {name} gesendet: {rounds} Runden, {hits} Treffer. Du bekommst eine Nachricht, sobald nachgezogen wurde.",
+      "sendFailed": "Das Duell konnte nicht gesendet werden.",
+      "saveFailed": "Das Ergebnis konnte nicht gespeichert werden.",
+      "duelSaved": "Ergebnis gespeichert. {name} wird benachrichtigt.",
+      "overtimeSent": "Verlängerung an {name} gesendet: {rounds} Runden, {hits} Treffer. {name} muss jetzt nachziehen und bekommt eine Nachricht."
+    },
+    "pickKind": "Wie willst du spielen?",
+    "cpuName": "Rechner",
+    "kind": {
+      "duel": "Duell",
+      "cpu": "Gegen Computer",
+      "duelText": "Du legst vor: Triff alle Becher in möglichst wenigen Runden. Dein Gegner bekommt eine Nachricht und zieht nach. Er spielt gegen deine aufgezeichneten Würfe, Runde für Runde. Aufpraller gibt es im Duell nicht.",
+      "cpuText": "Du spielst sofort gegen den Rechner. Er wirft zufällig wie der gewählte Mitspieler und verwirft auch mal.",
+      "duelShort": "Du legst vor, der andere zieht nach",
+      "cpuShort": "Sofort gegen den Rechner"
+    },
+    "open": {
+      "incoming": "Herausforderungen für dich",
+      "outgoing": "Warten auf Antwort",
+      "from": "{name} will ein Duell",
+      "waiting": "{name} hat noch nicht nachgezogen",
+      "overtimeFrom": "{name}: Verlängerung, du bist dran",
+      "overtimeWaiting": "Verlängerung: {name} muss nachziehen"
+    },
+    "invite": {
+      "title": "Duell",
+      "text": "{name} hat vorgelegt und will ein Duell. Du ziehst nach und spielst gegen die Würfe, die {name} aufgezeichnet hat.",
+      "youStart": "Schnick, Schnack, Schnuck ist schon gefallen: Du fängst an.",
+      "theyStart": "Schnick, Schnack, Schnuck ist schon gefallen: {name} fängt an.",
+      "accept": "Annehmen",
+      "decline": "Ablehnen",
+      "later": "Später",
+      "open": "Ansehen",
+      "overtimeTitle": "Verlängerung",
+      "overtimeText": "{name} und du habt beide alles abgeräumt. {name} hat die Verlängerung schon gespielt: Du ziehst mit drei Bechern nach.",
+      "overtimeYouStart": "Du fängst an.",
+      "overtimeTheyStart": "{name} fängt an."
+    },
+    "options": "Optionen",
+    "islandsLeft": "{count} übrig",
+    "rearrangeOnce": "nur einmal",
+    "cupSize": "Becher",
+    "size": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß"
+    },
+    "bounceShort": "Aufprall",
+    "rearrangeShort": "Stellen",
+    "settings": "Einstellungen"
+  },
+  "figure": {
+    "title": "Meine Figur",
+    "lead": "So siehst du in den Animationen aus: in der Siegerehrung, im Turnierfilm, im Wrapped, in Duellen und im Minispiel.",
+    "back": "Zurück",
+    "forbiddenTitle": "Keine Berechtigung",
+    "forbiddenText": "Du kannst nur deine eigene Figur gestalten.",
+    "previewFront": "Figur von vorn",
+    "previewBack": "Figur von hinten am Tisch",
+    "cheer": "Jubeln",
+    "skin": "Hautfarbe",
+    "skinLocked": "Bei dir ist die Hautfarbe fest.",
+    "hair": "Frisur",
+    "hairColor": "Haarfarbe",
+    "hairStyle": {
+      "short": "Kurz",
+      "buzz": "Raspelkurz",
+      "long": "Lang",
+      "bun": "Dutt",
+      "curly": "Locken",
+      "bald": "Glatze"
+    },
+    "outfit": "Oberteil",
+    "shirtColor": "Farbe",
+    "patternLabel": "Muster",
+    "pattern": {
+      "plain": "Einfarbig",
+      "stripes": "Streifen",
+      "dots": "Punkte"
+    },
+    "body": "Körper",
+    "heightLabel": "Größe",
+    "buildLabel": "Statur",
+    "height": {
+      "0": "Klein",
+      "1": "Normal",
+      "2": "Groß"
+    },
+    "build": {
+      "0": "Schlank",
+      "1": "Normal",
+      "2": "Kräftig"
+    },
+    "accessory": "Zubehör",
+    "acc": {
+      "none": "Keine",
+      "cap": "Kappe",
+      "beanie": "Mütze",
+      "beerhat": "Bierhut",
+      "headband": "Stirnband",
+      "glasses": "Brille",
+      "sunglasses": "Sonnenbrille",
+      "beard": "Bart",
+      "earring": "Ohrring",
+      "chain": "Goldkette",
+      "scarf": "Schal"
+    },
+    "save": "Speichern",
+    "random": "Zufall",
+    "reset": "Zurücksetzen",
+    "saved": "Gespeichert. Deine Figur erscheint jetzt überall.",
+    "resetDone": "Zurückgesetzt auf das Standardaussehen.",
+    "where": "Brille und Bart siehst du nur von vorn (Siegerehrung, Gegner am Tisch). Am Tisch siehst du dich von hinten: Haare, Kappe und Oberteil.",
+    "accessoryHint": "Du kannst mehrere Teile kombinieren: eine Kopfbedeckung, eine Brille und beliebig viele Extras.",
+    "headwear": "Kopfbedeckung",
+    "eyewear": "Brille",
+    "extras": "Extras",
+    "unsaved": "Nicht gespeicherte Änderungen",
+    "allSaved": "Alles gespeichert",
+    "notYet": "Noch das Standardaussehen"
+  },
+  "profileGame": {
+    "title": "Minispiel",
+    "games": "Spiele",
+    "wins": "Siege",
+    "winRate": "Quote",
+    "bestRounds": "Beste Runden",
+    "averageRounds": "Ø Runden im Sieg",
+    "hits": "Treffer",
+    "duels": "Duelle",
+    "noDuels": "Noch keine abgeschlossenen Duelle.",
+    "duelRecord": "Bilanz",
+    "winsShort": "Siege",
+    "lossesShort": "Niederlagen",
+    "asChallenger": "Als Herausforderer (vorgelegt)",
+    "asOpponent": "Als Nachziehender",
+    "waitingForMe": "{count} wartet auf Antwort",
+    "waitingForThem": "{count} noch offen",
+    "openGame": "Zum Spiel",
+    "vsComputer": "Gegen den Computer",
+    "noCpu": "Noch nicht gegen den Computer gespielt.",
+    "level": {
+      "easy": "Leicht",
+      "normal": "Normal",
+      "hard": "Schwer",
+      "impossible": "Unmöglich"
+    },
+    "nakedMiles": "Gegen den Computer nackte Meile: {ran} mal gelaufen, {made} mal verursacht",
+    "headToHead": "Direkter Vergleich im Duell",
+    "recentDuels": "Letzte Duelle",
+    "won": "Sieg",
+    "lost": "Niederlage",
+    "against": "gegen {name}",
+    "roleChallenger": "vorgelegt",
+    "roleOpponent": "nachgezogen",
+    "rounds": "Runden {mine}:{theirs}",
+    "hitsLine": "Becher {mine}:{theirs}",
+    "size": {
+      "small": "kleine Becher",
+      "medium": "mittlere Becher",
+      "large": "große Becher"
+    },
+    "nakedMe": "lief die nackte Meile",
+    "nakedThem": "Gegner lief die nackte Meile",
+    "nakedDuelTitle": "Nackte Meile im Duell",
+    "nakedTaken": "kassiert",
+    "nakedDealt": "verteilt"
+  },
+  "sceneTheme": {
+    "title": "Hintergrund deiner Szenen",
+    "lead": "Gilt für dich im Minispiel, in Wrapped und im Turnierfilm. Im Stadion jubeln die Fans bei Bomben, Balls back und Siegen.",
+    "error": "Speichern hat nicht geklappt.",
+    "name": {
+      "stadium": "Stadion",
+      "classic": "Klassisch",
+      "bar": "Kneipe",
+      "beach": "Strand",
+      "club": "Club"
+    }
   }
 }

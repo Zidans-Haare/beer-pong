@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { dateFilter, type SeasonRange } from '@/lib/seasons';
 // import { Player, Match, Tournament } from '@prisma/client';
 
 export interface PlayerStats {
@@ -22,20 +23,24 @@ export interface PlayerMedals {
     bronze: number;
 }
 
-export async function getPlayerMedals(onlyRanked = true): Promise<Record<string, PlayerMedals>> {
-    return (await computePlacements(onlyRanked)).medals;
+export async function getPlayerMedals(onlyRanked = true, season?: SeasonRange): Promise<Record<string, PlayerMedals>> {
+    return (await computePlacements(onlyRanked, season)).medals;
 }
 
-interface Placements {
+export interface Placements {
     medals: Record<string, PlayerMedals>;
     winnersByTournament: Map<string, Set<string>>;
+    // Turnier-ID -> Spieler-ID -> Medaille in diesem Turnier
+    podiumByTournament: Map<string, Map<string, keyof PlayerMedals>>;
 }
 
 // Medals per player plus the gold winner(s) of each tournament (bracket final beats league table)
-async function computePlacements(onlyRanked: boolean): Promise<Placements> {
+export async function computePlacements(onlyRanked: boolean, season?: SeasonRange): Promise<Placements> {
+    const seasonDates = dateFilter(season);
     const tournaments = await prisma.tournament.findMany({
         where: {
             status: 'COMPLETED',
+            ...(seasonDates ? { date: seasonDates } : {}),
             OR: [
                 { isHistorical: true },
                 ...(onlyRanked ? [{ isRanked: true, isHistorical: false }] : [{ isHistorical: false }]),
@@ -55,6 +60,7 @@ async function computePlacements(onlyRanked: boolean): Promise<Placements> {
 
     const medals: Record<string, PlayerMedals> = {};
     const winnersByTournament = new Map<string, Set<string>>();
+    const podiumByTournament = new Map<string, Map<string, keyof PlayerMedals>>();
     let currentTournamentId = '';
 
     const add = (ids: (string | null | undefined)[], type: keyof PlayerMedals) => {
@@ -62,6 +68,8 @@ async function computePlacements(onlyRanked: boolean): Promise<Placements> {
             if (!id) continue;
             if (!medals[id]) medals[id] = { gold: 0, silver: 0, bronze: 0 };
             medals[id][type]++;
+            if (!podiumByTournament.has(currentTournamentId)) podiumByTournament.set(currentTournamentId, new Map());
+            podiumByTournament.get(currentTournamentId)!.set(id, type);
             if (type === 'gold') {
                 if (!winnersByTournament.has(currentTournamentId)) winnersByTournament.set(currentTournamentId, new Set());
                 winnersByTournament.get(currentTournamentId)!.add(id);
@@ -172,7 +180,7 @@ async function computePlacements(onlyRanked: boolean): Promise<Placements> {
         }
     }
 
-    return { medals, winnersByTournament };
+    return { medals, winnersByTournament, podiumByTournament };
 }
 
 export type StatsPeriod = 'month' | 'last5' | 'year' | 'all';
@@ -184,15 +192,15 @@ export function getPeriodStartDate(period: StatsPeriod): Date | undefined {
     return undefined;
 }
 
-export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all'): Promise<PlayerStats[]> {
-    const { medals, winnersByTournament } = await computePlacements(onlyRanked);
-    const since = getPeriodStartDate(period);
+export async function getAllPlayerStats(onlyRanked = true, period: StatsPeriod = 'all', season?: SeasonRange): Promise<PlayerStats[]> {
+    const { medals, winnersByTournament } = await computePlacements(onlyRanked, season);
+    const dates = dateFilter(season, getPeriodStartDate(period));
     // For 'last5', fetch all and filter per-player afterwards
     const tournamentFilter = {
         status: 'COMPLETED',
         isHistorical: false,
         ...(onlyRanked ? { isRanked: true } : {}),
-        ...(since ? { date: { gte: since } } : {}),
+        ...(dates ? { date: dates } : {}),
     };
 
     const players = await prisma.player.findMany({

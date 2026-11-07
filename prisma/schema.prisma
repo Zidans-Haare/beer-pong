@@ -17,6 +17,8 @@ model Player {
   motto            String?
   userId           String?                 @unique
   isGuest          Boolean                 @default(false)
+  // Figur für die Animationen (JSON, siehe src/lib/figure.ts)
+  figure           String?
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
   matchesAsPlayer2 Match[]                 @relation("Player2Matches")
@@ -27,6 +29,8 @@ model Player {
   teamsAsPlayer1   Team[]                  @relation("TeamPlayer1")
   tournaments      TournamentParticipant[]
   standings        TournamentStanding[]
+  miniGamesAsChallenger MiniGame[] @relation("MiniGameChallenger")
+  miniGamesAsOpponent   MiniGame[] @relation("MiniGameOpponent")
 }
 
 model Tournament {
@@ -113,6 +117,8 @@ model User {
   notifyLiveTicker     Boolean            @default(true)
   pwaInstalled         Boolean            @default(false)
   paypalMeUrl          String?
+  // Hintergrund der Szenen (Minispiel, Wrapped, Turnierfilm), siehe src/lib/scene-theme.ts
+  sceneTheme           String             @default("stadium")
   accounts             Account[]
   bringItems           BringItem[]
   chatMessages         ChatMessage[]
@@ -288,6 +294,8 @@ model SystemSettings {
   matchDurationMin Int    @default(15)
   tableCount       Int    @default(1)
   rulesText        String @default("")
+  // Deko am Logo: auto (nach Datum), off oder ein fester Anlass, siehe src/lib/logo-decoration.ts
+  logoDecoration   String @default("auto")
 }
 
 model UptimeHeartbeat {
@@ -314,15 +322,85 @@ model Passkey {
 }
 
 model RoomReservation {
-  id              String     @id @default(uuid())
-  tournamentId    String
-  userId          String
-  status          String     @default("PENDING")
-  wantsBreakfast  Boolean    @default(false)
-  wantsHalfBoard  Boolean    @default(false)
-  createdAt       DateTime   @default(now())
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  id             String     @id @default(uuid())
+  tournamentId   String
+  userId         String
+  status         String     @default("PENDING")
+  wantsBreakfast Boolean    @default(false)
+  wantsHalfBoard Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([tournamentId, userId])
+}
+
+// Saisons: Turniere gehören über ihr Datum (startDate <= date < endDate) zu einer Saison.
+// Die aktuelle Saison hat kein endDate; beendet wird sie manuell im Admin.
+model Season {
+  id          String    @id @default(uuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  accentColor String    @default("#006b50")
+  createdAt   DateTime  @default(now())
+}
+
+// Bier Pong Wrapped: Jahres- bzw. Saisonrückblick je Spieler für den Zeitraum startDate <= Datum < endDate.
+// Sichtbar für alle, sobald publishedAt gesetzt ist.
+model Wrapped {
+  id          String        @id @default(uuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  views       WrappedView[]
+}
+
+// Merkt, wann ein Nutzer einen Rückblick zum ersten Mal geöffnet hat.
+// Danach wird der Hinweis auf der Startseite ruhig und verschwindet nach einer Woche.
+model WrappedView {
+  id        String   @id @default(uuid())
+  wrappedId String
+  userId    String
+  seenAt    DateTime @default(now())
+  wrapped   Wrapped  @relation(fields: [wrappedId], references: [id], onDelete: Cascade)
+
+  @@unique([wrappedId, userId])
+}
+
+// Minispiel: gegen den Rechner oder als Duell. Beim Duell legt der Herausforderer vor (replay),
+// der andere zieht später nach und spielt dabei gegen die aufgezeichneten Würfe.
+model MiniGame {
+  id               String    @id @default(uuid())
+  mode             String // CPU | DUEL
+  status           String    @default("COMPLETED") // PENDING | COMPLETED | DECLINED
+  difficulty       String?
+  // Bechergröße: small | medium | large
+  cupSize          String?
+  challengerId     String
+  opponentId       String?
+  // Schnick, Schnack, Schnuck: wer anfängt (CHALLENGER | OPPONENT) und die gezeigten Hände
+  starter          String?
+  challengerHand   String?
+  opponentHand     String?
+  challengerRounds Int?
+  opponentRounds   Int?
+  challengerHits   Int?
+  opponentHits     Int?
+  winner           String? // CHALLENGER | OPPONENT
+  nakedMile        String? // CHALLENGER | OPPONENT
+  // JSON: Würfe des Herausforderers, Runde für Runde
+  replay           String?
+  // Verlängerung eines Duells: Das ursprüngliche Duell ist `parentId`, `stage` zählt die Verlängerungen (0 = das Duell selbst)
+  parentId         String?
+  stage            Int       @default(0)
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+  challenger       Player    @relation("MiniGameChallenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  opponent         Player?   @relation("MiniGameOpponent", fields: [opponentId], references: [id], onDelete: Cascade)
+
+  @@index([challengerId])
+  @@index([opponentId, status])
 }

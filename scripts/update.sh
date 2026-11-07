@@ -38,10 +38,17 @@ echo "🔄  Generating Prisma client..."
 npx prisma generate
 
 echo "🗄️   Running migrations..."
+# Textzeitstempel in _prisma_migrations lassen die Schema-Engine abstürzen — vorher reparieren
+node scripts/fix-migration-table.js
 npx prisma migrate deploy
 
 echo "🔨  Building app..."
 npm run build
+# Der Server läuft als Standalone-Build: statische Dateien, öffentliche Dateien und Übersetzungen gehören hinein,
+# sonst fehlen nach dem Update Styles und Skripte. Das Wartungs-Flag darf nicht mitkommen.
+cp -r public .next/standalone/
+cp -r .next/static .next/standalone/.next/
+rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance-msg.txt
 cp -r messages .next/standalone/messages 2>/dev/null || true
 
 echo "♻️   Restarting PM2..."

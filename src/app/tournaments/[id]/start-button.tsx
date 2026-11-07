@@ -4,8 +4,10 @@ import { startTournament } from '@/app/actions/tournaments';
 import { Play } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function StartTournamentButton({ tournamentId }: { tournamentId: string }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('tournaments');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -13,7 +15,7 @@ export default function StartTournamentButton({ tournamentId }: { tournamentId: 
         setIsLoading(true);
         const res = await startTournament(tournamentId);
         if (!res.success) {
-            alert(res.error);
+            appDialog.alert(res.error);
             setIsLoading(false);
         }
     }
@@ -22,19 +24,7 @@ export default function StartTournamentButton({ tournamentId }: { tournamentId: 
         <button
             onClick={handleStart}
             disabled={isLoading}
-            className="btn btn-primary"
-            style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                width: '100%',
-                padding: '0 var(--spacing-4)',
-                height: '60px',
-                fontSize: '1rem',
-                fontWeight: 600,
-                opacity: isLoading ? 0.7 : 1
-            }}
+            className="btn btn-primary host-action-button"
         >
             <Play size={20} fill="currentColor" />
             {isLoading ? t('starting') : t('startTournament')}

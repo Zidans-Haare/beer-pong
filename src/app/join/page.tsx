@@ -119,13 +119,13 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="container" style={{ paddingTop: 'var(--spacing-8)' }}>
+    <div className="container page-content" style={{ paddingTop: 'var(--spacing-8)' }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel"
+        className="join-surface"
         style={{
-          padding: 'var(--spacing-8)',
+          padding: '24px 0',
           maxWidth: '400px',
           margin: '0 auto',
           textAlign: 'center',
@@ -169,7 +169,8 @@ export default function JoinPage() {
         {/* Code Input */}
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
             gap: '8px',
             justifyContent: 'center',
             marginBottom: 'var(--spacing-4)',
@@ -183,12 +184,15 @@ export default function JoinPage() {
               type="text"
               inputMode="text"
               maxLength={1}
+              aria-label={`${t('title')} ${index + 1}`}
+              autoComplete={index === 0 ? 'one-time-code' : 'off'}
               value={digit}
               onChange={(e) => handleInputChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               disabled={isLoading}
               style={{
-                width: '48px',
+                width: '100%',
+                minWidth: 0,
                 height: '56px',
                 padding: '0',
                 fontSize: '1.5rem',

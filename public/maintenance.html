@@ -2,169 +2,100 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wartung — Bier Pong</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Neues großes Update — Bier Pong</title>
     <style>
+        /* Eigenständige Seite: nginx liefert sie während der Wartung direkt aus, ohne die App */
+        @font-face { font-family: 'Manrope'; src: url('/fonts/Manrope.ttf') format('truetype'); font-weight: 200 800; font-display: swap; }
+        @font-face { font-family: 'Barlow Condensed'; src: url('/fonts/BarlowCondensed-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+        :root { --primary: #7c3aed; --primary-dark: #632ebe; --primary-light: #f2ebfd; --text: #181c20; --dim: #5b6168; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f8fc;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #0f0f14;
+            min-height: 100vh; min-height: 100dvh;
+            display: flex; align-items: center; justify-content: center;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+            background: radial-gradient(120% 80% at 50% 0%, var(--primary-light) 0%, #fafbfb 60%);
+            font-family: 'Manrope', system-ui, -apple-system, sans-serif; color: var(--text);
         }
+        .container { width: 100%; max-width: 460px; text-align: center; }
+        .logo { display: inline-flex; align-items: center; gap: 8px; font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 28px; }
+        .logo svg { width: 28px; height: 28px; }
+        .card { background: #fff; border: 1px solid #e4e7e5; border-radius: 16px; padding: 28px 22px 22px; box-shadow: 0 18px 50px -20px rgba(124, 58, 237, 0.35); }
 
-        .container {
-            text-align: center;
-            padding: 2rem;
-            max-width: 440px;
-            width: 100%;
+        /* kleine Szene: der Ball springt in den Becher, immer wieder */
+        .scene { position: relative; height: 120px; margin: 0 auto 18px; width: 220px; }
+        .cup { position: absolute; bottom: 6px; left: 50%; width: 58px; height: 64px; transform: translateX(-50%); }
+        .ball { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: inset -3px -3px 0 rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.2); left: 0; bottom: 70px; animation: throw 2.2s cubic-bezier(.3,.6,.4,1) infinite; }
+        .shadow { position: absolute; bottom: 2px; left: 50%; width: 70px; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.12); transform: translateX(-50%); }
+        @keyframes throw {
+            0% { transform: translate(0, 20px) scale(1); opacity: 0; }
+            8% { opacity: 1; }
+            45% { transform: translate(70px, -40px) scale(0.95); }
+            74% { transform: translate(103px, 6px) scale(0.85); opacity: 1; }
+            80% { transform: translate(103px, 30px) scale(0.8); opacity: 1; }
+            88% { transform: translate(103px, 44px) scale(0.6); opacity: 0; }
+            100% { transform: translate(103px, 44px) scale(0.6); opacity: 0; }
         }
+        .splash { position: absolute; left: 50%; bottom: 66px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #f2b33d; opacity: 0; animation: splash 2.2s ease-out infinite; }
+        .splash.b { animation-delay: 0.05s; } .splash.c { animation-delay: 0.1s; }
+        @keyframes splash { 0%, 80% { opacity: 0; transform: translate(0, 0); } 84% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), -26px); } }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #be23d5 0%, #9333ea 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.03em;
-            margin-bottom: 2rem;
-        }
+        .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 14px; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); animation: blink 1.6s ease-in-out infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+        h1 { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 2.6rem; line-height: 1; font-weight: 700; margin-bottom: 18px; }
+        .description { color: var(--dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; }
+        .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 20px; }
+        .chip { padding: 5px 10px; border-radius: 999px; border: 1px solid #e4e7e5; background: #fafbfb; font-size: 0.78rem; font-weight: 600; color: var(--text); }
+        .progress { height: 6px; border-radius: 999px; background: #eef0ef; overflow: hidden; margin-bottom: 18px; }
+        .progress span { display: block; height: 100%; width: 40%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), #a78bfa); animation: slide 1.8s ease-in-out infinite; }
+        @keyframes slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
 
-        .card {
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.07);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(190, 35, 213, 0.08);
-            border: 1px solid rgba(190, 35, 213, 0.2);
-            border-radius: 999px;
-            padding: 4px 12px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #be23d5;
-            margin-bottom: 1.5rem;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #be23d5;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-
-        h1 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #0f0f14;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
-        }
-
-        .description {
-            color: #52525b;
-            font-size: 0.875rem;
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-box {
-            display: none;
-            background: rgba(190, 35, 213, 0.05);
-            border: 1px solid rgba(190, 35, 213, 0.15);
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
+        .info-box { display: none; background: var(--primary-light); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; text-align: left; }
         .info-box.visible { display: block; }
-
-        .info-label {
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #be23d5;
-            margin-bottom: 4px;
-        }
-
-        .info-text {
-            font-size: 0.82rem;
-            color: #52525b;
-            line-height: 1.5;
-        }
-
-        .timestamps {
-            display: none;
-            margin-top: 1.5rem;
-            display: none;
-            gap: 0;
-            flex-direction: column;
-        }
-
+        .info-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 3px; }
+        .info-text { font-size: 0.85rem; color: var(--dim); line-height: 1.5; }
+        .timestamps { display: none; flex-direction: column; margin-bottom: 8px; }
         .timestamps.visible { display: flex; }
-
-        .ts-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            font-size: 0.8rem;
-        }
-
+        .ts-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.82rem; }
         .ts-row:last-child { border-bottom: none; }
-
-        .ts-label { color: #a1a1aa; }
-        .ts-value { color: #0f0f14; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .ts-value.countdown { color: #be23d5; }
-        .ts-value.overdue { color: #ef4444; }
-
-        .divider {
-            height: 1px;
-            background: rgba(0, 0, 0, 0.07);
-            margin: 1.5rem 0;
-        }
-
-        .footer {
-            font-size: 0.78rem;
-            color: #a1a1aa;
-        }
+        .ts-label { color: #8b9096; }
+        .ts-value { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+        .ts-value.countdown { color: var(--primary); }
+        .ts-value.overdue { color: #dc2626; }
+        .footer { font-size: 0.8rem; color: #8b9096; line-height: 1.6; }
+        .footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        @media (prefers-reduced-motion: reduce) { .status-dot, .ball, .splash, .progress span { animation: none; } .ball { display: none; } .progress span { width: 100%; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">Bier Pong</div>
+        <div class="logo" aria-label="Bier Pong">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+            Bier Pong
+        </div>
         <div class="card">
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                Wartung
+            <div class="scene" aria-hidden="true">
+                <div class="shadow"></div>
+                <!-- der Ball liegt hinter dem Becher und verschwindet so beim Hineinfallen hinter dem Rand -->
+                <div class="ball"></div>
+                <svg class="cup" viewBox="0 0 58 64"><path d="M3 6 H55 L46 62 Q29 66 12 62 Z" fill="#d6362b"/><path d="M3 6 H55 L53 16 H5 Z" fill="#f0524a"/><ellipse cx="29" cy="6" rx="26" ry="5.5" fill="#fff"/><ellipse cx="29" cy="7" rx="21.5" ry="3.6" fill="#e8a923"/></svg>
+                <div class="splash" style="--dx:-14px"></div>
+                <div class="splash b" style="--dx:2px"></div>
+                <div class="splash c" style="--dx:15px"></div>
             </div>
-            <h1>Plattform vorübergehend nicht verfügbar</h1>
-            <p class="description">
-                Die Anwendung wird derzeit gewartet.<br>
-                Sie ist in Kürze wieder erreichbar.
-            </p>
+            <div class="status-badge"><div class="status-dot"></div>Update läuft</div>
+            <h1>Neues großes Update</h1>
+            <div class="chips" aria-label="Was neu ist">
+                <span class="chip">Neues Design</span>
+                <span class="chip">Minispiel im Stadion</span>
+                <span class="chip">Duelle</span>
+                <span class="chip">Turnierfilm</span>
+                <span class="chip">Deine Figur</span>
+                <span class="chip">Neuer Chat</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="Update läuft"><span></span></div>
 
             <div class="info-box" id="infoBox">
                 <div class="info-label">Was passiert gerade?</div>
@@ -186,9 +117,7 @@
                 </div>
             </div>
 
-            <div class="divider"></div>
-            <p class="footer">Bitte versuchen Sie es in wenigen Minuten erneut.</p>
-            <p class="footer" style="margin-top: 0.5rem;">Infos zum Code: <a href="https://github.com/Zidans-Haare/beer-pong" style="color: #be23d5; text-decoration: none;">github.com/Zidans-Haare/beer-pong</a></p>
+            <p class="footer">Nach dem Update die App einmal komplett neu laden.<br>Code: <a href="https://github.com/Zidans-Haare/beer-pong">github.com/Zidans-Haare/beer-pong</a></p>
         </div>
     </div>
     <script>

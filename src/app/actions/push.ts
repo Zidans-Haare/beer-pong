@@ -51,7 +51,7 @@ export async function sendTestPush() {
         }
 
         const payload = JSON.stringify({
-            title: 'Test Benachrichtigung 🍺',
+            title: 'Test Benachrichtigung',
             message: 'Wenn du das siehst, funktioniert Push!',
             link: '/notifications'
         });

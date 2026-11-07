@@ -1,4 +1,139 @@
 {
+  "wrapped": {
+    "bannerSeenText": "Watch again",
+    "bannerSeenCta": "Open",
+    "tapForSound": "Tap for sound",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "videoWebmHint": "This browser produces WebM. For Instagram please use Chrome or Safari.",
+    "winStamp": "WIN!",
+    "tournamentsEyebrow": "On tour",
+    "tournamentsTitle": "{count, plural, one {tournament played} other {tournaments played}}",
+    "bestLine": "Biggest win: {score} against {opponent}",
+    "winsTitle": "{count, plural, one {win} other {wins}}",
+    "saveVideo": "Save video",
+    "saveFrame": "Save image",
+    "recording": "Recording… {seconds} s",
+    "recordingHint": "Please keep the screen on until the video is ready.",
+    "videoShared": "Shared. Use “Save video” to add it to your gallery.",
+    "videoDownloaded": "Video downloaded.",
+    "videoUnsupported": "This browser cannot record video.",
+    "cancelRecording": "Cancel",
+    "brand": "Beer Pong Wrapped",
+    "backHome": "Back to home",
+    "notPublished": "The recap has not been published yet.",
+    "noGames": "You have no games in this period, so there is no recap for you.",
+    "bannerTitle": "{title} is here",
+    "bannerText": "Your recap: games, cups, streaks and your player type.",
+    "bannerCta": "View",
+    "close": "Close",
+    "previous": "Back",
+    "next": "Next",
+    "paused": "Paused",
+    "saveImage": "Save image",
+    "saveAll": "Save all {count} images",
+    "replay": "Replay",
+    "saving": "Creating images…",
+    "shared": "Shared. Use “Save image” to add it to your gallery.",
+    "downloaded": "{count, plural, one {# image downloaded.} other {# images downloaded.}}",
+    "saveFailed": "The image could not be created.",
+    "introTitle": "Your recap",
+    "introLine": "Tap right to continue. Hold to pause.",
+    "gamesEyebrow": "At the table",
+    "gamesTitle": "{count, plural, one {game played} other {games played}}",
+    "gamesTournaments": "{count, plural, one {in # tournament} other {in # tournaments}}",
+    "gamesMinutes": "{minutes} minutes of pure game time",
+    "cupsEyebrow": "Hits",
+    "cupsTitle": "cups hit",
+    "cupsPerGame": "That is {avg} per game.",
+    "cupsPercentile": "More than {percent}% of the other players.",
+    "recordEyebrow": "Record",
+    "recordTitle": "{wins} wins, {losses} losses",
+    "recordRank": "Place {rank} of {total} in the ranking",
+    "recordStreak": "Longest streak: {count} wins in a row",
+    "rivalEyebrow": "Your main rival",
+    "rivalTitle": "{count, plural, one {# duel} other {# duels}}",
+    "rivalRecord": "Record: {wins}–{losses}",
+    "favoriteLine": "Favourite opponent: {name} ({wins}–{losses})",
+    "nemesisLine": "Nemesis: {name} ({wins}–{losses})",
+    "bestEyebrow": "Your biggest win",
+    "bestTitle": "against {opponent}",
+    "bestTournament": "Best tournament: {name} with {wins} wins in {games} games",
+    "medalsEyebrow": "On the podium",
+    "medalsTitle": "{count, plural, one {medal} other {medals}}",
+    "medalsLine": "{gold}× gold · {silver}× silver · {bronze}× bronze",
+    "personaEyebrow": "Your player type",
+    "summaryGames": "{games, plural, one {# game} other {# games}} in {tournaments, plural, one {# tournament} other {# tournaments}}",
+    "summaryRecord": "{wins}–{losses} · {percent}% win rate",
+    "summaryCups": "{cups} cups hit",
+    "summaryStreak": "Longest streak: {count} wins",
+    "persona": {
+      "sniper": {
+        "name": "Sharpshooter",
+        "text": "Hardly anyone hits as many cups per game as you."
+      },
+      "wall": {
+        "name": "The Wall",
+        "text": "The fewest cups fall against you."
+      },
+      "closer": {
+        "name": "Closer",
+        "text": "You win the clear majority of your games."
+      },
+      "streak": {
+        "name": "Streak Machine",
+        "text": "When you are on a roll, it lasts."
+      },
+      "marathon": {
+        "name": "Regular",
+        "text": "You are at the table more often than almost anyone."
+      },
+      "rookie": {
+        "name": "Newcomer",
+        "text": "Few games so far. Next year is yours."
+      },
+      "allrounder": {
+        "name": "All-rounder",
+        "text": "Solid at everything: hitting, defending, winning."
+      }
+    }
+  },
+  "broadcast": {
+    "back": "Back to tournament",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "rotate": "Rotate",
+    "mirror": "Mirror",
+    "flip": "Switch camera",
+    "start": "Start stream",
+    "stop": "Stop stream"
+  },
+  "pwaUpdate": {
+    "title": "Update available",
+    "description": "A new version is ready.",
+    "dismiss": "Later",
+    "reload": "Reload now"
+  },
+  "connection": {
+    "online": "Back online",
+    "offline": "No connection"
+  },
+  "tv": {
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
+  },
+  "ui": {
+    "genericError": "That did not work. Please try again.",
+    "confirmTitle": "Please confirm",
+    "noticeTitle": "Notice",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "close": "Close",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
   "auth": {
     "loginWithEmail": "or with email",
     "password": "Password",
@@ -15,19 +150,29 @@
     "registrationError": "Registration error"
   },
   "nav": {
+    "home": "Home",
+    "more": "More",
+    "settings": "Settings",
+    "profile": "Profiles",
+    "rules": "Rules",
+    "streaming": "Streaming",
+    "navigation": "Main navigation",
+    "register": "Register",
     "join": "Join",
     "tournaments": "Tournaments",
     "players": "Players",
     "notifications": "Notifications",
     "stats": "Stats",
-    "chat": "Chat"
+    "chat": "Chat",
+    "game": "Minigame"
   },
   "home": {
+    "join": "Join",
     "welcomeBack": "Welcome back",
     "getStarted": "Get started",
-    "aloneOnline": "Just you online",
-    "onePerson": "1 person online",
-    "personsOnline": "{count} people online",
+    "aloneOnline": "Just you",
+    "onePerson": "1 online",
+    "personsOnline": "{count} online",
     "liveTournament": "Live Tournament",
     "noActiveTournament": "No active tournament.",
     "startTournament": "Start Tournament",
@@ -37,6 +182,7 @@
     "gameLabel": "Game {n}"
   },
   "tournaments": {
+    "seasonEmpty": "No tournaments in this season.",
     "title": "Tournaments",
     "subtitle": "All events at a glance",
     "new": "New Tournament",
@@ -132,7 +278,23 @@
     "guestRoomCapacity": "Capacity (persons)",
     "offersBreakfast": "Breakfast add-on",
     "offersHalfBoard": "Half board add-on",
-    "usePaypal": "Enable PayPal payment links for cost splitting"
+    "usePaypal": "Enable PayPal payment links for cost splitting",
+    "uploadFailed": "The tournament could not be created. Maybe the image is too large? Please try again.",
+    "edit": {
+      "title": "Edit tournament",
+      "date": "Date & time",
+      "location": "Location",
+      "players": "Who's in",
+      "save": "Save",
+      "saving": "Saving …",
+      "cancel": "Cancel",
+      "missing": "Name, location and time must not be empty.",
+      "error": "Saving failed.",
+      "teamsReset": "Switching to 1 vs 1 dissolves the teams. Save anyway?",
+      "fewerTables": "One table less",
+      "moreTables": "One table more",
+      "ranking": "Scoring"
+    }
   },
   "rsvp": {
     "question": "Are you in?",
@@ -144,6 +306,10 @@
   },
   "players": {
     "title": "Players",
+    "myProfile": "My profile",
+    "openProfile": "Open profile",
+    "accountSettings": "Settings",
+    "allPlayers": "All players",
     "noPlayers": "No players registered yet",
     "namePlaceholder": "Name (required)",
     "nickname": "Nickname",
@@ -167,7 +333,9 @@
     "tournamentHistory": "Tournament History",
     "noTournaments": "No tournaments played yet.",
     "unknownDate": "Unknown date",
-    "aboutMe": "About me"
+    "aboutMe": "About me",
+    "myFigure": "Customise figure",
+    "figureLabel": "Figure of {name}"
   },
   "paceStats": {
     "title": "Match Pace",
@@ -199,6 +367,8 @@
     }
   },
   "join": {
+    "retry": "Try again",
+    "joining": "Joining...",
     "title": "Join Tournament",
     "subtitle": "Enter the 6-digit code or scan the QR code",
     "invalidCode": "Please enter a valid 6-digit code",
@@ -214,10 +384,57 @@
     "scanBtn": "Scan QR",
     "scanTitle": "Scan QR Code",
     "scanHint": "Hold the QR code in the frame",
-    "cameraError": "Camera access denied. Please allow access in settings.",
-    "retry": "Try again"
+    "cameraError": "Camera access denied. Please allow access in settings."
   },
   "admin": {
+    "wrapped": {
+      "title": "Beer Pong Wrapped",
+      "subtitle": "Trigger the recap for all players",
+      "newTitle": "Publish a new recap",
+      "scope": "Period",
+      "scopeYear": "Calendar year {year}",
+      "scopeSeason": "Season: {name}",
+      "playersInScope": "{count, plural, one {# player gets a recap.} other {# players get a recap.}}",
+      "name": "Title",
+      "preview": "View preview",
+      "publish": "Publish for everyone",
+      "working": "One moment…",
+      "publishHint": "Publishing notifies everyone and shows a hint on the home page. The preview shows your own recap.",
+      "confirmPublish": "Publish “{title}” for {players} players now? Everyone gets a notification.",
+      "published": "The recap is published.",
+      "existing": "Previous recaps",
+      "none": "No recap published yet.",
+      "publishedOn": "published on {date}",
+      "withdrawn": "withdrawn",
+      "unpublish": "Withdraw",
+      "confirmUnpublish": "Withdraw “{title}”? The hint on the home page disappears."
+    },
+    "seasons": {
+      "title": "Seasons",
+      "subtitle": "Season switch and season colour",
+      "currentSeason": "Current season",
+      "sinceStart": "Running since records began",
+      "since": "Running since {date}",
+      "name": "Name",
+      "color": "Accent colour",
+      "save": "Save",
+      "saved": "Saved",
+      "failed": "That did not work",
+      "endTitle": "End season",
+      "endHint": "The running season ends now and a new one starts with its own colour; the app recolours immediately.",
+      "nextName": "Name of the new season",
+      "nextColor": "Colour of the new season",
+      "confirmYes": "Yes, end season",
+      "cancel": "Cancel",
+      "working": "One moment…",
+      "sameColorHint": "Same colour as {season} – the seasons will look identical.",
+      "endButton": "End season & start a new one",
+      "confirmEnd": "End \"{current}\" now and start \"{next}\"? This cannot be undone.",
+      "ended": "New season started",
+      "suggestedName": "Season {number}",
+      "past": "Past seasons",
+      "noPast": "No season has ended yet."
+    },
     "nav": {
       "overview": "Overview",
       "people": "People",
@@ -225,6 +442,8 @@
       "users": "Users",
       "players": "Players",
       "passkeys": "Passkeys",
+      "wrapped": "Wrapped",
+      "seasons": "Seasons",
       "tournament": "Tournament",
       "tournaments": "Tournaments",
       "guests": "Guests",
@@ -367,6 +586,24 @@
     },
     "settings": {
       "title": "System Settings",
+      "showDetails": "Tap for details",
+      "howItWorks": "How the duration of a game is estimated",
+      "step1": "Direct duels: if two players have met at least {min} times, the average of those games counts.",
+      "step2": "Player average: otherwise the mean of both players, if each has at least {min} measured games.",
+      "step3": "Overall average: otherwise the average of all measured games, without data {minutes} minutes.",
+      "distribution": "Distribution",
+      "median": "Median",
+      "fastest": "Fastest game",
+      "slowest": "Longest game",
+      "typicalRange": "Typical (80% of games)",
+      "measured": "Measured games",
+      "unmeasured": "Games without measurement",
+      "byStage": "By stage and table",
+      "stageLeague": "League/group stage",
+      "stageBracket": "Knockout stage",
+      "table": "Table {number}",
+      "nGames": "{count, plural, one {# game} other {# games}}",
+      "recentTournaments": "Recent tournaments",
       "smartDuration": "Smart Duration Tracking",
       "avgMin": "min. average",
       "basedOn": "Based on {count} played matches. The system learns automatically from real match data.",
@@ -377,10 +614,24 @@
       "durationHintDefault": "Used until enough match data is available.",
       "tableCountLabel": "Number of Tables",
       "tableCountHint": "How many tables can be played simultaneously.",
-      "rulesLabel": "Rules",
-      "rulesPlaceholder": "Enter the rules here... (plain text or Markdown)",
-      "rulesHint": "Shown on the public rules page (/rules). Supports plain text with line breaks.",
-      "save": "Save"
+      "save": "Save",
+      "logoDeco": {
+        "title": "Logo decoration",
+        "lead": "For occasions during the year the logo in the top left gets a decoration. On automatic it follows the date.",
+        "error": "Saving failed.",
+        "todayIs": "Today: {name}",
+        "todayNone": "None today",
+        "calendar": "Dates this year",
+        "mode": {
+          "auto": "Automatic",
+          "off": "Off",
+          "christmas": "Christmas",
+          "newyear": "New Year",
+          "easter": "Easter",
+          "halloween": "Halloween",
+          "oktoberfest": "Oktoberfest"
+        }
+      }
     },
     "broadcast": {
       "title": "Send Broadcast",
@@ -438,6 +689,7 @@
     "bestDefense": "Best Defense ({cups} conceded)"
   },
   "match": {
+    "nextOT": "Both clear all three: next overtime round",
     "editResult": "Enter Result",
     "correctResult": "Correct Result",
     "whoWon": "Who won?",
@@ -457,6 +709,7 @@
     "player2": "Player 2"
   },
   "chat": {
+    "newMessages": "New messages",
     "noMessages": "No messages yet. Say hello!",
     "me": "Me",
     "sendError": "Error sending message.",
@@ -465,9 +718,13 @@
     "send": "Send",
     "login": "Log in",
     "loginToChat": "to join the chat.",
-    "justNow": "just now",
-    "minutesAgo": "{count} min. ago",
-    "hoursAgo": "{count} hrs. ago"
+    "title": "Community chat",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "online": "{count, plural, =0 {nobody online} one {# online} other {# online}}",
+    "failed": "Not sent. Tap to retry",
+    "loadingOlder": "Loading older messages",
+    "back": "Back"
   },
   "participants": {
     "available": "Available Players",
@@ -488,6 +745,12 @@
     "add": "Add"
   },
   "drunk": {
+    "pictureName": "Josie",
+    "opponentName": "Moonzy",
+    "miss": "MISSED!",
+    "sorry": "Oops … sorry, {name}!",
+    "hiccup": "Hic!",
+    "skip": "Skip",
     "on": "I'm drunk",
     "off": "I'm sober"
   },
@@ -496,6 +759,10 @@
     "invite": "Invite Players"
   },
   "host": {
+    "startHint": "Creates the schedule. Players can no longer sign up afterwards.",
+    "deleteHint": "Removes the tournament including sign-ups.",
+    "playoffsHint": "Ends the group stage and creates the final from the table.",
+    "finishHint": "Closes the tournament. No more results can be entered afterwards.",
     "title": "Host Actions",
     "deleting": "Deleting...",
     "delete": "Delete Tournament",
@@ -637,10 +904,101 @@
     "title": "This page doesn't exist",
     "home": "Go to home"
   },
+  "whatsNew": {
+    "title": "New in the app",
+    "intro": "This update brings a few things you can try right away.",
+    "game": {
+      "title": "Beer pong mini game",
+      "text": "Play the computer or duel other players, with stats on your profile."
+    },
+    "figure": {
+      "title": "Your figure",
+      "text": "Design it yourself. It waves on the home page and stands on the podium."
+    },
+    "film": {
+      "title": "Tournament film",
+      "text": "Every finished tournament as a short film with the final and the ceremony."
+    },
+    "rules": {
+      "title": "Rules page",
+      "text": "All house rules at a glance, from bomb to naked mile."
+    },
+    "later": "Later",
+    "gotIt": "Got it"
+  },
   "rules": {
     "title": "Official Rules",
     "back": "Back",
-    "empty": "No rules set yet. An admin can add them under Settings."
+    "empty": "No rules set yet. An admin can add them under Settings.",
+    "gameTitle": "Minigame",
+    "gameText": "Try the rules against an opponent: rock-paper-scissors, two throws per round, bombs, islands and everything else.",
+    "gameCta": "Play",
+    "sectionsHint": "The house rules apply to every game, including the minigame.",
+    "sections": [
+      {
+        "title": "Basics",
+        "items": [
+          "**Ten cups** per side, set up as a triangle. Played 1 vs 1 or in teams (2 vs 2).",
+          "**Who starts** is decided by a rock-paper-scissors duel. The winner starts.",
+          "**Two throws per round.** Then it is the other side's turn. Hit cups are only removed at the end of the round.",
+          "**Balls back:** If you sink **both balls** in a round, you get them back and may **throw two more**. That goes on until you no longer hit both. Every sunk ball counts, including one from a trick shot.",
+          "**Your elbow stays behind the edge of the table.** Otherwise the throw is void."
+        ]
+      },
+      {
+        "title": "Hits and special throws",
+        "items": [
+          "**Bomb:** If both throws of a round land in the same cup, **three cups** are removed. Both balls went in, so you also get **balls back**.",
+          "**Island and bomb together:** Hit an island and then the same cup again with your second ball, and both add up: **five cups** (two for the island, three for the bomb).",
+          "**Island:** A cup counts as an island when **nothing is left around it**, for example the tip once the row behind it is gone: one cup of space to the next one. Then you can call \"island\". Hit it and **two cups** are gone. Hit an island with **two throws directly in a row** and the second one is **six cups**.",
+          "**Only two islands per game:** Everyone may call island twice at most. That holds for the whole game, including redemption and overtime. There are no new ones there, only unused ones.",
+          "**Bounce:** If the ball bounces on the table first and then lands in the cup, the hit counts **double**. A bounce may be stopped by swatting it away after it has bounced. There are no bounces in duels, because the other player is not at the table and could not swat. Swatting can knock one of your own cups over; it then stays gone. If the second ball then lands in the same cup (bomb), **four cups** are removed. If **both balls are bounces** into the same cup, it is **five cups**.",
+          "**Trick shot:** If the ball bounces off a cup and rolls back at least past the middle of the table, you may try a trick shot, for example with your eyes closed, under your leg or off the ceiling. This also applies to a **bounce shot** that glances off a cup and rolls back.",
+          "**Rolling over cups:** If the ball rolls over cups, the cups whose rim it rolled over do **not** count."
+        ]
+      },
+      {
+        "title": "Rearranging cups",
+        "items": [
+          "Once only **four cups** are left on your opponent's side, the ones you have to hit, you may rearrange them **yourself**. It does not happen automatically, you do it.",
+          "You may only move them **onto the ten places** of the ten-cup setup, where a cup stands at the start. Not freely on the table.",
+          "You may rearrange **at the start of your round**, not in the middle: if five cups stand and you hit the first, the others must stay (it could still become a bomb). You rearrange the next time it is your turn. **Not after balls back:** If you sink both balls you throw again, but that is still the same turn. You may rearrange only once it is really your turn again after your opponent's.",
+          "**Each player** may rearrange **only once per game**. This also works **at the start of your redemption turn** if you have not done it yet."
+        ]
+      },
+      {
+        "title": "The end of a game",
+        "items": [
+          "**Redemption:** If the player who started hits the last cup, **only the one who did not start** may catch up **once**. It is a single turn that only continues with balls back.",
+          "**Overtime:** If they hit all remaining cups, nothing is left on either side. The **front three cups per side** are set up again and play continues until someone wins. That repeats as often as needed. In the mini game duel each player plays the overtime separately: whoever is playing clears their three cups alone, then the other one has to answer. If both clear, the next overtime follows.",
+          "If the player who did not start is the first to hit all cups, they win right away."
+        ]
+      },
+      {
+        "title": "Penalties and fun",
+        "items": [
+          "**Strip cup:** Only your **first hit** of the game counts: if it is the **middle cup of the third row from the front**, you have to stand at the table in your underwear. This applies to each player on their own. You may dress again with your next hit.",
+          "**Naked mile:** Whoever loses a whole game without hitting a single cup runs a lap around the block naked. It never happens, but it is funny anyway."
+        ]
+      },
+      {
+        "title": "Mini game in the app",
+        "items": [
+          "**Duel:** One player goes first and plays alone until all cups are gone. Their throws are recorded. The other one answers whenever they have time and plays against exactly these throws. Rock, paper, scissors has already decided who starts.",
+          "**Accepted means started:** If you accept a duel and then leave it (the cross at the top right, reloading the page, closing the app), you have given up and lost. It cannot be started again.",
+          "**Overtime in a duel:** If both clear the table, each plays the three cups on their own, taking turns, until it is decided. There is no rearranging and no island call in overtime. An overtime cannot be declined.",
+          "**There are no bounce shots in a duel**, because the other player is not at the table and could not swat them away.",
+          "**Against the computer:** You may swat bounce shots away, and the computer swats yours. One of your own cups can go flying in the process. When the computer rearranges, it always uses 1-1-2: the tip, the middle of the third row and the two middle cups of the last row."
+        ]
+      },
+      {
+        "title": "Fair play",
+        "items": [
+          "If you knock over the opponent's cups in front of you by accident, for example while swatting a bounce, **they stay gone**. Your own fault.",
+          "You may **not blow into** or **reach into** hit cups to get a spinning ball out and prevent the hit."
+        ]
+      }
+    ]
   },
   "settings": {
     "back": "Back",
@@ -648,6 +1006,7 @@
     "security": "Security"
   },
   "notifications": {
+    "delete": "Delete notification",
     "enabled": "Push notifications enabled!",
     "error": "Error enabling notifications",
     "title": "Notifications",
@@ -678,6 +1037,61 @@
     "save": "Save"
   },
   "stats": {
+    "wrappedTitle": "Beer Pong Wrapped",
+    "wrappedHint": "All published recaps to watch again.",
+    "wrappedNew": "New",
+    "wrappedOpen": "View",
+    "exportTitle": "Excel export",
+    "exportHint": "All seasons, tournaments and games in one file: rankings, tournaments with podium, every game, tournament tables, head to head and records.",
+    "exportButton": "Download Excel file",
+    "trendTitle": "Win rate over time",
+    "myTitle": "Your record · {scope}",
+    "myEmpty": "You have not played in this period yet.",
+    "place": "Place of {total}",
+    "record": "Record",
+    "recordShort": "W–L",
+    "form": "Form",
+    "streak": "Streak",
+    "streakWins": "{count} wins in a row",
+    "streakLosses": "{count} losses in a row",
+    "win": "Win",
+    "loss": "Loss",
+    "winShort": "W",
+    "lossShort": "L",
+    "you": "You",
+    "rankingTitle": "Ranking",
+    "sortBy": "Sort by",
+    "sortMedals": "Medals",
+    "sortWinRate": "Win rate",
+    "sortCupDiff": "Cups/game",
+    "perGameShort": "Ø +/-",
+    "minGamesNote": "Ranked from {min} games. Players with fewer are listed last without a place.",
+    "cupsPerGame": "Cups/game",
+    "longestStreak": "Longest win streak",
+    "toProfile": "Go to profile",
+    "historicalNote": "{count, plural, one {Medals include # historical tournament without match data.} other {Medals include # historical tournaments without match data.}}",
+    "noData": "No games in this period yet.",
+    "tournamentFilter": "Tournament type",
+    "h2hTitle": "Head to head",
+    "h2hSubtitle": "Record against every opponent. Nemesis and favourite count from {min} duels.",
+    "nemesis": "Nemesis",
+    "favorite": "Favourite opponent",
+    "h2hNone": "No duels yet.",
+    "h2hLegend": "Bar: share of wins · W–L · cup difference",
+    "h2hRecordLabel": "{wins} wins, {losses} losses",
+    "recordsTitle": "Records",
+    "recWinStreak": "Longest win streak",
+    "recWinStreakDetail": "{count} wins in a row",
+    "recBiggestWin": "Biggest win",
+    "recBiggestWinDetail": "{score} against {opponent}",
+    "recCups": "Most cups in one tournament",
+    "recCupsDetail": "{cups} cups in {games} games",
+    "recLongest": "Longest game",
+    "recLongestDetail": "{minutes} min against {opponent}",
+    "trendSubtitle": "One point per tournament. Up to five players.",
+    "chartPlayers": "Players in chart",
+    "season": "Season",
+    "allSeasons": "All seasons",
     "title": "Statistics",
     "subtitle": "Data, Facts & Legends",
     "onlyRanked": "Ranked tournaments only (no fun tournaments)",
@@ -737,7 +1151,15 @@
     "gold": "Gold",
     "silver": "Silver",
     "bronze": "Bronze",
-    "totalMedals": "Total"
+    "totalMedals": "Total",
+    "miniTitle": "Minigame",
+    "miniPlay": "Play now",
+    "miniHint": "Wins and games in the beer pong minigame, against the computer and in duels.",
+    "miniPlayer": "Player",
+    "miniWins": "Wins",
+    "miniDuels": "Duels",
+    "miniBest": "Best rounds",
+    "miniCups": "Cups"
   },
   "costSplit": {
     "settlement": "Cost Settlement",
@@ -773,5 +1195,308 @@
     "errorRequest": "Error requesting",
     "errorAccept": "Error accepting",
     "errorReject": "Error rejecting"
+  },
+  "film": {
+    "brand": "Beer Pong Tournament Film",
+    "filmEyebrow": "Tournament film",
+    "finalEyebrow": "Final",
+    "stamp": "{name} wins!",
+    "finalLine": "{winner} beats {loser} in the final",
+    "podiumTitle": "Award ceremony",
+    "players": "{count, plural, one {# player} other {# players}}",
+    "games": "{count, plural, one {# game} other {# games}}",
+    "factsEyebrow": "Tournament win",
+    "factsPodium": "2nd place: {second} · 3rd place: {third}",
+    "factsSecond": "2nd place: {second}",
+    "factsGames": "{games, plural, one {# game} other {# games}}, {cups} cups hit",
+    "factsGamesOnly": "{games, plural, one {# game} other {# games}} played",
+    "factsTopScorer": "Most cups: {name} ({cups})",
+    "factsBiggest": "Biggest win: {winner} {score} against {loser}",
+    "factsLongest": "Longest game: {minutes} minutes ({a} vs {b})",
+    "linkTitle": "Tournament film",
+    "linkText": "Watch the final and the award ceremony as a film",
+    "notAvailable": "There is no film for this tournament yet. It is created once the tournament has finished.",
+    "backToTournament": "Back to tournament"
+  },
+  "game": {
+    "title": "Beer Pong Minigame",
+    "back": "Back",
+    "pickText": "A duel with a friend or practice against the computer. The rules from the rulebook apply.",
+    "pickTitle": "Choose an opponent",
+    "pickRandom": "Random opponent",
+    "noPlayers": "There are no other signed-in players yet.",
+    "difficulty": "Difficulty",
+    "level": {
+      "easy": "Easy",
+      "normal": "Normal",
+      "hard": "Hard",
+      "impossible": "Impossible"
+    },
+    "rulesLink": "See all rules",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "duel": {
+      "quitTitle": "Give up the duel?",
+      "quitConfirm": "If you stop now, the duel counts as lost. You cannot start it again.",
+      "quitLabel": "Give up",
+      "abandoned": "You accepted a duel but did not finish it. It counts as lost.",
+      "gone": "This duel no longer exists."
+    },
+    "quit": "Quit game",
+    "rps": {
+      "prompt": "Rock, paper, scissors: the winner starts",
+      "rock": "Rock",
+      "paper": "Paper",
+      "scissors": "Scissors",
+      "draw": "Draw, again!",
+      "youStart": "You start!",
+      "oppStarts": "{name} starts!",
+      "duelPrompt": "Rock, paper, scissors against {name}: your hand was drawn at random"
+    },
+    "island": "Island!",
+    "bounce": "Bounce",
+    "rearrange": "Rearrange cups",
+    "rearrangeDone": "Done",
+    "swat": "Swat it!",
+    "trick": {
+      "eyes": "Eyes closed",
+      "leg": "Under the leg",
+      "ceiling": "Off the ceiling",
+      "skip": "Skip"
+    },
+    "hint": {
+      "aim": "Drag to aim, release to throw. The crosshair sways.",
+      "trick": "Trick shot: swipe forward, it wobbles even more.",
+      "trickChoice": "The ball rolled back: want a trick shot?",
+      "rearrange": "Tap one of your opponent's cups and then a free place, or drag it there. Then tap Done.",
+      "swat": "Quick: swat the bounce away!",
+      "swipe": "Swipe forward: faster swipe = further, the direction sets the aim.",
+      "tooShort": "Swipe too short. Flick firmly forward.",
+      "tooSideways": "That went sideways. Swipe forward towards the table."
+    },
+    "status": {
+      "yourThrow": "Your throw – {count, plural, one {# throw} other {# throws}} left",
+      "trick": "Your trick shot",
+      "trickOffer": "Trick shot?",
+      "oppTurn": "{name}'s turn",
+      "oppThrows": "{name} throws",
+      "oppTrick": "{name} tries a trick shot",
+      "lead": "Hit all the cups as fast as you can",
+      "overtimeRun": "Overtime: clear the three cups"
+    },
+    "stamp": {
+      "hit": "HIT!",
+      "miss": "MISS!",
+      "rim": "CLOSE!",
+      "rimBack": "ROLLED BACK!",
+      "bounce": "BOUNCE!",
+      "island": "ISLAND!",
+      "islandCall": "ISLAND!",
+      "sixCups": "SIX CUPS!",
+      "bomb": "BOMB!",
+      "blocked": "SWATTED!",
+      "trick": "TRICK SHOT!",
+      "strip": "STRIP CUP!",
+      "dress": "DRESSED AGAIN",
+      "accident": "YOUR OWN FAULT!",
+      "catchUp": "REDEMPTION!",
+      "overtime": "OVERTIME!",
+      "rearranged": "REARRANGED",
+      "youStart": "YOU START",
+      "oppStarts": "{name} STARTS",
+      "lead": "YOU GO FIRST",
+      "ballsBack": "BALLS BACK!",
+      "overtimeRun": "OVERTIME! YOUR THREE CUPS"
+    },
+    "end": {
+      "youWin": "YOU WIN!",
+      "oppWins": "{name} wins",
+      "you": "You",
+      "nakedMile": "{name}: naked mile!",
+      "nakedMileHint": "Lost a whole game without a single hit: one lap around the block.",
+      "again": "Again",
+      "otherOpponent": "Other opponent",
+      "rules": "Rules",
+      "leadDone": "{rounds} rounds!",
+      "sending": "Sending the duel to {name} …",
+      "sent": "Duel sent to {name}: {rounds} rounds, {hits} hits. You will get a message once they have caught up.",
+      "sendFailed": "The duel could not be sent.",
+      "saveFailed": "The result could not be saved.",
+      "duelSaved": "Result saved. {name} will be notified.",
+      "overtimeSent": "Overtime sent to {name}: {rounds} rounds, {hits} hits. {name} has to answer now and gets a message."
+    },
+    "pickKind": "How do you want to play?",
+    "cpuName": "Computer",
+    "kind": {
+      "duel": "Duel",
+      "cpu": "Vs computer",
+      "duelText": "You go first: hit all cups in as few rounds as you can. Your opponent gets a message and catches up, playing against your recorded throws, round by round. There are no bounces in duels.",
+      "cpuText": "You play the computer right away. It throws at random like the player you pick, and misses too.",
+      "duelShort": "You go first, they catch up",
+      "cpuShort": "Right away vs the computer"
+    },
+    "open": {
+      "incoming": "Challenges for you",
+      "outgoing": "Waiting for a reply",
+      "from": "{name} wants a duel",
+      "waiting": "{name} has not caught up yet",
+      "overtimeFrom": "{name}: overtime, your turn",
+      "overtimeWaiting": "Overtime: {name} has to answer"
+    },
+    "invite": {
+      "title": "Duel",
+      "text": "{name} has gone first and wants a duel. You catch up and play against the throws {name} recorded.",
+      "youStart": "Rock-paper-scissors is already done: you start.",
+      "theyStart": "Rock-paper-scissors is already done: {name} starts.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "later": "Later",
+      "open": "View",
+      "overtimeTitle": "Overtime",
+      "overtimeText": "You and {name} both cleared the table. {name} has already played the overtime: you answer with three cups.",
+      "overtimeYouStart": "You go first.",
+      "overtimeTheyStart": "{name} goes first."
+    },
+    "options": "Options",
+    "islandsLeft": "{count} left",
+    "rearrangeOnce": "once only",
+    "cupSize": "Cups",
+    "size": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "bounceShort": "Bounce",
+    "rearrangeShort": "Arrange",
+    "settings": "Settings"
+  },
+  "figure": {
+    "title": "My figure",
+    "lead": "This is how you look in the animations: in award ceremonies, tournament films, wrapped, duels and the minigame.",
+    "back": "Back",
+    "forbiddenTitle": "No permission",
+    "forbiddenText": "You can only design your own figure.",
+    "previewFront": "Figure from the front",
+    "previewBack": "Figure from behind at the table",
+    "cheer": "Cheer",
+    "skin": "Skin",
+    "skinLocked": "Your skin colour is fixed.",
+    "hair": "Hairstyle",
+    "hairColor": "Hair colour",
+    "hairStyle": {
+      "short": "Short",
+      "buzz": "Buzz cut",
+      "long": "Long",
+      "bun": "Bun",
+      "curly": "Curly",
+      "bald": "Bald"
+    },
+    "outfit": "Top",
+    "shirtColor": "Colour",
+    "patternLabel": "Pattern",
+    "pattern": {
+      "plain": "Plain",
+      "stripes": "Stripes",
+      "dots": "Dots"
+    },
+    "body": "Body",
+    "heightLabel": "Height",
+    "buildLabel": "Build",
+    "height": {
+      "0": "Short",
+      "1": "Normal",
+      "2": "Tall"
+    },
+    "build": {
+      "0": "Slim",
+      "1": "Normal",
+      "2": "Sturdy"
+    },
+    "accessory": "Accessory",
+    "acc": {
+      "none": "None",
+      "cap": "Cap",
+      "beanie": "Beanie",
+      "beerhat": "Beer hat",
+      "headband": "Headband",
+      "glasses": "Glasses",
+      "sunglasses": "Sunglasses",
+      "beard": "Beard",
+      "earring": "Earring",
+      "chain": "Gold chain",
+      "scarf": "Scarf"
+    },
+    "save": "Save",
+    "random": "Random",
+    "reset": "Reset",
+    "saved": "Saved. Your figure now shows up everywhere.",
+    "resetDone": "Reset to the default look.",
+    "where": "Glasses and beard only show from the front (award ceremony, opponent at the table). At the table you see yourself from behind: hair, cap and top.",
+    "accessoryHint": "You can combine several pieces: one headwear, one pair of glasses and any extras.",
+    "headwear": "Headwear",
+    "eyewear": "Glasses",
+    "extras": "Extras",
+    "unsaved": "Unsaved changes",
+    "allSaved": "All saved",
+    "notYet": "Still the default look"
+  },
+  "profileGame": {
+    "title": "Minigame",
+    "games": "Games",
+    "wins": "Wins",
+    "winRate": "Win rate",
+    "bestRounds": "Best rounds",
+    "averageRounds": "Avg rounds in wins",
+    "hits": "Cups hit",
+    "duels": "Duels",
+    "noDuels": "No finished duels yet.",
+    "duelRecord": "Record",
+    "winsShort": "wins",
+    "lossesShort": "losses",
+    "asChallenger": "As challenger (went first)",
+    "asOpponent": "Catching up",
+    "waitingForMe": "{count} waiting for a reply",
+    "waitingForThem": "{count} still open",
+    "openGame": "To the game",
+    "vsComputer": "Against the computer",
+    "noCpu": "Not played against the computer yet.",
+    "level": {
+      "easy": "Easy",
+      "normal": "Normal",
+      "hard": "Hard",
+      "impossible": "Impossible"
+    },
+    "nakedMiles": "Naked mile vs computer: ran {ran} times, caused {made} times",
+    "headToHead": "Duel head to head",
+    "recentDuels": "Recent duels",
+    "won": "Win",
+    "lost": "Loss",
+    "against": "vs {name}",
+    "roleChallenger": "went first",
+    "roleOpponent": "caught up",
+    "rounds": "Rounds {mine}:{theirs}",
+    "hitsLine": "Cups {mine}:{theirs}",
+    "size": {
+      "small": "small cups",
+      "medium": "medium cups",
+      "large": "large cups"
+    },
+    "nakedMe": "ran the naked mile",
+    "nakedThem": "opponent ran the naked mile",
+    "nakedDuelTitle": "Naked mile in duels",
+    "nakedTaken": "taken",
+    "nakedDealt": "dealt"
+  },
+  "sceneTheme": {
+    "title": "Background of your scenes",
+    "lead": "Applies to you in the mini game, in Wrapped and in the tournament film. In the stadium the fans cheer for bombs, balls back and wins.",
+    "error": "Saving failed.",
+    "name": {
+      "stadium": "Stadium",
+      "classic": "Classic",
+      "bar": "Pub",
+      "beach": "Beach",
+      "club": "Club"
+    }
   }
 }

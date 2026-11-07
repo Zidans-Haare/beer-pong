@@ -105,7 +105,7 @@ export default function TournamentQRCode({
               position: 'fixed',
               inset: 0,
               background: 'rgba(0, 0, 0, 0.8)',
-              backdropFilter: 'blur(8px)',
+              backdropFilter: "none",
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -218,10 +218,10 @@ export default function TournamentQRCode({
                       fontSize: '2rem',
                       fontWeight: 800,
                       fontFamily: 'var(--font-heading)',
-                      letterSpacing: '0.2em',
-                      background: 'var(--gradient-primary)',
+                      letterSpacing: "0",
+                      background: "none",
                       WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
+                      WebkitTextFillColor: "currentColor",
                     }}
                   >
                     {shortCode}

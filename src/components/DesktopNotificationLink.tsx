@@ -1,36 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Bell } from 'lucide-react';
-import { getNotifications } from '@/app/actions/notifications';
+import { useTranslations } from 'next-intl';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 
 export default function DesktopNotificationLink() {
-    const [unreadCount, setUnreadCount] = useState(0);
-    const pathname = usePathname();
-
-    const fetchUnread = async () => {
-        try {
-            const notifications = await getNotifications();
-            setUnreadCount(notifications.filter(n => !n.isRead).length);
-        } catch (e) {
-            console.error("Failed to fetch notifications for desktop nav", e);
-        }
-    };
-
-    useEffect(() => {
-        fetchUnread();
-        const interval = setInterval(fetchUnread, 60000);
-        return () => clearInterval(interval);
-    }, [pathname]);
+    const t = useTranslations('nav');
+    // gemeinsamer Zähler mit der unteren Navigation (eine leichte Abfrage statt zwei Server-Aktionen)
+    const unreadCount = useUnreadCount(true);
 
     return (
         <Link
             href="/notifications"
-            className="hidden md:block"
-            title="Benachrichtigungen"
-            style={{ position: 'relative', padding: '8px', color: 'var(--color-text-dim)', transition: 'color 0.2s' }}
+            className="icon-button"
+            aria-label={t('notifications')}
+            data-tooltip={t('notifications')}
         >
             <Bell size={20} />
             {unreadCount > 0 && (

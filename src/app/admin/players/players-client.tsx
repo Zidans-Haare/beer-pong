@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { Pencil, X, Check, Search } from 'lucide-react';
+import { useId, useState, useTransition } from 'react';
+import { Pencil, Check, Search } from 'lucide-react';
 import { adminUpdatePlayer } from '@/app/actions/admin';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import { useTranslations } from 'next-intl';
+import SheetDialog from '@/components/SheetDialog';
 
 type Player = {
     id: string;
@@ -18,6 +19,7 @@ type Player = {
 
 export default function PlayersClient({ players }: { players: Player[] }) {
     const t = useTranslations('admin.players');
+    const fieldId = useId();
     const [search, setSearch] = useState('');
     const [editing, setEditing] = useState<Player | null>(null);
     const [name, setName] = useState('');
@@ -74,8 +76,8 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colPlayer')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colGames')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('colPlayer')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('colGames')}</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} />
                                 </tr>
                             </thead>
@@ -84,7 +86,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                     const total = p._count.matchesAsPlayer1 + p._count.matchesAsPlayer2;
                                     return (
                                         <tr key={p.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={t('colPlayer')}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                     <Avatar src={p.image} name={p.name} size={36} />
                                                     <div>
@@ -95,13 +97,15 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem', color: 'var(--color-text-dim)' }} data-label={t('colGames')}>
                                                 {total}
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'right' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'right' }} data-label="">
                                                 <button
                                                     onClick={() => openEdit(p)}
                                                     title={t('editTitle')}
+                                                    className="icon-button"
+                                                    aria-label={`${t('editTitle')}: ${p.name}`}
                                                     style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', cursor: 'pointer', color: 'var(--color-text-dim)', display: 'inline-flex' }}
                                                 >
                                                     <Pencil size={15} />
@@ -118,27 +122,21 @@ export default function PlayersClient({ players }: { players: Player[] }) {
 
             {/* Edit Modal */}
             {editing && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }}>
-                    <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: 'var(--spacing-6)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-5)' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{t('editPlayer')}</h3>
-                            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-dim)', display: 'flex' }}>
-                                <X size={18} />
-                            </button>
-                        </div>
-
+                <SheetDialog title={t('editPlayer')} onClose={() => { if (!isPending) setEditing(null); }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
                             <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>Name *</label>
+                                <label htmlFor={`${fieldId}-name`} className="form-label">Name *</label>
                                 <input
+                                    id={`${fieldId}-name`}
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                     style={{ width: '100%', padding: '10px 12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)', fontSize: '0.95rem' }}
                                 />
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>Nickname</label>
+                                <label htmlFor={`${fieldId}-nickname`} className="form-label">Nickname</label>
                                 <input
+                                    id={`${fieldId}-nickname`}
                                     value={nickname}
                                     onChange={e => setNickname(e.target.value)}
                                     placeholder="optional"
@@ -146,8 +144,9 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                 />
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>Bio</label>
+                                <label htmlFor={`${fieldId}-bio`} className="form-label">Bio</label>
                                 <textarea
+                                    id={`${fieldId}-bio`}
                                     value={bio}
                                     onChange={e => setBio(e.target.value)}
                                     rows={3}
@@ -158,10 +157,12 @@ export default function PlayersClient({ players }: { players: Player[] }) {
 
                             {error && <p style={{ color: 'var(--color-error)', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
 
-                            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-2)' }}>
+                            <div className="sheet-actions">
                                 <button
                                     type="button"
                                     onClick={() => setEditing(null)}
+                                    disabled={isPending}
+                                    className="btn btn-secondary"
                                     style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-sm)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-dim)' }}
                                 >
                                     {t('cancel')}
@@ -177,8 +178,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
+                </SheetDialog>
             )}
         </>
     );

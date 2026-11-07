@@ -16,6 +16,9 @@ import TvWebRTC from '@/components/tv/TvWebRTC';
 import TvChat from '@/components/tv/TvChat';
 import TvDefaultGrid from '@/components/tv/TvDefaultGrid';
 import TvBroadcastGrid from '@/components/tv/TvBroadcastGrid';
+import { Smartphone, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const WEBRTC_FLAG = '__webrtc__';
 
@@ -169,7 +172,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 isPlayed: match.isPlayed,
                 score1: (match as any).score1 ?? null,
                 score2: (match as any).score2 ?? null,
-                winnerId: (match as any).winnerId ?? null,
+                winnerId: (match as any).winnerTeamId ?? (match as any).winnerId ?? null,
                 player1Id: (match as any).player1Id ?? null,
                 player2Id: (match as any).player2Id ?? null,
                 team1Id: (match as any).team1Id ?? null,
@@ -192,7 +195,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 isPlayed: match.isPlayed,
                 score1: (match as any).score1 ?? null,
                 score2: (match as any).score2 ?? null,
-                winnerId: (match as any).winnerId ?? null,
+                winnerId: (match as any).winnerTeamId ?? (match as any).winnerId ?? null,
                 player1Id: (match as any).player1Id ?? null,
                 player2Id: (match as any).player2Id ?? null,
                 team1Id: (match as any).team1Id ?? null,
@@ -214,7 +217,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 name2,
                 score1: (m as any).score1 ?? null,
                 score2: (m as any).score2 ?? null,
-                winnerId: (m as any).winnerId ?? null,
+                winnerId: (m as any).winnerTeamId ?? (m as any).winnerId ?? null,
                 p1Id: (m as any).player1Id || (m as any).team1Id || null,
                 p2Id: (m as any).player2Id || (m as any).team2Id || null,
             };
@@ -313,7 +316,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
 `;
 
     return (
-        <div style={{
+        <div className="tv-screen" style={{
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
@@ -330,16 +333,12 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
 
             {/* ── Portrait gate (mobile only) ── */}
             <div className="tv-portrait-gate">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                    <line x1="12" y1="18" x2="12.01" y2="18"/>
-                    <path d="M5 12 L2 9 L5 6" />
-                    <path d="M19 12 L22 9 L19 6" />
-                </svg>
+                <Smartphone size={64} strokeWidth={1.5} />
                 <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>Gerät drehen</div>
                 <div style={{ fontSize: '0.85rem', opacity: 0.55, maxWidth: '260px', lineHeight: 1.5 }}>
                     Die TV-Ansicht ist für Querformat optimiert. Bitte Gerät drehen.
                 </div>
+                <Link href={`/tournaments/${tournament.id}`} className="btn btn-secondary"><ArrowLeft size={18} />Turnier</Link>
             </div>
 
             {/* ── Header ── */}
@@ -347,30 +346,19 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: tournament.liveStreamUrl ? '10px 30px' : 'clamp(14px, 2vw, 28px) clamp(20px, 4vw, 56px)',
-                borderBottom: '2px solid #e5e7eb',
+                padding: 'var(--tv-header-padding)',
+                borderBottom: '3px solid var(--color-primary)',
                 background: '#ffffff',
                 flexShrink: 0,
                 zIndex: 10,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        background: 'var(--color-primary)',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 900,
-                        fontSize: '18px',
-                        color: '#000'
-                    }}>B</div>
+                    <Image src="/icon.png" alt="" width={40} height={40} />
                     <div>
-                        <div style={{ fontSize: '0.65rem', color: '#6b7280', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1px' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#6b7280', letterSpacing: "0", textTransform: 'uppercase', marginBottom: '1px' }}>
                             {appName} {tournament.liveStreamUrl && '• LIVE'}
                         </div>
-                        <h1 style={{ fontSize: tournament.liveStreamUrl ? '1.5rem' : 'clamp(1.4rem, 3.5vw, 3rem)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1, color: '#111827' }}>
+                        <h1 style={{ fontSize: 'var(--tv-title-size)', fontWeight: 700, margin: 0, letterSpacing: 0, lineHeight: 1.1, color: 'var(--color-text)' }}>
                             {tournament.name}
                         </h1>
                     </div>
@@ -383,12 +371,12 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                         color: tournament.status === 'ACTIVE' ? '#fff' : '#6b7280',
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        letterSpacing: '0.05em',
+                        letterSpacing: "0",
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px'
                     }}>
-                        {tournament.status === 'ACTIVE' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 8px rgba(255,255,255,0.8)' }} />}
+                        {tournament.status === 'ACTIVE' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', boxShadow: "none" }} />}
                         {statusLabel}
                     </div>
                     <TvControls />
@@ -488,7 +476,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     {/* Elimination: show active / upcoming / recent */}
                     {!hasStandings && activeMatches.length > 0 && (
                         <section style={{ marginBottom: 'clamp(18px, 2.5vw, 36px)' }}>
-                            <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Läuft gerade</div>
+                            <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Läuft gerade</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 1vw, 14px)' }}>
                                 {activeMatches.map(match => {
                                     const { name1, name2 } = getEntityName(match);
@@ -510,18 +498,18 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                                 color: 'var(--color-lobby)',
                                                 borderRadius: 'var(--radius-sm)',
                                                 padding: 'clamp(3px, 0.5vw, 6px) clamp(8px, 1vw, 14px)',
-                                                fontSize: 'clamp(0.7rem, 1.1vw, 1rem)',
+                                                fontSize: "var(--tv-copy-size, 1.5rem)",
                                                 fontWeight: 700,
                                                 whiteSpace: 'nowrap',
                                             }}>
                                                 Tisch {match.tableNumber}
                                             </div>
                                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                                                <span style={{ fontWeight: 800, fontSize: 'clamp(1rem, 2.2vw, 2rem)', flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name1}</span>
-                                                <span style={{ color: 'var(--color-text-subtle)', fontWeight: 700, fontSize: 'clamp(0.75rem, 1.3vw, 1.2rem)', whiteSpace: 'nowrap' }}>
+                                                <span style={{ fontWeight: 800, fontSize: "var(--tv-copy-size, 1.5rem)", flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name1}</span>
+                                                <span style={{ color: 'var(--color-text-subtle)', fontWeight: 700, fontSize: "var(--tv-copy-size, 1.5rem)", whiteSpace: 'nowrap' }}>
                                                     {w1 !== null ? `${w1} : ${w2}` : 'vs'}
                                                 </span>
-                                                <span style={{ fontWeight: 800, fontSize: 'clamp(1rem, 2.2vw, 2rem)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name2}</span>
+                                                <span style={{ fontWeight: 800, fontSize: "var(--tv-copy-size, 1.5rem)", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name2}</span>
                                             </div>
                                         </div>
                                     );
@@ -533,7 +521,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     {/* Upcoming */}
                     {!hasStandings && upcomingMatches.length > 0 && (
                         <section style={{ marginBottom: 'clamp(18px, 2.5vw, 36px)' }}>
-                            <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Nächste Spiele</div>
+                            <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Nächste Spiele</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 0.8vw, 12px)' }}>
                                 {upcomingMatches.map((match, i) => {
                                     const { name1, name2 } = getEntityName(match);
@@ -553,18 +541,18 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                                 color: 'var(--color-text-dim)',
                                                 borderRadius: 'var(--radius-sm)',
                                                 padding: 'clamp(2px, 0.4vw, 5px) clamp(6px, 0.8vw, 12px)',
-                                                fontSize: 'clamp(0.65rem, 1vw, 0.9rem)',
+                                                fontSize: "var(--tv-copy-size, 1.5rem)",
                                                 fontWeight: 600,
                                                 whiteSpace: 'nowrap',
                                             }}>
                                                 Tisch {match.tableNumber}
                                             </div>
                                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                                                <span style={{ fontWeight: 600, fontSize: 'clamp(0.9rem, 1.8vw, 1.6rem)', flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name1}</span>
-                                                <span style={{ color: 'var(--color-text-subtle)', fontSize: 'clamp(0.7rem, 1vw, 0.9rem)' }}>vs</span>
-                                                <span style={{ fontWeight: 600, fontSize: 'clamp(0.9rem, 1.8vw, 1.6rem)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name2}</span>
+                                                <span style={{ fontWeight: 600, fontSize: "var(--tv-copy-size, 1.5rem)", flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name1}</span>
+                                                <span style={{ color: 'var(--color-text-subtle)', fontSize: "var(--tv-copy-size, 1.5rem)" }}>vs</span>
+                                                <span style={{ fontWeight: 600, fontSize: "var(--tv-copy-size, 1.5rem)", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name2}</span>
                                             </div>
-                                            <div style={{ color: 'var(--color-text-subtle)', fontSize: 'clamp(0.7rem, 1vw, 0.9rem)', whiteSpace: 'nowrap' }}>
+                                            <div style={{ color: 'var(--color-text-subtle)', fontSize: "var(--tv-copy-size, 1.5rem)", whiteSpace: 'nowrap' }}>
                                                 {match.scheduledStart.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                         </div>
@@ -577,13 +565,13 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     {/* Recent results */}
                     {!hasStandings && recentMatches.length > 0 && (
                         <section>
-                            <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Zuletzt gespielt</div>
+                            <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Zuletzt gespielt</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {recentMatches.map(match => {
                                     const { name1, name2 } = getEntityName(match);
                                     const score1 = (match as any).score1 ?? '–';
                                     const score2 = (match as any).score2 ?? '–';
-                                    const winnerId = (match as any).winnerId;
+                                    const winnerId = (match as any).winnerTeamId || (match as any).winnerId;
                                     const p1Id = (match as any).player1Id || (match as any).team1Id;
                                     const p1Won = winnerId && winnerId === p1Id;
                                     return (
@@ -600,7 +588,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                                                 <span style={{
                                                     fontWeight: p1Won ? 700 : 400,
-                                                    fontSize: 'clamp(0.8rem, 1.5vw, 1.3rem)',
+                                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                                     flex: 1,
                                                     textAlign: 'right',
                                                     overflow: 'hidden',
@@ -610,7 +598,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                                 }}>{name1}</span>
                                                 <span style={{
                                                     fontWeight: 700,
-                                                    fontSize: 'clamp(0.8rem, 1.5vw, 1.3rem)',
+                                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                                     color: 'var(--color-text)',
                                                     whiteSpace: 'nowrap',
                                                     padding: '2px 8px',
@@ -621,7 +609,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                                                 </span>
                                                 <span style={{
                                                     fontWeight: !p1Won && winnerId ? 700 : 400,
-                                                    fontSize: 'clamp(0.8rem, 1.5vw, 1.3rem)',
+                                                    fontSize: "var(--tv-copy-size, 1.5rem)",
                                                     flex: 1,
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
@@ -649,7 +637,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     {/* Round Robin: Standings */}
                     {hasRoundRobin && standings && standings.length > 0 && (
                         <div>
-                            <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Tabelle</div>
+                            <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Tabelle</div>
                             <TvStandingsTable standings={standings} label={isTeamMode ? 'Team' : 'Spieler'} />
                         </div>
                     )}
@@ -658,11 +646,11 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
                     {hasGroupMatches && standingsA && standingsB && standingsA.length > 0 && (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(12px, 2vw, 24px)' }}>
                             <div>
-                                <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Gruppe A</div>
+                                <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Gruppe A</div>
                                 <TvStandingsTable standings={standingsA} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} />
                             </div>
                             <div>
-                                <div className="section-header" style={{ fontSize: 'clamp(0.65rem, 1vw, 0.85rem)' }}>Gruppe B</div>
+                                <div className="section-header" style={{ fontSize: "var(--tv-copy-size, 1.5rem)" }}>Gruppe B</div>
                                 <TvStandingsTable standings={standingsB} highlightTop={2} label={isTeamMode ? 'Team' : 'Spieler'} />
                             </div>
                         </div>
@@ -675,7 +663,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
 
                     {/* Empty state */}
                     {!hasStandings && bracketMatches.length === 0 && (
-                        <div style={{ color: 'var(--color-text-subtle)', fontSize: 'clamp(0.9rem, 1.5vw, 1.2rem)', paddingTop: '20px', textAlign: 'center' }}>
+                        <div style={{ color: 'var(--color-text-subtle)', fontSize: "var(--tv-copy-size, 1.5rem)", paddingTop: '20px', textAlign: 'center' }}>
                             {tournament.status === 'PLANNED' ? 'Bracket wird nach Turnierstart generiert.' : 'Keine Daten verfügbar.'}
                         </div>
                     )}

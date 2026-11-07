@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Maximize, Minimize } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function TvControls() {
+    const t = useTranslations('tv');
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [time, setTime] = useState('');
 
@@ -31,10 +34,10 @@ export default function TvControls() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(1.6rem, 3vw, 2.6rem)',
+                fontSize: 'var(--tv-clock-size, 1.5rem)',
                 fontWeight: 700,
                 color: 'var(--color-text)',
-                letterSpacing: '0.05em',
+                letterSpacing: "0",
                 minWidth: '130px',
                 textAlign: 'right',
             }}>
@@ -42,13 +45,15 @@ export default function TvControls() {
             </div>
             <button
                 onClick={toggleFullscreen}
+                className="icon-button"
+                aria-label={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
                 style={{
                     background: 'var(--color-surface-secondary)',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius-md)',
                     padding: '8px 14px',
                     cursor: 'pointer',
-                    fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)',
+                    fontSize: '1rem',
                     color: 'var(--color-text-dim)',
                     fontFamily: 'var(--font-heading)',
                     fontWeight: 600,
@@ -58,7 +63,7 @@ export default function TvControls() {
                 }}
                 title={isFullscreen ? 'Vollbild beenden' : 'Vollbild'}
             >
-                {isFullscreen ? '✕ Beenden' : '⛶ Vollbild'}
+                {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
             </button>
         </div>
     );

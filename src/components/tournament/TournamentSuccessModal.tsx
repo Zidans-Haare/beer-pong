@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { sendTournamentInviteEmails } from '@/app/actions/tournaments';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 type Participant = {
     email: string | null;
@@ -23,6 +24,7 @@ type TournamentSuccessModalProps = {
 };
 
 export default function TournamentSuccessModal({ tournament, participants }: TournamentSuccessModalProps) {
+    const appDialog = useAppDialog();
     const t = useTranslations('successModal');
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -37,14 +39,14 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
         .filter((email): email is string => !!email);
 
     const handleSendEmails = async () => {
-        if (!confirm(t('confirmEmail', { count: participantEmails.length }))) return;
+        if (!await appDialog.confirm(t('confirmEmail', { count: participantEmails.length }))) return;
         setEmailSending(true);
         const result = await sendTournamentInviteEmails(tournament.id);
         setEmailSending(false);
         if (result.success) {
             setEmailResult({ sent: result.sent ?? 0, failed: result.failed ?? 0 });
         } else {
-            alert(t('emailError'));
+            appDialog.alert(t('emailError'));
         }
     };
 
@@ -90,7 +92,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
             alignItems: 'center',
             justifyContent: 'center',
             padding: 'var(--spacing-4)',
-            backdropFilter: 'blur(5px)'
+            backdropFilter: "none"
         }}>
             <div className="glass-panel" style={{
                 maxWidth: '450px',
@@ -121,11 +123,11 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                 </p>
 
                 <div style={{ padding: 'var(--spacing-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--spacing-4)' }}>
-                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{t('notifySection')}</h3>
+                    <h3 style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-3)', textTransform: 'uppercase', letterSpacing: "0", fontWeight: 600 }}>{t('notifySection')}</h3>
                     <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
                         <button onClick={handleSendEmails} disabled={emailSending || !!emailResult} className="btn" style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-2)',
-                            background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid rgba(52, 152, 219, 0.3)',
+                            background: "rgba(40,100,122,0.15)", color: "#28647a", border: "1px solid rgba(40,100,122,0.3)",
                             opacity: emailSending || !!emailResult ? 0.7 : 1, cursor: emailSending || !!emailResult ? 'default' : 'pointer'
                         }}>
                             <Mail size={18} />
@@ -138,7 +140,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
 
                         <button
                             onClick={async () => {
-                                if (!confirm(t('confirmPush'))) return;
+                                if (!await appDialog.confirm(t('confirmPush'))) return;
                                 const title = t('pushTitle');
                                 const message = t('pushMessage', { name: tournament.name, date: new Date(tournament.date).toLocaleDateString() });
                                 const { broadcastNotification } = await import('@/app/actions/notifications');
@@ -148,7 +150,7 @@ export default function TournamentSuccessModal({ tournament, participants }: Tou
                                     type: 'TOURNAMENT',
                                     link: `/tournaments/${tournament.id}`
                                 });
-                                alert(t('pushSent'));
+                                appDialog.alert(t('pushSent'));
                             }}
                             className="btn"
                             style={{

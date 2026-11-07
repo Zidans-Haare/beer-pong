@@ -37,10 +37,10 @@ export default async function AdminGuestsPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Name</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colTournament')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colCreated')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('colExpires')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>Name</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('colTournament')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('colCreated')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('colExpires')}</th>
                                     <th style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} />
                                 </tr>
                             </thead>
@@ -49,32 +49,32 @@ export default async function AdminGuestsPage() {
                                     const isExpired = new Date(g.expiresAt) < now;
                                     return (
                                         <tr key={g.id} style={{ borderBottom: i < guests.length - 1 ? '1px solid var(--color-border)' : 'none', opacity: isExpired ? 0.6 : 1 }}>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label="Name">
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <UserX size={14} color="var(--color-text-dim)" />
                                                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{g.name}</span>
                                                     {isExpired && (
-                                                        <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: '99px', background: 'rgba(239,68,68,0.15)', color: '#f87171', fontWeight: 700 }}>
+                                                        <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: "6px", background: 'rgba(239,68,68,0.15)', color: '#f87171', fontWeight: 700 }}>
                                                             {t('expired')}
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem' }} data-label={t('colTournament')}>
                                                 <Link href={`/tournaments/${g.tournament.id}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
                                                     {g.tournament.name}
                                                 </Link>
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }} data-label={t('colCreated')}>
                                                 {format(new Date(g.createdAt), 'MM/dd/yy HH:mm', { locale: enUS })}
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', whiteSpace: 'nowrap' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', whiteSpace: 'nowrap' }} data-label={t('colExpires')}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: isExpired ? '#f87171' : 'var(--color-text-dim)' }}>
                                                     <Clock size={12} />
                                                     {format(new Date(g.expiresAt), 'MM/dd/yy HH:mm', { locale: enUS })}
                                                 </div>
                                             </td>
-                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                            <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label="">
                                                 <GuestDeleteButton guestId={g.id} />
                                             </td>
                                         </tr>

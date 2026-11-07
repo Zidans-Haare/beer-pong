@@ -40,14 +40,14 @@ export default function ProfileImagePicker({
   // Generate avatar color from name
   const getAvatarColor = (name: string): string => {
     const colors = [
-      'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
-      'linear-gradient(135deg, #4ECDC4 0%, #6EE7DE 100%)',
-      'linear-gradient(135deg, #45B7D1 0%, #67D4ED 100%)',
-      'linear-gradient(135deg, #96CEB4 0%, #B8E4CF 100%)',
-      'linear-gradient(135deg, #DDA0DD 0%, #E8C1E8 100%)',
-      'linear-gradient(135deg, #F7DC6F 0%, #F9E79F 100%)',
-      'linear-gradient(135deg, #BB8FCE 0%, #D2B4DE 100%)',
-      'linear-gradient(135deg, #85C1E9 0%, #AED6F1 100%)',
+      "#006b50",
+      "#28647a",
+      "#c34232",
+      "#08754b",
+      "#94600b",
+      "#36463e",
+      "#006b50",
+      "#28647a",
     ];
     const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[hash % colors.length];
@@ -68,7 +68,7 @@ export default function ProfileImagePicker({
             cursor: 'pointer',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            boxShadow: "none",
           }}
         >
           {previewImage && !imgError ? (

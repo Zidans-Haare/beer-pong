@@ -11,6 +11,7 @@ vi.mock('@/lib/prisma', () => ({
             createMany: vi.fn(),
             create: vi.fn(),
             findMany: vi.fn(),
+            count: vi.fn(),
         },
         bringItem: {
             findMany: vi.fn(),
@@ -69,6 +70,7 @@ const mockPrisma = prisma as unknown as {
         createMany: Mock;
         create: Mock;
         findMany: Mock;
+        count: Mock;
     };
     bringItem: {
         findMany: Mock;
@@ -97,6 +99,8 @@ describe('TournamentService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockPrisma.bringItem.findMany.mockResolvedValue([]);
+        // noch keine K.-o.-Spiele vorhanden
+        mockPrisma.match.count.mockResolvedValue(0);
     });
 
     describe('startTournament - Solo Mode', () => {
@@ -394,6 +398,15 @@ describe('TournamentService', () => {
     });
 
     describe('generateKnockoutFromGroups', () => {
+        it('legt die K.-o.-Runde nur einmal an, ein zweiter Aufruf erzeugt keine Spiele', async () => {
+            mockPrisma.match.count.mockResolvedValue(4);
+
+            await expect(TournamentService.generateKnockoutFromGroups('tournament-1')).rejects.toThrow('bereits erzeugt');
+
+            expect(mockPrisma.match.count).toHaveBeenCalledWith({ where: { tournamentId: 'tournament-1', stage: 'BRACKET' } });
+            expect(mockPrisma.match.create).not.toHaveBeenCalled();
+        });
+
         it('should generate correct crossover brackets for 4 qualifiers', async () => {
             const standings = [
                 { playerId: 'g1-first', groupId: 1, points: 9, goalDifference: 10, goalsFor: 15 },

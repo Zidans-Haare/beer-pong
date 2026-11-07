@@ -5,8 +5,10 @@ import { requestRoom, acceptRoomRequest, rejectRoomRequest } from '@/app/actions
 import { BedDouble, Check, X, Clock, Info, Coffee, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function GuestRoomInfo({ tournamentId, title, description, capacity, image, offersBreakfast, offersHalfBoard, reservations, isHost, currentUserId }: any) {
+    const appDialog = useAppDialog();
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [isRequesting, setIsRequesting] = useState(false);
     const [wantsBreakfast, setWantsBreakfast] = useState(false);
@@ -17,7 +19,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleRequest = async () => {
         setIsRequesting(true);
         const res = await requestRoom(tournamentId, wantsBreakfast, wantsHalfBoard);
-        if (!res.success) alert(res.error || t('errorRequest'));
+        if (!res.success) appDialog.alert(res.error || t('errorRequest'));
         setIsRequesting(false);
         router.refresh();
     };
@@ -25,7 +27,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleAccept = async (id: string) => {
         setLoadingId(id);
         const res = await acceptRoomRequest(id);
-        if (!res.success) alert(res.error || t('errorAccept'));
+        if (!res.success) appDialog.alert(res.error || t('errorAccept'));
         setLoadingId(null);
         router.refresh();
     };
@@ -33,7 +35,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
     const handleReject = async (id: string) => {
         setLoadingId(id);
         const res = await rejectRoomRequest(id);
-        if (!res.success) alert(res.error || t('errorReject'));
+        if (!res.success) appDialog.alert(res.error || t('errorReject'));
         setLoadingId(null);
         router.refresh();
     };
@@ -67,7 +69,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
             {!isHost && currentUserId && (
                 <div style={{ padding: 'var(--spacing-3)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)' }}>
                     {currentUserReservation ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentUserReservation.status === 'CONFIRMED' ? '#10b981' : currentUserReservation.status === 'REJECTED' ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentUserReservation.status === 'CONFIRMED' ? "#08754b" : currentUserReservation.status === 'REJECTED' ? '#ef4444' : "#94600b", fontWeight: 600 }}>
                             {currentUserReservation.status === 'CONFIRMED' && <Check size={16} />}
                             {currentUserReservation.status === 'PENDING' && <Clock size={16} />}
                             {currentUserReservation.status === 'REJECTED' && <X size={16} />}
@@ -117,7 +119,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
                                     <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{r.user.name || r.user.email}</span>
                                     {r.wantsBreakfast && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', background: 'var(--color-surface-secondary)', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}><Coffee size={10} /> Frühstück</span>}
                                     {r.wantsHalfBoard && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', background: 'var(--color-surface-secondary)', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}><Utensils size={10} /> HP</span>}
-                                    <span style={{ display: 'block', fontSize: '0.75rem', marginTop: '4px', color: r.status === 'CONFIRMED' ? '#10b981' : r.status === 'REJECTED' ? '#ef4444' : '#f59e0b' }}>
+                                    <span style={{ display: 'block', fontSize: '0.75rem', marginTop: '4px', color: r.status === 'CONFIRMED' ? "#08754b" : r.status === 'REJECTED' ? '#ef4444' : "#94600b" }}>
                                         {r.status}
                                     </span>
                                 </div>
@@ -126,7 +128,7 @@ export default function GuestRoomInfo({ tournamentId, title, description, capaci
                                         <button 
                                             onClick={() => handleAccept(r.id)} 
                                             disabled={loadingId === r.id || confirmedCount >= capacity}
-                                            style={{ padding: '6px', cursor: 'pointer', background: '#10b98120', color: '#10b981', border: 'none', borderRadius: '4px' }}
+                                            style={{ padding: '6px', cursor: 'pointer', background: "#08754b20", color: "#08754b", border: 'none', borderRadius: '4px' }}
                                             title="Bestätigen"
                                         >
                                             <Check size={16} />

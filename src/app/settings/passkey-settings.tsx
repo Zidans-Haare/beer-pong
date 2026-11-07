@@ -7,6 +7,7 @@ import { de } from 'date-fns/locale';
 import PasskeyRegisterButton from '@/components/PasskeyRegisterButton';
 import { haptic } from '@/lib/haptics';
 import { useRouter } from 'next/navigation';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Passkey {
   id: string;
@@ -20,11 +21,12 @@ interface PasskeySettingsProps {
 }
 
 export default function PasskeySettings({ passkeys }: PasskeySettingsProps) {
+    const appDialog = useAppDialog();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleDelete = async (passkeyId: string) => {
-    if (!confirm('Passkey wirklich löschen?')) return;
+    if (!await appDialog.confirm('Passkey wirklich löschen?')) return;
 
     setIsDeleting(passkeyId);
     try {
@@ -37,11 +39,11 @@ export default function PasskeySettings({ passkeys }: PasskeySettingsProps) {
         router.refresh();
       } else {
         haptic.error();
-        alert('Löschen fehlgeschlagen');
+        appDialog.alert('Löschen fehlgeschlagen');
       }
     } catch (error) {
       haptic.error();
-      alert('Fehler beim Löschen');
+      appDialog.alert('Fehler beim Löschen');
     } finally {
       setIsDeleting(null);
     }

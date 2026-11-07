@@ -50,17 +50,13 @@ export async function sendChatMessage(text: string) {
         return { success: false, error: 'Nachricht darf maximal 500 Zeichen lang sein.' };
     }
 
-    // Rate limit: no message within the last 3 seconds
-    const lastMessage = await prisma.chatMessage.findFirst({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: 'desc' },
-        select: { createdAt: true },
+    // Schutz vor Spam: höchstens 8 Nachrichten in 10 Sekunden. Mehrere kurze Nachrichten hintereinander gehen,
+    // wie man es aus Messengern kennt.
+    const recent = await prisma.chatMessage.count({
+        where: { userId: session.user.id, createdAt: { gt: new Date(Date.now() - 10_000) } },
     });
-    if (lastMessage) {
-        const diffMs = Date.now() - new Date(lastMessage.createdAt).getTime();
-        if (diffMs < 3000) {
-            return { success: false, error: 'Bitte warte kurz, bevor du erneut schreibst.' };
-        }
+    if (recent >= 8) {
+        return { success: false, error: 'Bitte warte kurz, bevor du erneut schreibst.' };
     }
 
     try {
@@ -76,7 +72,7 @@ export async function sendChatMessage(text: string) {
             },
         });
 
-        revalidatePath('/chat');
+        // kein revalidatePath('/chat'): Der Chat holt neue Nachrichten selbst, ein Neuaufbau der Seite würde nur ruckeln
         return { success: true, message };
     } catch (error) {
         console.error('Failed to send chat message:', error);

@@ -16,22 +16,12 @@ export default async function AdminLayout({
     const pendingCount = await prisma.user.count({ where: { status: 'PENDING' } });
 
     return (
-        <div style={{ minHeight: '100vh', position: 'relative' }}>
+        <div className="admin-layout">
             <AdminNav pendingCount={pendingCount} />
 
-            <main
-                className="admin-main"
-                style={{
-                    flex: 1,
-                    padding: 'var(--spacing-6)',
-                    maxWidth: '900px',
-                    width: '100%',
-                    position: 'relative',
-                    zIndex: 1,
-                }}
-            >
+            <div className="admin-main">
                 {children}
-            </main>
+            </div>
         </div>
     );
 }

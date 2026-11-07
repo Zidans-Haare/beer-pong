@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Users, UserPlus, Shuffle, X, Check } from 'lucide-react';
+import { UserRound, Users, UserPlus, Shuffle, X, Check } from 'lucide-react';
 import { autoAssignTeams, assignToTeam, createTeam, deleteTeam, updateTeamName } from '@/app/actions/teams';
 import { haptic } from '@/lib/haptics';
 import Avatar from '@/components/Avatar';
+import { useAppDialog } from '@/components/AppDialog';
 
 interface Player {
     id: string;
@@ -41,6 +42,7 @@ export default function TeamAssignment({
     availableGuests,
     isHost
 }: Props) {
+    const appDialog = useAppDialog();
     const [isPending, startTransition] = useTransition();
     const [selectedMember, setSelectedMember] = useState<{
         type: 'player' | 'guest';
@@ -70,7 +72,7 @@ export default function TeamAssignment({
                 haptic.success();
             } else {
                 haptic.error();
-                alert(result.error);
+                appDialog.alert(result.error);
             }
         });
     };
@@ -106,7 +108,7 @@ export default function TeamAssignment({
                     setSelectedMember(null);
                 } else {
                     haptic.error();
-                    alert(result.error);
+                    appDialog.alert(result.error);
                 }
             });
         } else if (currentMember) {
@@ -204,7 +206,7 @@ export default function TeamAssignment({
             {/* Teams Grid */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
                 gap: 'var(--spacing-4)'
             }}>
                 {teams.map((team, index) => (
@@ -351,7 +353,7 @@ export default function TeamAssignment({
                                     gap: 'var(--spacing-2)',
                                     padding: 'var(--spacing-2) var(--spacing-3)',
                                     background: selectedMember?.id === player.id
-                                        ? 'rgba(78, 205, 196, 0.3)'
+                                        ? "rgba(40,100,122,0.3)"
                                         : 'var(--color-surface)',
                                     border: selectedMember?.id === player.id
                                         ? '2px solid var(--color-secondary)'
@@ -378,10 +380,10 @@ export default function TeamAssignment({
                                     gap: 'var(--spacing-2)',
                                     padding: 'var(--spacing-2) var(--spacing-3)',
                                     background: selectedMember?.id === guest.id
-                                        ? 'rgba(155, 89, 182, 0.3)'
+                                        ? "rgba(var(--color-primary-rgb), 0.3)"
                                         : 'var(--color-surface)',
                                     border: selectedMember?.id === guest.id
-                                        ? '2px solid #9b59b6'
+                                        ? '2px solid var(--color-primary)'
                                         : '1px solid var(--color-border)',
                                     borderRadius: 'var(--radius-md)',
                                     color: 'var(--color-text)',
@@ -389,11 +391,11 @@ export default function TeamAssignment({
                                     fontSize: '0.9rem'
                                 }}
                             >
-                                <span style={{ fontSize: '0.8rem' }}>👤</span>
+                                <UserRound size={16} />
                                 {guest.name}
                                 <span style={{
                                     fontSize: '0.7rem',
-                                    color: '#9b59b6',
+                                    color: "var(--color-primary)",
                                     marginLeft: 'var(--spacing-1)'
                                 }}>
                                     Gast
@@ -442,7 +444,7 @@ function TeamSlot({
                 gap: 'var(--spacing-2)',
                 padding: 'var(--spacing-2) var(--spacing-3)',
                 background: isEmpty && isSelected
-                    ? 'rgba(78, 205, 196, 0.1)'
+                    ? "rgba(40,100,122,0.1)"
                     : 'var(--color-surface)',
                 border: isEmpty && isSelected
                     ? '2px dashed var(--color-secondary)'
@@ -472,7 +474,7 @@ function TeamSlot({
                     {isGuest && (
                         <span style={{
                             fontSize: '0.7rem',
-                            color: '#9b59b6',
+                            color: "var(--color-primary)",
                             marginLeft: 'auto'
                         }}>
                             Gast

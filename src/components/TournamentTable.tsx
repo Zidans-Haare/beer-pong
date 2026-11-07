@@ -38,14 +38,14 @@ export default function TournamentTable({ standings, highlightTop = 0, label }: 
                             <tr key={s.playerId} style={{
                                 borderBottom: '1px solid var(--color-border)',
                                 background: isQualifying ? 'rgba(74, 222, 128, 0.1)' : 'transparent',
-                                borderLeft: isQualifying ? '4px solid var(--color-success)' : '4px solid transparent'
+                                borderLeft: isQualifying ? '4px solid var(--color-primary)' : '4px solid transparent'
                             }}>
                                 <td style={{ padding: 'var(--spacing-3)' }}>{i + 1}.</td>
                                 <td style={{ padding: 'var(--spacing-3)', fontWeight: 'bold' }}>
                                     {s.playerName}
                                 </td>
                                 <td style={{ padding: 'var(--spacing-3)' }}>{s.matchesPlayed}</td>
-                                <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-success)' }}>{s.wins}</td>
+                                <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-primary)' }}>{s.wins}</td>
                                 <td style={{ padding: 'var(--spacing-3)', color: 'var(--color-error)' }}>{s.losses}</td>
                                 <td style={{ padding: 'var(--spacing-3)' }}>{s.cupDiff > 0 ? `+${s.cupDiff}` : s.cupDiff}</td>
                                 <td style={{ padding: 'var(--spacing-3)', fontWeight: 'bold', color: 'var(--color-primary)' }}>{s.points}</td>
@@ -56,7 +56,7 @@ export default function TournamentTable({ standings, highlightTop = 0, label }: 
             </table>
             {highlightTop > 0 && (
                 <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--color-text-dim)', textAlign: 'right' }}>
-                    <span style={{ color: 'var(--color-success)', marginRight: '6px' }}>●</span>
+                    <span style={{ color: 'var(--color-primary)', marginRight: '6px' }}>●</span>
                     {t('qualify', { n: highlightTop })}
                 </div>
             )}

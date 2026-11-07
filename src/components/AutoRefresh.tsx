@@ -1,39 +1,36 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: number }) {
     const t = useTranslations('tournaments');
     const router = useRouter();
     const [timeLeft, setTimeLeft] = useState(intervalMs / 1000);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isRefreshing, startTransition] = useTransition();
+    const timeRef = useRef(intervalMs / 1000);
 
     useEffect(() => {
+        timeRef.current = intervalMs / 1000;
         const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    setIsRefreshing(true);
-                    router.refresh();
-
-                    // Reset refreshing state after a bit (enough for SC to re-run and send payload)
-                    setTimeout(() => setIsRefreshing(false), 2000);
-
-                    return intervalMs / 1000;
-                }
-                return prev - 1;
-            });
+            if (document.querySelector('dialog[open]') || document.visibilityState === 'hidden') return;
+            if (timeRef.current <= 1) {
+                timeRef.current = intervalMs / 1000;
+                startTransition(() => router.refresh());
+            } else timeRef.current--;
+            setTimeLeft(timeRef.current);
         }, 1000);
 
         return () => clearInterval(timer);
     }, [router, intervalMs]);
 
     const handleManualRefresh = () => {
-        setIsRefreshing(true);
-        router.refresh();
+        if (document.querySelector('dialog[open]')) return;
+        startTransition(() => router.refresh());
+        timeRef.current = intervalMs / 1000;
         setTimeLeft(intervalMs / 1000);
-        setTimeout(() => setIsRefreshing(false), 2000);
     };
 
     return (
@@ -50,15 +47,12 @@ export default function AutoRefresh({ intervalMs = 15000 }: { intervalMs?: numbe
             <span>{isRefreshing ? t('refreshing') : t('autoRefresh', { seconds: timeLeft })}</span>
             <button
                 onClick={handleManualRefresh}
-                className="btn-secondary"
-                style={{
-                    padding: '2px 8px',
-                    fontSize: '0.7rem',
-                    height: 'auto',
-                    minHeight: 'unset'
-                }}
+                className="icon-button"
+                disabled={isRefreshing}
+                aria-label={t('refreshNow')}
+                data-tooltip={t('refreshNow')}
             >
-                {t('refreshNow')}
+                <RefreshCw size={18} className={isRefreshing ? 'loading-spin' : ''} />
             </button>
         </div>
     );

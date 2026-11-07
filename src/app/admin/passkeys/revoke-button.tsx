@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { ShieldOff } from 'lucide-react';
 import { revokePasskey } from '@/app/actions/admin';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function RevokeButton({ passkeyId, userName }: { passkeyId: string; userName: string }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('admin.passkeys');
     const [loading, setLoading] = useState(false);
 
     async function handleRevoke() {
-        if (!confirm(t('confirmRevoke', { name: userName }))) return;
+        if (!await appDialog.confirm(t('confirmRevoke', { name: userName }))) return;
         setLoading(true);
         const res = await revokePasskey(passkeyId);
         if (!res.success) {
-            alert(res.error ?? t('revokeError'));
+            appDialog.alert(res.error ?? t('revokeError'));
             setLoading(false);
         }
     }

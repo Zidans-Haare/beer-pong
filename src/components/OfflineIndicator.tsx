@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WifiOff, Wifi } from 'lucide-react';
 import { haptic } from '@/lib/haptics';
+import { useTranslations } from 'next-intl';
 
 /**
  * Shows a banner when the user goes offline/online
  */
 export default function OfflineIndicator() {
+  const t = useTranslations('connection');
   const [isOnline, setIsOnline] = useState(true);
   const [showBanner, setShowBanner] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
@@ -47,6 +49,7 @@ export default function OfflineIndicator() {
     <AnimatePresence>
       {showBanner && (
         <motion.div
+          role="status"
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
@@ -55,32 +58,32 @@ export default function OfflineIndicator() {
             position: 'fixed',
             top: 'calc(env(safe-area-inset-top) + 16px)',
             left: '50%',
-            transform: 'translateX(-50%)',
+            x: '-50%',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             padding: '12px 20px',
-            borderRadius: '100px',
+            borderRadius: "6px",
             background: isOnline
-              ? 'rgba(34, 197, 94, 0.9)'
-              : 'rgba(239, 68, 68, 0.9)',
-            backdropFilter: 'blur(10px)',
+              ? 'var(--color-success)'
+              : 'var(--color-text)',
+            backdropFilter: "none",
             color: 'white',
             fontSize: '0.9rem',
             fontWeight: 600,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            boxShadow: "none",
           }}
         >
           {isOnline ? (
             <>
               <Wifi size={18} />
-              <span>Wieder online</span>
+              <span>{t('online')}</span>
             </>
           ) : (
             <>
               <WifiOff size={18} />
-              <span>Keine Verbindung</span>
+              <span>{t('offline')}</span>
             </>
           )}
         </motion.div>

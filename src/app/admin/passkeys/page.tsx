@@ -33,33 +33,33 @@ export default async function AdminPasskeysPage() {
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                     {[t('colUser'), t('colName'), t('colDevice'), t('colCreated'), t('colLastUsed'), ''].map(h => (
-                                        <th key={h} style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                        <th key={h} style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {passkeys.map((pk, i) => (
                                     <tr key={pk.id} style={{ borderBottom: i < passkeys.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={t('colUser')}>
                                             <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{pk.user.name ?? '—'}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)' }}>{pk.user.email}</div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem' }} data-label={t('colName')}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text)' }}>
                                                 <KeyRound size={13} color="var(--color-primary)" />
                                                 {pk.friendlyName ?? 'Passkey'}
                                             </div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)' }} data-label={t('colDevice')}>
                                             {pk.credentialDeviceType === 'multiDevice' ? t('multiDevice') : t('singleDevice')}
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }} data-label={t('colCreated')}>
                                             {format(new Date(pk.createdAt), 'MM/dd/yy', { locale: enUS })}
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.82rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }} data-label={t('colLastUsed')}>
                                             {pk.lastUsedAt ? format(new Date(pk.lastUsedAt), 'MM/dd/yy', { locale: enUS }) : '—'}
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label="">
                                             <RevokeButton passkeyId={pk.id} userName={pk.user.name ?? 'diesen User'} />
                                         </td>
                                     </tr>

@@ -20,7 +20,7 @@ export default function TvClock() {
             fontSize: '2rem',
             fontWeight: 700,
             color: 'var(--color-text)',
-            letterSpacing: '0.05em',
+            letterSpacing: "0",
             minWidth: '120px',
             textAlign: 'right',
         }}>

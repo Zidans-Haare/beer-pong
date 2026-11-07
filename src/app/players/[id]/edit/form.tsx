@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import ProfileImagePicker from '@/components/ProfileImagePicker';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 export default function EditPlayerForm({ player, demoMode = false, paypalMeUrl = null }: { player: Player; demoMode?: boolean; paypalMeUrl?: string | null }) {
+    const appDialog = useAppDialog();
     const t = useTranslations('players');
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function EditPlayerForm({ player, demoMode = false, paypalMeUrl =
             router.push(`/players/${player.id}`);
             router.refresh();
         } else {
-            alert(t('error') + res.error);
+            appDialog.alert(t('error') + res.error);
         }
     }
 

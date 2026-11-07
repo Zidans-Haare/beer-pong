@@ -12,7 +12,7 @@ export default async function NotFound() {
         // next-intl locale context not available in root not-found (e.g. called from middleware)
     }
     return (
-        <div className="container" style={{ textAlign: 'center', paddingTop: 'var(--spacing-16)' }}>
+        <div className="container auth-page" style={{ textAlign: 'center', paddingTop: '64px' }}>
             <h1 className="title-gradient" style={{ fontSize: '6rem', marginBottom: 'var(--spacing-4)' }}>404</h1>
             <p style={{ color: 'var(--color-text-dim)', marginBottom: 'var(--spacing-8)' }}>
                 {title}

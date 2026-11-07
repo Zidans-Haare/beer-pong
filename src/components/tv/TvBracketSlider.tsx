@@ -83,11 +83,11 @@ export default function TvBracketSlider({ rounds, compact = false, showAll = fal
             {/* Header: label + dots */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: compact ? '8px' : 'clamp(6px, 1vw, 12px)', flexShrink: 0 }}>
                 <span style={{
-                    fontSize: compact ? '0.72rem' : 'clamp(0.7rem, 1.1vw, 1rem)',
+                    fontSize: compact ? '0.75rem' : 'var(--tv-label-size, 0.875rem)',
                     fontWeight: 700,
                     color: 'var(--color-text-dim)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: "0",
                 }}>
                     {round.label}
                 </span>
@@ -185,7 +185,7 @@ export default function TvBracketSlider({ rounds, compact = false, showAll = fal
                                     borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
                                 }}>
                                     <span style={{
-                                        fontSize: compact ? '0.82rem' : 'clamp(0.9rem, 1.5vw, 1.5rem)',
+                                        fontSize: compact ? '0.875rem' : 'var(--tv-copy-size, 1.5rem)',
                                         fontWeight: p.won ? 800 : (!p.won && match.winnerId) ? 400 : 600,
                                         color: (!p.won && match.winnerId) ? 'var(--color-text-dim)' : 'var(--color-text)',
                                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
@@ -194,7 +194,7 @@ export default function TvBracketSlider({ rounds, compact = false, showAll = fal
                                     </span>
                                     {hasScore && (
                                         <span style={{
-                                            fontSize: compact ? '0.82rem' : 'clamp(0.9rem, 1.5vw, 1.5rem)',
+                                            fontSize: compact ? '1rem' : 'var(--tv-copy-size, 1.5rem)',
                                             fontWeight: 800,
                                             color: p.won ? 'var(--color-primary)' : 'var(--color-text-dim)',
                                             marginLeft: compact ? '6px' : 'clamp(8px, 1vw, 16px)',

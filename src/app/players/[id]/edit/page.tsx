@@ -21,7 +21,7 @@ export default async function EditPlayerPage({ params }: { params: Promise<{ id:
 
     if (player.userId !== session.user.id) {
         return (
-            <div className="container" style={{ textAlign: 'center', marginTop: '100px' }}>
+            <div className="container page-content" style={{ textAlign: 'center', marginTop: '100px' }}>
                 <h1 style={{ color: 'var(--color-danger)' }}>Keine Berechtigung</h1>
                 <p>Du kannst nur dein eigenes Profil bearbeiten.</p>
             </div>
@@ -31,7 +31,7 @@ export default async function EditPlayerPage({ params }: { params: Promise<{ id:
     const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { paypalMeUrl: true } });
 
     return (
-        <div className="container" style={{ maxWidth: '600px' }}>
+        <div className="container page-content" style={{ maxWidth: '600px' }}>
             <h1 className="title-gradient" style={{ marginBottom: 'var(--spacing-8)' }}>Profil Bearbeiten</h1>
             <EditPlayerForm player={player} demoMode={isDemoMode} paypalMeUrl={user?.paypalMeUrl ?? null} />
         </div>

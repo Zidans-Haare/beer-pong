@@ -29,7 +29,7 @@ export default function DemoAlertOverride() {
                 justifyContent: 'center',
                 padding: '24px',
                 background: 'rgba(0,0,0,0.45)',
-                backdropFilter: 'blur(4px)',
+                backdropFilter: "none",
             }}
             onClick={() => setMessage(null)}
         >
@@ -64,7 +64,7 @@ export default function DemoAlertOverride() {
                             <Zap size={18} style={{ color: 'var(--color-primary)' }} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-primary)', marginBottom: '2px' }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: "0", color: 'var(--color-primary)', marginBottom: '2px' }}>
                                 {t('modeLabel')}
                             </div>
                             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text)' }}>

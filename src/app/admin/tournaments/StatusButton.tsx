@@ -5,18 +5,19 @@ import { setTournamentStatus, adminDeleteTournament } from '@/app/actions/admin'
 import { setTournamentLiveStreamUrl } from '@/app/actions/tournaments';
 import { useTranslations } from 'next-intl';
 import { Video, VideoOff } from 'lucide-react';
+import { useAppDialog } from '@/components/AppDialog';
 
 const STATUS_KEYS = ['PLANNED', 'ACTIVE', 'COMPLETED'] as const;
 
 const STATUS_COLORS: Record<string, string> = {
-    PLANNED: 'rgba(59,130,246,0.15)',
+    PLANNED: "rgba(40,100,122,0.15)",
     ACTIVE: 'rgba(34,197,94,0.15)',
     COMPLETED: 'rgba(100,116,139,0.15)',
 };
 
 const STATUS_TEXT: Record<string, string> = {
-    PLANNED: '#60a5fa',
-    ACTIVE: '#4ade80',
+    PLANNED: "#28647a",
+    ACTIVE: "#08754b",
     COMPLETED: '#94a3b8',
 };
 
@@ -31,11 +32,11 @@ export function StatusBadge({ status }: { status: string }) {
         <span style={{
             display: 'inline-block',
             padding: '2px 10px',
-            borderRadius: '99px',
+            borderRadius: "6px",
             fontSize: '0.72rem',
             fontWeight: 700,
             textTransform: 'uppercase',
-            letterSpacing: '0.05em',
+            letterSpacing: "0",
             background: STATUS_COLORS[status] ?? 'rgba(100,116,139,0.15)',
             color: STATUS_TEXT[status] ?? '#94a3b8',
         }}>
@@ -45,15 +46,16 @@ export function StatusBadge({ status }: { status: string }) {
 }
 
 export function DeleteButton({ tournamentId, tournamentName }: { tournamentId: string; tournamentName: string }) {
+    const appDialog = useAppDialog();
     const [loading, setLoading] = useState(false);
     const t = useTranslations('admin.statusButton');
 
     async function handleDelete() {
-        if (!confirm(t('confirmDelete', { name: tournamentName }))) return;
+        if (!await appDialog.confirm(t('confirmDelete', { name: tournamentName }))) return;
         setLoading(true);
         const result = await adminDeleteTournament(tournamentId);
         if (!result.success) {
-            alert(result.error ?? t('deleteError'));
+            appDialog.alert(result.error ?? t('deleteError'));
         }
         setLoading(false);
     }
@@ -155,7 +157,7 @@ export function LiveStreamButton({ tournamentId, currentUrl }: { tournamentId: s
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: `1px solid ${currentUrl ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                background: currentUrl ? 'rgba(78, 205, 196, 0.1)' : 'transparent',
+                background: currentUrl ? "rgba(40,100,122,0.1)" : 'transparent',
                 color: currentUrl ? 'var(--color-primary)' : 'var(--color-text-dim)',
                 opacity: loading ? 0.5 : 1,
                 transition: 'all 0.15s',

@@ -23,6 +23,7 @@ export default async function AdminTournamentsPage() {
     const t = await getTranslations('admin.tournaments');
     const tRanked = t('ranked');
     const tFun = t('fun');
+    const columnLabels = { title: t('title'), date: t('date'), players: t('players'), changeStatus: t('changeStatus'), action: t('action') };
 
     return (
         <div style={{ display: 'grid', gap: 'var(--spacing-8)' }}>
@@ -45,18 +46,18 @@ export default async function AdminTournamentsPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
                             <thead>
                                 <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('title')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('date')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('players')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('changeStatus')}</th>
-                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('action')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('title')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('date')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('players')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>Status</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('changeStatus')}</th>
+                                    <th style={{ padding: 'var(--spacing-3) var(--spacing-4)', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0" }}>{t('action')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {allTournaments.map((t, i) => (
                                     <tr key={t.id} style={{ borderBottom: i < allTournaments.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={columnLabels.title}>
                                             <Link href={`/tournaments/${t.id}`} style={{ fontWeight: 600, color: 'var(--color-text)', textDecoration: 'none', fontSize: '0.9rem' }}>
                                                 {t.name}
                                             </Link>
@@ -64,25 +65,25 @@ export default async function AdminTournamentsPage() {
                                                 {t.host?.name ?? '—'} · {t.mode === 'TEAM' ? '2v2' : '1v1'}{t.isRanked ? ` · ${tRanked}` : ` · ${tFun}`}
                                             </div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)', fontSize: '0.85rem', color: 'var(--color-text-dim)', whiteSpace: 'nowrap' }} data-label={columnLabels.date}>
                                             {format(new Date(t.date), 'MM/dd/yy HH:mm', { locale: enUS })}
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={columnLabels.players}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
                                                 <Users size={13} />
                                                 {t._count.participants}
                                             </div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label="Status">
                                             <StatusBadge status={t.status} />
                                         </td>
-                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                         <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={columnLabels.changeStatus}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                                 <StatusButton tournamentId={t.id} currentStatus={t.status} />
                                                 <LiveStreamButton tournamentId={t.id} currentUrl={(t as any).liveStreamUrl} />
                                             </div>
                                         </td>
-                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }}>
+                                        <td style={{ padding: 'var(--spacing-3) var(--spacing-4)' }} data-label={columnLabels.action}>
                                             <DeleteButton tournamentId={t.id} tournamentName={t.name} />
                                         </td>
                                     </tr>

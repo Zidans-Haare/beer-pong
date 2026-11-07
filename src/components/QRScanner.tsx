@@ -302,7 +302,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                         width: '250px',
                         height: '250px',
                         border: '4px solid var(--color-primary)',
-                        borderRadius: '24px',
+                        borderRadius: "6px",
                         background: 'transparent',
                       }}
                     />

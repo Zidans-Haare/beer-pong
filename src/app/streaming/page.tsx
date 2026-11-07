@@ -105,7 +105,7 @@ export default async function StreamingPage() {
                             <span style={{ position: 'absolute', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-error)', opacity: 0, animation: 'liveRing 1.4s ease-out infinite' }} />
                         </span>
                     )}
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: liveStreams.length > 0 ? 'var(--color-error)' : 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: liveStreams.length > 0 ? 'var(--color-error)' : 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0", margin: 0 }}>
                         Live jetzt {liveStreams.length > 0 && `(${liveStreams.length})`}
                     </p>
                 </div>
@@ -128,7 +128,7 @@ export default async function StreamingPage() {
                         {liveStreams.map(t => {
                             const isMine = myTournaments.some(m => m.id === t.id);
                             const canStart = isMine || isAdmin;
-                            const canStop = didStart(t.liveStreamUrl, t.hostId);
+                            const canStop = didStart(t.liveStreamUrl, t.hostId ?? undefined);
                             const isWebRTC = t.liveStreamUrl?.startsWith('__webrtc__') ?? false;
                             return (
                                 <div key={t.id} className="glass-panel" style={cardStyle}>
@@ -165,7 +165,7 @@ export default async function StreamingPage() {
             {/* ── Eigene Turniere (Stream starten) ── */}
             {userId && myNotLive.length > 0 && (
                 <section style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 'var(--spacing-3)' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0", marginBottom: 'var(--spacing-3)' }}>
                         Stream starten
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
@@ -186,7 +186,7 @@ export default async function StreamingPage() {
                                     tournamentId={t.id}
                                     initialUrl={t.liveStreamUrl}
                                     canStart={true}
-                                    canStop={didStart(t.liveStreamUrl, t.hostId)}
+                                    canStop={didStart(t.liveStreamUrl, t.hostId ?? undefined)}
                                     tvHref={`/tournaments/${t.id}/tv`}
                                 />
                             </div>
@@ -198,7 +198,7 @@ export default async function StreamingPage() {
             {/* ── Alle Turniere (TV ohne Stream) ── */}
             {otherTournaments.length > 0 && (
                 <section style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 'var(--spacing-3)' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: "0", marginBottom: 'var(--spacing-3)' }}>
                         TV-Ansicht
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>

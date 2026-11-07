@@ -14,6 +14,7 @@ import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, S
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import { useAppDialog } from '@/components/AppDialog';
 
 type Notification = {
     id: string;
@@ -26,6 +27,7 @@ type Notification = {
 };
 
 export default function NotificationsPage() {
+    const appDialog = useAppDialog();
     const t = useTranslations('notifications');
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ export default function NotificationsPage() {
 
             if (!vapidKey) {
                 console.error("No VAPID key found");
-                alert("Push Setup Error: No Key");
+                appDialog.alert("Push Setup Error: No Key");
                 return;
             }
 
@@ -82,10 +84,10 @@ export default function NotificationsPage() {
 
             await saveSubscription(subscription.toJSON());
             setPushStatus('granted');
-            alert(t('enabled'));
+            appDialog.alert(t('enabled'));
         } catch (error) {
             console.error("Push Error", error);
-            alert(t('error'));
+            appDialog.alert(t('error'));
         }
     };
 
@@ -107,13 +109,13 @@ export default function NotificationsPage() {
     };
 
     const handleDeleteAllRead = async () => {
-        if (!confirm(t('confirmDeleteRead'))) return;
+        if (!await appDialog.confirm(t('confirmDeleteRead'))) return;
         setNotifications(prev => prev.filter(n => !n.isRead));
         await deleteAllReadNotifications();
     };
 
     return (
-        <div className="container" style={{ paddingBottom: '100px', paddingTop: 'var(--spacing-6)' }}>
+        <div className="container page-content" style={{ paddingBottom: '100px', paddingTop: 'var(--spacing-6)' }}>
 
             {/* Header Section matching Players Page */}
             {/* Header Section - Prepared for mobile stacking */}
@@ -127,7 +129,7 @@ export default function NotificationsPage() {
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                        <h1 className="title-display" style={{ fontSize: 'clamp(1.5rem, 6vw, 2rem)' }}>{t('title')}</h1>
+                        <h1 className="title-display" style={{ fontSize: "2rem" }}>{t('title')}</h1>
                         <p className="subtitle" style={{ fontSize: '0.9rem' }}>{t('subtitle')}</p>
                     </div>
 
@@ -137,17 +139,16 @@ export default function NotificationsPage() {
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="glass-panel"
-                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
+                        className="icon-button"
+                        aria-label={t('settings')}
+                        data-tooltip={t('settings')}
                     >
-                        <Settings size={18} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{t('settings')}</span>
+                        <Settings size={22} />
                     </button>
 
                     <button
                         onClick={handleMarkAllRead}
-                        className="glass-panel"
-                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}
+                        className="btn btn-secondary"
                         title={t('markAllReadTitle')}
                     >
                         <CheckCircle size={18} />
@@ -157,9 +158,9 @@ export default function NotificationsPage() {
             </div>
 
             {/* Diagnostic Panel */}
-            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-4)' }}>
+            <div className="glass-panel" style={{ padding: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)', display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 'var(--spacing-4)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {pushStatus === 'granted' ? <ShieldCheck size={18} color="#22c55e" /> : <ShieldAlert size={18} color={pushStatus === 'denied' ? '#ef4444' : '#eab308'} />}
+                    {pushStatus === 'granted' ? <ShieldCheck size={18} color="#08754b" /> : <ShieldAlert size={18} color={pushStatus === 'denied' ? '#ef4444' : '#eab308'} />}
                     <span style={{ fontSize: '0.85rem' }}>
                         Push Status: <strong>{pushStatus === 'granted' ? t('pushGranted') : pushStatus === 'denied' ? t('pushDenied') : t('pushDefault')}</strong>
                     </span>
@@ -168,8 +169,8 @@ export default function NotificationsPage() {
                     <button
                         onClick={async () => {
                             const res = await sendTestPush();
-                            if (res.success) alert(t('testPushSent'));
-                            else alert(t('testPushError') + res.error);
+                            if (res.success) appDialog.alert(t('testPushSent'));
+                            else appDialog.alert(t('testPushError') + res.error);
                         }}
                         className="nav-link"
                         style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px' }}
@@ -190,12 +191,12 @@ export default function NotificationsPage() {
                         style={{
                             marginBottom: 'var(--spacing-6)',
                             padding: 'var(--spacing-4)',
-                            background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(6,182,212,0.1) 100%)',
-                            borderColor: 'rgba(59,130,246,0.3)'
+                            background: "var(--color-primary-light)",
+                            borderColor: "rgba(40,100,122,0.3)"
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                            <div style={{ padding: '10px', background: 'rgba(59,130,246,0.2)', borderRadius: '50%', color: '#60a5fa' }}>
+                            <div style={{ padding: '10px', background: "rgba(40,100,122,0.2)", borderRadius: '50%', color: "#28647a" }}>
                                 <Radio size={24} className="animate-pulse" />
                             </div>
                             <div style={{ flex: 1 }}>
@@ -204,7 +205,7 @@ export default function NotificationsPage() {
                             </div>
                             <button
                                 onClick={enablePushNotifications}
-                                className="btn-primary"
+                                className="btn btn-primary"
                                 style={{ fontSize: '0.8rem', padding: '8px 16px' }}
                             >
                                 {t('enable')}
@@ -245,8 +246,8 @@ export default function NotificationsPage() {
                                 borderColor = 'rgba(239,68,68,0.3)';
                             } else if (isUpdate) {
                                 IconComponent = Megaphone;
-                                iconColor = '#3b82f6'; // blue-500
-                                borderColor = 'rgba(59,130,246,0.3)';
+                                iconColor = "#28647a"; // blue-500
+                                borderColor = "rgba(40,100,122,0.3)";
                             }
 
                             return (
@@ -256,7 +257,7 @@ export default function NotificationsPage() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -50 }}
-                                    transition={{ delay: index * 0.05 }}
+                                    transition={{ duration: 0.18 }}
                                     onClick={() => handleRead(notification.id, notification.link)}
                                     className="glass-panel"
                                     style={{
@@ -265,7 +266,7 @@ export default function NotificationsPage() {
                                         display: 'flex',
                                         gap: 'var(--spacing-4)',
                                         cursor: 'pointer',
-                                        borderLeft: !notification.isRead ? `4px solid ${isLive ? '#ef4444' : isTournament ? '#eab308' : '#3b82f6'}` : '1px solid var(--color-border)',
+                                        borderLeft: !notification.isRead ? `4px solid ${isLive ? '#ef4444' : isTournament ? '#eab308' : "#28647a"}` : '1px solid var(--color-border)',
                                         opacity: notification.isRead ? 0.6 : 1,
                                         transition: 'all 0.2s',
                                         overflow: 'hidden'
@@ -276,21 +277,22 @@ export default function NotificationsPage() {
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                            <h3 style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <h3 style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '1.25rem', minWidth: 0, overflowWrap: 'anywhere' }}>
                                                 {notification.title}
                                             </h3>
                                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-dim)', fontFamily: 'monospace' }}>
                                                 {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
-                                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-dim)', lineHeight: 1.5 }}>
                                             {notification.message}
                                         </p>
                                     </div>
 
                                     <button
                                         onClick={(e) => handleDelete(e, notification.id)}
-                                        style={{ padding: '8px', color: 'var(--color-text-dim)', opacity: 0.6 }}
+                                        className="icon-button"
+                                        aria-label={t('delete')}
                                         onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-error)'}
                                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-dim)'}
                                     >

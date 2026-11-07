@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { MotionConfig, useAnimate, useReducedMotion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -13,19 +13,18 @@ interface PageTransitionProps {
  */
 export default function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
+  const [scope, animate] = useAnimate();
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reducedMotion || pathname.endsWith('/tv') || pathname.includes('/broadcast') || pathname === '/chat') return;
+    const animation = animate(scope.current, { opacity: [0.65, 1] }, { duration: 0.18, ease: 'easeOut' });
+    return () => animation.stop();
+  }, [pathname, reducedMotion, animate, scope]);
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={pathname}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-        style={{ width: '100%' }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <MotionConfig reducedMotion="user">
+      <div ref={scope} style={{ width: '100%', minWidth: 0 }}>{children}</div>
+    </MotionConfig>
   );
 }

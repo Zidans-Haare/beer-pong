@@ -2,8 +2,8 @@
 
 import { registerUser } from '@/app/actions/auth';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Clock } from 'lucide-react';
+import { useId, useState, useTransition } from 'react';
+import { ArrowRight, Clock, LoaderCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function RegisterForm() {
@@ -11,6 +11,8 @@ export default function RegisterForm() {
     const router = useRouter();
     const [error, setError] = useState('');
     const [pending, setPending] = useState(false);
+    const [isSubmitting, startTransition] = useTransition();
+    const formId = useId();
 
     async function handleSubmit(formData: FormData) {
         const res = await registerUser(formData);
@@ -28,7 +30,7 @@ export default function RegisterForm() {
 
     if (pending) {
         return (
-            <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+            <div className="form-stack" style={{ textAlign: 'center' }} role="status">
                 <div style={{ marginBottom: 'var(--spacing-4)', color: 'var(--color-text-dim)', display: 'flex', justifyContent: 'center' }}>
                     <Clock size={40} strokeWidth={1.5} />
                 </div>
@@ -41,38 +43,38 @@ export default function RegisterForm() {
     }
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-8)', width: '100%', maxWidth: '400px' }}>
-            <h1 className="title-gradient" style={{ textAlign: 'center', marginBottom: 'var(--spacing-6)' }}>{t('register')}</h1>
-            <form action={handleSubmit}>
-                <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('name')}</label>
-                    <input name="name" type="text" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+        <div>
+            <div className="auth-heading"><div className="eyebrow">BIER PONG</div><h1>{t('register')}</h1></div>
+            <form action={formData => startTransition(() => handleSubmit(formData))} className="form-stack">
+                <div className="form-field">
+                    <label className="form-label" htmlFor={`${formId}-name`}>{t('name')}</label>
+                    <input id={`${formId}-name`} name="name" type="text" autoComplete="name" required />
                 </div>
-                <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('email')}</label>
-                    <input name="email" type="email" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+                <div className="form-field">
+                    <label className="form-label" htmlFor={`${formId}-email`}>{t('email')}</label>
+                    <input id={`${formId}-email`} name="email" type="email" autoComplete="username" autoCapitalize="none" required />
                 </div>
-                <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <label style={{ display: 'block', marginBottom: 'var(--spacing-2)' }}>{t('password')}</label>
-                    <input name="password" type="password" required style={{ width: '100%', padding: 'var(--spacing-3)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text)' }} />
+                <div className="form-field">
+                    <label className="form-label" htmlFor={`${formId}-password`}>{t('password')}</label>
+                    <input id={`${formId}-password`} name="password" type="password" autoComplete="new-password" required />
                 </div>
 
                 <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', cursor: 'pointer' }}>
+                    <label className="check-row">
                         <input
                             type="checkbox"
                             required
                             style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                         />
                         <span style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            {t('acceptRules')} <a href="/rules" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>{t('rules')}</a>
+                            {t('acceptRules')} <a href="/rules" target="_blank" rel="noopener noreferrer">{t('rules')}</a>
                         </span>
                     </label>
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{t('createAccount')}</button>
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? <LoaderCircle size={18} className="loading-spin" /> : <ArrowRight size={18} />}{t('createAccount')}</button>
 
-                {error && <p style={{ color: 'var(--color-error)', marginTop: 'var(--spacing-4)', textAlign: 'center' }}>{error}</p>}
+                {error && <p className="form-error" role="alert">{error}</p>}
             </form>
         </div>
     );

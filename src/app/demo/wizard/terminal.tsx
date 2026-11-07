@@ -76,7 +76,7 @@ const SCRIPT: Frame[] = [
     blank(),
     line(m(BOX_TOP)),
     line(...row([])),
-    line(...row([w('🍺  Beer Pong — Setup Wizard')])),
+    line(...row([w("  Beer Pong — Setup Wizard")])),
     line(...row([m('v1.0'), d('  ·  Self-hosting made easy')])),
     line(...row([])),
     line(m(BOX_BOT)),
@@ -93,7 +93,7 @@ const SCRIPT: Frame[] = [
 
     // Basic config
     blank(),
-    line(m('  ⚙  '), w('Basic configuration')),
+    line(m("    "), w('Basic configuration')),
     line(m('  ' + '─'.repeat(W - 2))),
     { kind: 'ask', prompt: [g('? '), w('App name: ')], answer: DEMO_APP_NAME, answerColor: 'cyan', pause: 150 },
 
@@ -114,13 +114,13 @@ const SCRIPT: Frame[] = [
 
     // Database
     blank(),
-    line(m('  🗄  '), w('Database')),
+    line(m("    "), w('Database')),
     line(m('  ' + '─'.repeat(W - 2))),
     { kind: 'ask', prompt: [g('? '), w('Weekly DB backup via cron? '), d('(Y/n) ')], answer: 'Yes', answerColor: 'green', pause: 150 },
 
     // Email
     blank(),
-    line(m('  ✉  '), w('Email  (Resend)')),
+    line(m("    "), w('Email  (Resend)')),
     line(m('  ' + '─'.repeat(W - 2))),
     line(d('  Enables email notifications (e.g. account approval).')),
     line(d('  1. Create account at resend.com')),
@@ -132,13 +132,13 @@ const SCRIPT: Frame[] = [
 
     // VAPID
     blank(),
-    line(m('  🔔  '), w('Push Notifications  (VAPID)')),
+    line(m("    "), w('Push Notifications  (VAPID)')),
     line(m('  ' + '─'.repeat(W - 2))),
     { kind: 'ask', prompt: [g('? '), w('Generate VAPID keys? '), d('(Y/n) ')], answer: 'Yes', answerColor: 'green', pause: 150 },
 
     // Sentry
     blank(),
-    line(m('  🐛  '), w('Error Tracking  (Sentry)')),
+    line(m("    "), w('Error Tracking  (Sentry)')),
     line(m('  ' + '─'.repeat(W - 2))),
     line(d('  Tracks runtime errors in production automatically.')),
     line(d('  1. Create account at sentry.io')),
@@ -148,7 +148,7 @@ const SCRIPT: Frame[] = [
 
     // Maps
     blank(),
-    line(m('  🗺  '), w('Maps  (Google Maps)')),
+    line(m("    "), w('Maps  (Google Maps)')),
     line(m('  ' + '─'.repeat(W - 2))),
     line(d('  Enables location autocomplete for tournaments (optional).')),
     line(d('  1. console.cloud.google.com → new project')),
@@ -333,7 +333,7 @@ export default function WizardTerminal() {
                     await sleep(frame.durationMs);
                     if (cancelled || cancelRef.current) return;
                     appendLine([
-                        g('  ✔', true), d(prefix), w(frame.doneLabel),
+                        g("  ", true), d(prefix), w(frame.doneLabel),
                         ...(frame.detail ? [d('  '), d(frame.detail)] : []),
                     ]);
                     setActive(null);
@@ -394,7 +394,7 @@ export default function WizardTerminal() {
                 border: '1px solid rgba(199, 120, 221, 0.25)',
                 borderRadius: '10px',
                 overflow: 'hidden',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.45)',
+                boxShadow: "none",
             }}>
                 {/* Title bar */}
                 <div style={{

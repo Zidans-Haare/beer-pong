@@ -1,13 +1,13 @@
 'use client';
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Customized } from 'recharts';
-import { Activity } from 'lucide-react';
+import { Activity, Wrench } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 
-const COLOR_UP = '#06b6d4';
+const COLOR_UP = "#28647a";
 const COLOR_DOWN = '#ef4444';
-const COLOR_MAINTENANCE = '#f59e0b';
+const COLOR_MAINTENANCE = "#94600b";
 
 interface Heartbeat {
     status: number;
@@ -86,12 +86,12 @@ function CustomTooltip({ active, payload, maintenanceList }: any) {
             )}
             {isMaint && (
                 <div style={{ color: COLOR_MAINTENANCE, fontWeight: 600 }}>
-                    🔧 {t('maintenance')}{maintLabel ? `: ${maintLabel}` : ''}
+                     {t('maintenance')}{maintLabel ? `: ${maintLabel}` : ''}
                 </div>
             )}
             {isDown && (
                 <div style={{ color: COLOR_DOWN, fontWeight: 600 }}>
-                    ⚠ {t('outage')}{point.msg ? `: ${point.msg}` : ''}
+                     {t('outage')}{point.msg ? `: ${point.msg}` : ''}
                 </div>
             )}
         </div>
@@ -154,7 +154,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
     const isUp = lastHb?.status === 1;
     const isMaint = lastHb?.status === 3;
 
-    const uptimeColor = uptimePct >= 99 ? '#22c55e' : uptimePct >= 95 ? '#f59e0b' : '#ef4444';
+    const uptimeColor = uptimePct >= 99 ? "#08754b" : uptimePct >= 95 ? "#94600b" : '#ef4444';
 
     const showDate = period === 'all' || period === '24h';
     const chartData = filteredHeartbeats.map((hb) => {
@@ -185,7 +185,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
     })();
 
     const currentStatusLabel = isMaint ? t('maintenance') : isUp ? t('online') : t('offline');
-    const currentStatusColor = isMaint ? COLOR_MAINTENANCE : isUp ? '#22c55e' : COLOR_DOWN;
+    const currentStatusColor = isMaint ? COLOR_MAINTENANCE : isUp ? "#08754b" : COLOR_DOWN;
 
     return (
         <div>
@@ -210,14 +210,14 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     {/* Period Filter */}
-                    <div style={{ display: 'flex', background: '#f2f2f7', borderRadius: '99px', padding: '3px', gap: '2px' }}>
+                    <div style={{ display: 'flex', background: '#f2f2f7', borderRadius: "6px", padding: '3px', gap: '2px' }}>
                         {PERIODS.map(p => (
                             <button
                                 key={p.value}
                                 onClick={() => setPeriod(p.value)}
                                 style={{
                                     padding: '4px 10px',
-                                    borderRadius: '99px',
+                                    borderRadius: "6px",
                                     border: 'none',
                                     cursor: 'pointer',
                                     fontSize: '0.75rem',
@@ -234,7 +234,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                     </div>
                     <span style={{
                         padding: '4px 12px',
-                        borderRadius: '99px',
+                        borderRadius: "6px",
                         background: `${uptimeColor}18`,
                         border: `1px solid ${uptimeColor}55`,
                         color: uptimeColor,
@@ -248,7 +248,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                         alignItems: 'center',
                         gap: '6px',
                         padding: '4px 12px',
-                        borderRadius: '99px',
+                        borderRadius: "6px",
                         background: `${currentStatusColor}18`,
                         border: `1px solid ${currentStatusColor}55`,
                         color: currentStatusColor,
@@ -283,7 +283,7 @@ export default function UptimeGraph({ heartbeats, uptime24h, maintenanceList = [
                         alignItems: 'flex-start',
                         fontSize: '0.85rem',
                     }}>
-                        <span style={{ fontSize: '1rem', flexShrink: 0 }}>🔧</span>
+                        <Wrench size={18} style={{ color: COLOR_MAINTENANCE }} />
                         <div>
                             <div style={{ fontWeight: 700, color: COLOR_MAINTENANCE }}>{m.title}</div>
                             {m.description && <div style={{ color: '#52525b', marginTop: '2px' }}>{m.description}</div>}

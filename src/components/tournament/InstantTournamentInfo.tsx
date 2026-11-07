@@ -15,7 +15,7 @@ export default function InstantTournamentInfo({ isJoined }: Props) {
             textAlign: 'center',
             background: isJoined
                 ? 'rgba(39, 174, 96, 0.1)'
-                : 'rgba(78, 205, 196, 0.1)',
+                : "rgba(40,100,122,0.1)",
             border: `1px solid ${isJoined ? 'var(--color-success)' : 'var(--color-secondary)'}`
         }}>
             {isJoined ? (

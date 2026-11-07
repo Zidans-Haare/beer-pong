@@ -20,6 +20,7 @@ import TeamAssignment from '@/components/TeamAssignment';
 import TeamList from '@/components/tournament/TeamList';
 import ParticipantList from '@/components/tournament/ParticipantList';
 import HostControls from '@/components/tournament/HostControls';
+import TournamentEditButton from '@/components/tournament/TournamentEditButton';
 import PlayerProfilePrompt from '@/components/tournament/PlayerProfilePrompt';
 import InstantTournamentInfo from '@/components/tournament/InstantTournamentInfo';
 import LiveInfoCards from '@/components/tournament/LiveInfoCards';
@@ -43,6 +44,7 @@ import { getBringItems } from '@/app/actions/bring-list';
 import DrunkModeConditional from '@/components/DrunkModeConditional';
 import GuestRoomInfo from '@/components/tournament/GuestRoomInfo';
 import CostEmailButton from '@/components/tournament/CostEmailButton';
+import FilmLink from '@/components/film/FilmLink';
 
 export default async function TournamentPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     noStore();
@@ -98,6 +100,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
     if (!tournament) notFound();
 
     const t = await getTranslations('tournaments');
+    const tFilm = await getTranslations('film');
     const [players, systemSettings, bringItems] = await Promise.all([
         getPlayers(),
         getPublicSystemSettings(),
@@ -165,7 +168,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
         .map((r: any) => ({ id: r.player.id, name: r.player.name, image: r.player.image }));
 
     return (
-        <div className="container" style={{ paddingBottom: '120px' }}>
+        <div className="container page-content" style={{ paddingBottom: '120px' }}>
             {typeof matchParam === 'string' && <MatchHighlighter matchParam={matchParam} />}
             <TournamentClientFeatures
                 tournamentId={tournament.id}
@@ -193,6 +196,27 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     <ChevronRight size={15} style={{ transform: 'rotate(180deg)' }} />
                     {t('allTournaments')}
                 </Link>
+                {/* Stift für den Host, nur vor dem Start */}
+                {isHost && isPlanned && (
+                    <div style={{ marginLeft: 'auto' }}>
+                        <TournamentEditButton
+                            tournament={{
+                                id: tournament.id,
+                                name: tournament.name,
+                                date: tournament.date.toISOString(),
+                                location: tournament.location,
+                                tableCount: tournament.tableCount,
+                                mode: tournament.mode,
+                                type: tournament.type,
+                                hasReturnLeg: tournament.hasReturnLeg,
+                                isRanked: tournament.isRanked
+                            }}
+                            players={players.filter((p: any) => !p.isGuest).map((p: any) => ({ id: p.id, name: p.name }))}
+                            participantIds={yesRsvps.map((r: any) => r.playerId)}
+                            hostPlayerId={players.find((p: any) => p.userId === tournament.hostId)?.id ?? null}
+                        />
+                    </div>
+                )}
             </div>
 
             <TournamentHeader
@@ -212,6 +236,10 @@ export default async function TournamentPage({ params, searchParams }: { params:
                 isHost={isHost}
                 showQR={isPlanned}
             />
+
+            {isCompleted && tournament.matches.some((m: any) => m.isPlayed) && (
+                <FilmLink tournamentId={tournament.id} title={tFilm('linkTitle')} text={tFilm('linkText')} />
+            )}
 
             {/* Warning: Odd participants */}
             {isPlanned && !isTeamMode && (tournament.type === 'ELIMINATION' || tournament.type === 'SINGLE_ELIMINATION') && yesCount % 2 !== 0 && yesCount > 0 && (
@@ -418,7 +446,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                     )}
 
                     {tournament.type === 'GROUPS' && (
-                        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
+                        <section style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 'var(--spacing-4)', marginTop: 'var(--spacing-8)' }}>
                             <div>
                                 <h3 style={{ marginBottom: 'var(--spacing-3)', color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 600 }}>{t('groupA')}</h3>
                                 <TournamentTable
@@ -460,6 +488,7 @@ export default async function TournamentPage({ params, searchParams }: { params:
                             tournamentStatus={tournament.status}
                             isPlanned={false}
                             isActive={isActive}
+                            playoffsStarted={tournament.matches.some((m: any) => m.stage === 'BRACKET')}
                         />
                     )}
 

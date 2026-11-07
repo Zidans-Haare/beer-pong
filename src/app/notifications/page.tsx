@@ -8,7 +8,8 @@ import {
     deleteNotification,
     deleteAllReadNotifications
 } from '@/app/actions/notifications';
-import { saveSubscription, getVapidPublicKey, sendTestPush } from '@/app/actions/push';
+import { sendTestPush } from '@/app/actions/push';
+import { syncPushSubscription } from '@/lib/push-client';
 import { useRouter } from 'next/navigation';
 import { Settings, CheckCircle, Trash2, Bell, Radio, ShieldCheck, ShieldAlert, Send, Trophy, Mic, Megaphone } from 'lucide-react';
 import NotificationSettingsDialog from '@/components/NotificationSettingsDialog';
@@ -53,7 +54,9 @@ export default function NotificationsPage() {
         // Check Push Permission
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             if (Notification.permission === 'granted') {
-                setPushStatus('granted');
+                // Erlaubnis allein reicht nicht: Das Gerät muss auch beim Server angemeldet sein. Fehlt die Anmeldung,
+                // wird sie still nachgeholt; klappt das nicht, erscheint wieder der Knopf zum Aktivieren.
+                syncPushSubscription().then(ok => setPushStatus(ok ? 'granted' : 'default')).catch(() => setPushStatus('default'));
             } else if (Notification.permission === 'denied') {
                 setPushStatus('denied');
             } else {
@@ -65,24 +68,13 @@ export default function NotificationsPage() {
     }, []);
 
     const enablePushNotifications = async () => {
-        if (!('serviceWorker' in navigator)) return;
-
         try {
-            const register = await navigator.serviceWorker.register('/sw.js');
-            const vapidKey = await getVapidPublicKey();
-
-            if (!vapidKey) {
-                console.error("No VAPID key found");
-                appDialog.alert("Push Setup Error: No Key");
+            const ok = await syncPushSubscription({ ask: true });
+            if (!ok) {
+                setPushStatus(Notification.permission === 'denied' ? 'denied' : 'default');
+                appDialog.alert(t('error'));
                 return;
             }
-
-            const subscription = await register.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidKey)
-            });
-
-            await saveSubscription(subscription.toJSON());
             setPushStatus('granted');
             appDialog.alert(t('enabled'));
         } catch (error) {
@@ -169,7 +161,7 @@ export default function NotificationsPage() {
                     <button
                         onClick={async () => {
                             const res = await sendTestPush();
-                            if (res.success) appDialog.alert(t('testPushSent'));
+                            if (res.success) appDialog.alert(t('testPushSentCount', { count: res.sent ?? 0 }));
                             else appDialog.alert(t('testPushError') + res.error);
                         }}
                         className="nav-link"
@@ -308,29 +300,4 @@ export default function NotificationsPage() {
             {showSettings && <NotificationSettingsDialog onClose={() => setShowSettings(false)} />}
         </div>
     );
-}
-
-function urlBase64ToUint8Array(base64String: string) {
-    if (!base64String) return new Uint8Array(0);
-
-    // Remove whitespace and potential non-base64 chars
-    const cleaned = base64String.trim();
-
-    const padding = '='.repeat((4 - cleaned.length % 4) % 4);
-    const base64 = (cleaned + padding)
-        .replace(/\-/g, '+')
-        .replace(/_/g, '/');
-
-    try {
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    } catch (e) {
-        console.error('Failed to decode VAPID key base64:', e, 'Cleaned string length:', cleaned.length);
-        throw e;
-    }
 }

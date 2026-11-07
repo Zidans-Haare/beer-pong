@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#7c3aed">
-    <title>Neues großes Update — Bier Pong</title>
+    <title>Wartung — Bier Pong</title>
     <style>
         /* Eigenständige Seite: nginx liefert sie während der Wartung direkt aus, ohne die App */
         @font-face { font-family: 'Manrope'; src: url('/fonts/Manrope.ttf') format('truetype'); font-weight: 200 800; font-display: swap; }
@@ -44,10 +44,8 @@
         .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 14px; }
         .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); animation: blink 1.6s ease-in-out infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
-        h1 { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 2.6rem; line-height: 1; font-weight: 700; margin-bottom: 18px; }
+        h1 { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 2.6rem; line-height: 1; font-weight: 700; margin-bottom: 10px; }
         .description { color: var(--dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; }
-        .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 20px; }
-        .chip { padding: 5px 10px; border-radius: 999px; border: 1px solid #e4e7e5; background: #fafbfb; font-size: 0.78rem; font-weight: 600; color: var(--text); }
         .progress { height: 6px; border-radius: 999px; background: #eef0ef; overflow: hidden; margin-bottom: 18px; }
         .progress span { display: block; height: 100%; width: 40%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), #a78bfa); animation: slide 1.8s ease-in-out infinite; }
         @keyframes slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
@@ -85,17 +83,10 @@
                 <div class="splash b" style="--dx:2px"></div>
                 <div class="splash c" style="--dx:15px"></div>
             </div>
-            <div class="status-badge"><div class="status-dot"></div>Update läuft</div>
-            <h1>Neues großes Update</h1>
-            <div class="chips" aria-label="Was neu ist">
-                <span class="chip">Neues Design</span>
-                <span class="chip">Minispiel im Stadion</span>
-                <span class="chip">Duelle</span>
-                <span class="chip">Turnierfilm</span>
-                <span class="chip">Deine Figur</span>
-                <span class="chip">Neuer Chat</span>
-            </div>
-            <div class="progress" role="progressbar" aria-label="Update läuft"><span></span></div>
+            <div class="status-badge"><div class="status-dot"></div>Wartung</div>
+            <h1>Gleich wieder da</h1>
+            <p class="description">Wir spielen gerade ein Update ein. Die Seite lädt von selbst neu, sobald es weitergeht.</p>
+            <div class="progress" role="progressbar" aria-label="Wartung läuft"><span></span></div>
 
             <div class="info-box" id="infoBox">
                 <div class="info-label">Was passiert gerade?</div>
@@ -117,7 +108,7 @@
                 </div>
             </div>
 
-            <p class="footer">Nach dem Update die App einmal komplett neu laden.<br>Code: <a href="https://github.com/Zidans-Haare/beer-pong">github.com/Zidans-Haare/beer-pong</a></p>
+            <p class="footer">Code: <a href="https://github.com/Zidans-Haare/beer-pong">github.com/Zidans-Haare/beer-pong</a></p>
         </div>
     </div>
     <script>

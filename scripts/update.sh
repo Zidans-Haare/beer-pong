@@ -52,8 +52,9 @@ rm -f .next/standalone/public/maintenance.on .next/standalone/public/maintenance
 cp -r messages .next/standalone/messages 2>/dev/null || true
 
 echo "♻️   Restarting PM2..."
-set -a; [ -f .env ] && . .env; set +a
-pm2 restart beer-pong --update-env
+# Die App liest .env selbst (Standalone-Build). Die Datei hier nicht in die Shell laden:
+# Werte mit Leerzeichen ohne Anführungszeichen würden das Skript abbrechen.
+pm2 restart beer-pong
 
 echo ""
 echo "✅  Update complete!"
